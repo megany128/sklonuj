@@ -1,0 +1,20 @@
+{
+	"A1": {
+		"unlocked_cases": ["nom", "acc", "gen"],
+		"unlocked_difficulty": ["A1"],
+		"adjectives_unlocked": false,
+		"plural_unlocked": false
+	},
+	"A2": {
+		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins"],
+		"unlocked_difficulty": ["A1", "A2"],
+		"adjectives_unlocked": false,
+		"plural_unlocked": "sg_first"
+	},
+	"B1": {
+		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
+		"unlocked_difficulty": ["A1", "A2", "B1"],
+		"adjectives_unlocked": true,
+		"plural_unlocked": true
+	}
+}

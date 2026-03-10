@@ -1,0 +1,102 @@
+[
+	{
+		"id": "loc_v_001",
+		"template": "Bydlím v ___.",
+		"lemmaCategory": "places",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "v",
+		"why": "'V' (in) takes the locative case when expressing location.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "loc_na_002",
+		"template": "Jsem na ___.",
+		"lemmaCategory": "places",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Na' (on/at) takes the locative case when expressing location.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "loc_o_003",
+		"template": "Mluvím o ___.",
+		"lemmaCategory": "abstract",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "o",
+		"why": "'O' (about) always takes the locative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "loc_v_004",
+		"template": "Pracuji v ___.",
+		"lemmaCategory": "places",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "v",
+		"why": "'V' (in) takes the locative case when expressing location where one works.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "loc_na_005",
+		"template": "Sedím na ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Na' (on) takes the locative case when expressing the surface where someone is sitting.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "acc_vid_006",
+		"template": "Vidím ___.",
+		"lemmaCategory": "animals",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "acc_mam_007",
+		"template": "Mám ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"why": "The direct object of 'mít' (to have) takes the accusative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "acc_chci_008",
+		"template": "Chci ___.",
+		"lemmaCategory": "food",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"why": "The direct object of 'chtít' (to want) takes the accusative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "acc_na_009",
+		"template": "Jdu na ___.",
+		"lemmaCategory": "places",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Na' (to/onto) takes the accusative case when expressing direction or movement toward a destination.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "acc_kupuji_010",
+		"template": "Kupuji ___.",
+		"lemmaCategory": "food",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"why": "The direct object of 'kupovat' (to buy) takes the accusative case.",
+		"difficulty": "A1"
+	}
+]
