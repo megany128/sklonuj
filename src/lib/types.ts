@@ -6,6 +6,18 @@ export type Number_ = 'sg' | 'pl';
 
 export type Difficulty = 'A1' | 'A2' | 'B1';
 
+export type DrillType = 'form_production' | 'case_identification' | 'sentence_fill_in';
+
+export const CASE_LABELS: Record<Case, string> = {
+	nom: 'Nominative',
+	gen: 'Genitive',
+	dat: 'Dative',
+	acc: 'Accusative',
+	voc: 'Vocative',
+	loc: 'Locative',
+	ins: 'Instrumental'
+};
+
 export type Paradigm =
 	| 'hrad'
 	| 'stroj'
@@ -63,6 +75,7 @@ export interface DrillQuestion {
 	correctAnswer: string;
 	case: Case;
 	number: Number_;
+	drillType: DrillType;
 }
 
 export interface DrillResult {
@@ -72,6 +85,27 @@ export interface DrillResult {
 	nearMiss: boolean;
 }
 
+export interface DrillSettings {
+	selectedCases: Case[];
+	selectedDrillTypes: DrillType[];
+	numberMode: 'sg' | 'pl' | 'both';
+	showWordHint: boolean;
+}
+
+export const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+
+export const ALL_DRILL_TYPES: DrillType[] = [
+	'form_production',
+	'case_identification',
+	'sentence_fill_in'
+];
+
+export const DRILL_TYPE_LABELS: Record<DrillType, string> = {
+	form_production: 'Form Production',
+	case_identification: 'Case Identification',
+	sentence_fill_in: 'Sentence Fill-In'
+};
+
 export interface CaseScore {
 	attempts: number;
 	correct: number;
@@ -80,5 +114,6 @@ export interface CaseScore {
 export interface Progress {
 	level: Difficulty;
 	caseScores: { [caseKey: string]: CaseScore };
+	paradigmScores: { [paradigmKey: string]: CaseScore };
 	lastSession: string;
 }

@@ -79,7 +79,22 @@ export function generateFormProduction(
 		template: PLACEHOLDER_TEMPLATE,
 		correctAnswer,
 		case: case_,
-		number: number_
+		number: number_,
+		drillType: 'form_production'
+	};
+}
+
+export function generateCaseIdentification(
+	template: SentenceTemplate,
+	word: WordEntry
+): DrillQuestion {
+	return {
+		word,
+		template,
+		correctAnswer: template.requiredCase,
+		case: template.requiredCase,
+		number: template.number,
+		drillType: 'case_identification'
 	};
 }
 
@@ -90,7 +105,8 @@ export function generateSentenceDrill(template: SentenceTemplate, word: WordEntr
 		template,
 		correctAnswer,
 		case: template.requiredCase,
-		number: template.number
+		number: template.number,
+		drillType: 'sentence_fill_in'
 	};
 }
 
@@ -137,6 +153,12 @@ export function checkAnswer(question: DrillQuestion, userAnswer: string): DrillR
 	const trimmedUser = userAnswer.trim().toLowerCase();
 	const trimmedCorrect = question.correctAnswer.trim().toLowerCase();
 
+	// For case identification, do an exact match on the case abbreviation
+	if (question.drillType === 'case_identification') {
+		const correct = trimmedUser === trimmedCorrect;
+		return { question, userAnswer, correct, nearMiss: false };
+	}
+
 	if (trimmedUser === trimmedCorrect) {
 		return { question, userAnswer, correct: true, nearMiss: false };
 	}
@@ -157,13 +179,12 @@ export function weightedRandom(
 	case_: Case,
 	number_: Number_
 ): WordEntry {
-	const key = `${case_}_${number_}`;
-	const scores = progress.caseScores;
-
-	const score: CaseScore | undefined = scores[key];
-	const accuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
-	const weight = 1 / (accuracy + 0.1);
-	const weights = candidates.map(() => weight);
+	const weights = candidates.map((word) => {
+		const paradigmKey = `${word.paradigm}_${case_}_${number_}`;
+		const score: CaseScore | undefined = progress.paradigmScores[paradigmKey];
+		const accuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
+		return 1 / (accuracy + 0.1);
+	});
 
 	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 	let random = Math.random() * totalWeight;

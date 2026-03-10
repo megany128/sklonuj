@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	checkAnswer,
 	generateFormProduction,
+	generateCaseIdentification,
 	generateSentenceDrill,
 	getCandidates,
 	loadTemplates,
@@ -29,9 +30,9 @@ describe('loadWordBank', () => {
 });
 
 describe('loadTemplates', () => {
-	it('returns array with length 10', () => {
+	it('returns non-empty array of templates', () => {
 		const templates = loadTemplates();
-		expect(templates.length).toBe(10);
+		expect(templates.length).toBeGreaterThan(0);
 	});
 });
 
@@ -44,6 +45,7 @@ describe('getCandidates', () => {
 		const progress: Progress = {
 			level: 'B1',
 			caseScores: {},
+			paradigmScores: {},
 			lastSession: ''
 		};
 		const candidates = getCandidates(placesTemplate, progress);
@@ -65,6 +67,7 @@ describe('generateFormProduction', () => {
 		expect(question.case).toBe('loc');
 		expect(question.number).toBe('sg');
 		expect(question.word.lemma).toBe('hrad');
+		expect(question.drillType).toBe('form_production');
 	});
 });
 
@@ -83,6 +86,38 @@ describe('generateSentenceDrill', () => {
 		expect(question.correctAnswer).toBe('domě');
 		expect(question.case).toBe('loc');
 		expect(question.number).toBe('sg');
+		expect(question.drillType).toBe('sentence_fill_in');
+	});
+});
+
+describe('generateCaseIdentification', () => {
+	it('returns the case abbreviation as correctAnswer', () => {
+		const templates = loadTemplates();
+		const template = templates.find((t) => t.id === 'loc_v_001');
+		expect(template).toBeDefined();
+		if (!template) return;
+		const bank = loadWordBank();
+		const dum = bank.find((w) => w.lemma === 'dům');
+		expect(dum).toBeDefined();
+		if (!dum) return;
+		const question = generateCaseIdentification(template, dum);
+		expect(question.correctAnswer).toBe('loc');
+		expect(question.case).toBe('loc');
+		expect(question.drillType).toBe('case_identification');
+	});
+
+	it('checkAnswer correctly validates case identification', () => {
+		const templates = loadTemplates();
+		const template = templates.find((t) => t.id === 'acc_vid_006');
+		expect(template).toBeDefined();
+		if (!template) return;
+		const bank = loadWordBank();
+		const word = bank[0];
+		const question = generateCaseIdentification(template, word);
+		const correct = checkAnswer(question, 'acc');
+		expect(correct.correct).toBe(true);
+		const wrong = checkAnswer(question, 'loc');
+		expect(wrong.correct).toBe(false);
 	});
 });
 
@@ -130,9 +165,46 @@ describe('weightedRandom', () => {
 		const progress: Progress = {
 			level: 'A1',
 			caseScores: {},
+			paradigmScores: {},
 			lastSession: ''
 		};
 		const picked = weightedRandom(candidates, progress, 'nom', 'sg');
 		expect(candidates).toContainEqual(picked);
+	});
+
+	it('favors words with lower per-paradigm accuracy', () => {
+		const bank = loadWordBank();
+		// Pick candidates with different paradigms so we can mark some as known
+		const hrad = bank.find((w) => w.paradigm === 'hrad');
+		const zena = bank.find((w) => w.paradigm === 'žena');
+		const mesto = bank.find((w) => w.paradigm === 'město');
+		expect(hrad).toBeDefined();
+		expect(zena).toBeDefined();
+		expect(mesto).toBeDefined();
+		if (!hrad || !zena || !mesto) return;
+		const candidates = [hrad, zena, mesto];
+		// Mark hrad and žena paradigms as well-known, leave město unseen
+		const progress: Progress = {
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {
+				['hrad_loc_sg']: { attempts: 20, correct: 20 },
+				['žena_loc_sg']: { attempts: 20, correct: 20 }
+			},
+			lastSession: ''
+		};
+
+		const counts: Record<string, number> = {};
+		for (const c of candidates) counts[c.paradigm] = 0;
+
+		const iterations = 1000;
+		for (let i = 0; i < iterations; i++) {
+			const picked = weightedRandom(candidates, progress, 'loc', 'sg');
+			counts[picked.paradigm]++;
+		}
+
+		// The unseen paradigm (accuracy=0, weight~10) should be picked much more often
+		// than the well-known paradigms (accuracy=1, weight~0.91)
+		expect(counts['město']).toBeGreaterThan(iterations * 0.7);
 	});
 });
