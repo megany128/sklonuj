@@ -1,0 +1,115 @@
+lemma,translation,gender,animate,paradigm,difficulty,categories,sg_nom,sg_gen,sg_dat,sg_acc,sg_voc,sg_loc,sg_ins,pl_nom,pl_gen,pl_dat,pl_acc,pl_voc,pl_loc,pl_ins
+most,bridge,m,false,hrad,A2,misc,most,mostu,mostu,most,moste,mostě,mostem,mosty,mostů,mostům,mosty,mosty,mostech,mosty
+matka,mother,f,false,žena,A1,family,matka,matky,matce,matku,matko,matce,matkou,matky,matek,matkám,matky,matky,matkách,matkami
+syn,son,m,true,pán,A1,family,syn,syna,synu,syna,synu,synu,synem,synové,synů,synům,syny,synové,synech,syny
+auto,"car, automobile",n,false,město,A1,transportation,auto,auta,autu,auto,auto,autě,autem,auta,aut,autům,auta,auta,autech,auty
+nos,nose,m,false,hrad,A1,body,nos,nosu,nosu,nos,nose,nosu,nosem,nosy,nosů,nosům,nosy,nosy,nosech,nosy
+pero,feather,n,false,město,A2,objects,pero,pera,peru,pero,pero,peru,perem,pera,per,perům,pera,pera,perech,pery
+den,"day (24 hours, usually from midnight to midnight)",m,false,hrad,A1,time,den,dne,dnovi,dne,dni,dnovi,dnem,dnové,dnů,dnům,dny,dnové,dních,dni
+hotel,hotel,m,false,hrad,A2,places,hotel,hotelu,hotelu,hotel,hotele,hotelu,hotelem,hotely,hotelů,hotelům,hotely,hotely,hotelech,hotely
+hlava,head (part of the body),f,false,žena,A1,body,hlava,hlavy,hlavě,hlavu,hlavo,hlavě,hlavou,hlavy,hlav,hlavám,hlavy,hlavy,hlavách,hlavami
+sestra,sister (sibling),f,false,žena,A1,family,sestra,sestry,sestře,sestru,sestro,sestře,sestrou,sestry,sester,sestrám,sestry,sestry,sestrách,sestrami
+žena,woman,f,false,žena,A1,people,žena,ženy,ženě,ženu,ženo,ženě,ženou,ženy,žen,ženám,ženy,ženy,ženách,ženami
+život,life,m,false,hrad,B1,abstract,život,života,životu,život,živote,životě,životem,životy,životů,životům,životy,životy,životech,životy
+slovo,word (distinct unit of language),n,false,město,B1,misc,slovo,slova,slovu,slovo,slovo,slově,slovem,slova,slov,slovům,slova,slova,slovech,slovy
+rok,"year, the time it takes a planetary body to complete one revolution around a star",m,false,hrad,A1,time,rok,roku,roku,rok,roku,roce,rokem,roky,roků,rokům,roky,roky,rocích,roky
+student,"student (academic, at university)",m,true,pán,B1,people,student,studenta,studentu,studenta,studente,studentu,studentem,studenti,studentů,studentům,studenty,studenti,studentech,studenty
+otec,father,m,true,muž,A1,family,otec,otce,otci,otce,otče,otci,otcem,otci,otců,otcům,otce,otci,otcích,otci
+les,forest,m,false,hrad,B1,places,les,lesa,lesu,les,lese,lese,lesem,lesy,lesů,lesům,lesy,lesy,lesích,lesy
+telefon,"phone, telephone",m,false,hrad,A2,objects,telefon,telefonu,telefonu,telefon,telefone,telefonu,telefonem,telefony,telefonů,telefonům,telefony,telefony,telefonech,telefony
+hora,mountain,f,false,žena,A2,nature,hora,hory,hoře,horu,horo,hoře,horou,hory,hor,horám,hory,hory,horách,horami
+park,park,m,false,hrad,A2,places,park,parku,parku,park,parku,parku,parkem,parky,parků,parkům,parky,parky,parcích,parky
+rodina,family,f,false,žena,B1,family,rodina,rodiny,rodině,rodinu,rodino,rodině,rodinou,rodiny,rodin,rodinám,rodiny,rodiny,rodinách,rodinami
+hodina,hour,f,false,žena,A2,time,hodina,hodiny,hodině,hodinu,hodino,hodině,hodinou,hodiny,hodin,hodinám,hodiny,hodiny,hodinách,hodinami
+pes,dog,m,true,pán,A1,animals,pes,psa,psu,psa,pse,psu,psem,psi,psů,psům,psy,psi,psech,psy
+ruka,hand,f,false,žena,A1,body,ruka,ruky,ruce,ruku,ruko,ruce,rukou,ruce,ruk,rukám,ruce,ruce,rukách,rukami
+noha,"leg (of a person, animal, humanoid robot, puppet, etc.)",f,false,žena,A1,body,noha,nohy,noze,nohu,noho,noze,nohou,nohy,noh,nohám,nohy,nohy,nohách,nohama
+autobus,"bus, coach, omnibus",m,false,hrad,A2,transportation,autobus,autobusu,autobusu,autobus,autobuse,autobusu,autobusem,autobusy,autobusů,autobusům,autobusy,autobusy,autobusech,autobusy
+voda,water,f,false,žena,A1,food,voda,vody,vodě,vodu,vodo,vodě,vodou,vody,vod,vodám,vody,vody,vodách,vodami
+okno,window,n,false,město,B1,objects,okno,okna,oknu,okno,okno,oknu,oknem,okna,oken,oknům,okna,okna,oknech,okny
+muž,man (an adult male human),m,true,muž,A1,people,muž,muže,muži,muže,muži,muži,mužem,mužové,mužů,mužům,muže,mužové,mužích,muži
+měsíc,moon,m,false,stroj,A2,"nature,time",měsíc,měsíce,měsíci,měsíc,měsíci,měsíci,měsícem,měsíce,měsíců,měsícům,měsíce,měsíce,měsících,měsíci
+strom,tree,m,false,hrad,A2,nature,strom,stromu,stromu,strom,strome,stromu,stromem,stromy,stromů,stromům,stromy,stromy,stromech,stromy
+strýc,uncle,m,true,muž,A2,family,strýc,strýce,strýci,strýce,strýče,strýci,strýcem,strýci,strýců,strýcům,strýce,strýci,strýcích,strýci
+oko,eye,n,false,město,A1,body,oko,oka,oku,oko,oko,oku,okem,oka,ok,okům,oka,oka,okách,oky
+čaj,"tea (the dried leaves or buds of the tea plant, Camellia sinensis)",m,false,stroj,A2,food,čaj,čaje,čaji,čaj,čaji,čaji,čajem,čaje,čajů,čajům,čaje,čaje,čajích,čaji
+dcera,daughter,f,false,žena,A1,family,dcera,dcery,dceři,dceru,dcero,dceři,dcerou,dcery,dcer,dcerám,dcery,dcery,dcerách,dcerami
+minuta,minute (unit of time),f,false,žena,A2,time,minuta,minuty,minutě,minutu,minuto,minutě,minutou,minuty,minut,minutám,minuty,minuty,minutách,minutami
+škola,school,f,false,žena,A1,places,škola,školy,škole,školu,školo,škole,školou,školy,škol,školám,školy,školy,školách,školami
+pivo,beer,n,false,město,A2,food,pivo,piva,pivu,pivo,pivo,pivě,pivem,piva,piv,pivům,piva,piva,pivech,pivy
+ucho,"ear (of a human, animal, puppet, humanoid robot, etc.)",n,false,město,A1,body,ucho,ucha,uchu,ucho,ucho,uchu,uchem,uši,uší,uším,uši,uši,uších,ušima
+jablko,apple,n,false,město,A1,food,jablko,jablka,jablku,jablko,jablko,jablku,jablkem,jablka,jablek,jablkům,jablka,jablka,jablkách,jablky
+dům,"house (building, structure intended for housing)",m,false,hrad,A1,places,dům,domu,domu,dům,dome,domě,domem,domy,domů,domům,domy,domy,domech,domy
+babička,grandmother,f,false,žena,A2,family,babička,babičky,babičce,babičku,babičko,babičce,babičkou,babičky,babiček,babičkám,babičky,babičky,babičkách,babičkami
+noc,"night, nighttime (period of time from sundown to sunup)",f,false,kost,A2,time,noc,noci,noci,noc,noci,noci,nocí,noci,nocí,nocím,noci,noci,nocích,nocemi
+květ,flower (reproductive structure),m,false,hrad,A2,nature,květ,květu,květu,květ,květe,květu,květem,květy,květů,květům,květy,květy,květech,květy
+kočka,cat (domestic animal),f,false,žena,A1,animals,kočka,kočky,kočce,kočku,kočko,kočce,kočkou,kočky,koček,kočkám,kočky,kočky,kočkách,kočkami
+ulice,street,f,false,růže,A1,places,ulice,ulice,ulici,ulici,ulice,ulici,ulicí,ulice,ulic,ulicím,ulice,ulice,ulicích,ulicemi
+teta,aunt,f,false,žena,A2,family,teta,tety,tetě,tetu,teto,tetě,tetou,tety,tet,tetám,tety,tety,tetách,tetami
+bratr,brother,m,true,pán,A1,family,bratr,bratra,bratru,bratra,bratře,bratru,bratrem,bratří,bratří,bratřím,bratří,bratří,bratřích,bratřími
+smrt,death,f,false,kost,B1,abstract,smrt,smrti,smrti,smrt,smrti,smrti,smrtí,smrti,smrtí,smrtím,smrti,smrti,smrtích,smrtmi
+člověk,human,m,true,pán,B1,people,člověk,člověka,člověku,člověka,člověče,člověku,člověkem,lidi,lidí,lidem,lidi,lidi,lidech,lidmi
+kino,cinema,n,false,město,B1,places,kino,kina,kinu,kino,kino,kinu,kinem,kina,kin,kinům,kina,kina,kinech,kiny
+tráva,grass (plant of the family Poaceae),f,false,žena,B1,nature,tráva,trávy,trávě,trávu,trávo,trávě,travou,trávy,trav,travám,trávy,trávy,travách,travami
+káva,coffee,f,false,žena,A2,food,káva,kávy,kávě,kávu,kávo,kávě,kávou,kávy,káv,kávám,kávy,kávy,kávách,kávami
+čas,time,m,false,hrad,A1,time,čas,času,času,čas,čase,času,časem,časy,časů,časům,časy,časy,časech,časy
+hrad,castle,m,false,hrad,B1,places,hrad,hradu,hradu,hrad,hrade,hradu,hradem,hrady,hradů,hradům,hrady,hrady,hradech,hrady
+svoboda,freedom,f,false,žena,B1,abstract,svoboda,svobody,svobodě,svobodu,svobodo,svobodě,svobodou,svobody,svobod,svobodám,svobody,svobody,svobodách,svobodami
+pravda,truth,f,false,žena,B1,abstract,pravda,pravdy,pravdě,pravdu,pravdo,pravdě,pravdou,pravdy,pravd,pravdám,pravdy,pravdy,pravdách,pravdami
+vejce,egg,n,false,moře,A2,food,vejce,vejce,vejci,vejce,vejce,vejci,vejcem,vejce,vajec,vejcím,vejce,vejce,vejcích,vejci
+řeka,river,f,false,žena,A2,nature,řeka,řeky,řece,řeku,řeko,řece,řekou,řeky,řek,řekám,řeky,řeky,řekách,řekami
+ryba,"fish (cold-blooded vertebrate animal that lives in water, moving with the help of fins and breathing with gills)",f,false,žena,A2,"food,animals",ryba,ryby,rybě,rybu,rybo,rybě,rybou,ryby,ryb,rybám,ryby,ryby,rybách,rybami
+bota,boot,f,false,žena,A2,objects,bota,boty,botě,botu,boto,botě,botou,boty,bot,botám,boty,boty,botách,botami
+kniha,book (a collection of sheets of paper bound together to hinge at one edge),f,false,žena,A1,objects,kniha,knihy,knize,knihu,kniho,knize,knihou,knihy,knih,knihám,knihy,knihy,knihách,knihami
+maso,meat,n,false,město,A2,food,maso,masa,masu,maso,maso,masu,masem,masa,mas,masům,masa,masa,masech,masy
+vlak,train,m,false,hrad,A2,transportation,vlak,vlaku,vlaku,vlak,vlaku,vlaku,vlakem,vlaky,vlaků,vlakům,vlaky,vlaky,vlacích,vlaky
+tužka,pencil,f,false,žena,A2,objects,tužka,tužky,tužce,tužku,tužko,tužce,tužkou,tužky,tužek,tužkám,tužky,tužky,tužkách,tužkami
+mléko,milk,n,false,město,A1,food,mléko,mléka,mléku,mléko,mléko,mléku,mlékem,mléka,mlék,mlékům,mléka,mléka,mlécích,mléky
+stůl,table (item of furniture),m,false,hrad,A1,objects,stůl,stolu,stolu,stůl,stole,stolu,stolem,stoly,stolů,stolům,stoly,stoly,stolech,stoly
+jezero,lake,n,false,město,A2,nature,jezero,jezera,jezeru,jezero,jezero,jezeru,jezerem,jezera,jezer,jezerům,jezera,jezera,jezerech,jezery
+moře,sea,n,false,moře,A2,nature,moře,moře,moři,moře,moře,moři,mořem,moře,moří,mořím,moře,moře,mořích,moři
+věž,tower,f,false,kost,B1,misc,věž,věže,věži,věž,věži,věži,věží,věže,věží,věžím,věže,věže,věžích,věžemi
+papír,paper,m,false,hrad,A2,objects,papír,papíru,papíru,papír,papíre,papíře,papírem,papíry,papírů,papírům,papíry,papíry,papírech,papíry
+víno,wine,n,false,město,B1,food,víno,vína,vínu,víno,víno,víně,vínem,vína,vín,vínům,vína,vína,vínech,víny
+láska,love (intense feeling of affection and care toward another person),f,false,žena,B1,abstract,láska,lásky,lásce,lásku,lásko,lásce,láskou,lásky,lásek,láskám,lásky,lásky,láskách,láskami
+štěstí,happiness,n,false,stavení,B1,abstract,štěstí,štěstí,štěstí,štěstí,štěstí,štěstí,štěstím,štěstí,štěstí,štěstím,štěstí,štěstí,štěstích,štěstími
+růže,rose,f,false,růže,B1,nature,růže,růže,růži,růži,růže,růži,růží,růže,růží,růžím,růže,růže,růžích,růžemi
+počítač,computer,m,false,stroj,B1,objects,počítač,počítače,počítači,počítač,počítači,počítači,počítačem,počítače,počítačů,počítačům,počítače,počítače,počítačích,počítači
+práce,work,f,false,růže,B1,abstract,práce,práce,práci,práci,práce,práci,prací,práce,prací,pracím,práce,práce,pracích,pracemi
+dítě,child,n,false,kuře,A1,family,dítě,dítěte,dítěti,dítě,dítě,dítěti,dítětem,děti,dětí,dětem,děti,děti,dětech,dětmi
+košile,shirt,f,false,růže,A2,objects,košile,košile,košili,košili,košile,košili,košilí,košile,košil,košilím,košile,košile,košilích,košilemi
+srdce,heart,n,false,moře,B1,body,srdce,srdce,srdci,srdce,srdce,srdci,srdcem,srdce,srdcí,srdcím,srdce,srdce,srdcích,srdci
+hvězda,star,f,false,žena,A2,nature,hvězda,hvězdy,hvězdě,hvězdu,hvězdo,hvězdě,hvězdou,hvězdy,hvězd,hvězdám,hvězdy,hvězdy,hvězdách,hvězdami
+přítel,friend,m,true,muž,A2,people,přítel,přítele,příteli,přítele,příteli,příteli,přítelem,přátelé,přátel,přátelům,přátele,přátelé,přátelích,přáteli
+manželka,wife,f,false,žena,A2,family,manželka,manželky,manželce,manželku,manželko,manželce,manželkou,manželky,manželek,manželkám,manželky,manželky,manželkách,manželkami
+manžel,husband (a man in a marriage),m,true,pán,A2,family,manžel,manžela,manželu,manžela,manželi,manželu,manželem,manželové,manželů,manželům,manžele,manželové,manželích,manželi
+obchod,trade (commercial exchange of goods and services),m,false,hrad,A2,places,obchod,obchodu,obchodu,obchod,obchode,obchodu,obchodem,obchody,obchodů,obchodům,obchody,obchody,obchodech,obchody
+tramvaj,"tram, trolley, streetcar",f,false,kost,B1,transportation,tramvaj,tramvaje,tramvaji,tramvaj,tramvaji,tramvaji,tramvají,tramvaje,tramvají,tramvajím,tramvaje,tramvaje,tramvajích,tramvajemi
+odpověď,answer,f,false,kost,B1,abstract,odpověď,odpovědi,odpovědi,odpověď,odpovědi,odpovědi,odpovědí,odpovědi,odpovědí,odpovědím,odpovědi,odpovědi,odpovědích,odpovědmi
+místnost,"room (separate part of a building, enclosed by walls, a floor and a ceiling)",f,false,kost,B1,places,místnost,místnosti,místnosti,místnost,místnosti,místnosti,místností,místnosti,místností,místnostem,místnosti,místnosti,místnostech,místnostmi
+muzeum,museum,n,false,město,B1,places,muzeum,muzea,muzeu,muzeum,muzeum,muzeu,muzeem,muzea,muzeí,muzeím,muzea,muzea,muzeích,muzei
+gymnázium,grammar school (UK) (secondary school that stresses academic over practical or vocational education),n,false,město,B2,misc,gymnázium,gymnázia,gymnáziu,gymnázium,gymnázium,gymnáziu,gymnáziem,gymnázia,gymnázií,gymnáziím,gymnázia,gymnázia,gymnáziích,gymnázii
+náměstí,square (open space in a town),n,false,stavení,B1,places,náměstí,náměstí,náměstí,náměstí,náměstí,náměstí,náměstím,náměstí,náměstí,náměstím,náměstí,náměstí,náměstích,náměstími
+dědeček,grandfather,m,true,pán,A2,family,dědeček,dědečka,dědečku,dědečka,dědečku,dědečku,dědečkem,dědečci,dědečků,dědečkům,dědečky,dědečci,dědečcích,dědečky
+chlapec,boy,m,true,muž,A2,people,chlapec,chlapce,chlapci,chlapce,chlapče,chlapci,chlapcem,chlapci,chlapců,chlapcům,chlapce,chlapci,chlapcích,chlapci
+věc,thing,f,false,kost,B1,abstract,věc,věci,věci,věc,věci,věci,věcí,věci,věcí,věcem,věci,věci,věcech,věcmi
+taška,bag (flexible container),f,false,žena,A2,objects,taška,tašky,tašce,tašku,taško,tašce,taškou,tašky,tašek,taškám,tašky,tašky,taškách,taškami
+problém,problem,m,false,hrad,B1,abstract,problém,problému,problému,problém,probléme,problému,problémem,problémy,problémů,problémům,problémy,problémy,problémech,problémy
+radost,joy (feeling),f,false,kost,B1,abstract,radost,radosti,radosti,radost,radosti,radosti,radostí,radosti,radostí,radostem,radosti,radosti,radostech,radostmi
+máslo,butter (foodstuff),n,false,město,A2,food,máslo,másla,máslu,máslo,máslo,másle,máslem,másla,másel,máslům,másla,másla,máslech,másly
+kocour,"tomcat, male cat (domestic species)",m,true,pán,B1,animals,kocour,kocoura,kocouru,kocoura,kocoure,kocouru,kocourem,kocouři,kocourů,kocourům,kocoury,kocouři,kocourech,kocoury
+děvče,girl (female child),n,false,kuře,B2,people,děvče,děvčete,děvčeti,děvče,děvče,děvčeti,děvčetem,děvčata,děvčat,děvčatům,děvčata,děvčata,děvčatech,děvčaty
+sýr,cheese (dairy product),m,false,hrad,A2,food,sýr,sýru,sýru,sýr,sýre,sýru,sýrem,sýry,sýrů,sýrům,sýry,sýry,sýrech,sýry
+restaurace,restaurant,f,false,růže,A2,places,restaurace,restaurace,restauraci,restauraci,restaurace,restauraci,restaurací,restaurace,restaurací,restauracím,restaurace,restaurace,restauracích,restauracemi
+jídlo,meal,n,false,město,B1,food,jídlo,jídla,jídlu,jídlo,jídlo,jídlu,jídlem,jídla,jídel,jídlům,jídla,jídla,jídlech,jídly
+otázka,question,f,false,žena,B1,abstract,otázka,otázky,otázce,otázku,otázko,otázce,otázkou,otázky,otázek,otázkám,otázky,otázky,otázkách,otázkami
+slunce,sun,n,false,moře,A2,nature,slunce,slunce,slunci,slunce,slunce,slunci,sluncem,slunce,sluncí,sluncím,slunce,slunce,sluncích,slunci
+město,city (large settlement),n,false,město,A1,places,město,města,městu,město,město,městu,městem,města,měst,městům,města,města,městech,městy
+nádraží,"station, railway station",n,false,stavení,B1,places,nádraží,nádraží,nádraží,nádraží,nádraží,nádraží,nádražím,nádraží,nádraží,nádražím,nádraží,nádraží,nádražích,nádražími
+kuře,chick (young chicken),n,false,kuře,B2,animals,kuře,kuřete,kuřeti,kuře,kuře,kuřeti,kuřetem,kuřata,kuřat,kuřatům,kuřata,kuřata,kuřatech,kuřaty
+obloha,sky,f,false,žena,B1,nature,obloha,oblohy,obloze,oblohu,obloho,obloze,oblohou,oblohy,obloh,oblohám,oblohy,oblohy,oblohách,oblohami
+vesnice,village,f,false,růže,B1,places,vesnice,vesnice,vesnici,vesnici,vesnice,vesnici,vesnicí,vesnice,vesnic,vesnicím,vesnice,vesnice,vesnicích,vesnicemi
+zápisník,notebook (book),m,false,hrad,B1,objects,zápisník,zápisníku,zápisníku,zápisník,zápisníku,zápisníku,zápisníkem,zápisníky,zápisníků,zápisníkům,zápisníky,zápisníky,zápisnících,zápisníky
+kavárna,café,f,false,žena,A2,places,kavárna,kavárny,kavárně,kavárnu,kavárno,kavárně,kavárnou,kavárny,kaváren,kavárnám,kavárny,kavárny,kavárnách,kavárnami
+přítelkyně,girlfriend (female partner in a romantic relationship),f,false,růže,B2,people,přítelkyně,přítelkyně,přítelkyni,přítelkyni,přítelkyně,přítelkyni,přítelkyní,přítelkyně,přítelkyní,přítelkyním,přítelkyně,přítelkyně,přítelkyních,přítelkyněmi
+sešit,"exercise book (a booklet for students, containing blank, lined or checkered pages for writing answers, drawing graphs etc.)",m,false,hrad,A2,objects,sešit,sešitu,sešitu,sešit,sešite,sešitu,sešitem,sešity,sešitů,sešitům,sešity,sešity,sešitech,sešity
