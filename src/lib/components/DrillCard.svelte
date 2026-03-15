@@ -195,7 +195,7 @@
 							<span
 								class="inline-block rounded-full px-3 py-1 text-sm font-semibold {CASE_COLORS[
 									question.case
-								].bg} {CASE_COLORS[question.case].dark}"
+								].bg} text-white"
 							>
 								{prompt.caseName}{#if prompt.isPlural}&nbsp;plural{/if}
 							</span>

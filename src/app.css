@@ -1,11 +1,9 @@
 @import 'tailwindcss';
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-	--font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'Gabarito', ui-sans-serif, system-ui, sans-serif;
 	--color-brand-50: oklch(0.97 0.01 250);
 	--color-brand-100: oklch(0.93 0.03 250);
 	--color-brand-200: oklch(0.87 0.06 250);
@@ -14,8 +12,24 @@
 	--color-brand-500: oklch(0.55 0.15 250);
 	--color-brand-600: oklch(0.47 0.15 250);
 	--color-brand-700: oklch(0.39 0.13 250);
-	--color-surface: oklch(0.985 0.002 250);
+	--color-surface: oklch(0.97 0.01 60);
 	--color-surface-dark: oklch(0.145 0.014 250);
+
+	/* Case colors */
+	--color-case-nom: #8f7e86;
+	--color-case-gen: #5d8cdc;
+	--color-case-dat: #e89a02;
+	--color-case-acc: #14b160;
+	--color-case-voc: #a777e0;
+	--color-case-loc: #da5e5e;
+	--color-case-ins: #e34994;
+
+	/* Semantic colors */
+	--color-text-default: #5a5a5a;
+	--color-text-inverted: #ffffff;
+	--color-text-subtitle: #949494;
+	--color-card-stroke: #e8e3e0;
+	--color-card-bg: #ffffff;
 }
 
 html {

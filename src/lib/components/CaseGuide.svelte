@@ -136,7 +136,7 @@
 						<span
 							class="mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-bold {CASE_COLORS[
 								c.key
-							].bg} {CASE_COLORS[c.key].dark}"
+							].bg} text-white"
 						>
 							{c.name}
 						</span>

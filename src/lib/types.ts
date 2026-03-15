@@ -18,35 +18,24 @@ export const CASE_LABELS: Record<Case, string> = {
 	ins: 'Instrumental'
 };
 
-export const CASE_COLORS: Record<Case, { bg: string; dark: string }> = {
-	nom: {
-		bg: 'bg-slate-100 text-slate-700',
-		dark: 'dark:bg-slate-800 dark:text-slate-300'
-	},
-	gen: {
-		bg: 'bg-brand-100 text-brand-700',
-		dark: 'dark:bg-brand-900 dark:text-brand-300'
-	},
-	dat: {
-		bg: 'bg-emerald-100 text-emerald-700',
-		dark: 'dark:bg-emerald-900 dark:text-emerald-300'
-	},
-	acc: {
-		bg: 'bg-amber-100 text-amber-700',
-		dark: 'dark:bg-amber-900 dark:text-amber-300'
-	},
-	voc: {
-		bg: 'bg-purple-100 text-purple-700',
-		dark: 'dark:bg-purple-900 dark:text-purple-300'
-	},
-	loc: {
-		bg: 'bg-rose-100 text-rose-700',
-		dark: 'dark:bg-rose-900 dark:text-rose-300'
-	},
-	ins: {
-		bg: 'bg-sky-100 text-sky-700',
-		dark: 'dark:bg-sky-900 dark:text-sky-300'
-	}
+export const CASE_COLORS: Record<Case, { bg: string; text: string; border: string }> = {
+	nom: { bg: 'bg-case-nom', text: 'text-case-nom', border: 'border-case-nom' },
+	gen: { bg: 'bg-case-gen', text: 'text-case-gen', border: 'border-case-gen' },
+	dat: { bg: 'bg-case-dat', text: 'text-case-dat', border: 'border-case-dat' },
+	acc: { bg: 'bg-case-acc', text: 'text-case-acc', border: 'border-case-acc' },
+	voc: { bg: 'bg-case-voc', text: 'text-case-voc', border: 'border-case-voc' },
+	loc: { bg: 'bg-case-loc', text: 'text-case-loc', border: 'border-case-loc' },
+	ins: { bg: 'bg-case-ins', text: 'text-case-ins', border: 'border-case-ins' }
+};
+
+export const CASE_NUMBER: Record<Case, number> = {
+	nom: 1,
+	gen: 2,
+	dat: 3,
+	acc: 4,
+	voc: 5,
+	loc: 6,
+	ins: 7
 };
 
 export type Paradigm =
