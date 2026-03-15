@@ -18,6 +18,37 @@ export const CASE_LABELS: Record<Case, string> = {
 	ins: 'Instrumental'
 };
 
+export const CASE_COLORS: Record<Case, { bg: string; dark: string }> = {
+	nom: {
+		bg: 'bg-slate-100 text-slate-700',
+		dark: 'dark:bg-slate-800 dark:text-slate-300'
+	},
+	gen: {
+		bg: 'bg-brand-100 text-brand-700',
+		dark: 'dark:bg-brand-900 dark:text-brand-300'
+	},
+	dat: {
+		bg: 'bg-emerald-100 text-emerald-700',
+		dark: 'dark:bg-emerald-900 dark:text-emerald-300'
+	},
+	acc: {
+		bg: 'bg-amber-100 text-amber-700',
+		dark: 'dark:bg-amber-900 dark:text-amber-300'
+	},
+	voc: {
+		bg: 'bg-purple-100 text-purple-700',
+		dark: 'dark:bg-purple-900 dark:text-purple-300'
+	},
+	loc: {
+		bg: 'bg-rose-100 text-rose-700',
+		dark: 'dark:bg-rose-900 dark:text-rose-300'
+	},
+	ins: {
+		bg: 'bg-sky-100 text-sky-700',
+		dark: 'dark:bg-sky-900 dark:text-sky-300'
+	}
+};
+
 export type Paradigm =
 	| 'hrad'
 	| 'stroj'

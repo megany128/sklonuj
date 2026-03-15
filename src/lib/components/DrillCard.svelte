@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
-	import { CASE_LABELS, CASE_INDEX } from '$lib/types';
+	import { CASE_LABELS, CASE_INDEX, CASE_COLORS } from '$lib/types';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 
 	let {
@@ -9,7 +9,8 @@
 		onSubmit,
 		onSpeak,
 		selectedCases,
-		showWordHint
+		showWordHint,
+		onWordClick = null
 	}: {
 		question: DrillQuestion | null;
 		result: DrillResult | null;
@@ -17,6 +18,7 @@
 		onSpeak: ((text: string) => void) | null;
 		selectedCases: Case[];
 		showWordHint: boolean;
+		onWordClick?: ((lemma: string) => void) | null;
 	} = $props();
 
 	let userInput = $state('');
@@ -177,11 +179,23 @@
 							Decline
 						</p>
 						<p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-							{question.word.lemma}
+							{#if onWordClick}
+								<button
+									type="button"
+									onclick={() => onWordClick?.(question!.word.lemma)}
+									class="cursor-pointer underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:decoration-brand-400 hover:text-brand-700 dark:decoration-slate-600 dark:hover:decoration-brand-400 dark:hover:text-brand-300"
+								>
+									{question.word.lemma}
+								</button>
+							{:else}
+								{question.word.lemma}
+							{/if}
 						</p>
 						<div class="mt-3 flex items-center justify-center gap-2">
 							<span
-								class="inline-block rounded-full bg-brand-100 px-3 py-1 text-sm font-semibold text-brand-700 dark:bg-brand-900 dark:text-brand-300"
+								class="inline-block rounded-full px-3 py-1 text-sm font-semibold {CASE_COLORS[
+									question.case
+								].bg} {CASE_COLORS[question.case].dark}"
 							>
 								{prompt.caseName}{#if prompt.isPlural}&nbsp;plural{/if}
 							</span>
@@ -196,7 +210,12 @@
 						<p class="mt-3 text-xl font-medium leading-relaxed text-slate-900 dark:text-slate-100">
 							{parts.before}<span
 								class="mx-0.5 inline-block rounded bg-brand-100 px-2 py-0.5 font-bold text-brand-700 dark:bg-brand-900 dark:text-brand-300"
-								>({question.word.lemma})</span
+								>{#if onWordClick}<button
+										type="button"
+										onclick={() => onWordClick?.(question!.word.lemma)}
+										class="cursor-pointer underline decoration-brand-300 decoration-dotted underline-offset-2 transition-colors hover:decoration-brand-500 dark:decoration-brand-600 dark:hover:decoration-brand-400"
+										>({question.word.lemma})</button
+									>{:else}({question.word.lemma}){/if}</span
 							>{parts.after}
 						</p>
 					{:else}
@@ -214,7 +233,12 @@
 						</p>
 						{#if showWordHint}
 							<p class="mt-2 text-sm text-slate-400 dark:text-slate-500">
-								({question.word.lemma}) &mdash; {question.word.translation}
+								({#if onWordClick}<button
+										type="button"
+										onclick={() => onWordClick?.(question!.word.lemma)}
+										class="cursor-pointer underline decoration-slate-300 decoration-dotted underline-offset-2 transition-colors hover:decoration-brand-400 hover:text-brand-600 dark:decoration-slate-600 dark:hover:decoration-brand-400 dark:hover:text-brand-300"
+										>{question.word.lemma}</button
+									>{:else}{question.word.lemma}{/if}) &mdash; {question.word.translation}
 							</p>
 						{/if}
 					{/if}
@@ -289,7 +313,7 @@
 					<!-- Diacritics helper bar -->
 					{#if showDiacriticsBar && !submitted}
 						<div class="mt-2.5">
-							<DiacriticsBar {inputEl} />
+							<DiacriticsBar {inputEl} inputValue={userInput} />
 						</div>
 					{/if}
 
