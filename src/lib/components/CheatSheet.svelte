@@ -109,27 +109,27 @@
 			: `max-height: ${expanded ? '1000px' : '0px'}; opacity: ${expanded ? '1' : '0'}`}
 	>
 		<div
-			class="space-y-3 {alwaysExpanded
+			class="space-y-4 {alwaysExpanded
 				? ''
 				: 'mt-2 rounded-[24px] border border-card-stroke bg-card-bg p-5'}"
 		>
 			{#each caseGroups as group (group.case_)}
-				<div class="rounded-[24px] border-2 border-shaded-background p-4">
-					<div class="mb-2 flex items-center gap-2">
+				<div class="rounded-[20px] border-2 border-shaded-background bg-card-bg p-4">
+					<div class="mb-2 flex items-center gap-3">
 						<span
-							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white {CASE_COLORS[
+							class="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white {CASE_COLORS[
 								group.key
 							].bg}"
 						>
 							{CASE_NUMBER[group.key]}
 						</span>
-						<span class="{CASE_COLORS[group.key].text} font-semibold">{group.case_}</span>
+						<span class="text-lg font-semibold {CASE_COLORS[group.key].text}">{group.case_}</span>
 					</div>
 					<div class="flex flex-wrap gap-x-4 gap-y-1">
 						{#each group.prepositions as prep (prep.czech)}
 							<span class="text-sm">
-								<span class="font-semibold text-text-default">{prep.czech}</span>
-								<span class="text-text-subtitle"> &mdash; {prep.english}</span>
+								<span class="text-emphasis">{prep.czech}</span>
+								<span class="text-text-subtitle"> {prep.english}</span>
 							</span>
 						{/each}
 					</div>

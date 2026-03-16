@@ -119,7 +119,6 @@ export interface DrillSettings {
 	selectedCases: Case[];
 	selectedDrillTypes: DrillType[];
 	numberMode: 'sg' | 'pl' | 'both';
-	showWordHint: boolean;
 }
 
 export const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];

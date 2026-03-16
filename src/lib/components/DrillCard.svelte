@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
 	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER } from '$lib/types';
+	import { playClinkSound } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
 	import CaseBadge from '$lib/components/ui/CaseBadge.svelte';
@@ -15,7 +16,6 @@
 		onSubmit,
 		onSpeak,
 		selectedCases,
-		showWordHint,
 		paradigmNotes = null,
 		onWordClick = null
 	}: {
@@ -24,7 +24,6 @@
 		onSubmit: (answer: string) => void;
 		onSpeak: ((text: string) => void) | null;
 		selectedCases: Case[];
-		showWordHint: boolean;
 		paradigmNotes?: Record<string, string> | null;
 		onWordClick?: ((lemma: string) => void) | null;
 	} = $props();
@@ -54,6 +53,54 @@
 		const result = [correctCase, ...picked];
 		return result.sort((a, b) => CASE_NUMBER[a] - CASE_NUMBER[b]);
 	});
+
+	let isPivo = $derived(question?.word.lemma === 'pivo');
+	let cardEl: HTMLDivElement | undefined = $state(undefined);
+	let pivoCursorEl: HTMLDivElement | undefined = $state(undefined);
+	let pivoVisible = $state(false);
+
+	function hideSystemCursor(node: HTMLElement) {
+		node.style.setProperty('cursor', 'none', 'important');
+		for (const el of node.querySelectorAll('*')) {
+			(el as HTMLElement).style.setProperty('cursor', 'none', 'important');
+		}
+	}
+
+	// Hide system cursor on mount and whenever DOM changes
+	$effect(() => {
+		if (!cardEl || !isPivo) return;
+		hideSystemCursor(cardEl);
+		const observer = new MutationObserver(() => hideSystemCursor(cardEl!));
+		observer.observe(cardEl, { childList: true, subtree: true });
+		return () => observer.disconnect();
+	});
+
+	function handlePivoMouseMove(e: MouseEvent) {
+		if (!pivoCursorEl || !isPivo) return;
+		pivoCursorEl.style.left = `${e.clientX}px`;
+		pivoCursorEl.style.top = `${e.clientY}px`;
+		if (!pivoVisible) pivoVisible = true;
+		// Also force cursor:none on whatever element the mouse is directly over
+		(e.target as HTMLElement).style.setProperty('cursor', 'none', 'important');
+	}
+
+	function handlePivoMouseLeave() {
+		pivoVisible = false;
+	}
+
+	// Clink animation: the cursor emoji floats up and fades, then reappears
+	let clinkAnimating = $state(false);
+	let clinkX = $state(0);
+	let clinkY = $state(0);
+
+	function triggerClink(e: MouseEvent) {
+		clinkX = e.clientX;
+		clinkY = e.clientY;
+		clinkAnimating = true;
+		setTimeout(() => {
+			clinkAnimating = false;
+		}, 800);
+	}
 
 	let showCheers = $state(false);
 	let canAdvance = $state(false);
@@ -165,6 +212,14 @@
 	}
 
 	function fullSentenceText(q: DrillQuestion): string {
+		if (q.drillType === 'case_identification') {
+			// Before submission: read only the nominative form
+			// After submission: read the full sentence with the correctly declined form
+			if (submitted) {
+				return q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]);
+			}
+			return q.word.forms[q.number][0];
+		}
 		return q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]);
 	}
 
@@ -178,13 +233,23 @@
 <div class="w-full">
 	{#if question}
 		{#key question}
+			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
 			<div
+				bind:this={cardEl}
 				class="drill-fade-enter relative flex flex-col gap-6 rounded-[40px] border-2 {question.word
 					.lemma === 'pivo'
-					? 'border-amber-300 pivo-cursor'
+					? 'border-easter-egg-border pivo-glow'
 					: 'border-card-stroke'} bg-card-bg p-8 sm:p-10"
 				role="region"
 				aria-label="Drill"
+				onclick={isPivo
+					? (e) => {
+							playClinkSound();
+							triggerClink(e);
+						}
+					: undefined}
+				onmousemove={isPivo ? handlePivoMouseMove : undefined}
+				onmouseleave={isPivo ? handlePivoMouseLeave : undefined}
 			>
 				<!-- Prompt -->
 				<div class="text-center">
@@ -254,7 +319,7 @@
 							<CaseBadge case_={question.case} size="sm" />
 							{#if prompt.isPlural}
 								<span
-									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-semibold text-text-subtitle"
+									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-normal text-text-subtitle"
 								>
 									plural
 								</span>
@@ -263,7 +328,7 @@
 					{:else if question.drillType === 'case_identification'}
 						<p class="text-sm text-text-subtitle">Which case?</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-xl font-medium leading-relaxed text-emphasis">
+						<p class="mt-3 text-xl font-normal leading-relaxed text-emphasis">
 							{parts.before}<span
 								class="mx-0.5 inline-block rounded bg-shaded-background px-2 py-0.5 font-semibold text-emphasis"
 								>{#if onWordClick}<button
@@ -296,7 +361,7 @@
 					{:else}
 						<p class="text-sm text-text-subtitle">Fill in the blank</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-xl font-medium leading-relaxed text-emphasis">
+						<p class="mt-3 text-xl font-normal leading-relaxed text-emphasis">
 							{parts.before}<span
 								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
 								>&nbsp;&nbsp;&nbsp;&nbsp;</span
@@ -321,42 +386,39 @@
 									</svg></button
 								>{/if}
 						</p>
-						{#if showWordHint}
-							<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
-								<span>{question.word.translation}</span>
-								<span class="group relative">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="h-4 w-4 text-text-subtitle"
-									>
-										<circle cx="12" cy="12" r="10" />
-										<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-										<path d="M12 17h.01" />
-									</svg>
-									<span
-										class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
-									>
-										{question.word.lemma}
-									</span>
-								</span>
-							</p>
-						{/if}
-						<div class="mt-3 flex items-center justify-center gap-2">
-							<CaseBadge case_={question.case} size="sm" />
-							{#if question.number === 'pl'}
+						<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
+							<span>{question.word.translation}</span>
+							<span class="group relative">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="h-4 w-4 text-text-subtitle"
+								>
+									<circle cx="12" cy="12" r="10" />
+									<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+									<path d="M12 17h.01" />
+								</svg>
 								<span
-									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-medium text-text-subtitle"
+									class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+								>
+									{question.word.lemma}
+								</span>
+							</span>
+						</p>
+						{#if question.number === 'pl'}
+							<div class="mt-3 flex items-center justify-center">
+								<span
+									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-normal text-text-subtitle"
 								>
 									plural
 								</span>
-							{/if}
-						</div>
+							</div>
+						{/if}
 					{/if}
 				</div>
 
@@ -411,7 +473,7 @@
 							autocapitalize="off"
 							spellcheck="false"
 							placeholder="Type your answer..."
-							class="w-full rounded-[20px] border-2 px-5 py-3.5 text-center text-lg font-medium outline-none transition-all duration-200
+							class="w-full rounded-[20px] border-2 px-5 py-3.5 text-center text-lg font-normal outline-none transition-all duration-200
 								{submitted && result?.correct
 								? 'border-positive-stroke bg-positive-background text-positive-stroke'
 								: submitted && result && !result.correct
@@ -452,7 +514,13 @@
 							</div>
 							{@const nomForm = question.word.forms[question.number][0]}
 							{@const targetForm = question.word.forms[question.number][CASE_INDEX[question.case]]}
-							{#if nomForm !== targetForm}
+							{#if result.nearMiss}
+								<p class="text-center text-sm text-warning-text">
+									Almost! Check your diacritics: <span class="font-semibold"
+										>{question.correctAnswer}</span
+									>
+								</p>
+							{:else if nomForm !== targetForm}
 								<p class="text-center text-sm text-text-subtitle">
 									{nomForm} &rarr;
 									<span class="font-semibold {CASE_COLORS[question.case].text}">{targetForm}</span>
@@ -511,3 +579,25 @@
 		</div>
 	{/if}
 </div>
+
+{#if isPivo}
+	<!-- Cursor emoji: hidden until mouse enters card, hidden during clink animation -->
+	<div
+		bind:this={pivoCursorEl}
+		class="pointer-events-none fixed z-[9999] text-2xl"
+		style="left: -100px; top: -100px; opacity: {pivoVisible && !clinkAnimating
+			? 1
+			: 0}; transform: translate(-4px, -28px)"
+	>
+		🍻
+	</div>
+
+	{#if clinkAnimating}
+		<span
+			class="pivo-clink pointer-events-none fixed z-[9999] text-2xl"
+			style="left: {clinkX}px; top: {clinkY}px"
+		>
+			🍻
+		</span>
+	{/if}
+{/if}

@@ -9,7 +9,7 @@
 <button
 	type="button"
 	{onclick}
-	class="inline-flex items-center gap-2 rounded-full bg-shaded-background px-4 py-2 text-sm font-medium text-darker-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+	class="inline-flex items-center gap-2 rounded-[24px] border-2 border-card-stroke bg-shaded-background px-4 py-2 text-sm font-normal text-darker-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 >
 	<svg
 		xmlns="http://www.w3.org/2000/svg"

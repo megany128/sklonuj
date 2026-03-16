@@ -19,26 +19,24 @@
 	} = $props();
 </script>
 
-<div class="rounded-[24px] border-2 border-shaded-background bg-card-bg p-5">
-	<div class="mb-3 flex items-start gap-3">
+<div class="rounded-[20px] border-2 border-shaded-background bg-card-bg p-4">
+	<div class="flex items-center gap-3">
 		<span
-			class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white {CASE_COLORS[
+			class="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white {CASE_COLORS[
 				case_
 			].bg}"
 		>
 			{CASE_NUMBER[case_]}
 		</span>
-		<div class="min-w-0">
-			<p class="font-semibold {CASE_COLORS[case_].text}">{CASE_LABELS[case_]}</p>
-			<p class="text-sm text-text-subtitle">{question}</p>
-		</div>
+		<span class="text-lg font-semibold {CASE_COLORS[case_].text}">{CASE_LABELS[case_]}</span>
+		<span class="text-xs text-text-subtitle">{question}</span>
 	</div>
-	<div class="ml-10 space-y-2">
-		<p class="text-sm font-semibold text-text-default">{mnemonic}</p>
+	<div class="mt-3 space-y-3">
+		<p class="text-sm text-emphasis">{mnemonic}</p>
 		<p class="text-sm text-text-subtitle">{description}</p>
 		<p class="text-sm">
-			<span class="font-semibold text-text-default">{example}</span>
-			<span class="ml-1 text-text-subtitle">&mdash; {exampleTranslation}</span>
+			<span class="text-emphasis">{example}</span>
+			<span class="text-text-subtitle"> {exampleTranslation}</span>
 		</p>
 	</div>
 </div>

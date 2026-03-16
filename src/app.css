@@ -12,6 +12,9 @@
 	--color-brand-500: oklch(0.55 0.15 250);
 	--color-brand-600: oklch(0.47 0.15 250);
 	--color-brand-700: oklch(0.39 0.13 250);
+	--color-brand-800: oklch(0.31 0.11 250);
+	--color-brand-900: oklch(0.24 0.09 250);
+	--color-brand-950: oklch(0.18 0.07 250);
 	--color-surface: oklch(0.97 0.01 60);
 	--color-surface-dark: oklch(0.145 0.014 250);
 
@@ -39,31 +42,81 @@
 	--color-positive-stroke: #40c607;
 	--color-negative-background: rgba(230, 68, 68, 0.1);
 	--color-negative-stroke: #d73e3e;
+	--color-warning-text: #d97706;
+	--color-easter-egg-border: #fcd34d;
+	--color-on-accent: #ffffff;
 	--color-page-background: #fbf6f3;
 }
 
 @layer base {
 	.dark {
-		--color-page-background: #1a1a1a;
-		--color-shaded-background: #2a2a2a;
-		--color-darker-shaded-background: #3a3a3a;
-		--color-darker-subtitle: #a0a0a0;
-		--color-emphasis: #f0f0f0;
-		--color-positive-background: rgba(120, 195, 38, 0.15);
-		--color-positive-stroke: #5dd622;
-		--color-negative-background: rgba(230, 68, 68, 0.15);
-		--color-negative-stroke: #ef5555;
-		--color-card-bg: #1e1e1e;
-		--color-card-stroke: #333333;
-		--color-text-default: #e0e0e0;
-		--color-text-subtitle: #888888;
-		--color-text-inverted: #1a1a1a;
+		--color-page-background: #1d1b19;
+		--color-shaded-background: #2a2826;
+		--color-darker-shaded-background: #393732;
+		--color-darker-subtitle: #a09d98;
+		--color-emphasis: #c8c5c0;
+		--color-positive-background: rgba(120, 195, 38, 0.08);
+		--color-positive-stroke: #4aaa2a;
+		--color-negative-background: rgba(230, 68, 68, 0.08);
+		--color-negative-stroke: #c06060;
+		--color-warning-text: #fbbf24;
+		--color-easter-egg-border: #b8860b;
+		--color-on-accent: #cdc8cd;
+		--color-card-bg: #22201e;
+		--color-card-stroke: #37342f;
+		--color-text-default: #dedbd8;
+		--color-text-subtitle: #888480;
+		--color-text-inverted: #1d1b19;
+
+		/* Brand colors — desaturated/shifted for dark surfaces */
+		--color-brand-50: oklch(0.17 0.02 250);
+		--color-brand-100: oklch(0.2 0.03 250);
+		--color-brand-200: oklch(0.25 0.05 250);
+		--color-brand-300: oklch(0.4 0.07 250);
+		--color-brand-400: oklch(0.55 0.1 250);
+		--color-brand-500: oklch(0.65 0.14 250);
+		--color-brand-600: oklch(0.6 0.14 250);
+		--color-brand-700: oklch(0.72 0.12 250);
+		--color-brand-800: oklch(0.78 0.1 250);
+		--color-brand-900: oklch(0.84 0.08 250);
+		--color-brand-950: oklch(0.9 0.05 250);
+
+		/* Surface */
+		--color-surface: oklch(0.2 0.01 250);
+		--color-surface-dark: oklch(0.85 0.01 60);
+
+		/* Case colors — muted for comfortable dark mode viewing */
+		--color-case-nom: #998c92;
+		--color-case-gen: #6d94d0;
+		--color-case-dat: #cca020;
+		--color-case-acc: #2aad68;
+		--color-case-voc: #9e80cc;
+		--color-case-loc: #cc6868;
+		--color-case-ins: #d05890;
 	}
 }
 
 html {
 	font-family: var(--font-sans);
 	background-color: var(--color-page-background);
+}
+
+button {
+	cursor: pointer;
+}
+
+/* Dark mode view transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 350ms;
+	animation-timing-function: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation-duration: 0ms;
+	}
 }
 
 /* Smooth transitions for drill state changes */
@@ -121,11 +174,39 @@ html {
 	}
 }
 
-.pivo-cursor {
-	cursor:
-		url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><text y='36' font-size='36'>🍻</text></svg>")
-			24 24,
-		auto;
+.pivo-glow {
+	box-shadow:
+		0 0 12px rgba(251, 191, 36, 0.4),
+		0 0 32px rgba(251, 191, 36, 0.2);
+	animation: pivoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pivoGlow {
+	from {
+		box-shadow:
+			0 0 12px rgba(251, 191, 36, 0.4),
+			0 0 32px rgba(251, 191, 36, 0.2);
+	}
+	to {
+		box-shadow:
+			0 0 18px rgba(251, 191, 36, 0.6),
+			0 0 48px rgba(251, 191, 36, 0.3);
+	}
+}
+
+.pivo-clink {
+	animation: pivoClink 0.8s ease-out forwards;
+}
+
+@keyframes pivoClink {
+	0% {
+		opacity: 1;
+		transform: translate(-4px, -28px) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translate(-4px, -108px) scale(1.4);
+	}
 }
 
 .beer-float {

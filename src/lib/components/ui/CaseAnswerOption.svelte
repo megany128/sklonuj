@@ -36,7 +36,7 @@
 			return `${base} border-card-stroke bg-card-bg text-text-subtitle opacity-40 cursor-not-allowed`;
 		}
 		if (selected) {
-			return `${base} ${CASE_COLORS[case_].bg} ${CASE_COLORS[case_].border} text-white`;
+			return `${base} ${CASE_COLORS[case_].bg} ${CASE_COLORS[case_].border} text-on-accent`;
 		}
 		return `${base} border-card-stroke bg-card-bg text-text-default ${disabled ? 'cursor-not-allowed opacity-50' : 'case-answer-interactive cursor-pointer'}`;
 	});
@@ -58,7 +58,7 @@
 			: incorrect
 				? 'bg-negative-stroke text-white'
 				: selected
-					? `bg-white ${CASE_COLORS[case_].text}`
+					? `bg-card-bg ${CASE_COLORS[case_].text}`
 					: `${CASE_COLORS[case_].bg} text-white`}"
 	>
 		{CASE_NUMBER[case_]}
@@ -69,7 +69,7 @@
 <style>
 	.case-answer-interactive:hover {
 		border-color: var(--case-color);
-		background-color: color-mix(in oklch, var(--case-color) 8%, var(--color-card-bg, #ffffff));
+		background-color: color-mix(in oklch, var(--case-color) 8%, var(--color-card-bg));
 		box-shadow: 0 0 0 3px color-mix(in oklch, var(--case-color) 15%, transparent);
 		transform: scale(1.02);
 	}

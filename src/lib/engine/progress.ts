@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
-import type { Progress, DrillResult, Difficulty, CaseScore } from '../types.ts';
+import type { Progress, DrillResult, Difficulty, CaseScore, Case } from '../types.ts';
+import { ALL_CASES } from '../types.ts';
 
 const STORAGE_KEY = 'sklonuj_progress';
 
@@ -131,4 +132,45 @@ export function setLevel(level: Difficulty): void {
 
 export function resetProgress(): void {
 	progress.set({ level: 'A1', caseScores: {}, paradigmScores: {}, lastSession: '' });
+}
+
+export function getCombinedCaseStrength(case_: Case): { accuracy: number; attempts: number } {
+	const current = get(progress);
+	const sgKey = `${case_}_sg`;
+	const plKey = `${case_}_pl`;
+	const sg = current.caseScores[sgKey];
+	const pl = current.caseScores[plKey];
+	const totalAttempts = (sg?.attempts ?? 0) + (pl?.attempts ?? 0);
+	const totalCorrect = (sg?.correct ?? 0) + (pl?.correct ?? 0);
+	return {
+		accuracy: totalAttempts > 0 ? totalCorrect / totalAttempts : 0,
+		attempts: totalAttempts
+	};
+}
+
+export function getAllCaseStrengths(): Record<Case, { accuracy: number; attempts: number }> {
+	const result = {} as Record<Case, { accuracy: number; attempts: number }>;
+	for (const c of ALL_CASES) {
+		result[c] = getCombinedCaseStrength(c);
+	}
+	return result;
+}
+
+export function pickWeightedCase(cases: Case[]): Case {
+	const strengths = getAllCaseStrengths();
+	const weights = cases.map((c) => {
+		const s = strengths[c];
+		if (s.attempts === 0) return 3; // Untried cases get highest weight
+		return 1 / (s.accuracy + 0.1); // Lower accuracy = higher weight
+	});
+
+	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+	let random = Math.random() * totalWeight;
+
+	for (let i = 0; i < cases.length; i++) {
+		random -= weights[i];
+		if (random <= 0) return cases[i];
+	}
+
+	return cases[cases.length - 1];
 }

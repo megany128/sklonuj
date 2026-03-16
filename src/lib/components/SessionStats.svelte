@@ -48,7 +48,7 @@
 	<div class="mt-4 text-center">
 		<button
 			onclick={ondismiss}
-			class="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow-md active:scale-[0.98] dark:bg-brand-500 dark:hover:bg-brand-400"
+			class="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-on-accent shadow-sm transition-all hover:bg-brand-700 hover:shadow-md active:scale-[0.98] dark:bg-brand-500 dark:hover:bg-brand-400"
 		>
 			Continue
 		</button>

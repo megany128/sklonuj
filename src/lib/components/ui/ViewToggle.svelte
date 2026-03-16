@@ -23,7 +23,7 @@
 			{tab.label}
 			{#if tab.badge !== undefined}
 				<span
-					class="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-darker-shaded-background px-1.5 text-xs font-semibold text-darker-subtitle"
+					class="ml-1.5 inline-flex items-center justify-center rounded-[24px] border-2 border-card-stroke bg-shaded-background px-3 py-0.5 text-sm font-normal text-darker-subtitle"
 				>
 					{tab.badge}
 				</span>

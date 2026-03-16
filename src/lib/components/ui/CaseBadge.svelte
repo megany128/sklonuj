@@ -12,7 +12,7 @@
 </script>
 
 <span
-	class="inline-flex items-center rounded-full font-medium text-white {CASE_COLORS[case_]
+	class="inline-flex items-center rounded-full font-normal text-on-accent {CASE_COLORS[case_]
 		.bg} {size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'}"
 >
 	{CASE_NUMBER[case_]}. {CASE_LABELS[case_]}

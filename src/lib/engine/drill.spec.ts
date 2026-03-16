@@ -133,7 +133,7 @@ describe('checkAnswer', () => {
 		expect(result.nearMiss).toBe(false);
 	});
 
-	it('near miss with wrong diacritics returns nearMiss true', () => {
+	it('near miss with wrong diacritics counts as correct with nearMiss true', () => {
 		const bank = loadWordBank();
 		const dum = bank.find((w) => w.lemma === 'dům');
 		expect(dum).toBeDefined();
@@ -141,7 +141,7 @@ describe('checkAnswer', () => {
 		const question = generateFormProduction(dum, 'loc', 'sg');
 		// correctAnswer is "domě", user types "dome" (missing háček)
 		const result = checkAnswer(question, 'dome');
-		expect(result.correct).toBe(false);
+		expect(result.correct).toBe(true);
 		expect(result.nearMiss).toBe(true);
 	});
 

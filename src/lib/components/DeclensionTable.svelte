@@ -337,7 +337,7 @@
 	{#if !alwaysExpanded}
 		<button
 			onclick={() => (expanded = !expanded)}
-			class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+			class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 			aria-expanded={expanded}
 			aria-controls="declension-table-panel"
 		>
@@ -367,14 +367,13 @@
 		<div
 			class="relative overflow-hidden space-y-4 {alwaysExpanded
 				? isPivo
-					? 'border-2 border-amber-300 rounded-2xl p-4'
-					: ''
+					? 'rounded-2xl border-2 border-easter-egg-border bg-card-bg p-4'
+					: 'rounded-2xl border border-card-stroke bg-card-bg p-4'
 				: isPivo
-					? 'mt-2 rounded-2xl border-2 border-amber-300 bg-white p-4 dark:bg-slate-800/80'
-					: 'mt-2 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-800/80'}"
-			style={isPivo
-				? `cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><text y='36' font-size='36'>🍻</text></svg>") 24 24, auto`
-				: ''}
+					? 'mt-2 rounded-2xl border-2 border-easter-egg-border bg-card-bg p-4'
+					: 'mt-2 rounded-2xl border border-card-stroke bg-card-bg p-4'} {isPivo
+				? 'pivo-cursor'
+				: ''}"
 		>
 			<!-- Search input -->
 			<div>
@@ -393,13 +392,13 @@
 						autocorrect="off"
 						autocapitalize="off"
 						spellcheck="false"
-						class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 pr-8 text-sm text-slate-700 placeholder-slate-400 outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-brand-500 dark:focus:ring-brand-900/50"
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-sm text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis"
 					/>
 					{#if searchQuery !== ''}
 						<button
 							type="button"
 							onclick={clearSearch}
-							class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+							class="absolute right-2 top-1/2 -translate-y-1/2 text-text-subtitle hover:text-text-default"
 							aria-label="Clear search"
 							tabindex="-1"
 						>
@@ -417,7 +416,7 @@
 					{/if}
 					{#if dropdownOpen}
 						<div
-							class="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-600 dark:bg-slate-800"
+							class="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-card-stroke bg-card-bg shadow-lg"
 							role="listbox"
 						>
 							{#if suggestions.length > 0}
@@ -429,30 +428,26 @@
 										onmousedown={() => selectWord(s.lemma)}
 										onmouseenter={() => (highlightedIndex = idx)}
 										class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors
-										{idx === highlightedIndex
-											? 'bg-brand-50 dark:bg-brand-950/50'
-											: 'hover:bg-brand-50 dark:hover:bg-brand-950/50'}"
+										{idx === highlightedIndex ? 'bg-shaded-background' : 'hover:bg-shaded-background'}"
 									>
-										<span class="font-medium text-slate-700 dark:text-slate-200">{s.lemma}</span>
-										<span class="text-xs text-slate-400 dark:text-slate-500">{s.translation}</span>
+										<span class="font-semibold text-text-default">{s.lemma}</span>
+										<span class="text-xs text-text-subtitle">{s.translation}</span>
 									</button>
 								{/each}
 							{:else}
-								<div class="px-3 py-2.5 text-xs text-slate-400 dark:text-slate-500">
-									No matching words found
-								</div>
+								<div class="px-3 py-2.5 text-xs text-text-subtitle">No matching words found</div>
 							{/if}
 						</div>
 					{/if}
 				</div>
 				{#if selectedEntry}
 					<div class="mt-1.5 flex flex-wrap items-center gap-2 px-1">
-						<span class="text-xs text-slate-500 dark:text-slate-400">
+						<span class="text-xs text-text-subtitle">
 							{selectedEntry.translation}
 						</span>
 						{#if selectedEntry.paradigmHint}
 							<span
-								class="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6rem] font-medium text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+								class="rounded-full bg-shaded-background px-2 py-0.5 text-[0.6rem] font-normal text-text-subtitle"
 							>
 								{selectedEntry.paradigmHint}
 							</span>
@@ -464,15 +459,15 @@
 			<!-- Word info (default, when no search) -->
 			{#if !selectedEntry}
 				<div class="flex flex-wrap items-center gap-2 px-1">
-					<span class="text-sm font-medium text-slate-700 dark:text-slate-200">
+					<span class="text-sm font-semibold text-text-default">
 						{displayEntry.lemma}
 					</span>
-					<span class="text-xs text-slate-500 dark:text-slate-400">
+					<span class="text-xs text-text-subtitle">
 						{displayEntry.translation}
 					</span>
 					{#if displayEntry.paradigmHint}
 						<span
-							class="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6rem] font-medium text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+							class="rounded-full bg-shaded-background px-2 py-0.5 text-[0.6rem] font-normal text-text-subtitle"
 						>
 							{displayEntry.paradigmHint}
 						</span>
@@ -485,7 +480,7 @@
 				<table class="w-full text-sm">
 					<thead>
 						<tr
-							class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 dark:border-slate-700 dark:text-slate-500"
+							class="border-b border-card-stroke text-left text-xs font-semibold uppercase tracking-wider text-text-subtitle"
 						>
 							<th class="py-2 pr-3">Case</th>
 							<th class="py-2 pr-3">Singular</th>
@@ -495,41 +490,35 @@
 					<tbody>
 						{#each CASE_ORDER as caseKey, i (caseKey)}
 							<tr
-								class="border-b border-slate-100 dark:border-slate-700/40 {i % 2 === 0
-									? 'bg-slate-50/50 dark:bg-slate-800/30'
-									: ''}"
+								class="border-b border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
 							>
-								<td class="py-2 pr-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+								<td class="py-2 pr-3 text-xs font-normal text-text-subtitle">
 									{CASE_LABELS[caseKey]}
 								</td>
-								<td class="py-2 pr-3 font-medium">
+								<td class="py-2 pr-3">
 									{#if displayEntry.sg[CASE_INDEX[caseKey]] === ''}
-										<span class="text-slate-300 dark:text-slate-600">&mdash;</span>
+										<span class="text-darker-shaded-background">&mdash;</span>
 									{:else if stem.length > 0}
-										<span class="text-slate-400 dark:text-slate-500"
+										<span class="text-text-subtitle"
 											>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], stem)}</span
-										><span class="font-semibold text-slate-800 dark:text-slate-100"
+										><span class="text-emphasis"
 											>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], stem)}</span
 										>
 									{:else}
-										<span class="text-slate-700 dark:text-slate-200"
-											>{displayEntry.sg[CASE_INDEX[caseKey]]}</span
-										>
+										<span class="text-text-default">{displayEntry.sg[CASE_INDEX[caseKey]]}</span>
 									{/if}
 								</td>
-								<td class="py-2 font-medium">
+								<td class="py-2">
 									{#if displayEntry.pl[CASE_INDEX[caseKey]] === ''}
-										<span class="text-slate-300 dark:text-slate-600">&mdash;</span>
+										<span class="text-darker-shaded-background">&mdash;</span>
 									{:else if stem.length > 0}
-										<span class="text-slate-400 dark:text-slate-500"
+										<span class="text-text-subtitle"
 											>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], stem)}</span
-										><span class="font-semibold text-slate-800 dark:text-slate-100"
+										><span class="text-emphasis"
 											>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], stem)}</span
 										>
 									{:else}
-										<span class="text-slate-700 dark:text-slate-200"
-											>{displayEntry.pl[CASE_INDEX[caseKey]]}</span
-										>
+										<span class="text-text-default">{displayEntry.pl[CASE_INDEX[caseKey]]}</span>
 									{/if}
 								</td>
 							</tr>

@@ -25,7 +25,7 @@
 				onclick={() => onViewChange(tab.id)}
 				class="flex-1 py-2.5 text-center text-sm font-semibold transition-colors
 					{activeView === tab.id
-					? 'bg-brand-600 text-white dark:bg-brand-500'
+					? 'bg-brand-600 text-on-accent dark:bg-brand-500'
 					: 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-200'}"
 			>
 				{tab.label}

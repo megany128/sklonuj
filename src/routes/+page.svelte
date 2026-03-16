@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
 	import type {
 		Case,
@@ -9,6 +10,7 @@
 		DrillType,
 		Number_
 	} from '$lib/types';
+	import { ALL_CASES, CASE_LABELS, CASE_HEX, CASE_INDEX } from '$lib/types';
 	import {
 		loadWordBank,
 		loadTemplates,
@@ -19,20 +21,23 @@
 		checkAnswer,
 		weightedRandom
 	} from '$lib/engine/drill';
-	import { progress, recordResult, setLevel } from '$lib/engine/progress';
-	import { speak, isTTSAvailable } from '$lib/audio';
+	import {
+		progress,
+		recordResult,
+		setLevel,
+		getAllCaseStrengths,
+		pickWeightedCase
+	} from '$lib/engine/progress';
+	import { speak, isTTSAvailable, warmUpVoices, playCorrectSound } from '$lib/audio';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
+	import CasePillBar from '$lib/components/CasePillBar.svelte';
 	import DrillSettings_ from '$lib/components/DrillSettings.svelte';
 	import DrillCard from '$lib/components/DrillCard.svelte';
-	import ProgressGrid from '$lib/components/ProgressGrid.svelte';
-	import SessionStats from '$lib/components/SessionStats.svelte';
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
 	import DeclensionTable from '$lib/components/DeclensionTable.svelte';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import ViewToggle from '$lib/components/ui/ViewToggle.svelte';
-	import ExerciseConfigToggle from '$lib/components/ui/ExerciseConfigToggle.svelte';
 
 	interface ParadigmEntry {
 		id: string;
@@ -55,51 +60,26 @@
 
 	const SETTINGS_STORAGE_KEY = 'sklonuj_settings';
 
-	function getDefaultSettings(level: Difficulty): DrillSettings {
-		const config = curriculum[level];
-		const selectedCases = config.unlocked_cases as Case[];
-
-		let selectedDrillTypes: DrillType[];
-		if (level === 'A1') {
-			selectedDrillTypes = ['form_production', 'case_identification'];
-		} else {
-			selectedDrillTypes = ['form_production', 'case_identification', 'sentence_fill_in'];
-		}
-
-		let numberMode: 'sg' | 'pl' | 'both';
-		if (config.plural_unlocked === false) {
-			numberMode = 'sg';
-		} else {
-			numberMode = 'both';
-		}
-
-		return { selectedCases, selectedDrillTypes, numberMode, showWordHint: true };
+	function getDefaultSettings(): DrillSettings {
+		return {
+			selectedCases: ALL_CASES,
+			selectedDrillTypes: ['form_production', 'case_identification', 'sentence_fill_in'],
+			numberMode: 'both'
+		};
 	}
 
-	function settingsMatchLevel(settings: DrillSettings, level: Difficulty): boolean {
-		const defaults = getDefaultSettings(level);
-		if (settings.numberMode !== defaults.numberMode) return false;
-		if (settings.selectedCases.length !== defaults.selectedCases.length) return false;
-		if (settings.selectedDrillTypes.length !== defaults.selectedDrillTypes.length) return false;
-		const casesMatch = defaults.selectedCases.every((c) => settings.selectedCases.includes(c));
-		const typesMatch = defaults.selectedDrillTypes.every((dt) =>
-			settings.selectedDrillTypes.includes(dt)
-		);
-		return casesMatch && typesMatch;
-	}
-
-	function loadSettingsFromStorage(level: Difficulty): DrillSettings {
-		if (typeof window === 'undefined') return getDefaultSettings(level);
+	function loadSettingsFromStorage(): DrillSettings {
+		if (typeof window === 'undefined') return getDefaultSettings();
 		try {
 			const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-			if (raw === null) return getDefaultSettings(level);
+			if (raw === null) return getDefaultSettings();
 			const parsed: unknown = JSON.parse(raw);
 			if (isValidDrillSettings(parsed)) {
-				return { ...parsed, showWordHint: parsed.showWordHint ?? true };
+				return { ...parsed, selectedCases: ALL_CASES };
 			}
-			return getDefaultSettings(level);
+			return getDefaultSettings();
 		} catch {
-			return getDefaultSettings(level);
+			return getDefaultSettings();
 		}
 	}
 
@@ -115,7 +95,6 @@
 		if (!obj.selectedCases.every((c: unknown) => validCases.includes(c as string))) return false;
 		if (!obj.selectedDrillTypes.every((dt: unknown) => validTypes.includes(dt as string)))
 			return false;
-		if (obj.showWordHint !== undefined && typeof obj.showWordHint !== 'boolean') return false;
 		return true;
 	}
 
@@ -129,7 +108,7 @@
 	}
 
 	let currentLevel: Difficulty = $state('A1');
-	let drillSettings: DrillSettings = $state(getDefaultSettings('A1'));
+	let drillSettings: DrillSettings = $state(getDefaultSettings());
 	let question: DrillQuestion | null = $state(null);
 	let lastResult: DrillResult | null = $state(null);
 	let currentProgress = $state(get(progress));
@@ -139,43 +118,42 @@
 	let initialized = $state(false);
 	let ttsAvailable = $state(false);
 	let autoplayAudio = $state(true);
+	let hasInteracted = $state(false);
 	let sessionCount = $state(0);
 
 	// Session stats
 	let sessionCorrect = $state(0);
 	let sessionWrong = $state(0);
 	let sessionCaseMisses: Record<string, number> = $state({});
-	let showSessionSummary = $state(false);
-	let lastSummaryAt = $state(0);
 
-	// Review mistakes
+	// Mistakes
 	let mistakes: DrillResult[] = $state([]);
-	let reviewMode = $state(false);
-	let reviewIndex = $state(0);
-	let reviewComplete = $state(false);
+
+	// Case pill bar selection
+	let selectedCase = $state<Case | 'all'>('all');
+	let enabledCases = $state<Case[]>([...ALL_CASES]);
 
 	// Top-level view
 	let activeView = $state<'exercise' | 'declension'>('exercise');
 
 	// Settings expanded state
 	let settingsExpanded = $state(false);
+	let caseFilterExpanded = $state(false);
+	let practicingMistakes = $state(false);
+	let lastMistakeIndex = $state(-1);
 
-	let exerciseTabs = $derived([
-		{ id: 'practice', label: 'Declination practice' },
-		{
-			id: 'review',
-			label: 'Review mistakes',
-			badge: mistakes.length > 0 ? mistakes.length : undefined
-		}
-	]);
+	let relevantMistakeCount = $derived(
+		selectedCase === 'all'
+			? mistakes.filter((m) => enabledCases.includes(m.question.case)).length
+			: mistakes.filter((m) => m.question.case === selectedCase).length
+	);
 
-	function handleExerciseTabChange(id: string) {
-		if (id === 'review' && mistakes.length > 0) {
-			startReviewMistakes();
-		} else if (id === 'practice' && reviewMode) {
-			exitReviewMode();
-		}
-	}
+	// Derived: case strengths for pill bar (reactive to progress changes)
+	let caseStrengths = $derived.by(() => {
+		// Touch currentProgress to make this reactive
+		void currentProgress;
+		return getAllCaseStrengths();
+	});
 
 	// Reference sidebar
 	let refSidebarOpen = $state(false);
@@ -189,7 +167,8 @@
 	}
 
 	function openReferenceSidebar() {
-		refSidebarWord = '';
+		refSidebarWord = question?.word.lemma ?? '';
+		refSidebarTab = 'declension';
 		refSidebarOpen = true;
 	}
 
@@ -221,27 +200,6 @@
 		localStorage.setItem('sklonuj_dark', String(darkMode));
 	}
 
-	let isCustom = $derived(!settingsMatchLevel(drillSettings, currentLevel));
-
-	let sessionAccuracyText = $derived.by(() => {
-		const total = sessionCorrect + sessionWrong;
-		if (total === 0) return '';
-		const pct = Math.round((sessionCorrect / total) * 100);
-		return `${sessionCorrect}/${total} correct (${pct}%)`;
-	});
-
-	let weakestCaseKey = $derived.by(() => {
-		let worst: string | null = null;
-		let worstCount = 0;
-		for (const [key, count] of Object.entries(sessionCaseMisses)) {
-			if (count > worstCount) {
-				worstCount = count;
-				worst = key;
-			}
-		}
-		return worst;
-	});
-
 	// Subscribe to progress store
 	$effect(() => {
 		const unsubscribe = progress.subscribe((value) => {
@@ -257,11 +215,14 @@
 		initialized = true;
 		initDarkMode();
 		ttsAvailable = isTTSAvailable();
+		if (ttsAvailable) {
+			warmUpVoices();
+		}
 		const storedAutoplay = localStorage.getItem('sklonuj_autoplay');
 		if (storedAutoplay !== null) {
 			autoplayAudio = storedAutoplay !== 'false';
 		}
-		const savedSettings = loadSettingsFromStorage(currentLevel);
+		const savedSettings = loadSettingsFromStorage();
 		drillSettings = savedSettings;
 		generateNextQuestion();
 
@@ -273,26 +234,17 @@
 		};
 	});
 
-	function pickRandomCase(): { case_: Case; number_: Number_ } {
-		const cases = drillSettings.selectedCases;
-		const case_ = cases[Math.floor(Math.random() * cases.length)];
-
-		let number_: Number_;
-		if (drillSettings.numberMode === 'sg') {
-			number_ = 'sg';
-		} else if (drillSettings.numberMode === 'pl') {
-			number_ = 'pl';
-		} else {
-			number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+	function pickDrillType(): DrillType {
+		// No case identification when a specific case is selected (you already know the case)
+		let allowed = drillSettings.selectedDrillTypes;
+		if (selectedCase !== 'all') {
+			allowed = allowed.filter((dt) => dt !== 'case_identification');
+			if (allowed.length === 0) allowed = ['form_production'];
 		}
 
-		return { case_, number_ };
-	}
-
-	function pickDrillType(): DrillType {
-		const allowed = drillSettings.selectedDrillTypes;
-
 		if (allowed.length === 1) return allowed[0];
+
+		const activeCases = selectedCase === 'all' ? enabledCases : [selectedCase];
 
 		// Check if sentence-based drills are viable
 		if (allowed.includes('case_identification') || allowed.includes('sentence_fill_in')) {
@@ -301,7 +253,7 @@
 			const unlockedDifficulties = levelConfig.unlocked_difficulty;
 			const eligibleTemplates = templates.filter(
 				(t) =>
-					drillSettings.selectedCases.includes(t.requiredCase) &&
+					activeCases.includes(t.requiredCase) &&
 					unlockedDifficulties.includes(t.difficulty) &&
 					matchesNumberMode(t.number)
 			);
@@ -321,10 +273,20 @@
 	}
 
 	function generateNextQuestion(): void {
-		// If in review mode, serve next mistake
-		if (reviewMode) {
-			if (reviewIndex < mistakes.length) {
-				question = mistakes[reviewIndex].question;
+		// Practice mistakes mode: only serve from mistakes list
+		if (practicingMistakes) {
+			if (mistakes.length === 0) {
+				practicingMistakes = false;
+				lastMistakeIndex = -1;
+			} else {
+				// Pick next mistake, avoiding the same one twice in a row (unless only 1 left)
+				let idx = 0;
+				if (mistakes.length > 1 && lastMistakeIndex >= 0) {
+					idx = (lastMistakeIndex + 1) % mistakes.length;
+				}
+				lastMistakeIndex = idx;
+				// Spread to create a new object so {#key question} resets DrillCard
+				question = { ...mistakes[idx].question };
 				lastResult = null;
 				paradigmNotes = null;
 				submitted = false;
@@ -334,9 +296,6 @@
 				}
 				autoPlayPrompt(question);
 				return;
-			} else {
-				reviewComplete = true;
-				reviewMode = false;
 			}
 		}
 
@@ -354,21 +313,30 @@
 
 		const drillType = pickDrillType();
 
+		// Pick case: either the selected one, or weighted random from enabled cases
+		const case_ = selectedCase === 'all' ? pickWeightedCase(enabledCases) : selectedCase;
+
+		// Pick number
+		let number_: Number_;
+		if (drillSettings.numberMode === 'sg') number_ = 'sg';
+		else if (drillSettings.numberMode === 'pl') number_ = 'pl';
+		else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+
+		const activeCases = selectedCase === 'all' ? enabledCases : [selectedCase];
+
 		if (drillType === 'form_production') {
-			const { case_, number_ } = pickRandomCase();
 			const word = weightedRandom(eligibleWords, prog, case_, number_);
 			question = generateFormProduction(word, case_, number_);
 		} else {
 			const templates = loadTemplates();
 			const eligibleTemplates = templates.filter(
 				(t) =>
-					drillSettings.selectedCases.includes(t.requiredCase) &&
+					activeCases.includes(t.requiredCase) &&
 					unlockedDifficulties.includes(t.difficulty) &&
 					matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) {
-				const { case_, number_ } = pickRandomCase();
 				const word = weightedRandom(eligibleWords, prog, case_, number_);
 				question = generateFormProduction(word, case_, number_);
 			} else {
@@ -376,7 +344,6 @@
 				const candidates = getCandidates(template, prog);
 
 				if (candidates.length === 0) {
-					const { case_, number_ } = pickRandomCase();
 					const word = weightedRandom(eligibleWords, prog, case_, number_);
 					question = generateFormProduction(word, case_, number_);
 				} else {
@@ -417,21 +384,23 @@
 			sessionWrong++;
 			const caseKey = `${result.question.case}_${result.question.number}`;
 			sessionCaseMisses[caseKey] = (sessionCaseMisses[caseKey] ?? 0) + 1;
-			// Only add to mistakes list during normal mode (not during review)
-			if (!reviewMode) {
+			// Only add new mistakes (not re-served ones)
+			const isReserved = mistakes.some(
+				(m) =>
+					m.question.word.lemma === result.question.word.lemma &&
+					m.question.case === result.question.case &&
+					m.question.number === result.question.number &&
+					m.question.drillType === result.question.drillType
+			);
+			if (!isReserved) {
 				mistakes = [...mistakes, result];
 			}
-		}
-
-		// Check if we should show summary (every 10 questions)
-		const total = sessionCorrect + sessionWrong;
-		if (total > 0 && total % 10 === 0 && total !== lastSummaryAt) {
-			lastSummaryAt = total;
-			showSessionSummary = true;
 		}
 	}
 
 	function handleSubmit(answer: string): void {
+		hasInteracted = true;
+
 		if (answer === '__skip__') {
 			if (!question || submitted) return;
 			submitted = true;
@@ -455,8 +424,24 @@
 				clearTimeout(advanceTimer);
 				advanceTimer = null;
 			}
-			if (reviewMode) {
-				reviewIndex++;
+			// If the last result was a re-served mistake that was answered correctly, remove it
+			if (lastResult && lastResult.correct) {
+				const idx = mistakes.findIndex(
+					(m) =>
+						m.question.word.lemma === lastResult!.question.word.lemma &&
+						m.question.case === lastResult!.question.case &&
+						m.question.number === lastResult!.question.number &&
+						m.question.drillType === lastResult!.question.drillType
+				);
+				if (idx !== -1) {
+					mistakes = mistakes.filter((_, i) => i !== idx);
+					// Adjust lastMistakeIndex since the array shifted
+					if (lastMistakeIndex >= mistakes.length) {
+						lastMistakeIndex = 0;
+					} else if (idx <= lastMistakeIndex) {
+						lastMistakeIndex = Math.max(0, lastMistakeIndex - 1);
+					}
+				}
 			}
 			generateNextQuestion();
 			return;
@@ -471,7 +456,9 @@
 		recordResult(result);
 		trackSessionStats(result);
 
-		if (!result.correct) {
+		if (result.correct) {
+			playCorrectSound();
+		} else {
 			paradigmNotes = lookupParadigmNotes(question.word.paradigm);
 		}
 
@@ -480,14 +467,28 @@
 
 	function handleLevelChange(level: Difficulty): void {
 		setLevel(level);
-		drillSettings = getDefaultSettings(level);
+		currentLevel = level;
+		generateNextQuestion();
+	}
+
+	function handleSettingsChange(settings: {
+		selectedDrillTypes: DrillType[];
+		numberMode: 'sg' | 'pl' | 'both';
+	}): void {
+		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
 		generateNextQuestion();
 	}
 
-	function handleSettingsChange(settings: DrillSettings): void {
-		drillSettings = settings;
-		saveSettingsToStorage(settings);
+	function handleCaseSelect(selected: Case | 'all'): void {
+		selectedCase = selected;
+		generateNextQuestion();
+	}
+
+	function toggleEnabledCase(c: Case): void {
+		const isEnabled = enabledCases.includes(c);
+		if (isEnabled && enabledCases.length <= 1) return;
+		enabledCases = isEnabled ? enabledCases.filter((x) => x !== c) : [...enabledCases, c];
 		generateNextQuestion();
 	}
 
@@ -501,20 +502,23 @@
 		} else if (q.drillType === 'sentence_fill_in') {
 			return q.template.template.replace('___', '...');
 		} else {
-			// case_identification: read full sentence with the word filled in
-			return q.template.template.replace('___', q.correctAnswer);
+			// case_identification: read only the nominative form so the user figures out the case
+			return q.word.forms[q.number][0];
 		}
 	}
 
 	function autoPlayPrompt(q: DrillQuestion): void {
-		if (!ttsAvailable || !autoplayAudio) return;
-		if (q.drillType === 'case_identification') return;
+		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
 		speak(questionPromptText(q));
 	}
 
 	function autoPlayAnswer(q: DrillQuestion): void {
-		if (!ttsAvailable || !autoplayAudio) return;
-		if (q.drillType === 'case_identification') return;
+		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
+		if (q.drillType === 'case_identification') {
+			// After revealing the answer, read the full sentence with the correct form
+			speak(q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]));
+			return;
+		}
 		speak(q.correctAnswer);
 	}
 
@@ -522,26 +526,15 @@
 		autoplayAudio = !autoplayAudio;
 		localStorage.setItem('sklonuj_autoplay', String(autoplayAudio));
 	}
-
-	function dismissSummary(): void {
-		showSessionSummary = false;
-	}
-
-	function startReviewMistakes(): void {
-		if (mistakes.length === 0) return;
-		reviewMode = true;
-		reviewIndex = 0;
-		reviewComplete = false;
-		generateNextQuestion();
-	}
-
-	function exitReviewMode(): void {
-		reviewComplete = false;
-		reviewMode = false;
-		mistakes = [];
-		generateNextQuestion();
-	}
 </script>
+
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape' && refSidebarOpen) {
+			refSidebarOpen = false;
+		}
+	}}
+/>
 
 <svelte:head>
 	<title>Skloňuj -- Czech Declension Trainer</title>
@@ -558,126 +551,105 @@
 			activeView = page === 'exercises' ? 'exercise' : 'declension';
 			if (activeView === 'declension') refSidebarOpen = false;
 		}}
+		{darkMode}
+		onToggleDarkMode={toggleDarkMode}
 	/>
 
 	{#if activeView === 'exercise'}
 		<main class="mx-auto w-full max-w-[867px] flex-1 px-4 py-8">
-			<!-- ViewToggle for practice / review -->
-			<div class="mb-6">
-				<ViewToggle
-					tabs={exerciseTabs}
-					activeTab={reviewMode ? 'review' : 'practice'}
-					onTabChange={handleExerciseTabChange}
-				/>
-			</div>
-
-			<!-- Question counter -->
-			<p class="mb-4 text-center text-sm font-medium text-text-subtitle">
-				Question {sessionCount + 1}{#if sessionCorrect + sessionWrong > 0}
-					({Math.round((sessionCorrect / (sessionCorrect + sessionWrong)) * 100)}% correct){/if}
-			</p>
-
-			<!-- Status banners -->
-			{#if reviewMode}
-				<div class="mb-4">
-					<div
-						class="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-2.5 text-center text-sm font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400"
-					>
-						Reviewing mistakes ({reviewIndex + 1}/{mistakes.length})
-					</div>
-				</div>
-			{/if}
-
-			{#if reviewComplete}
-				<div class="mb-5">
-					<div
-						class="rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-5 text-center dark:border-emerald-800/40 dark:bg-emerald-950/30"
-					>
-						<p class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-							All mistakes reviewed!
-						</p>
-						<p class="mt-1 text-xs text-emerald-600 dark:text-emerald-500">
-							Great job practicing those tricky ones.
-						</p>
+			<!-- Case selection pill bar -->
+			<div class="mb-5">
+				<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
+				{#if selectedCase === 'all'}
+					<div class="mt-3 text-center">
 						<button
-							onclick={exitReviewMode}
-							class="mt-3 rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-emerald-700 active:scale-[0.98] dark:bg-emerald-500 dark:hover:bg-emerald-400"
+							onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
+							class="inline-flex items-center gap-1 text-[11px] font-medium text-text-subtitle transition-colors hover:text-text-default"
 						>
-							Continue drilling
+							Filter cases
+							{#if enabledCases.length < ALL_CASES.length}
+								<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
+							{/if}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
+									? 'rotate-180'
+									: ''}"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+									clip-rule="evenodd"
+								/>
+							</svg>
 						</button>
+						{#if caseFilterExpanded}
+							<div
+								transition:slide={{ duration: 150 }}
+								class="mt-2 flex flex-wrap justify-center gap-1.5"
+							>
+								{#each ALL_CASES as c (c)}
+									{@const enabled = enabledCases.includes(c)}
+									<button
+										onclick={() => toggleEnabledCase(c)}
+										class="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
+										class:opacity-35={!enabled}
+										style="background-color: {CASE_HEX[c]}12; color: {CASE_HEX[
+											c
+										]}; border: 1px solid {enabled ? CASE_HEX[c] + '40' : 'transparent'}"
+										aria-pressed={enabled}
+									>
+										{CASE_LABELS[c]}
+									</button>
+								{/each}
+								{#if enabledCases.length < ALL_CASES.length}
+									<button
+										onclick={() => {
+											enabledCases = [...ALL_CASES];
+											generateNextQuestion();
+										}}
+										class="text-[11px] font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
+									>
+										Reset
+									</button>
+								{/if}
+							</div>
+						{/if}
 					</div>
-				</div>
-			{/if}
-
-			{#if showSessionSummary && !reviewMode}
-				<div class="mb-6">
-					<SessionStats
-						totalAnswered={sessionCorrect + sessionWrong}
-						correctCount={sessionCorrect}
-						weakestArea={weakestCaseKey}
-						ondismiss={dismissSummary}
-					/>
-				</div>
-			{/if}
-
-			<!-- Drill area -->
-			<div class="mx-auto max-w-[867px]">
-				{#if !reviewComplete}
-					<DrillCard
-						{question}
-						result={lastResult}
-						onSubmit={handleSubmit}
-						onSpeak={ttsAvailable ? handleSpeak : null}
-						selectedCases={drillSettings.selectedCases}
-						showWordHint={drillSettings.showWordHint}
-						{paradigmNotes}
-						onWordClick={handleWordClick}
-					/>
 				{/if}
 			</div>
 
-			<!-- Exercise Configuration toggle (below card) -->
-			<div class="mt-5 flex justify-center">
-				<ExerciseConfigToggle onclick={() => (settingsExpanded = !settingsExpanded)} />
-			</div>
-
-			<!-- Settings panel (collapsible) -->
-			{#if settingsExpanded}
-				<div class="mt-4">
-					<DrillSettings_
-						selectedCases={drillSettings.selectedCases}
-						selectedDrillTypes={drillSettings.selectedDrillTypes}
-						numberMode={drillSettings.numberMode}
-						showWordHint={drillSettings.showWordHint}
-						level={currentLevel}
-						{isCustom}
-						onSettingsChange={handleSettingsChange}
-						onLevelChange={handleLevelChange}
-					/>
-				</div>
-			{/if}
-
-			<!-- Session stats -->
-			{#if sessionCount > 0}
-				<div class="mt-6 text-center">
-					<span class="text-xs text-text-subtitle">
-						{sessionAccuracyText || `${sessionCount} answered`}
-					</span>
-				</div>
-			{/if}
-
-			<!-- Progress -->
-			<div class="mx-auto mt-8 max-w-lg">
-				<ProgressGrid progress={currentProgress} />
-			</div>
-
-			<!-- Autoplay & dark mode toggles -->
-			<div class="mt-8 flex items-center justify-center gap-2">
+			<!-- Toolbar: mistakes + settings -->
+			<div class="mb-4 flex items-center justify-end gap-2">
+				{#if relevantMistakeCount > 0}
+					<button
+						type="button"
+						onclick={() => {
+							practicingMistakes = !practicingMistakes;
+							lastMistakeIndex = -1;
+							generateNextQuestion();
+						}}
+						class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-150
+							{practicingMistakes
+							? 'border-negative-stroke bg-negative-background text-negative-stroke'
+							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-negative-stroke/40 hover:text-negative-stroke'}"
+					>
+						{#if practicingMistakes}
+							Reviewing {relevantMistakeCount}
+							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+						{:else}
+							Review {relevantMistakeCount}
+							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+						{/if}
+					</button>
+				{/if}
 				{#if ttsAvailable}
 					<button
 						type="button"
 						onclick={toggleAutoplay}
-						class="rounded-lg p-2 text-text-subtitle transition-colors hover:text-text-default"
+						class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 						aria-label="Toggle audio autoplay"
 					>
 						{#if autoplayAudio}
@@ -689,7 +661,7 @@
 								stroke-width="2"
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								class="h-4 w-4"
+								class="size-4"
 							>
 								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
 								<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -704,7 +676,7 @@
 								stroke-width="2"
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								class="h-4 w-4"
+								class="size-4"
 							>
 								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
 								<line x1="23" y1="9" x2="17" y2="15" />
@@ -715,37 +687,82 @@
 				{/if}
 				<button
 					type="button"
-					onclick={toggleDarkMode}
-					class="rounded-lg p-2 text-text-subtitle transition-colors hover:text-text-default"
-					aria-label="Toggle dark mode"
+					onclick={() => (settingsExpanded = !settingsExpanded)}
+					class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+					aria-label="Exercise settings"
 				>
-					{#if darkMode}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="h-4 w-4"
-						>
-							<path
-								d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6zM15.657 5.404a.75.75 0 10-1.06-1.06l-1.061 1.06a.75.75 0 001.06 1.06l1.06-1.06zM6.464 14.596a.75.75 0 10-1.06-1.06l-1.06 1.06a.75.75 0 001.06 1.06l1.06-1.06zM18 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0118 10zM5 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 015 10zM14.596 15.657a.75.75 0 001.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06zM5.404 6.464a.75.75 0 001.06-1.06l-1.06-1.06a.75.75 0 10-1.06 1.06l1.06 1.06z"
-							/>
-						</svg>
-					{:else}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="h-4 w-4"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M7.455 2.004a.75.75 0 01.26.77 7 7 0 009.958 7.967.75.75 0 011.067.853A8.5 8.5 0 116.647 1.921a.75.75 0 01.808.083z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-					{/if}
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="size-4"
+					>
+						<circle cx="12" cy="12" r="3" />
+						<path
+							d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+						/>
+					</svg>
 				</button>
 			</div>
+
+			<!-- Settings panel -->
+			{#if settingsExpanded}
+				<div
+					transition:slide={{ duration: 200 }}
+					class="mb-5 flex flex-wrap items-start gap-x-6 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-5 py-4"
+				>
+					<div class="flex items-center gap-2">
+						<span
+							class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-text-subtitle"
+							>Word Difficulty</span
+						>
+						<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
+							{#each ['A1', 'A2', 'B1'] as lvl (lvl)}
+								<button
+									onclick={() => handleLevelChange(lvl as Difficulty)}
+									class="rounded-[12px] px-3 py-1 text-xs font-normal transition-all
+										{currentLevel === lvl
+										? 'bg-shaded-background text-text-default'
+										: 'text-text-subtitle hover:text-text-default'}"
+								>
+									{lvl}
+								</button>
+							{/each}
+						</div>
+					</div>
+					<DrillSettings_
+						selectedDrillTypes={drillSettings.selectedDrillTypes}
+						numberMode={drillSettings.numberMode}
+						onSettingsChange={handleSettingsChange}
+					/>
+				</div>
+			{/if}
+
+			<!-- Drill area -->
+			<div class="mx-auto max-w-[867px]">
+				<DrillCard
+					{question}
+					result={lastResult}
+					onSubmit={handleSubmit}
+					onSpeak={ttsAvailable ? handleSpeak : null}
+					selectedCases={ALL_CASES}
+					{paradigmNotes}
+					onWordClick={handleWordClick}
+				/>
+			</div>
+
+			<!-- Session stats -->
+			{#if sessionCount > 0}
+				{@const total = sessionCorrect + sessionWrong}
+				{@const pct = total > 0 ? Math.round((sessionCorrect / total) * 100) : 0}
+				<div class="mt-6 text-center text-xs text-text-subtitle">
+					{total} completed &middot; {pct}% accuracy
+				</div>
+			{/if}
 		</main>
 	{:else}
 		<!-- Declension/Lookup view -->
@@ -768,24 +785,33 @@
 
 		<!-- Sidebar + handle -->
 		<div
-			class="fixed top-0 right-0 z-40 flex h-full transition-transform duration-300 ease-in-out"
-			style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 40px)'})"
+			class="fixed top-16 right-0 z-40 flex h-[calc(100%-4rem)] transition-transform duration-300 ease-in-out"
+			style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 48px)'})"
 		>
 			<button
 				type="button"
 				onclick={toggleReferenceSidebar}
-				class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2 py-4 text-text-inverted shadow-lg transition-opacity hover:opacity-90"
+				class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-3.5 py-6 text-text-inverted shadow-lg transition-opacity hover:opacity-90"
 				aria-label="Toggle reference sidebar"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 20 20"
-					fill="currentColor"
-					class="h-4 w-4"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="h-5 w-5"
 				>
-					<path
-						d="M10.75 16.82A7.462 7.462 0 0115 15.5c.71 0 1.396.098 2.046.282A.75.75 0 0018 15.06V4.31a.75.75 0 00-.546-.721A9.006 9.006 0 0015 3.25a9.007 9.007 0 00-4.25 1.065V16.82zM9.25 4.315A9.007 9.007 0 005 3.25a9.006 9.006 0 00-2.454.339A.75.75 0 002 4.31v10.75a.75.75 0 00.954.721A7.462 7.462 0 015 15.5c1.579 0 3.042.487 4.25 1.32V4.315z"
-					/>
+					<path d="M2 6h4" />
+					<path d="M2 10h4" />
+					<path d="M2 14h4" />
+					<path d="M2 18h4" />
+					<rect width="16" height="20" x="4" y="2" rx="2" />
+					<path d="M9.5 8h5" />
+					<path d="M9.5 12H16" />
+					<path d="M9.5 16H14" />
 				</svg>
 			</button>
 			<aside class="h-full w-screen max-w-md bg-card-bg shadow-2xl">

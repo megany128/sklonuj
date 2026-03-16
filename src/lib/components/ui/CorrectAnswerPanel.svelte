@@ -97,8 +97,9 @@
 				{/if}
 			</div>
 			<span
-				class="inline-flex items-center rounded-full font-medium text-white {CASE_COLORS[case_]
-					.bg} px-2 py-0.5 text-xs"
+				class="inline-flex items-center rounded-full font-semibold text-on-accent {CASE_COLORS[
+					case_
+				].bg} px-2 py-0.5 text-xs"
 			>
 				{CASE_NUMBER[case_]}. {CASE_LABELS[case_]}
 			</span>
@@ -112,7 +113,7 @@
 	{/if}
 
 	{#if nearMiss}
-		<p class="text-sm font-medium text-amber-600">Almost! Check your diacritics.</p>
+		<p class="text-sm font-semibold text-warning-text">Almost! Check your diacritics.</p>
 	{/if}
 
 	{#if hasWhy}

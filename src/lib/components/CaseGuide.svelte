@@ -126,36 +126,34 @@
 			: `max-height: ${expanded ? '2000px' : '0px'}; opacity: ${expanded ? '1' : '0'}`}
 	>
 		<div
-			class="space-y-2 {alwaysExpanded
+			class="space-y-4 {alwaysExpanded
 				? ''
 				: 'mt-2 rounded-[24px] border border-card-stroke bg-card-bg p-4'}"
 		>
 			{#each cases as c (c.name)}
-				<div class="rounded-[24px] border-2 border-shaded-background p-4">
-					<div class="flex items-start gap-2.5">
+				<div class="rounded-[20px] border-2 border-shaded-background bg-card-bg p-4">
+					<div class="flex items-center gap-3">
 						<span
-							class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white {CASE_COLORS[
+							class="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white {CASE_COLORS[
 								c.key
 							].bg}"
 						>
 							{CASE_NUMBER[c.key]}
 						</span>
-						<div class="min-w-0">
-							<span class="{CASE_COLORS[c.key].text} font-semibold">{c.name}</span>
-							<p class="text-sm text-text-subtitle">
-								{c.question}
-							</p>
-							<p class="mt-1 text-sm font-semibold text-text-default">
-								{c.mnemonic}
-							</p>
-							<p class="mt-0.5 text-sm text-text-subtitle">
-								{c.description}
-							</p>
-							<p class="mt-1.5 text-sm">
-								<span class="font-semibold text-text-default">{c.example}</span>
-								<span class="ml-1 text-text-subtitle">&mdash; {c.exampleTranslation}</span>
-							</p>
-						</div>
+						<span class="text-lg font-semibold {CASE_COLORS[c.key].text}">{c.name}</span>
+						<span class="text-xs text-text-subtitle">{c.question}</span>
+					</div>
+					<div class="mt-3 space-y-3">
+						<p class="text-sm text-emphasis">
+							{c.mnemonic}
+						</p>
+						<p class="text-sm text-text-subtitle">
+							{c.description}
+						</p>
+						<p class="text-sm">
+							<span class="text-emphasis">{c.example}</span>
+							<span class="text-text-subtitle"> {c.exampleTranslation}</span>
+						</p>
 					</div>
 				</div>
 			{/each}

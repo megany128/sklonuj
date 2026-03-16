@@ -167,7 +167,7 @@ export function checkAnswer(question: DrillQuestion, userAnswer: string): DrillR
 	const strippedCorrect = stripDiacritics(trimmedCorrect);
 
 	if (strippedUser === strippedCorrect) {
-		return { question, userAnswer, correct: false, nearMiss: true };
+		return { question, userAnswer, correct: true, nearMiss: true };
 	}
 
 	return { question, userAnswer, correct: false, nearMiss: false };

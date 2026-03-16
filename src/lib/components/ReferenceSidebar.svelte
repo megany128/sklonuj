@@ -33,21 +33,21 @@
 	});
 </script>
 
-<div class="flex h-full flex-col bg-card-bg">
+<div class="flex h-full flex-col bg-page-background">
 	<!-- Header -->
-	<div class="flex shrink-0 items-center justify-between border-b border-card-stroke px-5 py-4">
-		<h2 class="text-sm font-semibold uppercase tracking-wider text-text-default">Reference</h2>
+	<div class="flex shrink-0 items-center justify-between px-6 pb-3 pt-6">
+		<h2 class="text-base font-semibold uppercase tracking-wider text-text-default">Reference</h2>
 		<button
 			type="button"
 			onclick={onClose}
-			class="flex h-8 w-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+			class="flex items-center justify-center text-text-subtitle transition-colors hover:text-text-default"
 			aria-label="Close"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				viewBox="0 0 20 20"
 				fill="currentColor"
-				class="h-4 w-4"
+				class="h-5 w-5"
 			>
 				<path
 					d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
@@ -57,15 +57,15 @@
 	</div>
 
 	<!-- Tab bar - segmented control style -->
-	<div class="shrink-0 px-5 py-3">
-		<div class="flex rounded-[24px] bg-shaded-background p-1">
+	<div class="shrink-0 px-6 py-2">
+		<div class="flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
 			{#each tabs as tab (tab.id)}
 				<button
 					type="button"
 					onclick={() => (activeTab = tab.id)}
-					class="flex-1 rounded-[20px] px-3 py-2 text-xs font-semibold transition-all
+					class="flex-1 rounded-[12px] px-3 py-2 text-sm font-normal transition-all
 						{activeTab === tab.id
-						? 'bg-card-bg text-text-default shadow-sm'
+						? 'bg-shaded-background text-text-default'
 						: 'text-text-subtitle hover:text-text-default'}"
 				>
 					{tab.label}
@@ -75,7 +75,7 @@
 	</div>
 
 	<!-- Scrollable content -->
-	<div class="flex-1 overflow-y-auto px-5 py-4">
+	<div class="flex-1 overflow-y-auto px-6 py-3">
 		{#if activeTab === 'declension'}
 			<DeclensionTable {initialWord} alwaysExpanded={true} />
 		{:else if activeTab === 'cases'}
