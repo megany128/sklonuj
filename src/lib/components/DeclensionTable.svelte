@@ -218,6 +218,7 @@
 	let highlightedIndex = $state(-1);
 
 	let trimmedQuery = $derived(searchQuery.trim().toLowerCase());
+	let isPivo = $derived(trimmedQuery === 'pivo');
 
 	const defaultEntry = wordBankToEntry(wordBank.find((w) => w.lemma === 'žena') ?? wordBank[0]);
 
@@ -364,9 +365,16 @@
 			: `max-height: ${expanded ? '2000px' : '0px'}; opacity: ${expanded ? '1' : '0'}`}
 	>
 		<div
-			class="space-y-4 {alwaysExpanded
-				? ''
-				: 'mt-2 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-800/80'}"
+			class="relative overflow-hidden space-y-4 {alwaysExpanded
+				? isPivo
+					? 'border-2 border-amber-300 rounded-2xl p-4'
+					: ''
+				: isPivo
+					? 'mt-2 rounded-2xl border-2 border-amber-300 bg-white p-4 dark:bg-slate-800/80'
+					: 'mt-2 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-800/80'}"
+			style={isPivo
+				? `cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><text y='36' font-size='36'>🍻</text></svg>") 24 24, auto`
+				: ''}
 		>
 			<!-- Search input -->
 			<div>
@@ -529,6 +537,19 @@
 					</tbody>
 				</table>
 			</div>
+
+			{#if isPivo}
+				{#key searchQuery}
+					<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[40px]">
+						{#each Array.from({ length: 8 }, (_, i) => i) as i (i)}
+							<span
+								class="beer-float absolute bottom-0 text-2xl"
+								style="left: {8 + i * 11}%; animation-delay: {i * 0.2}s">🍺</span
+							>
+						{/each}
+					</div>
+				{/key}
+			{/if}
 		</div>
 	</div>
 </div>

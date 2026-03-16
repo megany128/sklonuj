@@ -19,7 +19,7 @@
 	} = $props();
 </script>
 
-<div class="rounded-2xl border border-card-stroke bg-card-bg p-4">
+<div class="rounded-[24px] border-2 border-shaded-background bg-card-bg p-5">
 	<div class="mb-3 flex items-start gap-3">
 		<span
 			class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white {CASE_COLORS[
@@ -29,8 +29,8 @@
 			{CASE_NUMBER[case_]}
 		</span>
 		<div class="min-w-0">
-			<p class="font-semibold text-text-default">{CASE_LABELS[case_]}</p>
-			<p class="text-sm italic text-text-subtitle">{question}</p>
+			<p class="font-semibold {CASE_COLORS[case_].text}">{CASE_LABELS[case_]}</p>
+			<p class="text-sm text-text-subtitle">{question}</p>
 		</div>
 	</div>
 	<div class="ml-10 space-y-2">

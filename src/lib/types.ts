@@ -18,6 +18,16 @@ export const CASE_LABELS: Record<Case, string> = {
 	ins: 'Instrumental'
 };
 
+export const CASE_HEX: Record<Case, string> = {
+	nom: '#8f7e86',
+	gen: '#5d8cdc',
+	dat: '#e89a02',
+	acc: '#14b160',
+	voc: '#a777e0',
+	loc: '#da5e5e',
+	ins: '#e34994'
+};
+
 export const CASE_COLORS: Record<Case, { bg: string; text: string; border: string }> = {
 	nom: { bg: 'bg-case-nom', text: 'text-case-nom', border: 'border-case-nom' },
 	gen: { bg: 'bg-case-gen', text: 'text-case-gen', border: 'border-case-gen' },

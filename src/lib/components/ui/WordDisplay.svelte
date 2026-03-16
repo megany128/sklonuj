@@ -4,11 +4,15 @@
 	let {
 		word,
 		onSpeak,
-		onClick
+		onClick,
+		colorClass = 'text-text-default',
+		borderColorClass = 'bg-text-subtitle'
 	}: {
 		word: string;
 		onSpeak?: (text: string) => void;
 		onClick?: (lemma: string) => void;
+		colorClass?: string;
+		borderColorClass?: string;
 	} = $props();
 </script>
 
@@ -18,20 +22,21 @@
 			<button
 				type="button"
 				onclick={() => onClick?.(word)}
-				class="cursor-pointer text-3xl font-semibold italic text-text-default transition-opacity hover:opacity-70"
+				class="cursor-pointer text-4xl font-semibold {colorClass} transition-opacity hover:opacity-70"
 			>
 				{word}
+				<DottedUnderline colorClass={borderColorClass} {word} scale={1.4} />
 			</button>
 		{:else}
-			<span class="text-3xl font-semibold italic text-text-default">{word}</span>
+			<span class="text-4xl font-semibold {colorClass}">{word}</span>
+			<DottedUnderline colorClass={borderColorClass} {word} scale={1.4} />
 		{/if}
-		<DottedUnderline />
 	</div>
 	{#if onSpeak}
 		<button
 			type="button"
 			onclick={() => onSpeak?.(word)}
-			class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-card-stroke hover:text-text-default"
+			class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 			aria-label="Listen to pronunciation"
 		>
 			<svg
@@ -42,7 +47,7 @@
 				stroke-width="2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				class="h-5 w-5"
+				class="size-4"
 			>
 				<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
 				<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />

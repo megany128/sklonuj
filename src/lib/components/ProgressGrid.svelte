@@ -121,7 +121,7 @@
 							{#each numbers as num (num.key)}
 								<td class="px-3 py-2">
 									<span
-										class="inline-block min-w-[2.5rem] rounded-lg px-2 py-1 text-xs font-bold {getCellColor(
+										class="inline-block min-w-[2.5rem] rounded-lg px-2 py-1 text-xs font-semibold {getCellColor(
 											c.key,
 											num.key
 										)}"

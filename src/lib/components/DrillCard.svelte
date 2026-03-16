@@ -1,7 +1,13 @@
 <script lang="ts">
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
-	import { CASE_LABELS, CASE_INDEX, CASE_COLORS } from '$lib/types';
+	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER } from '$lib/types';
 	import DiacriticsBar from './DiacriticsBar.svelte';
+	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
+	import CaseBadge from '$lib/components/ui/CaseBadge.svelte';
+	import DottedUnderline from '$lib/components/ui/DottedUnderline.svelte';
+	import WrongAnswerDisplay from '$lib/components/ui/WrongAnswerDisplay.svelte';
+	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
+	import NextButton from '$lib/components/ui/NextButton.svelte';
 
 	let {
 		question,
@@ -10,6 +16,7 @@
 		onSpeak,
 		selectedCases,
 		showWordHint,
+		paradigmNotes = null,
 		onWordClick = null
 	}: {
 		question: DrillQuestion | null;
@@ -18,6 +25,7 @@
 		onSpeak: ((text: string) => void) | null;
 		selectedCases: Case[];
 		showWordHint: boolean;
+		paradigmNotes?: Record<string, string> | null;
 		onWordClick?: ((lemma: string) => void) | null;
 	} = $props();
 
@@ -27,6 +35,35 @@
 	let showFeedback = $state(false);
 
 	let unlockedCases = $derived(selectedCases);
+
+	const MAX_CASE_OPTIONS = 3;
+
+	// For case identification, pick max 3 options: correct answer + random distractors
+	let caseOptions = $derived.by(() => {
+		if (!question || question.drillType !== 'case_identification') return unlockedCases;
+		const correctCase = question.correctAnswer as Case;
+		if (unlockedCases.length <= MAX_CASE_OPTIONS) return unlockedCases;
+		const distractors = unlockedCases.filter((c) => c !== correctCase);
+		// Shuffle distractors deterministically based on question content
+		const shuffled = [...distractors].sort(() => {
+			// Use a simple seeded approach based on the question's template id + word
+			return 0.5 - Math.random();
+		});
+		const picked = shuffled.slice(0, MAX_CASE_OPTIONS - 1);
+		// Combine correct + distractors and sort by original order in unlockedCases
+		const result = [correctCase, ...picked];
+		return result.sort((a, b) => CASE_NUMBER[a] - CASE_NUMBER[b]);
+	});
+
+	let showCheers = $state(false);
+	let canAdvance = $state(false);
+
+	function triggerCheers() {
+		showCheers = true;
+		setTimeout(() => {
+			showCheers = false;
+		}, 1000);
+	}
 
 	let showDiacriticsBar = $derived(
 		question !== null &&
@@ -39,6 +76,8 @@
 			userInput = '';
 			submitted = false;
 			showFeedback = false;
+			showCheers = false;
+			canAdvance = false;
 			queueMicrotask(() => {
 				inputEl?.focus();
 			});
@@ -49,8 +88,6 @@
 		if (e.key === 'Enter') {
 			if (!submitted && question?.drillType !== 'case_identification') {
 				handleSubmit();
-			} else if (submitted) {
-				onSubmit('__advance__');
 			}
 		}
 	}
@@ -61,20 +98,38 @@
 		// Don't intercept if user is typing in the text input (Enter is handled by handleKeydown)
 		if (e.target === inputEl) return;
 
-		// Enter to advance after any drill type is submitted
-		if (e.key === 'Enter' && submitted) {
+		// Advance on Enter or Space after submission (only on fresh keypresses, not repeats)
+		if (submitted && canAdvance && !e.repeat && (e.key === 'Enter' || e.key === ' ')) {
+			e.preventDefault();
 			onSubmit('__advance__');
 			return;
 		}
 
 		// Number keys 1-7 for case identification (only when not yet submitted)
+		// Maps to case number, not option position (e.g. 2 = genitive)
 		if (question.drillType === 'case_identification' && !submitted) {
 			const keyNum = parseInt(e.key, 10);
-			if (keyNum >= 1 && keyNum <= unlockedCases.length) {
-				e.preventDefault();
-				handleCaseSelect(unlockedCases[keyNum - 1]);
+			if (keyNum >= 1 && keyNum <= 7) {
+				const matchedCase = caseOptions.find((c) => CASE_NUMBER[c] === keyNum);
+				if (matchedCase) {
+					e.preventDefault();
+					handleCaseSelect(matchedCase);
+				}
 			}
 		}
+	}
+
+	function enableAdvance() {
+		// Wait for the submitting key to be fully released before allowing advance
+		// This prevents the same keypress from both submitting and advancing
+		function onKeyUp() {
+			// Use requestAnimationFrame to ensure the advance isn't possible
+			// until the next frame after the key is released
+			requestAnimationFrame(() => {
+				canAdvance = true;
+			});
+		}
+		window.addEventListener('keyup', onKeyUp, { once: true });
 	}
 
 	function handleSubmit() {
@@ -82,6 +137,7 @@
 		submitted = true;
 		showFeedback = true;
 		onSubmit(userInput);
+		enableAdvance();
 	}
 
 	function handleCaseSelect(caseKey: Case) {
@@ -89,13 +145,7 @@
 		submitted = true;
 		showFeedback = true;
 		onSubmit(caseKey);
-	}
-
-	function handleSkip() {
-		if (!question || submitted) return;
-		submitted = true;
-		showFeedback = true;
-		onSubmit('__skip__');
+		enableAdvance();
 	}
 
 	function sentenceWithBlankAndLemma(q: DrillQuestion): { before: string; after: string } {
@@ -106,28 +156,6 @@
 		};
 	}
 
-	function getCaseButtonClass(caseKey: Case): string {
-		const base =
-			'rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all duration-200 cursor-pointer';
-
-		if (!submitted || !result || !question) {
-			return `${base} border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 active:scale-[0.97] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:bg-brand-950 dark:hover:text-brand-300`;
-		}
-
-		const isCorrectCase = caseKey === question.correctAnswer;
-		const isUserPick = caseKey === result.userAnswer;
-
-		if (isCorrectCase) {
-			return `${base} border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-200 dark:border-emerald-500 dark:bg-emerald-950 dark:text-emerald-300 dark:ring-emerald-800`;
-		}
-
-		if (isUserPick && !result.correct) {
-			return `${base} border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-500 dark:bg-rose-950 dark:text-rose-300`;
-		}
-
-		return `${base} border-slate-100 bg-slate-50 text-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-600`;
-	}
-
 	/** Smart number display: only show "plural" when asking for plural forms */
 	function formatCasePrompt(q: DrillQuestion): { caseName: string; isPlural: boolean } {
 		return {
@@ -136,17 +164,13 @@
 		};
 	}
 
-	let drillTypeLabel = $derived.by(() => {
-		if (!question) return '';
-		switch (question.drillType) {
-			case 'form_production':
-				return 'Form Production';
-			case 'case_identification':
-				return 'Case Identification';
-			case 'sentence_fill_in':
-				return 'Sentence Fill-in';
-		}
-	});
+	function fullSentenceText(q: DrillQuestion): string {
+		return q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]);
+	}
+
+	function sentenceWithGap(q: DrillQuestion): string {
+		return q.template.template.replace('___', '...');
+	}
 </script>
 
 <svelte:window onkeydown={handleWindowKeydown} />
@@ -155,126 +179,214 @@
 	{#if question}
 		{#key question}
 			<div
-				class="drill-fade-enter rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/50 sm:p-8 dark:border-slate-700/60 dark:bg-slate-800/80 dark:shadow-slate-900/50 {submitted &&
-				result?.correct
-					? 'correct-flash'
-					: ''}"
+				class="drill-fade-enter relative flex flex-col gap-6 rounded-[40px] border-2 {question.word
+					.lemma === 'pivo'
+					? 'border-amber-300 pivo-cursor'
+					: 'border-card-stroke'} bg-card-bg p-8 sm:p-10"
 				role="region"
-				aria-label="{drillTypeLabel} drill"
+				aria-label="Drill"
 			>
-				<!-- Drill type indicator -->
-				<p
-					class="mb-5 text-center text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500"
-				>
-					{drillTypeLabel}
-				</p>
-
 				<!-- Prompt -->
-				<div class="mb-8 text-center">
+				<div class="text-center">
 					{#if question.drillType === 'form_production'}
 						{@const prompt = formatCasePrompt(question)}
-						<p
-							class="text-sm font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500"
-						>
-							Decline
-						</p>
-						<p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-							{#if onWordClick}
+						<p class="text-sm text-text-subtitle">Decline</p>
+						<div class="mt-2 flex items-center justify-center gap-2">
+							<div class="relative flex flex-col items-center">
+								{#if showCheers}
+									<span class="cheers-pop absolute -top-8 left-1/2 -translate-x-1/2 text-3xl"
+										>🍻</span
+									>
+								{/if}
+								{#if onWordClick}
+									<button
+										type="button"
+										onclick={() => {
+											onWordClick?.(question!.word.lemma);
+											if (question!.word.lemma === 'pivo') triggerCheers();
+										}}
+										class="cursor-pointer text-4xl font-semibold {CASE_COLORS[question.case]
+											.text} transition-opacity hover:opacity-70"
+									>
+										{question.word.lemma}
+										<DottedUnderline
+											colorClass={CASE_COLORS[question.case].bg}
+											word={question.word.lemma}
+											scale={1.4}
+										/>
+									</button>
+								{:else}
+									<span class="text-4xl font-semibold {CASE_COLORS[question.case].text}">
+										{question.word.lemma}
+									</span>
+									<DottedUnderline
+										colorClass={CASE_COLORS[question.case].bg}
+										word={question.word.lemma}
+										scale={1.4}
+									/>
+								{/if}
+							</div>
+							{#if onSpeak}
 								<button
 									type="button"
-									onclick={() => onWordClick?.(question!.word.lemma)}
-									class="cursor-pointer underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:decoration-brand-400 hover:text-brand-700 dark:decoration-slate-600 dark:hover:decoration-brand-400 dark:hover:text-brand-300"
+									onclick={() => onSpeak(question!.word.lemma)}
+									class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
 								>
-									{question.word.lemma}
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="size-4"
+									>
+										<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+										<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+										<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+									</svg>
 								</button>
-							{:else}
-								{question.word.lemma}
 							{/if}
-						</p>
+						</div>
 						<div class="mt-3 flex items-center justify-center gap-2">
-							<span
-								class="inline-block rounded-full px-3 py-1 text-sm font-semibold {CASE_COLORS[
-									question.case
-								].bg} text-white"
-							>
-								{prompt.caseName}{#if prompt.isPlural}&nbsp;plural{/if}
-							</span>
+							<CaseBadge case_={question.case} size="sm" />
+							{#if prompt.isPlural}
+								<span
+									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-semibold text-text-subtitle"
+								>
+									plural
+								</span>
+							{/if}
 						</div>
 					{:else if question.drillType === 'case_identification'}
-						<p
-							class="text-sm font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500"
-						>
-							Which case?
-						</p>
+						<p class="text-sm text-text-subtitle">Which case?</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-xl font-medium leading-relaxed text-slate-900 dark:text-slate-100">
+						<p class="mt-3 text-xl font-medium leading-relaxed text-emphasis">
 							{parts.before}<span
-								class="mx-0.5 inline-block rounded bg-brand-100 px-2 py-0.5 font-bold text-brand-700 dark:bg-brand-900 dark:text-brand-300"
+								class="mx-0.5 inline-block rounded bg-shaded-background px-2 py-0.5 font-semibold text-emphasis"
 								>{#if onWordClick}<button
 										type="button"
 										onclick={() => onWordClick?.(question!.word.lemma)}
-										class="cursor-pointer underline decoration-brand-300 decoration-dotted underline-offset-2 transition-colors hover:decoration-brand-500 dark:decoration-brand-600 dark:hover:decoration-brand-400"
+										class="cursor-pointer underline decoration-text-subtitle decoration-dotted underline-offset-2 transition-opacity hover:opacity-70"
 										>({question.word.lemma})</button
 									>{:else}({question.word.lemma}){/if}</span
-							>{parts.after}
+							>{parts.after}{#if onSpeak}<button
+									type="button"
+									onclick={() => onSpeak(fullSentenceText(question!))}
+									class="ml-1 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
+									><svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="size-4"
+									>
+										<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+										<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+										<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+									</svg></button
+								>{/if}
 						</p>
 					{:else}
-						<p
-							class="text-sm font-medium tracking-wide text-slate-400 uppercase dark:text-slate-500"
-						>
-							Fill in the blank
-						</p>
+						<p class="text-sm text-text-subtitle">Fill in the blank</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-xl font-medium leading-relaxed text-slate-900 dark:text-slate-100">
+						<p class="mt-3 text-xl font-medium leading-relaxed text-emphasis">
 							{parts.before}<span
-								class="mx-0.5 inline-block border-b-2 border-dashed border-brand-400 px-4 dark:border-brand-500"
+								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
 								>&nbsp;&nbsp;&nbsp;&nbsp;</span
-							>{parts.after}
+							>{parts.after}{#if onSpeak}<button
+									type="button"
+									onclick={() => onSpeak(sentenceWithGap(question!))}
+									class="ml-1 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
+									><svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="size-4"
+									>
+										<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+										<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+										<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+									</svg></button
+								>{/if}
 						</p>
 						{#if showWordHint}
-							<p class="mt-2 text-sm text-slate-400 dark:text-slate-500">
-								({#if onWordClick}<button
-										type="button"
-										onclick={() => onWordClick?.(question!.word.lemma)}
-										class="cursor-pointer underline decoration-slate-300 decoration-dotted underline-offset-2 transition-colors hover:decoration-brand-400 hover:text-brand-600 dark:decoration-slate-600 dark:hover:decoration-brand-400 dark:hover:text-brand-300"
-										>{question.word.lemma}</button
-									>{:else}{question.word.lemma}{/if}) &mdash; {question.word.translation}
+							<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
+								<span>{question.word.translation}</span>
+								<span class="group relative">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										class="h-4 w-4 text-text-subtitle"
+									>
+										<circle cx="12" cy="12" r="10" />
+										<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+										<path d="M12 17h.01" />
+									</svg>
+									<span
+										class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+									>
+										{question.word.lemma}
+									</span>
+								</span>
 							</p>
 						{/if}
+						<div class="mt-3 flex items-center justify-center gap-2">
+							<CaseBadge case_={question.case} size="sm" />
+							{#if question.number === 'pl'}
+								<span
+									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-medium text-text-subtitle"
+								>
+									plural
+								</span>
+							{/if}
+						</div>
 					{/if}
 				</div>
 
 				<!-- Input area: buttons for case_identification, text input for others -->
 				{#if question.drillType === 'case_identification'}
-					<div role="group" aria-label="Select the correct case">
-						<div class="grid grid-cols-3 gap-2.5">
-							{#each unlockedCases as caseKey, idx (caseKey)}
-								<button
-									onclick={() => handleCaseSelect(caseKey)}
-									disabled={submitted}
-									class={getCaseButtonClass(caseKey)}
-									aria-label="{CASE_LABELS[caseKey]} (press {idx + 1})"
-								>
-									<span>{CASE_LABELS[caseKey]}</span>
-									<span
-										class="mt-0.5 block text-[0.6rem] font-normal text-slate-400 dark:text-slate-500"
-										>{idx + 1}</span
-									>
-								</button>
-							{/each}
-						</div>
+					<div
+						role="group"
+						aria-label="Select the correct case"
+						class="flex flex-wrap justify-center gap-3"
+					>
+						{#each caseOptions as caseKey (caseKey)}
+							{@const isCorrect =
+								submitted && result !== null && caseKey === question.correctAnswer}
+							{@const isIncorrect =
+								submitted && result !== null && !result.correct && caseKey === result.userAnswer}
+							{@const isDimmed = submitted && result !== null && !isCorrect && !isIncorrect}
+							<CaseAnswerOption
+								case_={caseKey}
+								selected={false}
+								disabled={submitted}
+								correct={isCorrect}
+								incorrect={isIncorrect}
+								dimmed={isDimmed}
+								onclick={() => handleCaseSelect(caseKey)}
+							/>
+						{/each}
 					</div>
 					{#if !submitted}
-						<div class="mt-5">
-							<button
-								onclick={handleSkip}
-								class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-							>
-								Skip
-							</button>
-						</div>
-						<p class="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">
-							Press 1&ndash;{unlockedCases.length} to select
+						<p class="mt-3 text-center text-xs text-text-subtitle">
+							Press 1&ndash;7 to select by case number
 						</p>
 					{/if}
 				{:else}
@@ -299,14 +411,12 @@
 							autocapitalize="off"
 							spellcheck="false"
 							placeholder="Type your answer..."
-							class="w-full rounded-xl border-2 px-5 py-3.5 text-center text-lg font-medium outline-none transition-all duration-200
+							class="w-full rounded-[20px] border-2 px-5 py-3.5 text-center text-lg font-medium outline-none transition-all duration-200
 								{submitted && result?.correct
-								? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-500 dark:bg-emerald-950 dark:text-emerald-300'
-								: submitted && result && result.nearMiss
-									? 'border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-300'
-									: submitted && result && !result.correct
-										? 'border-rose-400 bg-rose-50 text-rose-800 dark:border-rose-500 dark:bg-rose-950 dark:text-rose-300'
-										: 'border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-900/50 dark:text-slate-100 dark:placeholder:text-slate-600 dark:focus:border-brand-500 dark:focus:ring-brand-900'}"
+								? 'border-positive-stroke bg-positive-background text-positive-stroke'
+								: submitted && result && !result.correct
+									? 'border-negative-stroke bg-negative-background text-negative-stroke'
+									: 'border-card-stroke bg-card-bg text-emphasis placeholder:text-text-subtitle focus:border-emphasis'}"
 						/>
 					</div>
 
@@ -315,37 +425,22 @@
 						<div class="mt-2.5">
 							<DiacriticsBar {inputEl} inputValue={userInput} />
 						</div>
-					{/if}
-
-					{#if !submitted}
-						<div class="mt-4 flex gap-3">
-							<button
-								onclick={handleSkip}
-								class="rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-							>
-								Skip
-							</button>
-							<button
-								onclick={handleSubmit}
-								disabled={userInput.trim() === ''}
-								class="flex-1 rounded-xl bg-brand-600 px-4 py-3 font-semibold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow-md active:scale-[0.98] disabled:opacity-30 disabled:shadow-none dark:bg-brand-500 dark:hover:bg-brand-400"
-							>
-								Check
-							</button>
-						</div>
+						{#if userInput.trim() !== ''}
+							<p class="mt-2 text-center text-xs text-text-subtitle">Press enter to submit</p>
+						{/if}
 					{/if}
 				{/if}
 
 				<!-- Feedback after submission -->
 				{#if submitted && result && showFeedback}
-					<div class="drill-fade-enter mt-5 text-center">
+					<div class="drill-fade-enter space-y-4">
 						{#if result.correct}
 							<div class="flex items-center justify-center gap-2">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									viewBox="0 0 20 20"
 									fill="currentColor"
-									class="h-5 w-5 text-emerald-500 dark:text-emerald-400"
+									class="h-5 w-5 text-positive-stroke"
 								>
 									<path
 										fill-rule="evenodd"
@@ -353,100 +448,66 @@
 										clip-rule="evenodd"
 									/>
 								</svg>
-								<p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">Correct!</p>
+								<p class="text-lg font-semibold text-positive-stroke">Correct!</p>
 							</div>
-							{#if question.drillType === 'case_identification'}
-								<p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-									{question.word.lemma} &rarr;
-									<span class="font-semibold text-slate-700 dark:text-slate-200">
-										{question.word.forms[question.number][CASE_INDEX[question.case]]}
-									</span>
+							{@const nomForm = question.word.forms[question.number][0]}
+							{@const targetForm = question.word.forms[question.number][CASE_INDEX[question.case]]}
+							{#if nomForm !== targetForm}
+								<p class="text-center text-sm text-text-subtitle">
+									{nomForm} &rarr;
+									<span class="font-semibold {CASE_COLORS[question.case].text}">{targetForm}</span>
 								</p>
 							{/if}
 						{:else}
-							<p class="mb-1 text-xs font-medium text-slate-400 uppercase dark:text-slate-500">
-								Correct answer
-							</p>
-							<p class="text-2xl font-bold text-rose-600 dark:text-rose-400">
-								{#if question.drillType === 'case_identification'}
-									{CASE_LABELS[question.correctAnswer as Case]}
-								{:else}
-									{result.question.correctAnswer}
-								{/if}
-							</p>
-							{#if question.drillType === 'case_identification'}
-								<p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-									{question.word.lemma} &rarr;
-									<span class="font-semibold text-slate-700 dark:text-slate-200">
-										{question.word.forms[question.number][CASE_INDEX[question.case]]}
-									</span>
-								</p>
+							<!-- Wrong answer display: only show for skipped answers since the input already shows wrong answers in red -->
+							{#if question.drillType !== 'case_identification' && result.userAnswer === ''}
+								<WrongAnswerDisplay userAnswer="skipped" />
 							{/if}
-							{#if result.nearMiss}
-								<div
-									class="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/50 dark:text-amber-400"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										fill="currentColor"
-										class="h-4 w-4"
-									>
-										<path
-											fill-rule="evenodd"
-											d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.345 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-											clip-rule="evenodd"
-										/>
-									</svg>
-									Almost! Check your diacritics.
-								</div>
-							{/if}
+
+							<!-- Correct answer panel with explanation -->
+							{@const noteKey = `${question.case}_${question.number}`}
+							{@const whyNote = paradigmNotes?.[noteKey] ?? null}
+							{@const templateWhy =
+								question.template.id !== '_form_production' ? question.template.why : null}
+							<CorrectAnswerPanel
+								correctAnswer={question.drillType === 'case_identification'
+									? CASE_LABELS[question.correctAnswer as Case]
+									: result.question.correctAnswer}
+								nominative={question.word.forms[question.number][0]}
+								targetForm={question.word.forms[question.number][CASE_INDEX[question.case]]}
+								case_={question.case}
+								drillType={question.drillType}
+								nearMiss={result.nearMiss}
+								{templateWhy}
+								{whyNote}
+								onSpeak={onSpeak ? (text: string) => onSpeak(text) : undefined}
+								onWordClick={onWordClick ? () => onWordClick?.(question!.word.lemma) : undefined}
+							/>
 						{/if}
 
-						{#if onSpeak && question.drillType !== 'case_identification'}
-							<button
-								onclick={() => onSpeak(question!.correctAnswer)}
-								class="mt-3 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-								aria-label="Listen to pronunciation"
+						<!-- Next button -->
+						<NextButton onclick={() => onSubmit('__advance__')} />
+					</div>
+				{/if}
+
+				<!-- Beer rain on correct pivo answer -->
+				{#if showFeedback && result?.correct && question.word.lemma === 'pivo'}
+					<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[40px]">
+						{#each Array.from({ length: 12 }, (_, i) => i) as i (i)}
+							<span
+								class="beer-float absolute bottom-0 text-2xl"
+								style="left: {8 + i * 7.5}%; animation-delay: {i * 0.15}s"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="h-4 w-4"
-								>
-									<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-									<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-									<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-								</svg>
-								Listen
-							</button>
-						{/if}
-
-						<button
-							onclick={() => onSubmit('__advance__')}
-							class="mt-4 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
-						>
-							Next
-						</button>
-						<p class="mt-2 text-[0.65rem] text-slate-400 dark:text-slate-500">
-							{#if result.correct}Auto-advancing...{:else}Press Enter or tap Next{/if}
-						</p>
+								🍺
+							</span>
+						{/each}
 					</div>
 				{/if}
 			</div>
 		{/key}
 	{:else}
-		<div
-			class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-lg shadow-slate-200/50 dark:border-slate-700/60 dark:bg-slate-800/80 dark:shadow-slate-900/50"
-		>
-			<p class="text-slate-500 dark:text-slate-400">
-				No words available for this level. Try a different level.
-			</p>
+		<div class="rounded-[40px] border-2 border-card-stroke bg-card-bg p-8 text-center">
+			<p class="text-text-subtitle">No words available for this level. Try a different level.</p>
 		</div>
 	{/if}
 </div>

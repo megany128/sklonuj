@@ -35,7 +35,7 @@
 	>
 		Session checkpoint
 	</p>
-	<p class="text-center text-lg font-bold text-slate-800 dark:text-slate-200">
+	<p class="text-center text-lg font-semibold text-slate-800 dark:text-slate-200">
 		{totalAnswered} questions answered: {correctCount}/{totalAnswered} correct ({pct}%)
 	</p>
 	{#if weakestArea}

@@ -7,7 +7,7 @@
 </script>
 
 <div
-	class="rounded-xl border-2 border-red-400 bg-red-50 px-5 py-3.5 text-center text-lg font-medium text-red-700"
+	class="rounded-[20px] border-2 border-negative-stroke bg-negative-background px-5 py-3.5 text-center text-lg font-medium text-negative-stroke"
 >
 	{userAnswer}
 </div>

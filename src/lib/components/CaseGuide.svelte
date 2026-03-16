@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CASE_COLORS } from '$lib/types';
+	import { CASE_COLORS, CASE_NUMBER } from '$lib/types';
 	import type { Case } from '$lib/types';
 
 	let {
@@ -98,7 +98,7 @@
 	{#if !alwaysExpanded}
 		<button
 			onclick={() => (expanded = !expanded)}
-			class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+			class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 			aria-expanded={expanded}
 			aria-controls="case-guide-panel"
 		>
@@ -128,33 +128,32 @@
 		<div
 			class="space-y-2 {alwaysExpanded
 				? ''
-				: 'mt-2 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/60 dark:bg-slate-800/80'}"
+				: 'mt-2 rounded-[24px] border border-card-stroke bg-card-bg p-4'}"
 		>
 			{#each cases as c (c.name)}
-				<div class="rounded-xl border border-slate-100 p-3 dark:border-slate-700/40">
+				<div class="rounded-[24px] border-2 border-shaded-background p-4">
 					<div class="flex items-start gap-2.5">
 						<span
-							class="mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-bold {CASE_COLORS[
+							class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white {CASE_COLORS[
 								c.key
-							].bg} text-white"
+							].bg}"
 						>
-							{c.name}
+							{CASE_NUMBER[c.key]}
 						</span>
 						<div class="min-w-0">
-							<p class="text-xs font-medium italic text-slate-500 dark:text-slate-400">
+							<span class="{CASE_COLORS[c.key].text} font-semibold">{c.name}</span>
+							<p class="text-sm text-text-subtitle">
 								{c.question}
 							</p>
-							<p class="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
+							<p class="mt-1 text-sm font-semibold text-text-default">
 								{c.mnemonic}
 							</p>
-							<p class="mt-0.5 text-[0.7rem] leading-relaxed text-slate-500 dark:text-slate-400">
+							<p class="mt-0.5 text-sm text-text-subtitle">
 								{c.description}
 							</p>
-							<p class="mt-1.5 text-xs">
-								<span class="font-semibold text-slate-800 dark:text-slate-200">{c.example}</span>
-								<span class="ml-1 text-slate-400 dark:text-slate-500"
-									>&mdash; {c.exampleTranslation}</span
-								>
+							<p class="mt-1.5 text-sm">
+								<span class="font-semibold text-text-default">{c.example}</span>
+								<span class="ml-1 text-text-subtitle">&mdash; {c.exampleTranslation}</span>
 							</p>
 						</div>
 					</div>
