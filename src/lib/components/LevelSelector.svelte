@@ -33,7 +33,7 @@
 	</div>
 	{#if isCustom}
 		<span
-			class="rounded-full bg-amber-100 px-2.5 py-0.5 text-[0.65rem] font-semibold text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"
+			class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"
 		>
 			Custom
 		</span>

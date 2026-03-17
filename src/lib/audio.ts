@@ -80,6 +80,61 @@ export function playCorrectSound(): void {
 	osc2.stop(now + 0.45);
 }
 
+export function playStreakSound(streak: number): void {
+	const ctx = getAudioContext();
+	if (!ctx) return;
+
+	if (ctx.state === 'suspended') {
+		ctx.resume();
+	}
+
+	const now = ctx.currentTime;
+
+	let notes: number[];
+	let interval: number;
+
+	if (streak >= 10) {
+		notes = [587, 880, 1175, 1480, 1760];
+		interval = 0.09;
+	} else if (streak >= 5) {
+		notes = [587, 880, 1175, 1480];
+		interval = 0.1;
+	} else {
+		notes = [587, 880, 1175];
+		interval = 0.12;
+	}
+
+	for (let i = 0; i < notes.length; i++) {
+		const startTime = now + i * interval;
+		const noteGain = ctx.createGain();
+		noteGain.connect(ctx.destination);
+		noteGain.gain.setValueAtTime(0.15, startTime);
+		noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+		const osc = ctx.createOscillator();
+		osc.type = 'sine';
+		osc.frequency.setValueAtTime(notes[i], startTime);
+		osc.connect(noteGain);
+		osc.start(startTime);
+		osc.stop(startTime + 0.3);
+	}
+
+	// Shimmer effect for streak 10+
+	if (streak >= 10) {
+		const shimmerGain = ctx.createGain();
+		shimmerGain.connect(ctx.destination);
+		shimmerGain.gain.setValueAtTime(0.04, now);
+		shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+		const shimmerOsc = ctx.createOscillator();
+		shimmerOsc.type = 'sine';
+		shimmerOsc.frequency.setValueAtTime(3520, now);
+		shimmerOsc.connect(shimmerGain);
+		shimmerOsc.start(now);
+		shimmerOsc.stop(now + 0.6);
+	}
+}
+
 export function playClinkSound(): void {
 	const ctx = getAudioContext();
 	if (!ctx) return;

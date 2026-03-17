@@ -31,7 +31,7 @@
 	class="drill-fade-enter w-full rounded-2xl border border-brand-200/60 bg-brand-50/30 p-5 dark:border-brand-800/40 dark:bg-brand-950/20"
 >
 	<p
-		class="mb-2 text-center text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-brand-600 dark:text-brand-400"
+		class="mb-2 text-center text-xs font-semibold uppercase tracking-[0.15em] text-brand-600 dark:text-brand-400"
 	>
 		Session checkpoint
 	</p>

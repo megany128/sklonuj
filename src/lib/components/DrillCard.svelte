@@ -12,20 +12,26 @@
 
 	let {
 		question,
+		loading = false,
 		result,
 		onSubmit,
 		onSpeak,
 		selectedCases,
 		paradigmNotes = null,
-		onWordClick = null
+		onWordClick = null,
+		streak = 0,
+		soundEnabled = true
 	}: {
 		question: DrillQuestion | null;
+		loading?: boolean;
 		result: DrillResult | null;
 		onSubmit: (answer: string) => void;
 		onSpeak: ((text: string) => void) | null;
 		selectedCases: Case[];
 		paradigmNotes?: Record<string, string> | null;
 		onWordClick?: ((lemma: string) => void) | null;
+		streak?: number;
+		soundEnabled?: boolean;
 	} = $props();
 
 	let userInput = $state('');
@@ -66,13 +72,23 @@
 		}
 	}
 
+	function restoreSystemCursor(node: HTMLElement) {
+		node.style.removeProperty('cursor');
+		for (const el of node.querySelectorAll('*')) {
+			(el as HTMLElement).style.removeProperty('cursor');
+		}
+	}
+
 	// Hide system cursor on mount and whenever DOM changes
 	$effect(() => {
 		if (!cardEl || !isPivo) return;
 		hideSystemCursor(cardEl);
 		const observer = new MutationObserver(() => hideSystemCursor(cardEl!));
 		observer.observe(cardEl, { childList: true, subtree: true });
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+			restoreSystemCursor(cardEl!);
+		};
 	});
 
 	function handlePivoMouseMove(e: MouseEvent) {
@@ -80,8 +96,6 @@
 		pivoCursorEl.style.left = `${e.clientX}px`;
 		pivoCursorEl.style.top = `${e.clientY}px`;
 		if (!pivoVisible) pivoVisible = true;
-		// Also force cursor:none on whatever element the mouse is directly over
-		(e.target as HTMLElement).style.setProperty('cursor', 'none', 'important');
 	}
 
 	function handlePivoMouseLeave() {
@@ -141,6 +155,10 @@
 
 	function handleWindowKeydown(e: KeyboardEvent) {
 		if (!question) return;
+
+		// Don't intercept if focus is inside a modal or other overlay
+		const target = e.target as HTMLElement | null;
+		if (target?.closest('[data-modal]')) return;
 
 		// Don't intercept if user is typing in the text input (Enter is handled by handleKeydown)
 		if (e.target === inputEl) return;
@@ -239,12 +257,14 @@
 				class="drill-fade-enter relative flex flex-col gap-6 rounded-[40px] border-2 {question.word
 					.lemma === 'pivo'
 					? 'border-easter-egg-border pivo-glow'
-					: 'border-card-stroke'} bg-card-bg p-8 sm:p-10"
+					: 'border-card-stroke'} {streak >= 10 && showFeedback && result?.correct
+					? 'streak-glow'
+					: ''} bg-card-bg p-8 sm:p-10"
 				role="region"
 				aria-label="Drill"
 				onclick={isPivo
 					? (e) => {
-							playClinkSound();
+							if (soundEnabled) playClinkSound();
 							triggerClink(e);
 						}
 					: undefined}
@@ -340,7 +360,7 @@
 							>{parts.after}{#if onSpeak}<button
 									type="button"
 									onclick={() => onSpeak(fullSentenceText(question!))}
-									class="ml-1 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
 									><svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -368,7 +388,7 @@
 							>{parts.after}{#if onSpeak}<button
 									type="button"
 									onclick={() => onSpeak(sentenceWithGap(question!))}
-									class="ml-1 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
 									><svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -510,8 +530,27 @@
 										clip-rule="evenodd"
 									/>
 								</svg>
-								<p class="text-lg font-semibold text-positive-stroke">Correct!</p>
+								<p class="text-lg font-semibold text-positive-stroke">
+									{#if streak >= 3}
+										Correct! {streak} in a row!
+									{:else}
+										Correct!
+									{/if}
+								</p>
 							</div>
+							{#if streak >= 5}
+								<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[40px]">
+									{#each Array.from({ length: streak >= 25 ? 10 : streak >= 10 ? 8 : 4 }, (_, i) => i) as i (i)}
+										<span
+											class="streak-float absolute text-xl"
+											style="left: {10 + Math.random() * 80}%; bottom: {20 +
+												Math.random() * 40}%; animation-delay: {i * 0.1}s"
+										>
+											{['🔥', '⭐', '✨', '💥', '🌟'][i % 5]}
+										</span>
+									{/each}
+								</div>
+							{/if}
 							{@const nomForm = question.word.forms[question.number][0]}
 							{@const targetForm = question.word.forms[question.number][CASE_INDEX[question.case]]}
 							{#if result.nearMiss}
@@ -573,6 +612,10 @@
 				{/if}
 			</div>
 		{/key}
+	{:else if loading}
+		<div class="rounded-[40px] border-2 border-card-stroke bg-card-bg p-8 text-center">
+			<p class="text-sm text-text-subtitle">Loading exercises...</p>
+		</div>
 	{:else}
 		<div class="rounded-[40px] border-2 border-card-stroke bg-card-bg p-8 text-center">
 			<p class="text-text-subtitle">No words available for this level. Try a different level.</p>

@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
+	import { page } from '$app/stores';
 	import type {
 		Case,
 		Difficulty,
@@ -26,9 +28,17 @@
 		recordResult,
 		setLevel,
 		getAllCaseStrengths,
+		getCombinedCaseStrength,
 		pickWeightedCase
 	} from '$lib/engine/progress';
-	import { speak, isTTSAvailable, warmUpVoices, playCorrectSound } from '$lib/audio';
+	import {
+		speak,
+		isTTSAvailable,
+		warmUpVoices,
+		playCorrectSound,
+		playStreakSound
+	} from '$lib/audio';
+	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
@@ -38,6 +48,92 @@
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
 	import DeclensionTable from '$lib/components/DeclensionTable.svelte';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import MilestoneToast from '$lib/components/ui/MilestoneToast.svelte';
+	import AuthModal from '$lib/components/ui/AuthModal.svelte';
+
+	import { tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+
+	let user = $derived($page.data.user);
+
+	// Debounced sync to Supabase
+	let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function scheduleSyncToSupabase(): void {
+		if (!user) return;
+		if (syncTimer) clearTimeout(syncTimer);
+		syncTimer = setTimeout(() => {
+			const current = get(progress);
+			const supabase = getSupabaseBrowserClient();
+			supabase
+				.from('user_progress')
+				.update({
+					level: current.level,
+					case_scores: current.caseScores,
+					paradigm_scores: current.paradigmScores,
+					last_session: current.lastSession,
+					updated_at: new Date().toISOString()
+				})
+				.eq('user_id', user!.id)
+				.then(() => {});
+		}, 1000);
+	}
+
+	// Practice session tracking (per-day upsert)
+	let todayAttempted = $state(0);
+	let todayCorrect = $state(0);
+	let sessionSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function getTodayDate(): string {
+		return new Date().toISOString().slice(0, 10);
+	}
+
+	function scheduleSessionSync(): void {
+		if (!user) return;
+		if (sessionSyncTimer) clearTimeout(sessionSyncTimer);
+		sessionSyncTimer = setTimeout(() => {
+			const supabase = getSupabaseBrowserClient();
+			supabase
+				.from('practice_sessions')
+				.upsert(
+					{
+						user_id: user!.id,
+						session_date: getTodayDate(),
+						questions_attempted: todayAttempted,
+						questions_correct: todayCorrect,
+						updated_at: new Date().toISOString()
+					},
+					{ onConflict: 'user_id,session_date' }
+				)
+				.then(() => {});
+		}, 1000);
+	}
+
+	function recordSessionActivity(correct: boolean): void {
+		if (!user) return;
+		todayAttempted++;
+		if (correct) todayCorrect++;
+		scheduleSessionSync();
+	}
+
+	function loadTodaySession(): void {
+		if (!user) return;
+		const supabase = getSupabaseBrowserClient();
+		supabase
+			.from('practice_sessions')
+			.select('questions_attempted, questions_correct')
+			.eq('user_id', user.id)
+			.eq('session_date', getTodayDate())
+			.single()
+			.then(
+				({ data }: { data: { questions_attempted: number; questions_correct: number } | null }) => {
+					if (data) {
+						todayAttempted = data.questions_attempted;
+						todayCorrect = data.questions_correct;
+					}
+				}
+			);
+	}
 
 	interface ParadigmEntry {
 		id: string;
@@ -116,15 +212,48 @@
 	let submitted = $state(false);
 	let advanceTimer: ReturnType<typeof setTimeout> | null = $state(null);
 	let initialized = $state(false);
+	let wordsLoading = $state(true);
 	let ttsAvailable = $state(false);
 	let autoplayAudio = $state(true);
 	let hasInteracted = $state(false);
 	let sessionCount = $state(0);
+	let signupPromptDismissed = $state(false);
+	let authModalOpen = $state(false);
 
 	// Session stats
 	let sessionCorrect = $state(0);
 	let sessionWrong = $state(0);
 	let sessionCaseMisses: Record<string, number> = $state({});
+
+	// Streak tracking
+	let streak = $state(0);
+	let bestStreak = $state(0);
+
+	// Milestone toasts
+	interface MilestoneToast_ {
+		id: number;
+		message: string;
+		emoji: string;
+	}
+	let toasts = $state<MilestoneToast_[]>([]);
+	let celebratedMilestones = $state(new Set<string>());
+	let toastIdCounter = $state(0);
+
+	// Animated stat counters
+	const prefersReducedMotion =
+		typeof window !== 'undefined'
+			? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+			: false;
+	const tweenDuration = prefersReducedMotion ? 0 : 600;
+	const displayTotal = tweened(0, { duration: tweenDuration, easing: cubicOut });
+	const displayPct = tweened(0, { duration: tweenDuration, easing: cubicOut });
+
+	// Update animated counters when stats change
+	$effect(() => {
+		const total = sessionCorrect + sessionWrong;
+		displayTotal.set(total);
+		displayPct.set(total > 0 ? Math.round((sessionCorrect / total) * 100) : 0);
+	});
 
 	// Mistakes
 	let mistakes: DrillResult[] = $state([]);
@@ -224,20 +353,63 @@
 		}
 		const savedSettings = loadSettingsFromStorage();
 		drillSettings = savedSettings;
+
+		// Generate first question immediately from local state
 		generateNextQuestion();
+		wordsLoading = false;
+
+		// If user is logged in, load progress from Supabase in the background
+		if (user) {
+			loadTodaySession();
+			const supabase = getSupabaseBrowserClient();
+			supabase
+				.from('user_progress')
+				.select('*')
+				.eq('user_id', user.id)
+				.single()
+				.then(
+					({
+						data
+					}: {
+						data: {
+							level: string;
+							case_scores: Record<string, { attempts: number; correct: number }>;
+							paradigm_scores: Record<string, { attempts: number; correct: number }>;
+							last_session: string;
+						} | null;
+					}) => {
+						if (data) {
+							progress.set({
+								level: data.level as Difficulty,
+								caseScores: data.case_scores ?? {},
+								paradigmScores: data.paradigm_scores ?? {},
+								lastSession: data.last_session ?? ''
+							});
+							// Regenerate with server-side progress for better weighted selection
+							generateNextQuestion();
+						}
+					}
+				);
+		}
 
 		return () => {
 			if (advanceTimer !== null) {
 				clearTimeout(advanceTimer);
 				advanceTimer = null;
 			}
+			if (syncTimer) {
+				clearTimeout(syncTimer);
+			}
+			if (sessionSyncTimer) {
+				clearTimeout(sessionSyncTimer);
+			}
 		};
 	});
 
 	function pickDrillType(): DrillType {
-		// No case identification when a specific case is selected (you already know the case)
+		// No case identification when a specific case is selected or fewer than 2 cases enabled
 		let allowed = drillSettings.selectedDrillTypes;
-		if (selectedCase !== 'all') {
+		if (selectedCase !== 'all' || enabledCases.length < 2) {
 			allowed = allowed.filter((dt) => dt !== 'case_identification');
 			if (allowed.length === 0) allowed = ['form_production'];
 		}
@@ -398,6 +570,83 @@
 		}
 	}
 
+	const TOTAL_MILESTONES = [10, 25, 50, 100];
+
+	function addToast(message: string, emoji: string): void {
+		const id = toastIdCounter++;
+		toasts = [...toasts, { id, message, emoji }];
+	}
+
+	function removeToast(id: number): void {
+		toasts = toasts.filter((t) => t.id !== id);
+	}
+
+	function checkMilestones(result: DrillResult): void {
+		const candidates: { message: string; emoji: string; priority: number }[] = [];
+
+		// Streak milestones (only toast for 10+)
+		if (result.correct && streak >= 10 && [10, 25, 50].includes(streak)) {
+			const key = `streak_${streak}`;
+			if (!celebratedMilestones.has(key)) {
+				celebratedMilestones = new Set([...celebratedMilestones, key]);
+				candidates.push({
+					message: `${streak} in a row!`,
+					emoji: streak >= 25 ? '🏆' : '🔥',
+					priority: streak
+				});
+			}
+		}
+
+		// Total questions milestones (not in practice-mistakes mode)
+		if (!practicingMistakes) {
+			const total = sessionCorrect + sessionWrong;
+			for (const milestone of TOTAL_MILESTONES) {
+				if (total === milestone) {
+					const key = `total_${milestone}`;
+					if (!celebratedMilestones.has(key)) {
+						celebratedMilestones = new Set([...celebratedMilestones, key]);
+						const messages: Record<number, string> = {
+							10: '10 questions done!',
+							25: '25 and counting!',
+							50: 'Half century!',
+							100: '100 questions!'
+						};
+						candidates.push({
+							message: messages[milestone] ?? `${milestone} questions!`,
+							emoji: milestone >= 50 ? '🎉' : '👏',
+							priority: milestone / 10
+						});
+					}
+				}
+			}
+		}
+
+		// Case mastery: 80%+ accuracy after 10+ attempts (skip nom)
+		if (result.correct) {
+			const casesToCheck: Case[] = ['gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+			for (const c of casesToCheck) {
+				const strength = getCombinedCaseStrength(c);
+				if (strength.attempts >= 10 && strength.accuracy >= 0.8) {
+					const key = `mastery_${c}`;
+					if (!celebratedMilestones.has(key)) {
+						celebratedMilestones = new Set([...celebratedMilestones, key]);
+						candidates.push({
+							message: `You're mastering ${CASE_LABELS[c]}!`,
+							emoji: '🧠',
+							priority: 5
+						});
+					}
+				}
+			}
+		}
+
+		// Pick the most impressive milestone
+		if (candidates.length > 0) {
+			candidates.sort((a, b) => b.priority - a.priority);
+			addToast(candidates[0].message, candidates[0].emoji);
+		}
+	}
+
 	function handleSubmit(answer: string): void {
 		hasInteracted = true;
 
@@ -413,7 +662,10 @@
 			};
 			lastResult = result;
 			recordResult(result);
+			scheduleSyncToSupabase();
 			trackSessionStats(result);
+			recordSessionActivity(false);
+			streak = 0;
 			paradigmNotes = lookupParadigmNotes(question.word.paradigm);
 			autoPlayAnswer(question);
 			return;
@@ -454,19 +706,33 @@
 		const result = checkAnswer(question, answer);
 		lastResult = result;
 		recordResult(result);
+		scheduleSyncToSupabase();
 		trackSessionStats(result);
+		recordSessionActivity(result.correct);
 
 		if (result.correct) {
-			playCorrectSound();
+			streak++;
+			if (streak > bestStreak) bestStreak = streak;
+			if (autoplayAudio) {
+				if (streak >= 3) {
+					playStreakSound(streak);
+				} else {
+					playCorrectSound();
+				}
+			}
 		} else {
+			streak = 0;
 			paradigmNotes = lookupParadigmNotes(question.word.paradigm);
 		}
+
+		checkMilestones(result);
 
 		autoPlayAnswer(question);
 	}
 
 	function handleLevelChange(level: Difficulty): void {
 		setLevel(level);
+		scheduleSyncToSupabase();
 		currentLevel = level;
 		generateNextQuestion();
 	}
@@ -500,7 +766,9 @@
 		if (q.drillType === 'form_production') {
 			return q.word.lemma;
 		} else if (q.drillType === 'sentence_fill_in') {
-			return q.template.template.replace('___', '...');
+			// Read the text before and after the blank with a pause in between
+			const parts = q.template.template.split('___');
+			return [parts[0].trim(), parts[1]?.trim()].filter(Boolean).join(', ');
 		} else {
 			// case_identification: read only the nominative form so the user figures out the case
 			return q.word.forms[q.number][0];
@@ -530,8 +798,12 @@
 
 <svelte:window
 	onkeydown={(e) => {
-		if (e.key === 'Escape' && refSidebarOpen) {
-			refSidebarOpen = false;
+		if (e.key === 'Escape') {
+			if (authModalOpen) {
+				authModalOpen = false;
+			} else if (refSidebarOpen) {
+				refSidebarOpen = false;
+			}
 		}
 	}}
 />
@@ -553,6 +825,8 @@
 		}}
 		{darkMode}
 		onToggleDarkMode={toggleDarkMode}
+		{user}
+		onSignIn={() => (authModalOpen = true)}
 	/>
 
 	{#if activeView === 'exercise'}
@@ -564,7 +838,7 @@
 					<div class="mt-3 text-center">
 						<button
 							onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
-							class="inline-flex items-center gap-1 text-[11px] font-medium text-text-subtitle transition-colors hover:text-text-default"
+							class="inline-flex items-center gap-1 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
 						>
 							Filter cases
 							{#if enabledCases.length < ALL_CASES.length}
@@ -594,7 +868,7 @@
 									{@const enabled = enabledCases.includes(c)}
 									<button
 										onclick={() => toggleEnabledCase(c)}
-										class="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
+										class="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150"
 										class:opacity-35={!enabled}
 										style="background-color: {CASE_HEX[c]}12; color: {CASE_HEX[
 											c
@@ -610,7 +884,7 @@
 											enabledCases = [...ALL_CASES];
 											generateNextQuestion();
 										}}
-										class="text-[11px] font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
+										class="text-xs font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
 									>
 										Reset
 									</button>
@@ -649,7 +923,7 @@
 					<button
 						type="button"
 						onclick={toggleAutoplay}
-						class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+						class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 						aria-label="Toggle audio autoplay"
 					>
 						{#if autoplayAudio}
@@ -688,7 +962,7 @@
 				<button
 					type="button"
 					onclick={() => (settingsExpanded = !settingsExpanded)}
-					class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+					class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 					aria-label="Exercise settings"
 				>
 					<svg
@@ -716,8 +990,7 @@
 					class="mb-5 flex flex-wrap items-start gap-x-6 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-5 py-4"
 				>
 					<div class="flex items-center gap-2">
-						<span
-							class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-text-subtitle"
+						<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
 							>Word Difficulty</span
 						>
 						<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
@@ -738,6 +1011,7 @@
 						selectedDrillTypes={drillSettings.selectedDrillTypes}
 						numberMode={drillSettings.numberMode}
 						onSettingsChange={handleSettingsChange}
+						disableCaseIdentification={selectedCase !== 'all' || enabledCases.length < 2}
 					/>
 				</div>
 			{/if}
@@ -746,23 +1020,78 @@
 			<div class="mx-auto max-w-[867px]">
 				<DrillCard
 					{question}
+					loading={wordsLoading}
 					result={lastResult}
 					onSubmit={handleSubmit}
 					onSpeak={ttsAvailable ? handleSpeak : null}
 					selectedCases={ALL_CASES}
 					{paradigmNotes}
 					onWordClick={handleWordClick}
+					{streak}
+					soundEnabled={autoplayAudio}
 				/>
 			</div>
 
-			<!-- Session stats -->
-			{#if sessionCount > 0}
-				{@const total = sessionCorrect + sessionWrong}
-				{@const pct = total > 0 ? Math.round((sessionCorrect / total) * 100) : 0}
-				<div class="mt-6 text-center text-xs text-text-subtitle">
-					{total} completed &middot; {pct}% accuracy
+			<!-- Sign-up prompt for guests after 10 questions -->
+			{#if !user && sessionCount >= 10 && !signupPromptDismissed}
+				<div
+					transition:slide={{ duration: 200 }}
+					class="mx-auto mt-6 max-w-md rounded-2xl border border-card-stroke bg-card-bg p-5"
+				>
+					<div class="flex items-start justify-between gap-3">
+						<div>
+							<p class="text-sm font-semibold text-text-default">
+								You're on a roll — don't lose it!
+							</p>
+							<ul class="mt-1.5 space-y-1 text-xs text-text-subtitle">
+								<li>The algorithm learns your weak spots and drills them more</li>
+								<li>Pick up exactly where you left off, on any device</li>
+								<li>Track your accuracy for every case and paradigm</li>
+							</ul>
+						</div>
+						<button
+							type="button"
+							onclick={() => (signupPromptDismissed = true)}
+							class="shrink-0 p-1 text-text-subtitle transition-colors hover:text-text-default"
+							aria-label="Dismiss"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="size-4"
+							>
+								<path
+									d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+								/>
+							</svg>
+						</button>
+					</div>
+					<button
+						type="button"
+						onclick={() => (authModalOpen = true)}
+						class="mt-3 inline-block rounded-xl bg-emphasis px-4 py-2 text-xs font-semibold text-text-inverted transition-opacity hover:opacity-90"
+					>
+						Create free account
+					</button>
 				</div>
 			{/if}
+
+			<!-- Session stats -->
+			{#if sessionCount > 0}
+				<div class="mt-6 text-center text-xs text-text-subtitle">
+					{Math.round($displayTotal)} completed &middot; {Math.round($displayPct)}% accuracy
+				</div>
+			{/if}
+
+			<!-- Milestone toasts -->
+			{#each toasts as toast (toast.id)}
+				<MilestoneToast
+					message={toast.message}
+					emoji={toast.emoji}
+					onDismiss={() => removeToast(toast.id)}
+				/>
+			{/each}
 		</main>
 	{:else}
 		<!-- Declension/Lookup view -->
@@ -826,6 +1155,14 @@
 
 	<!-- Footer -->
 	<footer class="pb-6 pt-4 text-center">
-		<p class="text-xs text-text-subtitle">Skloňuj</p>
+		<p class="text-xs text-text-subtitle">
+			Skloňuj
+			<span class="mx-1">&middot;</span>
+			<a href={resolve('/contact')} class="underline underline-offset-2 hover:text-text-default"
+				>Contact</a
+			>
+		</p>
 	</footer>
 </div>
+
+<AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />

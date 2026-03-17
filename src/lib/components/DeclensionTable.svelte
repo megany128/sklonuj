@@ -211,11 +211,64 @@
 	const MIN_AUTOCOMPLETE_LENGTH = 3;
 	const MAX_SUGGESTIONS = 8;
 
+	// Paradigm browser data
+	interface ParadigmInfo {
+		id: string;
+		name: string;
+		exampleLemma: string;
+		label: string;
+	}
+
+	const PARADIGM_LABELS: Record<string, string> = {
+		hrad: 'hrad',
+		stroj: 'stroj',
+		pán: 'pán',
+		muž: 'muž',
+		předseda: 'předseda',
+		žena: 'žena',
+		růže: 'růže',
+		kost: 'kost',
+		město: 'město',
+		moře: 'moře',
+		kuře: 'kuře',
+		stavení: 'stavení'
+	};
+
+	const paradigmList: ParadigmInfo[] = paradigmsData
+		.filter((p) => p.id in PARADIGM_LABELS)
+		.map((p) => ({
+			id: p.id,
+			name: p.name,
+			exampleLemma: p.exampleLemma,
+			label: PARADIGM_LABELS[p.id] ?? p.id
+		}));
+
+	interface GenderGroup {
+		label: string;
+		paradigms: ParadigmInfo[];
+	}
+
+	const GENDER_GROUP_ORDER = ['Masculine', 'Feminine', 'Neuter'] as const;
+	const GENDER_GROUP_IDS: Record<string, string[]> = {
+		Masculine: ['hrad', 'stroj', 'pán', 'muž', 'předseda'],
+		Feminine: ['žena', 'růže', 'kost'],
+		Neuter: ['město', 'moře', 'kuře', 'stavení']
+	};
+
+	const genderGroups: GenderGroup[] = GENDER_GROUP_ORDER.map((label) => ({
+		label,
+		paradigms: (GENDER_GROUP_IDS[label] ?? [])
+			.map((id) => paradigmList.find((p) => p.id === id))
+			.filter((p): p is ParadigmInfo => p !== undefined)
+	}));
+
 	let expanded = $state(false);
 	let searchQuery = $state('');
 	let showSuggestions = $state(false);
 	let selectedEntry: DeclensionEntry | null = $state(null);
 	let highlightedIndex = $state(-1);
+	let selectedParadigm: string | null = $state(null);
+	let paradigmsExpanded = $state(false);
 
 	let trimmedQuery = $derived(searchQuery.trim().toLowerCase());
 	let isPivo = $derived(trimmedQuery === 'pivo');
@@ -310,11 +363,28 @@
 	function handleInput(): void {
 		showSuggestions = true;
 		highlightedIndex = -1;
+		selectedParadigm = null;
 		if (
 			selectedEntry !== null &&
 			searchQuery.trim().toLowerCase() !== selectedEntry.lemma.toLowerCase()
 		) {
 			selectedEntry = null;
+		}
+	}
+
+	function toggleParadigm(id: string): void {
+		if (selectedParadigm === id) {
+			selectedParadigm = null;
+			searchQuery = '';
+			selectedEntry = null;
+			showSuggestions = false;
+			highlightedIndex = -1;
+		} else {
+			selectedParadigm = id;
+			const info = paradigmList.find((p) => p.id === id);
+			if (info) {
+				selectWord(info.exampleLemma);
+			}
 		}
 	}
 
@@ -375,6 +445,54 @@
 				? 'pivo-cursor'
 				: ''}"
 		>
+			<!-- Paradigm browser toggle -->
+			<div>
+				<button
+					type="button"
+					onclick={() => (paradigmsExpanded = !paradigmsExpanded)}
+					class="flex items-center gap-1 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
+				>
+					Browse paradigms
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						class="h-3 w-3 transition-transform duration-200 {paradigmsExpanded
+							? 'rotate-180'
+							: ''}"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+				</button>
+				{#if paradigmsExpanded}
+					<div class="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+						{#each genderGroups as group (group.label)}
+							<div class="flex flex-wrap items-center gap-1.5">
+								<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">
+									{group.label}
+								</span>
+								{#each group.paradigms as paradigm (paradigm.id)}
+									<button
+										type="button"
+										onclick={() => toggleParadigm(paradigm.id)}
+										class="rounded-full border px-2.5 py-1 text-xs transition-colors {selectedParadigm ===
+										paradigm.id
+											? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+											: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
+									>
+										{paradigm.label}
+									</button>
+								{/each}
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
 			<!-- Search input -->
 			<div>
 				<div class="relative">
@@ -447,7 +565,7 @@
 						</span>
 						{#if selectedEntry.paradigmHint}
 							<span
-								class="rounded-full bg-shaded-background px-2 py-0.5 text-[0.6rem] font-normal text-text-subtitle"
+								class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
 							>
 								{selectedEntry.paradigmHint}
 							</span>
@@ -467,7 +585,7 @@
 					</span>
 					{#if displayEntry.paradigmHint}
 						<span
-							class="rounded-full bg-shaded-background px-2 py-0.5 text-[0.6rem] font-normal text-text-subtitle"
+							class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
 						>
 							{displayEntry.paradigmHint}
 						</span>
@@ -477,7 +595,12 @@
 
 			<!-- Declension table -->
 			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
+				<table class="w-full table-fixed text-sm">
+					<colgroup>
+						<col class="w-[30%]" />
+						<col class="w-[35%]" />
+						<col class="w-[35%]" />
+					</colgroup>
 					<thead>
 						<tr
 							class="border-b border-card-stroke text-left text-xs font-semibold uppercase tracking-wider text-text-subtitle"

@@ -5,7 +5,8 @@
 	let {
 		selectedDrillTypes,
 		numberMode,
-		onSettingsChange
+		onSettingsChange,
+		disableCaseIdentification = false
 	}: {
 		selectedDrillTypes: DrillType[];
 		numberMode: 'sg' | 'pl' | 'both';
@@ -13,6 +14,7 @@
 			selectedDrillTypes: DrillType[];
 			numberMode: 'sg' | 'pl' | 'both';
 		}) => void;
+		disableCaseIdentification?: boolean;
 	} = $props();
 
 	function toggleDrillType(dt: DrillType) {
@@ -38,19 +40,20 @@
 <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 	<!-- Drill types -->
 	<div class="flex items-center gap-2">
-		<span class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-text-subtitle"
-			>Type</span
-		>
+		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
 		<div class="flex flex-wrap gap-1.5">
 			{#each ALL_DRILL_TYPES as dt (dt)}
-				{@const active = selectedDrillTypes.includes(dt)}
+				{@const disabled = dt === 'case_identification' && disableCaseIdentification}
+				{@const active = selectedDrillTypes.includes(dt) && !disabled}
 				<button
 					onclick={() => toggleDrillType(dt)}
-					class="rounded-full border px-2.5 py-1 text-xs font-normal transition-all duration-150
-								{active
-						? 'border-card-stroke bg-darker-shaded-background text-text-default'
-						: 'border-transparent bg-shaded-background text-text-subtitle hover:bg-darker-shaded-background hover:text-text-default'}"
+					class="rounded-full border px-2.5 py-1 text-xs transition-all {disabled
+						? 'cursor-not-allowed border-card-stroke bg-card-bg text-text-subtitle/40'
+						: active
+							? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
 					aria-pressed={active}
+					{disabled}
 				>
 					{DRILL_TYPE_LABELS[dt]}
 				</button>
@@ -60,17 +63,14 @@
 
 	<!-- Number mode -->
 	<div class="flex items-center gap-2">
-		<span class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-text-subtitle"
-			>Number</span
-		>
-		<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
+		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Number</span>
+		<div class="flex flex-wrap gap-1.5">
 			{#each numberOptions as opt (opt.value)}
 				<button
 					onclick={() => setNumberMode(opt.value)}
-					class="rounded-[12px] px-3 py-1 text-xs font-normal transition-all
-								{numberMode === opt.value
-						? 'bg-shaded-background text-text-default'
-						: 'text-text-subtitle hover:text-text-default'}"
+					class="rounded-full border px-2.5 py-1 text-xs transition-all {numberMode === opt.value
+						? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+						: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
 				>
 					{opt.label}
 				</button>

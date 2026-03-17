@@ -46,6 +46,7 @@
 	--color-easter-egg-border: #fcd34d;
 	--color-on-accent: #ffffff;
 	--color-page-background: #fbf6f3;
+	--color-icon-hover: rgba(0, 0, 0, 0.06);
 }
 
 @layer base {
@@ -62,6 +63,7 @@
 		--color-warning-text: #fbbf24;
 		--color-easter-egg-border: #b8860b;
 		--color-on-accent: #cdc8cd;
+		--color-icon-hover: rgba(255, 255, 255, 0.08);
 		--color-card-bg: #22201e;
 		--color-card-stroke: #37342f;
 		--color-text-default: #dedbd8;
@@ -101,7 +103,10 @@ html {
 	background-color: var(--color-page-background);
 }
 
-button {
+button:not(:disabled),
+a,
+summary,
+[role='button']:not(:disabled) {
 	cursor: pointer;
 }
 
@@ -116,6 +121,13 @@ button {
 	::view-transition-old(root),
 	::view-transition-new(root) {
 		animation-duration: 0ms;
+	}
+
+	.streak-float,
+	.streak-glow,
+	.toast-slide-in,
+	.correct-flash {
+		animation: none !important;
 	}
 }
 
@@ -230,4 +242,52 @@ button {
 		opacity: 0;
 		transform: translate(-50%, -40px) scale(1);
 	}
+}
+
+/* Streak celebration emoji float */
+@keyframes streakFloat {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-120px) scale(0.8);
+	}
+}
+.streak-float {
+	animation: streakFloat 1.2s ease-out forwards;
+}
+
+/* Streak glow on card border */
+@keyframes streakGlow {
+	0% {
+		box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+	}
+	50% {
+		box-shadow:
+			0 0 20px rgba(251, 191, 36, 0.4),
+			0 0 40px rgba(251, 191, 36, 0.2);
+	}
+	100% {
+		box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+	}
+}
+.streak-glow {
+	animation: streakGlow 1.5s ease-in-out;
+}
+
+/* Milestone toast */
+@keyframes toastSlideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+.toast-slide-in {
+	animation: toastSlideIn 0.3s ease-out;
 }

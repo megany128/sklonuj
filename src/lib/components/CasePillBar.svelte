@@ -54,7 +54,7 @@
 		>
 			<span class="flex items-center gap-1" style="color: {hex}">
 				<span
-					class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+					class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
 					style="background-color: {hex}"
 				>
 					{CASE_NUMBER[c]}
@@ -62,7 +62,7 @@
 				<span class="hidden sm:inline">{CASE_LABELS[c].slice(0, 3)}</span>
 			</span>
 			{#if accuracyPct !== null && accColor}
-				<span class="text-[10px] font-bold" style="color: {accColor}">{accuracyPct}%</span>
+				<span class="text-xs font-bold" style="color: {accColor}">{accuracyPct}%</span>
 			{/if}
 		</button>
 	{/each}

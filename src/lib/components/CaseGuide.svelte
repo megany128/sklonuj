@@ -134,7 +134,7 @@
 				<div class="rounded-[20px] border-2 border-shaded-background bg-card-bg p-4">
 					<div class="flex items-center gap-3">
 						<span
-							class="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white {CASE_COLORS[
+							class="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white {CASE_COLORS[
 								c.key
 							].bg}"
 						>

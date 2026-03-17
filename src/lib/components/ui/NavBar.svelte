@@ -1,15 +1,40 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	let {
-		activePage = 'exercises',
+		activePage,
 		onNavigate,
 		darkMode = false,
-		onToggleDarkMode
+		onToggleDarkMode,
+		user = null,
+		onSignIn
 	}: {
-		activePage?: 'exercises' | 'lookup';
+		activePage?: 'exercises' | 'lookup' | undefined;
 		onNavigate?: (page: 'exercises' | 'lookup') => void;
 		darkMode?: boolean;
 		onToggleDarkMode?: () => void;
+		user?: { id: string; email?: string } | null;
+		onSignIn?: () => void;
 	} = $props();
+
+	const AVATAR_COLORS = [
+		'var(--color-case-gen)',
+		'var(--color-case-dat)',
+		'var(--color-case-acc)',
+		'var(--color-case-voc)',
+		'var(--color-case-loc)',
+		'var(--color-case-ins)'
+	];
+
+	let initial = $derived((user?.email?.[0] ?? '?').toUpperCase());
+	let avatarColor = $derived.by(() => {
+		if (!user?.id) return AVATAR_COLORS[0];
+		let hash = 0;
+		for (let i = 0; i < user.id.length; i++) {
+			hash = (hash * 31 + user.id.charCodeAt(i)) | 0;
+		}
+		return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+	});
 
 	let themeBounce = $state(false);
 </script>
@@ -44,6 +69,24 @@
 				Lookup
 			</button>
 		{/if}
+		{#if user}
+			<a
+				href={resolve('/profile')}
+				class="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
+				style="background-color: {avatarColor}"
+				aria-label="Profile"
+			>
+				{initial}
+			</a>
+		{:else}
+			<button
+				type="button"
+				onclick={() => onSignIn?.()}
+				class="rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+			>
+				Sign in
+			</button>
+		{/if}
 		{#if onToggleDarkMode}
 			<button
 				type="button"
@@ -52,7 +95,7 @@
 					themeBounce = true;
 					setTimeout(() => (themeBounce = false), 600);
 				}}
-				class="flex size-10 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+				class="flex size-10 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 				aria-label="Toggle dark mode"
 			>
 				<svg
