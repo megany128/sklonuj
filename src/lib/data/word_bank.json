@@ -61,7 +61,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A1",
-		"categories": ["misc", "people", "profession"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"nestudent",
@@ -194,7 +194,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects", "furniture", "sittable"],
+		"categories": ["objects"],
 		"forms": {
 			"sg": ["nestůl", "nestolu", "nestolu", "nestůl", "nestole", "nestolu", "nestolem"],
 			"pl": ["nestoly", "nestolů", "nestolům", "nestoly", "nestoly", "nestolech", "nestoly"]
@@ -822,7 +822,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["food", "meal", "event"],
+		"categories": ["food", "meal", "event", "abstract"],
 		"forms": {
 			"sg": ["jídlo", "jídla", "jídlu", "jídlo", "jídlo", "jídle", "jídlem"],
 			"pl": ["jídla", "jídel", "jídlům", "jídla", "jídla", "jídlech", "jídly"]
@@ -1314,7 +1314,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "abstract", "event"],
 		"forms": {
 			"sg": ["hodina", "hodiny", "hodině", "hodinu", "hodino", "hodině", "hodinou"],
 			"pl": ["hodiny", "hodin", "hodinám", "hodiny", "hodiny", "hodinách", "hodinami"]
@@ -1637,7 +1637,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["štěstí", "štěstí", "štěstí", "štěstí", "štěstí", "štěstí", "štěstím"],
 			"pl": ["štěstí", "štěstí", "štěstím", "štěstí", "štěstí", "štěstích", "štěstími"]
@@ -1650,7 +1650,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["problém", "problému", "problému", "problém", "probléme", "problému", "problémem"],
 			"pl": ["problémy", "problémů", "problémům", "problémy", "problémy", "problémech", "problémy"]
@@ -1663,7 +1663,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["otázka", "otázky", "otázce", "otázku", "otázko", "otázce", "otázkou"],
 			"pl": ["otázky", "otázek", "otázkám", "otázky", "otázky", "otázkách", "otázkami"]
@@ -1676,7 +1676,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["neodpověď", "odpovědi", "odpovědi", "odpověď", "odpovědi", "odpovědi", "odpovědí"],
 			"pl": ["odpovědi", "odpovědí", "odpovědím", "odpovědi", "odpovědi", "odpovědích", "odpověďmi"]
@@ -1689,7 +1689,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["pravda", "pravdy", "pravdě", "pravdu", "pravdo", "pravdě", "pravdou"],
 			"pl": ["pravdy", "pravd", "pravdám", "pravdy", "pravdy", "pravdách", "pravdami"]
@@ -1702,7 +1702,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["svoboda", "svobody", "svobodě", "svobodu", "svobodo", "svobodě", "svobodou"],
 			"pl": ["svobody", "svobod", "svobodám", "svobody", "svobody", "svobodách", "svobodami"]

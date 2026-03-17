@@ -83,6 +83,27 @@ PARADIGM_DESCRIPTIONS: Dict[str, str] = {
 
 VALID_DIFFICULTIES: Set[str] = {"A1", "A2", "B1", "B2"}
 
+SEMANTIC_TAGS: List[str] = [
+    "people",
+    "abstract",
+    "readable",
+    "meal",
+    "event",
+]
+
+BROAD_CATEGORIES: List[str] = [
+    "animals",
+    "body",
+    "family",
+    "food",
+    "misc",
+    "nature",
+    "objects",
+    "places",
+    "time",
+    "transportation",
+]
+
 
 def detect_paradigm(lemma: str, gender: str, animate: bool) -> str:
     """Detect the paradigm from gender, animacy, and word ending."""
@@ -362,8 +383,8 @@ def display_word_info(
     print(f"\n  {lemma} ({gender_label}, {animacy_label})")
     print(f"    Translation: {translation if translation else '(none found)'}")
     print(f"    Paradigm:    {paradigm_display}")
-    print(f"    Singular:    {', '.join(sg)}")
-    print(f"    Plural:      {', '.join(pl)}")
+    print(f"    Singular:    {', '.join(f or '-' for f in sg)}")
+    print(f"    Plural:      {', '.join(f or '-' for f in pl)}")
 
 
 def prompt_confirmation(
@@ -401,9 +422,20 @@ def prompt_confirmation(
     else:
         difficulty = "A2"
 
-    # Categories
-    cat_input = input("  Categories (comma-separated, default misc): ").strip()
-    categories = cat_input if cat_input else "misc"
+    # Broad category
+    print(f"  Available categories: {', '.join(BROAD_CATEGORIES)}")
+    cat_input = input("  Category (default misc): ").strip().lower()
+    category = cat_input if cat_input and cat_input in BROAD_CATEGORIES else "misc"
+
+    # Semantic tags
+    print(f"  Available semantic tags: {', '.join(SEMANTIC_TAGS)}")
+    print("  (These control which sentence templates the word can appear in.)")
+    tags_input = input("  Semantic tags (comma-separated, or press Enter to skip): ").strip()
+    if tags_input:
+        tags = [t.strip().lower() for t in tags_input.split(",") if t.strip()]
+        categories = ",".join([category] + tags)
+    else:
+        categories = category
 
     return translation, difficulty, categories
 
