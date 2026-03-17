@@ -1,0 +1,4377 @@
+[
+	{
+		"lemma": "bydliště",
+		"translation": "place of residence",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "kuchyň",
+		"translation": "kitchen",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "místnost",
+		"translation": "room",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "místo",
+		"translation": "place",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "narození",
+		"translation": "birth",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "občanství",
+		"translation": "citizenship",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "oslovení",
+		"translation": "form of address, salutation, greeting (vocative case)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "pobyt",
+		"translation": "term of stay (in a country or city)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "povolání",
+		"translation": "career",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "povolení",
+		"translation": "permission",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "plat",
+		"translation": "salary",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "sourozenci",
+		"translation": "siblings",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "stav",
+		"translation": "state, status (eg: facebookový stav!)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "tykání",
+		"translation": "using ty with someone",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "vízum",
+		"translation": "visa",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 1
+	},
+	{
+		"lemma": "vykání",
+		"translation": "using vy with someone",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "vzdělání",
+		"translation": "education",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "zaměstnání",
+		"translation": "job, employment",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 1
+	},
+	{
+		"lemma": "generace",
+		"translation": "generation",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 2
+	},
+	{
+		"lemma": "prarodiče",
+		"translation": "grandparents",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 2
+	},
+	{
+		"lemma": "stravenka",
+		"translation": "food coupon",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 2
+	},
+	{
+		"lemma": "svatba",
+		"translation": "wedding",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 2
+	},
+	{
+		"lemma": "akce",
+		"translation": "event, public activity",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "atmosféra",
+		"translation": "atmosphere",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "barák",
+		"translation": "dům",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "bydlení",
+		"translation": "housing",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "hrad",
+		"translation": "castle (the fortified kind)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "chalupa",
+		"translation": "country house (usually in a village)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "chalupář",
+		"translation": "chalupa-owner and -goer",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "chata",
+		"translation": "country cottage (usually in the mountains or forest)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "chatař",
+		"translation": "chata-owner and -goer",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "hausbót",
+		"translation": "house-boat",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "hypotéka",
+		"translation": "mortgage",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "jachta",
+		"translation": "yacht",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "jídelna",
+		"translation": "dining-room",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "kastelán/ka",
+		"translation": "someone who lives and works in a castle",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "kolej",
+		"translation": "dorm",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "kopec",
+		"translation": "hill",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "loď",
+		"translation": "boat",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "loft",
+		"translation": "loft",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "lokalita",
+		"translation": "locality, neighborhood",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "maják",
+		"translation": "light-house",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "makléř",
+		"translation": "(real-estate) broker",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "mrakodrap",
+		"translation": "skyscraper",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "oba",
+		"translation": "both",
+		"gender_hint": "m",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "obě",
+		"translation": "both",
+		"gender_hint": "m",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "ostrov",
+		"translation": "island",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "panelák",
+		"translation": "prefab apartment building",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "penzion",
+		"translation": "boarding-house",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "pól",
+		"translation": "pole",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "poušť",
+		"translation": "desert",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "prohlídka",
+		"translation": "sightseeing visit",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "samota",
+		"translation": "isolation, alone-ness",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "squat",
+		"translation": "a building that you’ve squatted in",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "stan",
+		"translation": "tent",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "terasa",
+		"translation": "deck",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "topení",
+		"translation": "heating",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "věž",
+		"translation": "tower",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "vila",
+		"translation": "villa",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "vlk",
+		"translation": "wolf (sea-wolf, sea-dog)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 3
+	},
+	{
+		"lemma": "zámek",
+		"translation": "castle",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "život",
+		"translation": "life",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 3
+	},
+	{
+		"lemma": "autobus",
+		"translation": "bus",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "cesta",
+		"translation": "trip, journey",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "cestopis",
+		"translation": "travel diary",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 4
+	},
+	{
+		"lemma": "cestovatel/ka",
+		"translation": "traveler",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 4
+	},
+	{
+		"lemma": "dobrodružství",
+		"translation": "adventure",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 4
+	},
+	{
+		"lemma": "hrdina",
+		"translation": "hero",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "hrdinka",
+		"translation": "heroine",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "kolo",
+		"translation": "bike",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "kontinent",
+		"translation": "continent",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "kůň",
+		"translation": "horse",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "letadlo",
+		"translation": "plane",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "motorka",
+		"translation": "motorcycle",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "oceán",
+		"translation": "ocean",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "schody",
+		"translation": "stairs",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "slon",
+		"translation": "elephant",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 4
+	},
+	{
+		"lemma": "svět",
+		"translation": "the world",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "úspěch",
+		"translation": "success",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "velbloud",
+		"translation": "camel",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 4
+	},
+	{
+		"lemma": "vlak",
+		"translation": "train",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "země",
+		"translation": "country",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 4
+	},
+	{
+		"lemma": "zpoždění",
+		"translation": "lateness; delay",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 4
+	},
+	{
+		"lemma": "autoopravna",
+		"translation": "car-repair shop",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "časopis",
+		"translation": "magazine",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "koníček",
+		"translation": "hobby (lit, little horse or hobby-horse)",
+		"gender_hint": "ma",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "koza",
+		"translation": "goat",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "kráva",
+		"translation": "cow",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "názor",
+		"translation": "opinion",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "pohovor",
+		"translation": "interview",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "pracoviště",
+		"translation": "work-place",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "prst",
+		"translation": "finger",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "rozdíl",
+		"translation": "difference",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "tělo",
+		"translation": "body",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "továrna",
+		"translation": "factory",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "velvyslanectví",
+		"translation": "embassy",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "bankéř",
+		"translation": "banker",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "bankéřka",
+		"translation": "banker",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "dělník",
+		"translation": "(blue-collar) worker",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "dělnice",
+		"translation": "(blue-collar) worker",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "farmář",
+		"translation": "farmer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "farmářka",
+		"translation": "farmer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "hasič",
+		"translation": "fire-fighter",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "hasička",
+		"translation": "fire-fighter",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "historik",
+		"translation": "historian",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "historička",
+		"translation": "historian",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "kosmonaut",
+		"translation": "astronaut",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "kosmonautka",
+		"translation": "astronaut",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "lékař",
+		"translation": "doctor",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "lékařka",
+		"translation": "doctor",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "manažer",
+		"translation": "manager",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "manažerka",
+		"translation": "manager",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "model",
+		"translation": "model",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "modelka",
+		"translation": "model",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "novinář",
+		"translation": "journalist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "novinářka",
+		"translation": "journalist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "pilot",
+		"translation": "pilot",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "pilotka",
+		"translation": "pilot",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "policista",
+		"translation": "police-officer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "policistka",
+		"translation": "police-officer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "politik",
+		"translation": "politician",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "politička",
+		"translation": "politician",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "politolog",
+		"translation": "political scientist",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "politoložka",
+		"translation": "political scientist",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "právník",
+		"translation": "lawyer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "právnička",
+		"translation": "lawyer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "prodavač",
+		"translation": "salesperson",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "prodavačka",
+		"translation": "salesperson",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "průvodce",
+		"translation": "guide",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "průvodkyně",
+		"translation": "guide",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "psycholog",
+		"translation": "psychologist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "psycholožka",
+		"translation": "psychologist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "sestra",
+		"translation": "nurse",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "soudce",
+		"translation": "judge",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "soudkyně",
+		"translation": "judge",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "uklízeč",
+		"translation": "cleaner, janitor",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "uklízečkou",
+		"translation": "cleaner, janitor",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "umělec",
+		"translation": "artist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "umělkyně",
+		"translation": "artist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "úředník",
+		"translation": "bureaucrat, administrator",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "úřednice",
+		"translation": "bureaucrat, administrator",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "vědec",
+		"translation": "scientist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "vědkyně",
+		"translation": "scientist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 5
+	},
+	{
+		"lemma": "veterinář",
+		"translation": "veterinarian",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "veterinářka",
+		"translation": "veterinarian",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "zemědělec",
+		"translation": "farmer (worker in agriculture or zemědělství)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 5
+	},
+	{
+		"lemma": "čtenář/čtenářka",
+		"translation": "reader",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "čumák/čumáček",
+		"translation": "snout",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 6
+	},
+	{
+		"lemma": "filmář/filmářka",
+		"translation": "a film-person",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "gratulace",
+		"translation": "congratulations",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "ilustrace",
+		"translation": "illustration",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "krtek",
+		"translation": "mole",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "málokdo",
+		"translation": "few people",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "nos",
+		"translation": "nose",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "ocas/ocásek",
+		"translation": "tail",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "postava",
+		"translation": "figure, character (in a novel or film)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "přání",
+		"translation": "well-wishes, regards",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "včela/včelka",
+		"translation": "bumble-bee",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 6
+	},
+	{
+		"lemma": "vousy",
+		"translation": "moustache",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "výročí",
+		"translation": "anniversary",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "vzpomínka",
+		"translation": "memory (of something)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "začátek",
+		"translation": "beginning, start",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "zajíc",
+		"translation": "hare",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 6
+	},
+	{
+		"lemma": "zážitek",
+		"translation": "experience",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "zvířátko",
+		"translation": "small animal",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 6
+	},
+	{
+		"lemma": "autíčko",
+		"translation": "toy-cars",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "čajník",
+		"translation": "tea-pot",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "čekárna",
+		"translation": "waiting-room",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "dárk",
+		"translation": "gift",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "flaška",
+		"translation": "bottle",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "hodnota",
+		"translation": "value",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "hrnk",
+		"translation": "cup (for coffee)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "jehla",
+		"translation": "needle",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "ježk",
+		"translation": "hedgehog",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "kamínk",
+		"translation": "stone, pebble",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "knoflík",
+		"translation": "button",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "korálk",
+		"translation": "bead",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "kousk",
+		"translation": "piece",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "křečk",
+		"translation": "hamster",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "květináč",
+		"translation": "flower-pot",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "morče",
+		"translation": "guinea-pig",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "lidé",
+		"translation": "people",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "mince",
+		"translation": "coin(s)",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "motýl",
+		"translation": "butterfly",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "mušle",
+		"translation": "seashell",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "oblečení",
+		"translation": "clothing",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "osobnost",
+		"translation": "person, personnage",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "oznámení",
+		"translation": "announcement (wedding)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "panenka",
+		"translation": "doll",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "pecka",
+		"translation": "pit (in a piece of fruit)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "podpis",
+		"translation": "signature",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "sběratel",
+		"translation": "collector (male)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "sběratelka",
+		"translation": "collector (female)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "sbírka",
+		"translation": "collection",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "suvenýr",
+		"translation": "souvenir",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "špendlík",
+		"translation": "pin",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 7
+	},
+	{
+		"lemma": "ubrousk",
+		"translation": "napkin",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "účt",
+		"translation": "account, bill",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "váza",
+		"translation": "vase",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "věc",
+		"translation": "thing",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "záruka",
+		"translation": "guarantee",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "zboží",
+		"translation": "goods, products",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "značka",
+		"translation": "brand-name, make",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "známka",
+		"translation": "stamp",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "zvíře",
+		"translation": "animal",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 7
+	},
+	{
+		"lemma": "biskup",
+		"translation": "bishop",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "hřbitov",
+		"translation": "cemetery",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "křesťan",
+		"translation": "Christian",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "kytice",
+		"translation": "flower",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "návštěva",
+		"translation": "visit",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "obchodník",
+		"translation": "businessman",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "ohň",
+		"translation": "campfire",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "ohňostroj",
+		"translation": "fireworks",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "oříšk",
+		"translation": "(little) nut",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "oslava",
+		"translation": "celebration",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "pálení",
+		"translation": "burning",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "památka",
+		"translation": "memorial, remembrance",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "pouť",
+		"translation": "pilgrimmage",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "století",
+		"translation": "century",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "strom",
+		"translation": "tree",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "stromečk",
+		"translation": "Christmas tree",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "svátk",
+		"translation": "holiday",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "svíčka",
+		"translation": "candle",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "tradice",
+		"translation": "tradition",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "událost",
+		"translation": "event",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "úplnk",
+		"translation": "full moon",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "zábava",
+		"translation": "fun, good time",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "čarodějnice",
+		"translation": "Witches Day",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 8
+	},
+	{
+		"lemma": "dušičky",
+		"translation": "All Souls Day",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "mikuláš",
+		"translation": "Saint Nicholas",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "valentýn",
+		"translation": "Valentine’s Day",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "vánoce",
+		"translation": "Christmas",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "velikonoce",
+		"translation": "Easter",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "silvestr",
+		"translation": "New Year’s Eve",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 8
+	},
+	{
+		"lemma": "autoservis",
+		"translation": "car-repair shop",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "čistírna",
+		"translation": "dry-cleaner‘s",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "dělení",
+		"translation": "division",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "dílna",
+		"translation": "work-room; workshop; factory floor",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "domácnost",
+		"translation": "home, household",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "feministka",
+		"translation": "feminist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "kadeřnictví",
+		"translation": "hair-stylist‘s",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "krejčovství",
+		"translation": "tailor’s",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "masáž",
+		"translation": "massage",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "masér/ka",
+		"translation": "masseur/masseuse",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "oblast",
+		"translation": "area, sphere (of activity)",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "podmínka",
+		"translation": "condition",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "právo",
+		"translation": "right / rights",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "práva",
+		"translation": "right / rights",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "profese",
+		"translation": "profession, job",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "předpoklad",
+		"translation": "predisposition, prerequisite",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 9
+	},
+	{
+		"lemma": "předsudk",
+		"translation": "prejudice",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "příležitost",
+		"translation": "opportunity",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "přítomnost",
+		"translation": "presence",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "společnost",
+		"translation": "society",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "stereotyp",
+		"translation": "stereotype",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 9
+	},
+	{
+		"lemma": "branka",
+		"translation": "goal (goalie)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "figurka",
+		"translation": "statuette (chess piece)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "garáž",
+		"translation": "garage",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "hra",
+		"translation": "game",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "hračka",
+		"translation": "toy",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "herc",
+		"translation": "actor / actress",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "herečka",
+		"translation": "actor / actress",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "horolezc",
+		"translation": "rock-climber",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "horolezkyně",
+		"translation": "rock-climber",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "chůze",
+		"translation": "walking",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "jízda",
+		"translation": "riding, driving",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "koule",
+		"translation": "ball (in billiards and bowling)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "kuželky",
+		"translation": "bowling",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "letání",
+		"translation": "flying",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "letiště",
+		"translation": "airport",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "majitel/ka",
+		"translation": "owner",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "míč",
+		"translation": "ball",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "míčk",
+		"translation": "(little) ball",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "odpočink",
+		"translation": "rest",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "plavání",
+		"translation": "swimming",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "pohyb",
+		"translation": "movement, motion",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "pojištění",
+		"translation": "insurance",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "rybník",
+		"translation": "pond/lake",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "sn",
+		"translation": "dream",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "síť",
+		"translation": "net",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "skupina",
+		"translation": "group",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "směr",
+		"translation": "direction",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "spánk",
+		"translation": "sleep",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "svoboda",
+		"translation": "freedom",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "šachty",
+		"translation": "chess",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "terč",
+		"translation": "target; dartboard",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "ubytování",
+		"translation": "lodging",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "vor",
+		"translation": "raft",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 10
+	},
+	{
+		"lemma": "výkon",
+		"translation": "accomplishment, achievement",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "výlet",
+		"translation": "trip, outing",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "zájezd",
+		"translation": "tour, trip",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "závod",
+		"translation": "race",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 10
+	},
+	{
+		"lemma": "angína",
+		"translation": "sore throat (to have a sore throat)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "břicho",
+		"translation": "stomach, belly",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "drak",
+		"translation": "dragon",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "drvoštěp",
+		"translation": "woodcutter, lumberjack",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "chřipka",
+		"translation": "flu",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "kapka",
+		"translation": "drop",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "kašl",
+		"translation": "cough",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "klid",
+		"translation": "peace and quiet; calm",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "království",
+		"translation": "kingdom",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "lék",
+		"translation": "medicine",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "lékař/ka",
+		"translation": "doctor",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "mast",
+		"translation": "ointment",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "nemoc",
+		"translation": "sickness, illness",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "noha",
+		"translation": "leg; foot",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "operace",
+		"translation": "operation",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "pacient/ka",
+		"translation": "patient",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "pohádka",
+		"translation": "fairy-tale",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "pohoda",
+		"translation": "state of relaxation, peace, comfort",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "posl",
+		"translation": "messenger",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "povinnost",
+		"translation": "obligation, responsibility",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "princezna",
+		"translation": "princess",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "ruka",
+		"translation": "arm; hand",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "rýma",
+		"translation": "cold (to have a cold)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "stres",
+		"translation": "stress",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "světlo",
+		"translation": "light",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "úraz",
+		"translation": "injury",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "tma",
+		"translation": "dark, darkness",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "vládce",
+		"translation": "rule, sovereign",
+		"gender_hint": "m",
+		"recognition_only": true,
+		"lesson": 11
+	},
+	{
+		"lemma": "zlato",
+		"translation": "gold",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "žaludk",
+		"translation": "stomach",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 11
+	},
+	{
+		"lemma": "báseň",
+		"translation": "poem",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "básnička",
+		"translation": "poem (spoken Czech)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "blog",
+		"translation": "blog",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "dějství",
+		"translation": "act (in a play)",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "dílo",
+		"translation": "work (of literature or art)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "doklady",
+		"translation": "documentation, papers",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "hlediště",
+		"translation": "auditorium, hall",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "hlídka",
+		"translation": "guard, patrol",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "hodiny",
+		"translation": "clock",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "hodinky",
+		"translation": "watch",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "jeviště",
+		"translation": "stage",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "kapsa",
+		"translation": "pocket",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "kniha",
+		"translation": "book",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "knihomol",
+		"translation": "book-worm",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "knížka",
+		"translation": "book (spoken Czech)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "koláž",
+		"translation": "collage",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "kultura",
+		"translation": "culture",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "malíř",
+		"translation": "painter",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "muzikál",
+		"translation": "musical",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "nástroj",
+		"translation": "instrument",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "nota",
+		"translation": "(musical) note",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "obraz",
+		"translation": "painting",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "obrazovka",
+		"translation": "screen",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "odtažení",
+		"translation": "towing-away",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "opona",
+		"translation": "curtain",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "orchestr",
+		"translation": "orchestra",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "peněženka",
+		"translation": "wallet",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "píseň",
+		"translation": "song",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "písnička",
+		"translation": "song (spoken Czech)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "plátno",
+		"translation": "projection screen",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "pokuta",
+		"translation": "fine, penalty",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "povídka",
+		"translation": "short-story",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "představení",
+		"translation": "performance",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "přestávka",
+		"translation": "intermission",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "role",
+		"translation": "role",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "román",
+		"translation": "novel",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "řada",
+		"translation": "row",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "sál",
+		"translation": "hall",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "scénář",
+		"translation": "script",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "síň",
+		"translation": "(exhibition) hall",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "sedadlo",
+		"translation": "seat",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "skladba",
+		"translation": "composition",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "socha",
+		"translation": "statue",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "symfonie",
+		"translation": "symphony",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "trapas",
+		"translation": "awkward situation",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "účes",
+		"translation": "haircut, hairstyle",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "uklidnění",
+		"translation": "calming-down",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "umění",
+		"translation": "art",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "uváděč",
+		"translation": "usher",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 12
+	},
+	{
+		"lemma": "vstupenka",
+		"translation": "entry-ticket",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "výstava",
+		"translation": "exhibition",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "zácpa",
+		"translation": "traffic-jam",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "zážitk",
+		"translation": "experience",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 12
+	},
+	{
+		"lemma": "doklad",
+		"translation": "document, paper",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "domov",
+		"translation": "orphanage",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "flegmatik",
+		"translation": "phlegmatic person",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "cholerik",
+		"translation": "hot-headed person",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "melancholik",
+		"translation": "melancholy person",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "podobnost",
+		"translation": "resemblance",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "porod",
+		"translation": "birth (the act of giving birth)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "porodnice",
+		"translation": "maternity ward",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "povaha",
+		"translation": "personality, character",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "příběh",
+		"translation": "story",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "pudl",
+		"translation": "poodle",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "šok",
+		"translation": "shock",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "sangvinik",
+		"translation": "sanguine person",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 13
+	},
+	{
+		"lemma": "vlasnost",
+		"translation": "trait, particularity",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "vzhled",
+		"translation": "appearance",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 13
+	},
+	{
+		"lemma": "aféra",
+		"translation": "affair",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "agentura",
+		"translation": "press or newspaper agency",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 14
+	},
+	{
+		"lemma": "článk",
+		"translation": "article",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "čtenář",
+		"translation": "reader",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "čtenářka",
+		"translation": "reader",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "empétrojka",
+		"translation": "MP3",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "inzerát",
+		"translation": "(classified) ad",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "komentář",
+		"translation": "commentary",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "křížovka",
+		"translation": "crossword",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "kvíz",
+		"translation": "quiz",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "móda",
+		"translation": "fashion",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "národnost",
+		"translation": "nationality",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "notebook",
+		"translation": "laptop",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "noviny",
+		"translation": "newspaper",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "obsah",
+		"translation": "content",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "organizace",
+		"translation": "organization",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "pořad",
+		"translation": "broadcast, show",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "předpověď",
+		"translation": "forecast",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "recenze",
+		"translation": "review",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "recept",
+		"translation": "recipe",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "reklama",
+		"translation": "advertisement",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "reportáž",
+		"translation": "report(ing)",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "soutěž",
+		"translation": "competition",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 14
+	},
+	{
+		"lemma": "stránka",
+		"translation": "webpage",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "televize",
+		"translation": "television",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "tisk",
+		"translation": "print media",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "titulk",
+		"translation": "title",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "trh",
+		"translation": "market",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 14
+	},
+	{
+		"lemma": "vtip",
+		"translation": "joke",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "zahraničí",
+		"translation": "abroad",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "zprávy",
+		"translation": "news (items)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 14
+	},
+	{
+		"lemma": "bankomat",
+		"translation": "bank machine (ATM)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "bezdomovc",
+		"translation": "homeless person",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "bída",
+		"translation": "poverty",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 15
+	},
+	{
+		"lemma": "dávky",
+		"translation": "welfare",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 15
+	},
+	{
+		"lemma": "charita",
+		"translation": "charity",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "chudoba",
+		"translation": "poverty",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 15
+	},
+	{
+		"lemma": "katastrofa",
+		"translation": "catastrophe",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "krok",
+		"translation": "step (into the unknown)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 15
+	},
+	{
+		"lemma": "láska",
+		"translation": "love",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "majetk",
+		"translation": "property",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "nadace",
+		"translation": "foundation (charity)",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "nejistota",
+		"translation": "uncertainty",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 15
+	},
+	{
+		"lemma": "neštěstí",
+		"translation": "tragedy, accident",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "pláž",
+		"translation": "beach",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "přepych",
+		"translation": "luxury",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 15
+	},
+	{
+		"lemma": "příjmy",
+		"translation": "profits, income",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "štěstí",
+		"translation": "happiness",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "tragédie",
+		"translation": "tragedy",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "víra",
+		"translation": "faith",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "vlast",
+		"translation": "homeland, country of birth",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "vlna",
+		"translation": "wave",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "zdraví",
+		"translation": "health",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 15
+	},
+	{
+		"lemma": "alergie",
+		"translation": "allergies",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "důsledk",
+		"translation": "consequence",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "ekolog/ekoložka",
+		"translation": "ecologist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "ekologie",
+		"translation": "ecology",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "energie",
+		"translation": "energy",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "farma",
+		"translation": "farm",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "globalizace",
+		"translation": "globalization",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "konflikt",
+		"translation": "conflict",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "krajina",
+		"translation": "region; countryside",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "majitel/majitelka",
+		"translation": "owner",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "nedostatk",
+		"translation": "insufficiency, lack",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "oct",
+		"translation": "vinegar",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "odpad",
+		"translation": "garbage",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "ochrana",
+		"translation": "protection",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "okolí",
+		"translation": "surrounding areas",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "oteplování",
+		"translation": "warming",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "planeta",
+		"translation": "planet",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "pole",
+		"translation": "field",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "prales",
+		"translation": "primeval/virgin forest",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "příčina",
+		"translation": "reason, cause",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "příroda",
+		"translation": "nature",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "přísada",
+		"translation": "additive",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "ropa",
+		"translation": "oil",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "saponát",
+		"translation": "(chemical) detergent",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "statk",
+		"translation": "farm, farmstead",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 16
+	},
+	{
+		"lemma": "sucho",
+		"translation": "drought",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "terorismus",
+		"translation": "terrorism",
+		"gender_hint": "m",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "úrovň",
+		"translation": "level",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "vegetarián/vegetariánka",
+		"translation": "vegetarian",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "záplava",
+		"translation": "flood",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "zemětřesení",
+		"translation": "earthquake",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "znečištění",
+		"translation": "pollution, dirtying",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "způsob",
+		"translation": "way (of life or of thinking)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "žárovka",
+		"translation": "light-bulb",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 16
+	},
+	{
+		"lemma": "aukce",
+		"translation": "auction",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "banka",
+		"translation": "bank",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "burza",
+		"translation": "stock-exchange",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "cena",
+		"translation": "price",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "daň",
+		"translation": "tax",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "dostihy",
+		"translation": "horse-races",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "dražba",
+		"translation": "auction",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "faktura",
+		"translation": "invoice, bill",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "firma",
+		"translation": "firm, business",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "investice",
+		"translation": "investment(s)",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "investování",
+		"translation": "investing",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "jednání",
+		"translation": "negotiations, business transactions",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "konkurence",
+		"translation": "competition",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "krám",
+		"translation": "business, store",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "nemovitost",
+		"translation": "real-estate",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "obchod",
+		"translation": "business, store",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "obrat",
+		"translation": "sales (of a company)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "podnik",
+		"translation": "firm, business",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "podnikání",
+		"translation": "doing business",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "podnikatel/podnikatelka",
+		"translation": "business-person",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "poptávka",
+		"translation": "demand (for a product)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "průmysl",
+		"translation": "industry",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "realita",
+		"translation": "real-estate",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "rozvoj",
+		"translation": "development",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "ředitel/ředitelka",
+		"translation": "director (of a company)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "schůze",
+		"translation": "meeting",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "sladkosti",
+		"translation": "sweets",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "sleva",
+		"translation": "sale (of a product)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "účet",
+		"translation": "account",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "účetnictví",
+		"translation": "accounting",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "veletrh",
+		"translation": "trade fair",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 17
+	},
+	{
+		"lemma": "výrobk",
+		"translation": "product",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "zaměstnavatel/zaměstnavatelka",
+		"translation": "employer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "zisk",
+		"translation": "profit",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 17
+	},
+	{
+		"lemma": "bačkory",
+		"translation": "slippers (for wearing inside the apartment after you take your shoes off)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "boty",
+		"translation": "shoes",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "brýle",
+		"translation": "glasses",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "bunda",
+		"translation": "jacket",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "čepice",
+		"translation": "cap",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "džíny",
+		"translation": "jeans",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "halenka",
+		"translation": "jumper",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "kabát",
+		"translation": "overcoat",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "kabelka",
+		"translation": "purse",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "kalhoty",
+		"translation": "pants",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "kalhotky",
+		"translation": "tights, panties",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "kapuce",
+		"translation": "hood",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "klobouk",
+		"translation": "hat",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "kostým",
+		"translation": "suit (for women)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "košile",
+		"translation": "shirt, blouse",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "kožešina",
+		"translation": "fur",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "kožich",
+		"translation": "fur-coat",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "kraťasy",
+		"translation": "shorts",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "látk",
+		"translation": "material",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "límc",
+		"translation": "collar",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "mikina",
+		"translation": "sweatshirt",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "náušnice",
+		"translation": "ear-ring(s)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "návrhář/návrhářka",
+		"translation": "clothes designer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "nohavice",
+		"translation": "pants-legs",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "novinka",
+		"translation": "something new",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "oblek",
+		"translation": "suit (for men)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "pantofle",
+		"translation": "splippers",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "pásek",
+		"translation": "belt",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "plavky",
+		"translation": "swimsuit",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "podkolenky",
+		"translation": "knee-socks",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "podpatk",
+		"translation": "heel",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "ponožky",
+		"translation": "socks",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "punčocháče",
+		"translation": "stockings",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "pyžamo",
+		"translation": "pajamas",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "rukáv",
+		"translation": "sleeve",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "rukavice",
+		"translation": "glove(s)",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "sandály",
+		"translation": "sandals",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "slipy",
+		"translation": "briefs",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "sukně",
+		"translation": "skirt",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "šála",
+		"translation": "wrapper, scarf",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "šaty",
+		"translation": "clothes; a dress (for a woman)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "šortky",
+		"translation": "shorts",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "tepláky",
+		"translation": "sweatpants",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "trend",
+		"translation": "trend",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "trenýrky",
+		"translation": "boxers",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "tričko",
+		"translation": "t-shirt",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "výstřih",
+		"translation": "neckline",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "zákazník/zákaznice",
+		"translation": "customer, client",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "zip",
+		"translation": "zipper",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 18
+	},
+	{
+		"lemma": "župan",
+		"translation": "bathrobe",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 18
+	},
+	{
+		"lemma": "bankovka",
+		"translation": "bank-note",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "bon",
+		"translation": "voucher, coupon",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "dějepis",
+		"translation": "history (as a school subject)",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "dějiny",
+		"translation": "history",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "demonstrace",
+		"translation": "demonstration, protest",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "doba",
+		"translation": "time, era (at that time)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "fronta",
+		"translation": "line",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "historie",
+		"translation": "history",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "komunismus",
+		"translation": "communism",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "korupce",
+		"translation": "corruption",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "krize",
+		"translation": "crisis",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "období",
+		"translation": "period (of time)",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "odhalení",
+		"translation": "unveiling, revealing",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "okupace",
+		"translation": "occupation",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "plakát",
+		"translation": "poster",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "polovina",
+		"translation": "half",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "pomník",
+		"translation": "monument",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "proces",
+		"translation": "trial",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "puč",
+		"translation": "putsch",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "represe",
+		"translation": "repression",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "revoluce",
+		"translation": "revolution",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "režim",
+		"translation": "regime",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "samizdat",
+		"translation": "samizdat",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "sebevražda",
+		"translation": "suicide",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "socialismus",
+		"translation": "socialism",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "součást",
+		"translation": "part, component",
+		"gender_hint": "f",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "stavba",
+		"translation": "building, construction",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "strana",
+		"translation": "(political) party",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "školství",
+		"translation": "schooling, school system",
+		"gender_hint": "n",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "tuzex",
+		"translation": "foreign-currency store during communism",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "vězení",
+		"translation": "prison",
+		"gender_hint": "n",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "vláda",
+		"translation": "government, administration",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "vlastnictví",
+		"translation": "ownership",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 19
+	},
+	{
+		"lemma": "volby",
+		"translation": "elections",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "vůdce",
+		"translation": "leader",
+		"gender_hint": "m",
+		"recognition_only": false,
+		"lesson": 19
+	},
+	{
+		"lemma": "avantgarda",
+		"translation": "Avant-garde",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "básník",
+		"translation": "poet",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "básnířka",
+		"translation": "poet",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "buřič",
+		"translation": "fire-brand",
+		"gender_hint": "",
+		"recognition_only": true,
+		"lesson": 20
+	},
+	{
+		"lemma": "drama",
+		"translation": "play, drama",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "dramatik",
+		"translation": "playwright",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "esejista/esejistka",
+		"translation": "essayist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "génius",
+		"translation": "genius",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "kreslíř",
+		"translation": "someone who draws",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "legenda",
+		"translation": "folk-tale, saga, legend",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "poezie",
+		"translation": "poetry",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "pověst",
+		"translation": "folk-tale, saga, legend",
+		"gender_hint": "f",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "pravopis",
+		"translation": "orthography",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "próza",
+		"translation": "prose",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "prozaik",
+		"translation": "prose-writer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "představitel/představitelka",
+		"translation": "representative",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "překladatel/překladatelka",
+		"translation": "translator",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "publicista/publicistka",
+		"translation": "(political) columnist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "realismus",
+		"translation": "Realism",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "romantismus",
+		"translation": "Romanticism",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "scénárista/scénáristka",
+		"translation": "script writer",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "surrealismus",
+		"translation": "Surrealism",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "textář",
+		"translation": "writer of texts (song lyrics, ad copy)",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "umělec/umělkyně",
+		"translation": "artist",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "underground",
+		"translation": "underground",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "úryvk",
+		"translation": "excerpt",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "zakladatel/zakladatelka",
+		"translation": "founder",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "změna",
+		"translation": "change",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	},
+	{
+		"lemma": "žánr",
+		"translation": "genre",
+		"gender_hint": "",
+		"recognition_only": false,
+		"lesson": 20
+	}
+]

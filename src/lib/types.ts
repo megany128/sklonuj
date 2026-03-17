@@ -4,7 +4,7 @@ export type Case = 'nom' | 'gen' | 'dat' | 'acc' | 'voc' | 'loc' | 'ins';
 
 export type Number_ = 'sg' | 'pl';
 
-export type Difficulty = 'A1' | 'A2' | 'B1';
+export type Difficulty = 'A1' | 'A2' | 'B1' | 'B2';
 
 export type DrillType = 'form_production' | 'case_identification' | 'sentence_fill_in';
 
@@ -16,6 +16,17 @@ export const CASE_LABELS: Record<Case, string> = {
 	voc: 'Vocative',
 	loc: 'Locative',
 	ins: 'Instrumental'
+};
+
+/** Short abbreviations for mobile pill display (e.g. "1. N") */
+export const CASE_SHORT_LABELS: Record<Case, string> = {
+	nom: 'Nom',
+	gen: 'Gen',
+	dat: 'Dat',
+	acc: 'Acc',
+	voc: 'Voc',
+	loc: 'Loc',
+	ins: 'Ins'
 };
 
 export const CASE_HEX: Record<Case, string> = {
@@ -74,6 +85,13 @@ export const CASE_INDEX: Record<Case, number> = {
 	ins: 6
 } as const;
 
+/**
+ * Variant forms for a given number (sg or pl).
+ * Keys are case indices (0-6), values are arrays of alternate accepted forms.
+ * E.g. { 2: ["pánu"] } means dative (index 2) also accepts "pánu".
+ */
+export type VariantForms = Partial<Record<number, string[]>>;
+
 export interface WordEntry {
 	lemma: string;
 	translation: string;
@@ -85,6 +103,10 @@ export interface WordEntry {
 	forms: {
 		sg: CaseForms;
 		pl: CaseForms;
+	};
+	variantForms?: {
+		sg?: VariantForms;
+		pl?: VariantForms;
 	};
 }
 

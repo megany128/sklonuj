@@ -106,7 +106,11 @@ html {
 button:not(:disabled),
 a,
 summary,
-[role='button']:not(:disabled) {
+[role='button']:not(:disabled),
+input[type='checkbox'],
+input[type='radio'],
+label:has(input[type='checkbox']),
+label:has(input[type='radio']) {
 	cursor: pointer;
 }
 

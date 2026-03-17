@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
 	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER } from '$lib/types';
+	import { applyPrepositionVoicing } from '$lib/engine/drill';
 	import { playClinkSound } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
@@ -167,7 +168,15 @@
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
 			if (!submitted && question?.drillType !== 'case_identification') {
-				handleSubmit();
+				if (userInput.trim() === '') {
+					// Empty input: treat Enter as skip
+					submitted = true;
+					showFeedback = true;
+					onSubmit('__skip__');
+					enableAdvance();
+				} else {
+					handleSubmit();
+				}
 			}
 		}
 	}
@@ -233,7 +242,9 @@
 	}
 
 	function sentenceWithBlankAndLemma(q: DrillQuestion): { before: string; after: string } {
-		const parts = q.template.template.split('___');
+		const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+		const voiced = applyPrepositionVoicing(q.template.template, form);
+		const parts = voiced.split('___');
 		return {
 			before: parts[0] ?? '',
 			after: parts[1] ?? ''
@@ -249,19 +260,21 @@
 	}
 
 	function fullSentenceText(q: DrillQuestion): string {
+		const form = q.word.forms[q.number][CASE_INDEX[q.case]];
 		if (q.drillType === 'case_identification') {
 			// Before submission: read only the nominative form
 			// After submission: read the full sentence with the correctly declined form
 			if (submitted) {
-				return q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]);
+				return applyPrepositionVoicing(q.template.template, form).replace('___', form);
 			}
 			return q.word.forms[q.number][0];
 		}
-		return q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]);
+		return applyPrepositionVoicing(q.template.template, form).replace('___', form);
 	}
 
 	function sentenceWithGap(q: DrillQuestion): string {
-		return q.template.template.replace('___', '...');
+		const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+		return applyPrepositionVoicing(q.template.template, form).replace('___', '...');
 	}
 </script>
 
@@ -272,12 +285,12 @@
 		{#key question}
 			<div
 				bind:this={cardEl}
-				class="drill-fade-enter relative flex flex-col gap-6 rounded-[40px] border-2 {question.word
-					.lemma === 'pivo'
+				class="drill-fade-enter relative flex flex-col gap-4 rounded-[24px] border-2 sm:gap-6 sm:rounded-[40px] {question
+					.word.lemma === 'pivo'
 					? 'border-easter-egg-border pivo-glow'
 					: 'border-card-stroke'} {streak >= 10 && showFeedback && result?.correct
 					? 'streak-glow'
-					: ''} bg-card-bg p-8 sm:p-10"
+					: ''} bg-card-bg p-5 sm:p-8 md:p-10"
 				role="region"
 				aria-label="Drill"
 			>
@@ -300,8 +313,9 @@
 											onWordClick?.(question!.word.lemma);
 											if (question!.word.lemma === 'pivo') triggerCheers();
 										}}
-										class="cursor-pointer text-4xl font-semibold {CASE_COLORS[question.case]
-											.text} transition-opacity hover:opacity-70"
+										class="cursor-pointer text-3xl font-semibold sm:text-4xl {CASE_COLORS[
+											question.case
+										].text} transition-opacity hover:opacity-70"
 									>
 										{question.word.lemma}
 										<DottedUnderline
@@ -311,7 +325,9 @@
 										/>
 									</button>
 								{:else}
-									<span class="text-4xl font-semibold {CASE_COLORS[question.case].text}">
+									<span
+										class="text-3xl font-semibold sm:text-4xl {CASE_COLORS[question.case].text}"
+									>
 										{question.word.lemma}
 									</span>
 									<DottedUnderline
@@ -358,7 +374,7 @@
 					{:else if question.drillType === 'case_identification'}
 						<p class="text-sm text-text-subtitle">Which case?</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-xl font-normal leading-relaxed text-emphasis">
+						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 							{parts.before}<span
 								class="mx-0.5 inline-block rounded bg-shaded-background px-2 py-0.5 font-semibold text-emphasis"
 								>{#if onWordClick}<button
@@ -391,7 +407,7 @@
 					{:else}
 						<p class="text-sm text-text-subtitle">Fill in the blank</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-xl font-normal leading-relaxed text-emphasis">
+						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 							{parts.before}<span
 								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
 								>&nbsp;&nbsp;&nbsp;&nbsp;</span
@@ -457,7 +473,7 @@
 					<div
 						role="group"
 						aria-label="Select the correct case"
-						class="flex flex-wrap justify-center gap-3"
+						class="flex flex-wrap justify-center gap-2 sm:gap-3"
 					>
 						{#each caseOptions as caseKey (caseKey)}
 							{@const isCorrect =
@@ -503,7 +519,7 @@
 							autocapitalize="off"
 							spellcheck="false"
 							placeholder="Type your answer..."
-							class="w-full rounded-[20px] border-2 px-5 py-3.5 text-center text-lg font-normal outline-none transition-all duration-200
+							class="w-full rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
 								{submitted && result?.correct
 								? 'border-positive-stroke bg-positive-background text-positive-stroke'
 								: submitted && result && !result.correct
@@ -517,15 +533,15 @@
 						<div class="mt-2.5">
 							<DiacriticsBar {inputEl} inputValue={userInput} />
 						</div>
-						{#if userInput.trim() !== ''}
-							<p class="mt-2 text-center text-xs text-text-subtitle">Press enter to submit</p>
-						{/if}
+						<p class="mt-2 text-center text-xs text-text-subtitle">
+							{userInput.trim() !== '' ? 'Press enter to submit' : 'Press enter to skip'}
+						</p>
 					{/if}
 				{/if}
 
 				<!-- Feedback after submission -->
 				{#if submitted && result && showFeedback}
-					<div class="drill-fade-enter space-y-4">
+					<div class="drill-fade-enter space-y-4" aria-live="polite">
 						{#if result.correct}
 							<div class="flex items-center justify-center gap-2">
 								<svg
@@ -549,7 +565,9 @@
 								</p>
 							</div>
 							{#if streak >= 5}
-								<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[40px]">
+								<div
+									class="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px] sm:rounded-[40px]"
+								>
 									{#each Array.from({ length: streak >= 25 ? 10 : streak >= 10 ? 8 : 4 }, (_, i) => i) as i (i)}
 										<span
 											class="streak-float absolute text-xl"
@@ -609,7 +627,9 @@
 
 				<!-- Beer rain on correct pivo answer -->
 				{#if showFeedback && result?.correct && question.word.lemma === 'pivo'}
-					<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[40px]">
+					<div
+						class="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px] sm:rounded-[40px]"
+					>
 						{#each Array.from({ length: 12 }, (_, i) => i) as i (i)}
 							<span
 								class="beer-float absolute bottom-0 text-2xl"
@@ -623,12 +643,19 @@
 			</div>
 		{/key}
 	{:else if loading}
-		<div class="rounded-[40px] border-2 border-card-stroke bg-card-bg p-8 text-center">
+		<div
+			class="rounded-[24px] border-2 border-card-stroke bg-card-bg p-5 text-center sm:rounded-[40px] sm:p-8"
+		>
 			<p class="text-sm text-text-subtitle">Loading exercises...</p>
 		</div>
 	{:else}
-		<div class="rounded-[40px] border-2 border-card-stroke bg-card-bg p-8 text-center">
-			<p class="text-text-subtitle">No words available for this level. Try a different level.</p>
+		<div
+			class="rounded-[24px] border-2 border-card-stroke bg-card-bg p-5 text-center sm:rounded-[40px] sm:p-8"
+		>
+			<p class="text-text-subtitle">
+				No exercises available for this combination. Try selecting different cases, number mode, or
+				difficulty level.
+			</p>
 		</div>
 	{/if}
 </div>

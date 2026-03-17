@@ -293,15 +293,32 @@ def fetch_morphodita_forms(lemmas: list[str]) -> dict[str, list[dict]]:
 
 def extract_noun_forms(
     forms: list[dict],
-) -> Optional[tuple[str, bool, list[str], list[str]]]:
+    lemma: str = "",
+) -> Optional[tuple[str, bool, list[str], list[str], dict[int, list[str]], dict[int, list[str]]]]:
     """
-    Extract the 7 singular and 7 plural case forms from MorphoDiTa output.
+    Extract the 7 singular and 7 plural case forms from MorphoDiTa output,
+    plus any variant forms for each case-number slot.
 
-    Returns (gender, animate, sg_forms[7], pl_forms[7]) or None if not a noun.
+    Returns (gender, animate, sg_forms[7], pl_forms[7], variant_sg, variant_pl)
+    or None if not a noun.
     Only picks standard-variant forms (variant position = '-').
+    Skips negated forms (tag position 10 = 'N') for lemmas that do not
+    themselves start with 'ne', preventing MorphoDiTa's generated negations
+    (e.g. 'nestůl', 'nesrdce') from being used as the primary forms.
+
+    variant_sg/variant_pl map case_idx -> list of additional accepted forms
+    (beyond the primary form stored in sg/pl).
     """
-    sg = [None] * 7  # cases 1-7
-    pl = [None] * 7
+    lemma_starts_ne = lemma.lower().startswith("ne")
+
+    sg: list[Optional[str]] = [None] * 7  # cases 1-7
+    pl: list[Optional[str]] = [None] * 7
+    # Track whether primary form is standard variant
+    sg_is_standard: list[bool] = [False] * 7
+    pl_is_standard: list[bool] = [False] * 7
+    # Collect ALL forms per slot for variant extraction
+    sg_all: list[list[str]] = [[] for _ in range(7)]
+    pl_all: list[list[str]] = [[] for _ in range(7)]
     gender = None
     animate = None
 
@@ -313,7 +330,14 @@ def extract_noun_forms(
             continue
 
         # Skip non-standard variants (position 14)
-        if len(tag) > 14 and tag[14] not in ("-",):
+        # '-' = standard, '1' = common variant (e.g. dat -u vs -ovi)
+        # '2' and higher are archaic/colloquial and skipped
+        if len(tag) > 14 and tag[14] not in ("-", "1"):
+            continue
+
+        # Skip negated forms for non-negated lemmas
+        # Position 10 in Prague tagset: A = affirmative, N = negated
+        if not lemma_starts_ne and len(tag) > 10 and tag[10] == "N":
             continue
 
         tag_gender = tag[2]  # M, I, F, N
@@ -324,26 +348,57 @@ def extract_noun_forms(
             continue
 
         case_idx = int(tag_case) - 1
+        form_text = entry["form"]
 
         # Extract gender/animacy from the first noun tag we see
         if gender is None and tag_gender in GENDER_MAP:
             gender, animate = GENDER_MAP[tag_gender]
 
+        # Determine if this is the standard variant (position 14 = '-')
+        is_standard = len(tag) <= 14 or tag[14] == "-"
+
         if tag_number == "S":
+            # Primary form: prefer standard variant ('-') over variant '1'
             if sg[case_idx] is None:
-                sg[case_idx] = entry["form"]
+                sg[case_idx] = form_text
+                sg_is_standard[case_idx] = is_standard
+            elif is_standard and not sg_is_standard[case_idx]:
+                # Replace non-standard primary with standard form
+                sg[case_idx] = form_text
+                sg_is_standard[case_idx] = True
+            # Collect all unique forms for this slot
+            if form_text not in sg_all[case_idx]:
+                sg_all[case_idx].append(form_text)
         elif tag_number == "P":
             if pl[case_idx] is None:
-                pl[case_idx] = entry["form"]
+                pl[case_idx] = form_text
+                pl_is_standard[case_idx] = is_standard
+            elif is_standard and not pl_is_standard[case_idx]:
+                pl[case_idx] = form_text
+                pl_is_standard[case_idx] = True
+            if form_text not in pl_all[case_idx]:
+                pl_all[case_idx].append(form_text)
 
     if gender is None:
         return None
 
     # Fill missing forms with empty string
-    sg = [f if f is not None else "" for f in sg]
-    pl = [f if f is not None else "" for f in pl]
+    sg_final = [f if f is not None else "" for f in sg]
+    pl_final = [f if f is not None else "" for f in pl]
 
-    return gender, animate, sg, pl
+    # Build variant maps: forms beyond the primary one
+    variant_sg: dict[int, list[str]] = {}
+    variant_pl: dict[int, list[str]] = {}
+
+    for i in range(7):
+        extras = [f for f in sg_all[i] if f != sg_final[i]]
+        if extras:
+            variant_sg[i] = extras
+        extras = [f for f in pl_all[i] if f != pl_final[i]]
+        if extras:
+            variant_pl[i] = extras
+
+    return gender, animate, sg_final, pl_final, variant_sg, variant_pl
 
 
 def fetch_wiktionary_translations(lemmas: set[str]) -> dict[str, str]:
@@ -557,13 +612,13 @@ def main() -> int:
             print(f"  WARNING: No MorphoDiTa forms for '{lemma}'", file=sys.stderr)
             continue
 
-        result = extract_noun_forms(raw_forms)
+        result = extract_noun_forms(raw_forms, lemma=lemma)
         if result is None:
             missing_forms.append(lemma)
             print(f"  WARNING: Could not extract noun forms for '{lemma}'", file=sys.stderr)
             continue
 
-        gender, animate, sg, pl = result
+        gender, animate, sg, pl, variant_sg, variant_pl = result
 
         # Apply form overrides for irregular nouns
         overrides = form_overrides.get(lemma, {})
@@ -584,6 +639,17 @@ def main() -> int:
 
         paradigm = paradigm_override or detect_paradigm(lemma, gender, animate, sg, pl)
 
+        # Infer animacy from paradigm override for masculine nouns
+        if gender == "m" and paradigm_override:
+            if paradigm_override in ("pán", "muž", "předseda"):
+                animate = True
+            elif paradigm_override in ("hrad", "stroj"):
+                animate = False
+
+        # Merge variant forms: override clears MorphoDiTa variants for overridden numbers
+        final_variant_sg = variant_sg if "sg" not in overrides else {}
+        final_variant_pl = variant_pl if "pl" not in overrides else {}
+
         words.append(
             {
                 "lemma": lemma,
@@ -593,6 +659,8 @@ def main() -> int:
                 "paradigm": paradigm,
                 "difficulty": difficulty or "A2",
                 "categories": categories or "misc",
+                "_variant_sg": final_variant_sg,
+                "_variant_pl": final_variant_pl,
                 **dict(zip(SG_COLS, sg)),
                 **dict(zip(PL_COLS, pl)),
             }
@@ -627,28 +695,39 @@ def main() -> int:
     # 7. Write CSV
     OUTPUT_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_CSV_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(words)
 
     # 8. Write JSON (same format as csv_to_json.py output)
     json_words = []
     for w in words:
-        json_words.append(
-            {
-                "lemma": w["lemma"],
-                "translation": w["translation"],
-                "gender": w["gender"],
-                "animate": w["animate"] == "true",
-                "paradigm": w["paradigm"],
-                "difficulty": w["difficulty"],
-                "categories": [c.strip() for c in w["categories"].split(",")],
-                "forms": {
-                    "sg": [w[c] for c in SG_COLS],
-                    "pl": [w[c] for c in PL_COLS],
-                },
-            }
-        )
+        entry: dict = {
+            "lemma": w["lemma"],
+            "translation": w["translation"],
+            "gender": w["gender"],
+            "animate": w["animate"] == "true",
+            "paradigm": w["paradigm"],
+            "difficulty": w["difficulty"],
+            "categories": [c.strip() for c in w["categories"].split(",")],
+            "forms": {
+                "sg": [w[c] for c in SG_COLS],
+                "pl": [w[c] for c in PL_COLS],
+            },
+        }
+
+        # Include variant forms if any exist
+        v_sg: dict[int, list[str]] = w.get("_variant_sg", {})
+        v_pl: dict[int, list[str]] = w.get("_variant_pl", {})
+        if v_sg or v_pl:
+            variant_forms: dict[str, dict[str, list[str]]] = {}
+            if v_sg:
+                variant_forms["sg"] = {str(k): v for k, v in sorted(v_sg.items())}
+            if v_pl:
+                variant_forms["pl"] = {str(k): v for k, v in sorted(v_pl.items())}
+            entry["variantForms"] = variant_forms
+
+        json_words.append(entry)
 
     OUTPUT_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_JSON_PATH, "w", encoding="utf-8") as f:

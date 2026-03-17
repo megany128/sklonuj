@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type Case, ALL_CASES, CASE_LABELS, CASE_NUMBER, CASE_HEX } from '$lib/types';
+	import { type Case, ALL_CASES, CASE_SHORT_LABELS, CASE_NUMBER, CASE_HEX } from '$lib/types';
 
 	interface Props {
 		selectedCase: Case | 'all';
@@ -27,9 +27,9 @@
 	}
 </script>
 
-<div class="grid grid-cols-4 gap-2 sm:grid-cols-8">
+<div class="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-2">
 	<button
-		class="flex items-center justify-center gap-1.5 rounded-2xl border-2 px-2 py-2 text-sm font-semibold transition-all duration-200
+		class="flex cursor-pointer items-center justify-center gap-1.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-all duration-200 sm:px-2 sm:py-2
 			{selectedCase === 'all'
 			? 'border-emphasis bg-emphasis text-text-inverted'
 			: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/40'}"
@@ -45,7 +45,7 @@
 		{@const accuracyPct = strength.attempts > 0 ? Math.round(strength.accuracy * 100) : null}
 		{@const accColor = strength.attempts > 0 ? accuracyColor(strength.accuracy) : null}
 		<button
-			class="case-pill flex flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-2 py-2 text-sm font-semibold transition-all duration-200 ease-out
+			class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-all duration-200 ease-out sm:px-2 sm:py-2
 				{accColor && !isSelected ? '' : 'border-card-stroke'}"
 			style={isSelected
 				? `background-color: color-mix(in oklch, ${hex} 10%, var(--color-card-bg)); border-color: ${hex}; box-shadow: 0 0 0 3px color-mix(in oklch, ${hex} 15%, transparent); --case-color: ${hex}`
@@ -59,10 +59,12 @@
 				>
 					{CASE_NUMBER[c]}
 				</span>
-				<span class="hidden sm:inline">{CASE_LABELS[c].slice(0, 3)}</span>
+				<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[c]}</span>
 			</span>
 			{#if accuracyPct !== null && accColor}
-				<span class="text-xs font-bold" style="color: {accColor}">{accuracyPct}%</span>
+				<span class="text-[10px] font-bold sm:text-xs" style="color: {accColor}"
+					>{accuracyPct}%</span
+				>
 			{/if}
 		</button>
 	{/each}

@@ -156,7 +156,7 @@
 					bind:value={message}
 					rows={5}
 					placeholder="How can I help?"
-					class="w-full resize-y rounded-xl border border-card-stroke bg-shaded-background px-4 py-3 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					class="w-full resize-y rounded-xl border border-card-stroke bg-shaded-background px-4 py-3 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 				></textarea>
 			</label>
 

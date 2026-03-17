@@ -40,18 +40,25 @@
 </script>
 
 <nav
-	class="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-card-stroke bg-card-bg px-6"
+	class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-card-stroke bg-card-bg px-3 sm:h-16 sm:px-6"
 >
-	<button type="button" class="flex items-baseline gap-2" onclick={() => onNavigate?.('exercises')}>
-		<span class="text-lg font-semibold uppercase tracking-wide text-emphasis">Skloňuj</span>
-		<span class="text-sm text-text-subtitle">decline it!</span>
+	<button
+		type="button"
+		class="flex shrink-0 cursor-pointer items-baseline gap-1.5 sm:gap-2"
+		onclick={() => onNavigate?.('exercises')}
+	>
+		<span class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg"
+			>Skloňuj</span
+		>
+		<span class="hidden text-sm text-text-subtitle sm:inline">decline it!</span>
 	</button>
-	<div class="flex items-center gap-4">
+	<div class="flex items-center gap-2 sm:gap-4">
 		{#if onNavigate}
 			<button
 				type="button"
 				onclick={() => onNavigate?.('exercises')}
-				class="nav-tab text-sm transition-colors {activePage === 'exercises'
+				class="nav-tab cursor-pointer text-xs transition-colors sm:text-sm {activePage ===
+				'exercises'
 					? 'font-semibold text-text-default'
 					: 'text-text-subtitle hover:text-text-default'}"
 				data-label="Exercises"
@@ -61,7 +68,7 @@
 			<button
 				type="button"
 				onclick={() => onNavigate?.('lookup')}
-				class="nav-tab text-sm transition-colors {activePage === 'lookup'
+				class="nav-tab cursor-pointer text-xs transition-colors sm:text-sm {activePage === 'lookup'
 					? 'font-semibold text-text-default'
 					: 'text-text-subtitle hover:text-text-default'}"
 				data-label="Lookup"
@@ -72,7 +79,7 @@
 		{#if user}
 			<a
 				href={resolve('/profile')}
-				class="flex size-8 items-center justify-center rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
+				class="flex size-8 cursor-pointer items-center justify-center rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
 				style="background-color: {avatarColor}"
 				aria-label="Profile"
 			>
@@ -82,7 +89,7 @@
 			<button
 				type="button"
 				onclick={() => onSignIn?.()}
-				class="rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+				class="cursor-pointer rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 			>
 				Sign in
 			</button>
@@ -95,7 +102,7 @@
 					themeBounce = true;
 					setTimeout(() => (themeBounce = false), 600);
 				}}
-				class="flex size-10 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+				class="flex size-9 cursor-pointer items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default sm:size-10"
 				aria-label="Toggle dark mode"
 			>
 				<svg

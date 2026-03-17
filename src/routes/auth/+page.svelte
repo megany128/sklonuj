@@ -158,7 +158,8 @@
 						bind:value={email}
 						placeholder="Email"
 						required
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						aria-label="Email address"
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
 
 					<input
@@ -167,12 +168,15 @@
 						placeholder="Password"
 						required
 						minlength="6"
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						aria-label="Password"
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
 
-					{#if error}
-						<p class="text-xs text-negative-stroke">{error}</p>
-					{/if}
+					<div aria-live="assertive">
+						{#if error}
+							<p class="text-xs text-negative-stroke" role="alert">{error}</p>
+						{/if}
+					</div>
 
 					<button
 						type="submit"

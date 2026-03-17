@@ -1,0 +1,37 @@
+{
+	"nom": {
+		"name": "Nominative (1. pád)",
+		"function": "The subject case — who or what performs the action. Also used after 'to je' (this is).",
+		"question": "Kdo? Co? (Who? What?)"
+	},
+	"gen": {
+		"name": "Genitive (2. pád)",
+		"function": "Expresses possession, origin, absence, or quantity. Used after many prepositions (do, z, od, u, bez, etc.).",
+		"question": "Koho? Čeho? (Whom? Of what?)"
+	},
+	"dat": {
+		"name": "Dative (3. pád)",
+		"function": "The indirect object case — the person receiving something or benefiting from an action. Used with k/ke.",
+		"question": "Komu? Čemu? (To whom? To what?)"
+	},
+	"acc": {
+		"name": "Accusative (4. pád)",
+		"function": "The direct object case — who or what is directly affected by the action. Used with na, pro, přes (direction).",
+		"question": "Koho? Co? (Whom? What?)"
+	},
+	"voc": {
+		"name": "Vocative (5. pád)",
+		"function": "Used for direct address — calling someone by name or title. The only case not governed by prepositions.",
+		"question": "Used when calling: 'Petře! Maminko! Pane!'"
+	},
+	"loc": {
+		"name": "Locative (6. pád)",
+		"function": "Expresses location or the topic of discussion. Always used with a preposition (v, na, o, po, při).",
+		"question": "O kom? O čem? (About whom? About what?)"
+	},
+	"ins": {
+		"name": "Instrumental (7. pád)",
+		"function": "Expresses the means or instrument of action, accompaniment (with), or location behind/under/above. Used for professions with 'být'.",
+		"question": "Kým? Čím? (By whom? With what?)"
+	}
+}

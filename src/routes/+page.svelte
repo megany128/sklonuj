@@ -13,6 +13,7 @@
 		Number_
 	} from '$lib/types';
 	import { ALL_CASES, CASE_LABELS, CASE_HEX, CASE_INDEX } from '$lib/types';
+	import { DIFFICULTY_META } from '$lib/constants';
 	import {
 		loadWordBank,
 		loadTemplates,
@@ -21,7 +22,9 @@
 		generateSentenceDrill,
 		getCandidates,
 		checkAnswer,
-		weightedRandom
+		weightedRandom,
+		hasValidForm,
+		applyPrepositionVoicing
 	} from '$lib/engine/drill';
 	import {
 		progress,
@@ -85,7 +88,11 @@
 	let sessionSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function getTodayDate(): string {
-		return new Date().toISOString().slice(0, 10);
+		const d = new Date();
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const day = String(d.getDate()).padStart(2, '0');
+		return `${y}-${m}-${day}`;
 	}
 
 	function scheduleSessionSync(): void {
@@ -421,13 +428,8 @@
 		// Check if sentence-based drills are viable
 		if (allowed.includes('case_identification') || allowed.includes('sentence_fill_in')) {
 			const templates = loadTemplates();
-			const levelConfig = curriculum[currentLevel];
-			const unlockedDifficulties = levelConfig.unlocked_difficulty;
 			const eligibleTemplates = templates.filter(
-				(t) =>
-					activeCases.includes(t.requiredCase) &&
-					unlockedDifficulties.includes(t.difficulty) &&
-					matchesNumberMode(t.number)
+				(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -478,6 +480,9 @@
 
 		const eligibleWords = wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty));
 
+		// Templates are NOT filtered by difficulty — all templates are available at all levels.
+		// Only word difficulty is controlled by the user's level.
+
 		if (eligibleWords.length === 0) {
 			question = null;
 			return;
@@ -497,26 +502,40 @@
 		const activeCases = selectedCase === 'all' ? enabledCases : [selectedCase];
 
 		if (drillType === 'form_production') {
-			const word = weightedRandom(eligibleWords, prog, case_, number_);
+			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+			if (validWords.length === 0) {
+				question = null;
+				return;
+			}
+			const word = weightedRandom(validWords, prog, case_, number_);
 			question = generateFormProduction(word, case_, number_);
 		} else {
 			const templates = loadTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) =>
-					activeCases.includes(t.requiredCase) &&
-					unlockedDifficulties.includes(t.difficulty) &&
-					matchesNumberMode(t.number)
+				(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) {
-				const word = weightedRandom(eligibleWords, prog, case_, number_);
+				const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+				if (validWords.length === 0) {
+					question = null;
+					return;
+				}
+				const word = weightedRandom(validWords, prog, case_, number_);
 				question = generateFormProduction(word, case_, number_);
 			} else {
 				const template = eligibleTemplates[Math.floor(Math.random() * eligibleTemplates.length)];
-				const candidates = getCandidates(template, prog);
+				const candidates = getCandidates(template, prog).filter((w) =>
+					hasValidForm(w, template.requiredCase, template.number)
+				);
 
 				if (candidates.length === 0) {
-					const word = weightedRandom(eligibleWords, prog, case_, number_);
+					const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+					if (validWords.length === 0) {
+						question = null;
+						return;
+					}
+					const word = weightedRandom(validWords, prog, case_, number_);
 					question = generateFormProduction(word, case_, number_);
 				} else {
 					const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
@@ -703,7 +722,7 @@
 
 		submitted = true;
 		sessionCount++;
-		const result = checkAnswer(question, answer);
+		const result = checkAnswer(question, answer, currentLevel);
 		lastResult = result;
 		recordResult(result);
 		scheduleSyncToSupabase();
@@ -767,7 +786,9 @@
 			return q.word.lemma;
 		} else if (q.drillType === 'sentence_fill_in') {
 			// Read the text before and after the blank with a pause in between
-			const parts = q.template.template.split('___');
+			const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+			const voiced = applyPrepositionVoicing(q.template.template, form);
+			const parts = voiced.split('___');
 			return [parts[0].trim(), parts[1]?.trim()].filter(Boolean).join(', ');
 		} else {
 			// case_identification: read only the nominative form so the user figures out the case
@@ -784,7 +805,9 @@
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
 		if (q.drillType === 'case_identification') {
 			// After revealing the answer, read the full sentence with the correct form
-			speak(q.template.template.replace('___', q.word.forms[q.number][CASE_INDEX[q.case]]));
+			const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+			const voiced = applyPrepositionVoicing(q.template.template, form);
+			speak(voiced.replace('___', form));
 			return;
 		}
 		speak(q.correctAnswer);
@@ -830,7 +853,7 @@
 	/>
 
 	{#if activeView === 'exercise'}
-		<main class="mx-auto w-full max-w-[867px] flex-1 px-4 py-8">
+		<main class="mx-auto w-full max-w-[867px] flex-1 px-3 py-4 sm:px-4 sm:py-8">
 			<!-- Case selection pill bar -->
 			<div class="mb-5">
 				<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
@@ -905,7 +928,7 @@
 							lastMistakeIndex = -1;
 							generateNextQuestion();
 						}}
-						class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-150
+						class="flex min-h-[44px] items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-all duration-150
 							{practicingMistakes
 							? 'border-negative-stroke bg-negative-background text-negative-stroke'
 							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-negative-stroke/40 hover:text-negative-stroke'}"
@@ -923,7 +946,7 @@
 					<button
 						type="button"
 						onclick={toggleAutoplay}
-						class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+						class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 						aria-label="Toggle audio autoplay"
 					>
 						{#if autoplayAudio}
@@ -962,7 +985,7 @@
 				<button
 					type="button"
 					onclick={() => (settingsExpanded = !settingsExpanded)}
-					class="flex size-8 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+					class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 					aria-label="Exercise settings"
 				>
 					<svg
@@ -987,22 +1010,29 @@
 			{#if settingsExpanded}
 				<div
 					transition:slide={{ duration: 200 }}
-					class="mb-5 flex flex-wrap items-start gap-x-6 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-5 py-4"
+					class="mb-5 flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
 				>
-					<div class="flex items-center gap-2">
+					<div class="flex flex-wrap items-center gap-2">
 						<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
 							>Word Difficulty</span
 						>
 						<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
-							{#each ['A1', 'A2', 'B1'] as lvl (lvl)}
+							{#each ['A1', 'A2', 'B1', 'B2'] as const as lvl (lvl)}
 								<button
-									onclick={() => handleLevelChange(lvl as Difficulty)}
-									class="rounded-[12px] px-3 py-1 text-xs font-normal transition-all
+									onclick={() => handleLevelChange(lvl)}
+									class="flex flex-col items-center rounded-[12px] px-2 py-1 transition-all sm:px-3
 										{currentLevel === lvl
 										? 'bg-shaded-background text-text-default'
 										: 'text-text-subtitle hover:text-text-default'}"
 								>
-									{lvl}
+									<span class="text-xs font-normal">{lvl}</span>
+									<span
+										class="hidden text-[9px] leading-tight sm:inline {currentLevel === lvl
+											? 'text-text-subtitle'
+											: 'text-text-subtitle/50'}"
+									>
+										{DIFFICULTY_META[lvl].subtitle}
+									</span>
 								</button>
 							{/each}
 						</div>
@@ -1114,13 +1144,13 @@
 
 		<!-- Sidebar + handle -->
 		<div
-			class="fixed top-16 right-0 z-40 flex h-[calc(100%-4rem)] transition-transform duration-300 ease-in-out"
-			style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 48px)'})"
+			class="fixed top-14 right-0 z-40 flex h-[calc(100%-3.5rem)] transition-transform duration-300 ease-in-out sm:top-16 sm:h-[calc(100%-4rem)]"
+			style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 44px)'})"
 		>
 			<button
 				type="button"
 				onclick={toggleReferenceSidebar}
-				class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-3.5 py-6 text-text-inverted shadow-lg transition-opacity hover:opacity-90"
+				class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2.5 py-5 text-text-inverted shadow-lg transition-opacity hover:opacity-90 sm:px-3.5 sm:py-6"
 				aria-label="Toggle reference sidebar"
 			>
 				<svg
@@ -1143,7 +1173,7 @@
 					<path d="M9.5 16H14" />
 				</svg>
 			</button>
-			<aside class="h-full w-screen max-w-md bg-card-bg shadow-2xl">
+			<aside class="h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md">
 				<ReferenceSidebar
 					initialWord={refSidebarWord}
 					initialTab={refSidebarTab}

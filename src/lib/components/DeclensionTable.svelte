@@ -510,7 +510,12 @@
 						autocorrect="off"
 						autocapitalize="off"
 						spellcheck="false"
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-sm text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis"
+						aria-label="Search for a Czech word"
+						role="combobox"
+						aria-expanded={dropdownOpen}
+						aria-controls="declension-suggestions"
+						aria-autocomplete="list"
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-base text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis"
 					/>
 					{#if searchQuery !== ''}
 						<button
@@ -534,6 +539,7 @@
 					{/if}
 					{#if dropdownOpen}
 						<div
+							id="declension-suggestions"
 							class="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-card-stroke bg-card-bg shadow-lg"
 							role="listbox"
 						>

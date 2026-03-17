@@ -16,5 +16,100 @@
 	},
 	"noha": {
 		"pl": ["nohy", "nohou", "nohám", "nohy", "nohy", "nohou", "nohama"]
+	},
+	"člověk": {
+		"sg": ["člověk", "člověka", "člověku", "člověka", "člověče", "člověku", "člověkem"],
+		"pl": ["lidé", "lidí", "lidem", "lidi", "lidé", "lidech", "lidmi"]
+	},
+	"student": {
+		"sg": ["student", "studenta", "studentovi", "studenta", "studente", "studentovi", "studentem"],
+		"pl": ["studenti", "studentů", "studentům", "studenty", "studenti", "studentech", "studenty"]
+	},
+	"stůl": {
+		"sg": ["stůl", "stolu", "stolu", "stůl", "stole", "stole", "stolem"],
+		"pl": ["stoly", "stolů", "stolům", "stoly", "stoly", "stolech", "stoly"]
+	},
+	"srdce": {
+		"sg": ["srdce", "srdce", "srdci", "srdce", "srdce", "srdci", "srdcem"],
+		"pl": ["srdce", "srdcí", "srdcím", "srdce", "srdce", "srdcích", "srdci"]
+	},
+	"odpověď": {
+		"sg": ["odpověď", "odpovědi", "odpovědi", "odpověď", "odpovědi", "odpovědi", "odpovědí"]
+	},
+	"společnost": {
+		"sg": [
+			"společnost",
+			"společnosti",
+			"společnosti",
+			"společnost",
+			"společnosti",
+			"společnosti",
+			"společností"
+		],
+		"pl": [
+			"společnosti",
+			"společností",
+			"společnostem",
+			"společnosti",
+			"společnosti",
+			"společnostech",
+			"společnostmi"
+		]
+	},
+	"stát": {
+		"sg": ["stát", "státu", "státu", "stát", "státe", "státě", "státem"],
+		"pl": ["státy", "států", "státům", "státy", "státy", "státech", "státy"]
+	},
+	"skutečnost": {
+		"sg": [
+			"skutečnost",
+			"skutečnosti",
+			"skutečnosti",
+			"skutečnost",
+			"skutečnosti",
+			"skutečnosti",
+			"skutečností"
+		],
+		"pl": [
+			"skutečnosti",
+			"skutečností",
+			"skutečnostem",
+			"skutečnosti",
+			"skutečnosti",
+			"skutečnostech",
+			"skutečnostmi"
+		]
+	},
+	"člen": {
+		"sg": ["člen", "člena", "členovi", "člena", "člene", "členovi", "členem"],
+		"pl": ["členové", "členů", "členům", "členy", "členové", "členech", "členy"]
+	},
+	"prostor": {
+		"sg": ["prostor", "prostoru", "prostoru", "prostor", "prostore", "prostoru", "prostorem"],
+		"pl": ["prostory", "prostorů", "prostorům", "prostory", "prostory", "prostorech", "prostory"]
+	},
+	"činnost": {
+		"sg": ["činnost", "činnosti", "činnosti", "činnost", "činnosti", "činnosti", "činností"],
+		"pl": ["činnosti", "činností", "činnostem", "činnosti", "činnosti", "činnostech", "činnostmi"]
+	},
+	"pomoc": {
+		"sg": ["pomoc", "pomoci", "pomoci", "pomoc", "pomoci", "pomoci", "pomocí"],
+		"pl": ["pomoci", "pomocí", "pomocím", "pomoci", "pomoci", "pomocích", "pomocemi"]
+	},
+	"druh": {
+		"sg": ["druh", "druhu", "druhu", "druh", "druhu", "druhu", "druhem"],
+		"pl": ["druhy", "druhů", "druhům", "druhy", "druhy", "druzích", "druhy"]
+	},
+	"rok": {
+		"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
+		"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
+	},
+	"faktor": {
+		"sg": ["faktor", "faktoru", "faktoru", "faktor", "faktore", "faktoru", "faktorem"],
+		"pl": ["faktory", "faktorů", "faktorům", "faktory", "faktory", "faktorech", "faktory"]
+	},
+	"sníh": {
+		"sg": ["sníh", "sněhu", "sněhu", "sníh", "sněhu", "sněhu", "sněhem"],
+		"pl": ["sněhy", "sněhů", "sněhům", "sněhy", "sněhy", "snězích", "sněhy"]
 	}
 }

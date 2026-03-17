@@ -37,7 +37,7 @@
 	];
 </script>
 
-<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+<div class="flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6">
 	<!-- Drill types -->
 	<div class="flex items-center gap-2">
 		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
@@ -68,6 +68,7 @@
 			{#each numberOptions as opt (opt.value)}
 				<button
 					onclick={() => setNumberMode(opt.value)}
+					aria-pressed={numberMode === opt.value}
 					class="rounded-full border px-2.5 py-1 text-xs transition-all {numberMode === opt.value
 						? 'border-emphasis bg-shaded-background font-semibold text-text-default'
 						: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"

@@ -86,11 +86,17 @@
 
 {#if open}
 	<!-- Backdrop -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 z-[60] flex items-center justify-center px-4"
 		data-modal
-		onkeydown={(e) => e.stopPropagation()}
+		role="dialog"
+		aria-modal="true"
+		aria-label={mode === 'signup' ? 'Create your account' : 'Sign in'}
+		tabindex="-1"
+		onkeydown={(e) => {
+			e.stopPropagation();
+			if (e.key === 'Escape') handleClose();
+		}}
 	>
 		<button
 			type="button"
@@ -200,7 +206,8 @@
 							bind:value={email}
 							placeholder="Email"
 							required
-							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+							aria-label="Email address"
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 						/>
 
 						<input
@@ -209,12 +216,15 @@
 							placeholder="Password"
 							required
 							minlength="6"
-							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+							aria-label="Password"
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 						/>
 
-						{#if error}
-							<p class="text-xs text-negative-stroke">{error}</p>
-						{/if}
+						<div aria-live="assertive">
+							{#if error}
+								<p class="text-xs text-negative-stroke" role="alert">{error}</p>
+							{/if}
+						</div>
 
 						<button
 							type="submit"

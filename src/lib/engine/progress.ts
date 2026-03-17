@@ -36,7 +36,8 @@ function isValidProgress(value: unknown): value is Progress {
 
 	const obj = value as Record<string, unknown>;
 
-	if (obj.level !== 'A1' && obj.level !== 'A2' && obj.level !== 'B1') return false;
+	if (obj.level !== 'A1' && obj.level !== 'A2' && obj.level !== 'B1' && obj.level !== 'B2')
+		return false;
 	if (typeof obj.lastSession !== 'string') return false;
 	if (!isValidScoresRecord(obj.caseScores)) return false;
 

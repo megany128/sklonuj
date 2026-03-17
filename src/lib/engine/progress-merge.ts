@@ -11,7 +11,8 @@ export function loadProgressFromLocalStorage(): Progress | null {
 		const parsed: unknown = JSON.parse(raw);
 		if (typeof parsed !== 'object' || parsed === null) return null;
 		const obj = parsed as Record<string, unknown>;
-		if (obj.level !== 'A1' && obj.level !== 'A2' && obj.level !== 'B1') return null;
+		if (obj.level !== 'A1' && obj.level !== 'A2' && obj.level !== 'B1' && obj.level !== 'B2')
+			return null;
 		return parsed as Progress;
 	} catch {
 		return null;
@@ -43,7 +44,7 @@ function mergeScores(
 	return merged;
 }
 
-const LEVEL_ORDER: Difficulty[] = ['A1', 'A2', 'B1'];
+const LEVEL_ORDER: Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
 
 function higherLevel(a: Difficulty, b: Difficulty): Difficulty {
 	return LEVEL_ORDER.indexOf(a) >= LEVEL_ORDER.indexOf(b) ? a : b;

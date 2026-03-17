@@ -76,8 +76,12 @@
 		goto(resolve('/'));
 	}
 
+	let confirmingReset = $state(false);
+	let resetting = $state(false);
+
 	async function handleResetProgress() {
 		if (!user) return;
+		resetting = true;
 		resetProgress();
 		await supabase
 			.from('user_progress')
@@ -89,6 +93,8 @@
 				updated_at: new Date().toISOString()
 			})
 			.eq('user_id', user.id);
+		resetting = false;
+		confirmingReset = false;
 	}
 </script>
 
@@ -125,7 +131,7 @@
 					bind:value={displayName}
 					placeholder={user?.email?.split('@')[0] ?? 'Your name'}
 					maxlength="50"
-					class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 				/>
 			</section>
 
@@ -154,13 +160,38 @@
 
 			<!-- Danger zone -->
 			<div class="flex flex-col gap-3">
-				<button
-					type="button"
-					onclick={handleResetProgress}
-					class="text-left text-sm text-negative-stroke underline underline-offset-2 hover:opacity-80"
-				>
-					Reset all progress
-				</button>
+				{#if confirmingReset}
+					<div class="rounded-xl border border-negative-stroke bg-negative-background p-4">
+						<p class="mb-3 text-sm font-semibold text-negative-stroke">
+							Are you sure? This will permanently erase all your practice data.
+						</p>
+						<div class="flex gap-2">
+							<button
+								type="button"
+								onclick={handleResetProgress}
+								disabled={resetting}
+								class="rounded-lg bg-negative-stroke px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+							>
+								{resetting ? 'Resetting...' : 'Yes, reset everything'}
+							</button>
+							<button
+								type="button"
+								onclick={() => (confirmingReset = false)}
+								class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				{:else}
+					<button
+						type="button"
+						onclick={() => (confirmingReset = true)}
+						class="text-left text-sm text-negative-stroke underline underline-offset-2 hover:opacity-80"
+					>
+						Reset all progress
+					</button>
+				{/if}
 				<button
 					type="button"
 					onclick={handleSignOut}

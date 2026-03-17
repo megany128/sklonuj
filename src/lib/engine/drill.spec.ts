@@ -7,7 +7,8 @@ import {
 	getCandidates,
 	loadTemplates,
 	loadWordBank,
-	weightedRandom
+	weightedRandom,
+	applyPrepositionVoicing
 } from './drill.ts';
 import type { Progress } from '../types.ts';
 
@@ -151,10 +152,49 @@ describe('checkAnswer', () => {
 		expect(dum).toBeDefined();
 		if (!dum) return;
 		const question = generateFormProduction(dum, 'loc', 'sg');
-		// correctAnswer is "domě", user types "domu" — different base letters
-		const result = checkAnswer(question, 'domu');
+		// correctAnswer is "domě", user types "xyz" — completely wrong
+		const result = checkAnswer(question, 'xyz');
 		expect(result.correct).toBe(false);
 		expect(result.nearMiss).toBe(false);
+	});
+
+	it('variant form is accepted as correct', () => {
+		const bank = loadWordBank();
+		const dum = bank.find((w) => w.lemma === 'dům');
+		expect(dum).toBeDefined();
+		if (!dum) return;
+		const question = generateFormProduction(dum, 'loc', 'sg');
+		// Primary form is "domě", variant is "domu" — both should be correct
+		const result = checkAnswer(question, 'domu');
+		expect(result.correct).toBe(true);
+		expect(result.nearMiss).toBe(false);
+	});
+});
+
+describe('applyPrepositionVoicing', () => {
+	it('changes "v ___" to "ve ___" before words starting with v', () => {
+		const result = applyPrepositionVoicing('Bydlím v ___.', 'Vršovicích');
+		expect(result).toBe('Bydlím ve ___.');
+	});
+
+	it('changes "s ___" to "se ___" before words starting with s', () => {
+		const result = applyPrepositionVoicing('Jdu tam s ___.', 'sestrou');
+		expect(result).toBe('Jdu tam se ___.');
+	});
+
+	it('keeps "s ___" before words starting with a vowel', () => {
+		const result = applyPrepositionVoicing('Jdu tam s ___.', 'otcem');
+		expect(result).toBe('Jdu tam s ___.');
+	});
+
+	it('changes "z ___" to "ze ___" before words starting with z', () => {
+		const result = applyPrepositionVoicing('Přijel jsem z ___.', 'zahrady');
+		expect(result).toBe('Přijel jsem ze ___.');
+	});
+
+	it('keeps template unchanged when no voicing needed', () => {
+		const result = applyPrepositionVoicing('Bydlím v ___.', 'Praze');
+		expect(result).toBe('Bydlím v ___.');
 	});
 });
 

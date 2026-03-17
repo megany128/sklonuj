@@ -24,7 +24,7 @@
 
 	let buttonClass = $derived.by(() => {
 		const base =
-			'case-answer-option flex items-center gap-2.5 rounded-full border-2 px-4 py-2.5 transition-all duration-200 ease-out';
+			'case-answer-option flex items-center gap-1.5 sm:gap-2.5 rounded-full border-2 px-3 py-2 sm:px-4 sm:py-2.5 transition-all duration-200 ease-out';
 
 		if (correct) {
 			return `${base} border-positive-stroke bg-positive-background text-positive-stroke`;
