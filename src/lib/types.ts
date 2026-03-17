@@ -92,6 +92,7 @@ export interface SentenceTemplate {
 	id: string;
 	template: string;
 	lemmaCategory: string;
+	semanticTags?: string[];
 	requiredCase: Case;
 	number: Number_;
 	trigger: string;

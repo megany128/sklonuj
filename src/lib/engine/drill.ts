@@ -50,11 +50,25 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	const level = curriculum[progress.level];
 	const unlockedDifficulties = level.unlocked_difficulty;
 
-	return wordBank.filter(
+	const categoryMatches = wordBank.filter(
 		(word) =>
 			word.categories.includes(template.lemmaCategory) &&
 			unlockedDifficulties.includes(word.difficulty)
 	);
+
+	// If template has semantic tags, filter further to words that have at least one matching tag
+	const tags = template.semanticTags;
+	if (tags && tags.length > 0) {
+		const semanticMatches = categoryMatches.filter((word) =>
+			tags.some((tag) => word.categories.includes(tag))
+		);
+		// Fall back to category matches if semantic filtering is too restrictive
+		if (semanticMatches.length > 0) {
+			return semanticMatches;
+		}
+	}
+
+	return categoryMatches;
 }
 
 const PLACEHOLDER_TEMPLATE: SentenceTemplate = {
