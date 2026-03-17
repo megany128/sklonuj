@@ -5,9 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
-	import { DIFFICULTY_META } from '$lib/constants';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import type { Difficulty } from '$lib/types';
 
 	const supabase = getSupabaseBrowserClient();
 
@@ -15,52 +13,35 @@
 		node.focus();
 	}
 
+	interface ScoreEntry {
+		attempts: number;
+		correct: number;
+	}
+
 	let user = $derived($page.data.user);
 
-	// Streamed data -- resolve promises into state
-	let serverProfile = $state<{ display_name: string | null; created_at: string } | null>(null);
-	let serverProgress = $state<{
-		level: string;
-		case_scores: Record<string, { attempts: number; correct: number }>;
-		paradigm_scores: Record<string, { attempts: number; correct: number }>;
-	} | null>(null);
-	let serverSessions = $state<
-		Array<{
+	let serverProfile = $derived(
+		($page.data.profile ?? null) as { display_name: string | null; created_at: string } | null
+	);
+	let serverProgress = $derived(
+		($page.data.progress ?? null) as {
+			level: string;
+			case_scores: Record<string, ScoreEntry>;
+			paradigm_scores: Record<string, ScoreEntry>;
+		} | null
+	);
+	let serverSessions = $derived(
+		($page.data.sessions ?? []) as Array<{
 			session_date: string;
 			questions_attempted: number;
 			questions_correct: number;
 		}>
-	>([]);
-	let dataLoaded = $state(false);
+	);
 
-	$effect(() => {
-		const profileData = $page.data.profile;
-		const progressData = $page.data.progress;
-		const sessionsData = $page.data.sessions;
-
-		if (
-			profileData instanceof Promise ||
-			progressData instanceof Promise ||
-			sessionsData instanceof Promise
-		) {
-			dataLoaded = false;
-			Promise.all([
-				profileData instanceof Promise ? profileData : Promise.resolve(profileData),
-				progressData instanceof Promise ? progressData : Promise.resolve(progressData),
-				sessionsData instanceof Promise ? sessionsData : Promise.resolve(sessionsData)
-			]).then(([profile, progress, sessions]) => {
-				serverProfile = profile;
-				serverProgress = progress;
-				serverSessions = sessions ?? [];
-				dataLoaded = true;
-			});
-		} else {
-			serverProfile = profileData;
-			serverProgress = progressData;
-			serverSessions = sessionsData ?? [];
-			dataLoaded = true;
-		}
-	});
+	let caseScores = $derived(serverProgress?.case_scores ?? ({} as Record<string, ScoreEntry>));
+	let paradigmScores = $derived(
+		serverProgress?.paradigm_scores ?? ({} as Record<string, ScoreEntry>)
+	);
 
 	let expandedCase = $state<string | null>(null);
 	let breakdownTab = $state<'case' | 'paradigm'>('case');
@@ -160,12 +141,6 @@
 		if (!created) return '';
 		return new Date(created).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 	});
-
-	let caseScores = $derived(serverProgress?.case_scores ?? {});
-	let paradigmScores = $derived(serverProgress?.paradigm_scores ?? {});
-
-	let userLevel = $derived((serverProgress?.level ?? 'A1') as Difficulty);
-	let levelMeta = $derived(DIFFICULTY_META[userLevel]);
 
 	let totalAttempts = $derived.by(() => {
 		let attempts = 0;
@@ -357,13 +332,13 @@
 	// Alias for use in paradigm heatmap cells (same logic as accuracyColor)
 	const cellColor = accuracyColor;
 
-	function heatmapOpacity(count: number): number {
-		if (count === 0) return 0;
+	function heatmapColor(count: number): string {
+		if (count === 0) return 'var(--color-shaded-background)';
 		const ratio = count / heatmapMaxQuestions;
-		if (ratio <= 0.25) return 0.2;
-		if (ratio <= 0.5) return 0.4;
-		if (ratio <= 0.75) return 0.7;
-		return 1.0;
+		if (ratio <= 0.25) return 'var(--color-heatmap-1, #0e4429)';
+		if (ratio <= 0.5) return 'var(--color-heatmap-2, #006d32)';
+		if (ratio <= 0.75) return 'var(--color-heatmap-3, #26a641)';
+		return 'var(--color-heatmap-4, #39d353)';
 	}
 
 	// Tooltip for paradigm heatmap cells
@@ -409,6 +384,7 @@
 
 <svelte:head>
 	<title>Profile - Skloňuj</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-page-background">
@@ -431,44 +407,6 @@
 					Go to home
 				</a>
 			</div>
-		{:else if !dataLoaded}
-			<!-- Skeleton loading state -->
-			<section class="mb-8">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<div class="h-7 w-32 animate-pulse rounded-lg bg-shaded-background"></div>
-						<div class="h-5 w-12 animate-pulse rounded-md bg-shaded-background"></div>
-					</div>
-					<div class="h-8 w-20 animate-pulse rounded-lg bg-shaded-background"></div>
-				</div>
-				<div class="mt-1">
-					<div class="h-4 w-40 animate-pulse rounded bg-shaded-background"></div>
-				</div>
-			</section>
-			<section class="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-				{#each [1, 2, 3, 4] as _ (_)}
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-						<div class="mb-1 h-8 w-12 animate-pulse rounded bg-shaded-background"></div>
-						<div class="h-3 w-16 animate-pulse rounded bg-shaded-background"></div>
-					</div>
-				{/each}
-			</section>
-			<section class="mb-8">
-				<div class="h-28 animate-pulse rounded-xl border border-card-stroke bg-card-bg"></div>
-			</section>
-			<section class="mb-8">
-				<div class="mb-4 h-4 w-28 animate-pulse rounded bg-shaded-background"></div>
-				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-					{#each [1, 2, 3, 4, 5, 6, 7] as _ (_)}
-						<div
-							class="flex flex-col items-center gap-2 rounded-xl border border-card-stroke bg-card-bg p-4"
-						>
-							<div class="size-[72px] animate-pulse rounded-full bg-shaded-background"></div>
-							<div class="h-3 w-16 animate-pulse rounded bg-shaded-background"></div>
-						</div>
-					{/each}
-				</div>
-			</section>
 		{:else}
 			<!-- 1. User info -->
 			<section class="mb-8">
@@ -497,13 +435,6 @@
 								/>
 							</svg>
 						</button>
-						<!-- Level badge -->
-						<span
-							class="rounded-md bg-shaded-background px-2 py-0.5 text-xs font-semibold text-text-default"
-						>
-							{userLevel}
-							<span class="font-normal text-text-subtitle">{levelMeta.subtitle}</span>
-						</span>
 					</div>
 					<button
 						type="button"
@@ -608,9 +539,7 @@
 									{#each week as day (day.date)}
 										<div
 											class="h-[11px] w-[11px] rounded-[2px]"
-											style="background-color: {day.count > 0
-												? `color-mix(in srgb, var(--color-emphasis) ${heatmapOpacity(day.count) * 100}%, transparent)`
-												: 'var(--color-shaded-background)'};"
+											style="background-color: {heatmapColor(day.count)};"
 											title="{day.date}: {day.count} questions"
 										></div>
 									{/each}

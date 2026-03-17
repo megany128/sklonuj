@@ -158,6 +158,31 @@ export const DRILL_TYPE_LABELS: Record<DrillType, string> = {
 	sentence_fill_in: 'Sentence Fill-In'
 };
 
+export interface KzkPreposition {
+	prep: string;
+	case: string;
+}
+
+export interface KzkChapter {
+	id: string;
+	label: string;
+	subtitle: string;
+	unlockedCases: Case[];
+	pluralUnlocked: boolean;
+	newPrepositions: KzkPreposition[];
+	coreLemmas: string[];
+}
+
+export interface KzkBook {
+	label: string;
+	chapters: KzkChapter[];
+}
+
+export interface KzkChaptersConfig {
+	kzk1: KzkBook;
+	kzk2: KzkBook;
+}
+
 export interface CaseScore {
 	attempts: number;
 	correct: number;

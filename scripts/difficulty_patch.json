@@ -1,0 +1,3800 @@
+[
+	{
+		"lemma": "budoucno",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract concept (future)"
+	},
+	{
+		"lemma": "budoucnost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract concept (future)"
+	},
+	{
+		"lemma": "charakter",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract concept"
+	},
+	{
+		"lemma": "cit",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (emotion)"
+	},
+	{
+		"lemma": "dětství",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (childhood)"
+	},
+	{
+		"lemma": "dojem",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (impression)"
+	},
+	{
+		"lemma": "duše",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (soul)"
+	},
+	{
+		"lemma": "důkaz",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (proof/evidence)"
+	},
+	{
+		"lemma": "důvěra",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (trust)"
+	},
+	{
+		"lemma": "hledání",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract verbal noun (searching)"
+	},
+	{
+		"lemma": "hmota",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract/scientific (matter)"
+	},
+	{
+		"lemma": "hrůza",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (horror)"
+	},
+	{
+		"lemma": "jistota",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (certainty)"
+	},
+	{
+		"lemma": "kvalita",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (quality)"
+	},
+	{
+		"lemma": "minulost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (past)"
+	},
+	{
+		"lemma": "moc",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (power)"
+	},
+	{
+		"lemma": "mysl",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (mind)"
+	},
+	{
+		"lemma": "myšlenka",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (thought/idea)"
+	},
+	{
+		"lemma": "myšlení",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (thinking)"
+	},
+	{
+		"lemma": "mír",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (peace)"
+	},
+	{
+		"lemma": "naděje",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (hope)"
+	},
+	{
+		"lemma": "napětí",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (tension)"
+	},
+	{
+		"lemma": "odvaha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (courage)"
+	},
+	{
+		"lemma": "osud",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (fate)"
+	},
+	{
+		"lemma": "pokus",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (attempt)"
+	},
+	{
+		"lemma": "poměr",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (ratio/relationship)"
+	},
+	{
+		"lemma": "postoj",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (attitude/posture)"
+	},
+	{
+		"lemma": "pozornost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (attention)"
+	},
+	{
+		"lemma": "praxe",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (practice/experience)"
+	},
+	{
+		"lemma": "prospěch",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (benefit)"
+	},
+	{
+		"lemma": "přednost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (advantage/priority)"
+	},
+	{
+		"lemma": "představa",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (idea/notion)"
+	},
+	{
+		"lemma": "původ",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (origin)"
+	},
+	{
+		"lemma": "riziko",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (risk)"
+	},
+	{
+		"lemma": "rozum",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (reason/intellect)"
+	},
+	{
+		"lemma": "růst",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (growth)"
+	},
+	{
+		"lemma": "snaha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (effort)"
+	},
+	{
+		"lemma": "souhlas",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (consent/agreement)"
+	},
+	{
+		"lemma": "sláva",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (fame/glory)"
+	},
+	{
+		"lemma": "současnost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (the present time)"
+	},
+	{
+		"lemma": "styk",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (contact/intercourse)"
+	},
+	{
+		"lemma": "svědomí",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (conscience)"
+	},
+	{
+		"lemma": "symbol",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (symbol)"
+	},
+	{
+		"lemma": "touha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (longing/desire)"
+	},
+	{
+		"lemma": "tvar",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (shape/form)"
+	},
+	{
+		"lemma": "veřejnost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (the public)"
+	},
+	{
+		"lemma": "vina",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (guilt)"
+	},
+	{
+		"lemma": "vzor",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (pattern/model)"
+	},
+	{
+		"lemma": "význam",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (importance/meaning)"
+	},
+	{
+		"lemma": "věda",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (science)"
+	},
+	{
+		"lemma": "vědomí",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (awareness/consciousness)"
+	},
+	{
+		"lemma": "znalost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (knowledge)"
+	},
+	{
+		"lemma": "ztráta",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (loss)"
+	},
+	{
+		"lemma": "církev",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (church as institution)"
+	},
+	{
+		"lemma": "divák",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (viewer/spectator)"
+	},
+	{
+		"lemma": "dlaň",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specific body part (palm of hand)"
+	},
+	{
+		"lemma": "dluh",
+		"from": "A1",
+		"to": "B1",
+		"reason": "financial term (debt)"
+	},
+	{
+		"lemma": "dno",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (bottom/floor of water)"
+	},
+	{
+		"lemma": "dráha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (track/orbit)"
+	},
+	{
+		"lemma": "dálka",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (distance)"
+	},
+	{
+		"lemma": "délka",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (length)"
+	},
+	{
+		"lemma": "hladina",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (level/surface of water)"
+	},
+	{
+		"lemma": "hranice",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (border/limit)"
+	},
+	{
+		"lemma": "hromada",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (heap/pile)"
+	},
+	{
+		"lemma": "jed",
+		"from": "A1",
+		"to": "B1",
+		"reason": "uncommon (poison)"
+	},
+	{
+		"lemma": "jedinec",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (individual)"
+	},
+	{
+		"lemma": "jednotka",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (unit)"
+	},
+	{
+		"lemma": "kapitola",
+		"from": "A1",
+		"to": "B1",
+		"reason": "literary (chapter)"
+	},
+	{
+		"lemma": "kombinace",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (combination)"
+	},
+	{
+		"lemma": "konference",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (conference)"
+	},
+	{
+		"lemma": "kořen",
+		"from": "A1",
+		"to": "B1",
+		"reason": "figurative (root)"
+	},
+	{
+		"lemma": "kritika",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (criticism)"
+	},
+	{
+		"lemma": "květ",
+		"from": "A1",
+		"to": "B1",
+		"reason": "literary (blossom)"
+	},
+	{
+		"lemma": "křídlo",
+		"from": "A1",
+		"to": "B1",
+		"reason": "figurative (wing)"
+	},
+	{
+		"lemma": "literatura",
+		"from": "A1",
+		"to": "B1",
+		"reason": "academic (literature)"
+	},
+	{
+		"lemma": "majetek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "legal/financial (property/possession)"
+	},
+	{
+		"lemma": "majitel",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (owner)"
+	},
+	{
+		"lemma": "mistr",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (master/champion)"
+	},
+	{
+		"lemma": "mozek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specific body part (brain)"
+	},
+	{
+		"lemma": "médium",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (medium/media)"
+	},
+	{
+		"lemma": "nepřítel",
+		"from": "A1",
+		"to": "B1",
+		"reason": "literary/formal (enemy)"
+	},
+	{
+		"lemma": "nerv",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specific body part (nerve)"
+	},
+	{
+		"lemma": "národ",
+		"from": "A1",
+		"to": "B1",
+		"reason": "political (nation)"
+	},
+	{
+		"lemma": "násilí",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (violence)"
+	},
+	{
+		"lemma": "následek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (consequence)"
+	},
+	{
+		"lemma": "obava",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (concern/worry)"
+	},
+	{
+		"lemma": "období",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (period/era)"
+	},
+	{
+		"lemma": "objem",
+		"from": "A1",
+		"to": "B1",
+		"reason": "technical (volume/capacity)"
+	},
+	{
+		"lemma": "obor",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (field/profession)"
+	},
+	{
+		"lemma": "obyvatel",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (inhabitant)"
+	},
+	{
+		"lemma": "odborník",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (expert/specialist)"
+	},
+	{
+		"lemma": "odpor",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (resistance/aversion)"
+	},
+	{
+		"lemma": "okraj",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (edge/margin)"
+	},
+	{
+		"lemma": "popis",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (description)"
+	},
+	{
+		"lemma": "poplatek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "financial (fee/charge)"
+	},
+	{
+		"lemma": "poloha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (position/location)"
+	},
+	{
+		"lemma": "povrch",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (surface)"
+	},
+	{
+		"lemma": "pozadí",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (background)"
+	},
+	{
+		"lemma": "pozemek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "legal (plot of land)"
+	},
+	{
+		"lemma": "počátek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "literary (beginning/origin)"
+	},
+	{
+		"lemma": "prach",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (dust)"
+	},
+	{
+		"lemma": "pramen",
+		"from": "A1",
+		"to": "B1",
+		"reason": "literary (source/spring)"
+	},
+	{
+		"lemma": "proud",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (stream/current)"
+	},
+	{
+		"lemma": "průměr",
+		"from": "A1",
+		"to": "B1",
+		"reason": "mathematical (average/diameter)"
+	},
+	{
+		"lemma": "péče",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (care/aid)"
+	},
+	{
+		"lemma": "přednáška",
+		"from": "A1",
+		"to": "B1",
+		"reason": "academic (lecture)"
+	},
+	{
+		"lemma": "překážka",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (obstacle)"
+	},
+	{
+		"lemma": "přístroj",
+		"from": "A1",
+		"to": "B1",
+		"reason": "technical (apparatus/device)"
+	},
+	{
+		"lemma": "režisér",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (director/filmmaker)"
+	},
+	{
+		"lemma": "rozměr",
+		"from": "A1",
+		"to": "B1",
+		"reason": "technical (dimension)"
+	},
+	{
+		"lemma": "ročník",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (year/grade/vintage)"
+	},
+	{
+		"lemma": "sbor",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (board/choir)"
+	},
+	{
+		"lemma": "scéna",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (scene)"
+	},
+	{
+		"lemma": "složka",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (component/folder)"
+	},
+	{
+		"lemma": "snímek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (photo/frame/film)"
+	},
+	{
+		"lemma": "soupeř",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (opponent/rival)"
+	},
+	{
+		"lemma": "spisovatel",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (writer/author)"
+	},
+	{
+		"lemma": "spolupráce",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (cooperation)"
+	},
+	{
+		"lemma": "spor",
+		"from": "A1",
+		"to": "B1",
+		"reason": "legal/abstract (dispute)"
+	},
+	{
+		"lemma": "srovnání",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (comparison)"
+	},
+	{
+		"lemma": "stopa",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (trace/footprint)"
+	},
+	{
+		"lemma": "stín",
+		"from": "A1",
+		"to": "B1",
+		"reason": "figurative (shadow)"
+	},
+	{
+		"lemma": "středisko",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (centre/facility)"
+	},
+	{
+		"lemma": "svaz",
+		"from": "A1",
+		"to": "B1",
+		"reason": "political (union/federation)"
+	},
+	{
+		"lemma": "svazek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (volume/bunch)"
+	},
+	{
+		"lemma": "svědek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "legal (witness)"
+	},
+	{
+		"lemma": "sídlo",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (residence/headquarters)"
+	},
+	{
+		"lemma": "síla",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (force/strength)"
+	},
+	{
+		"lemma": "tlak",
+		"from": "A1",
+		"to": "B1",
+		"reason": "scientific (pressure)"
+	},
+	{
+		"lemma": "trest",
+		"from": "A1",
+		"to": "B1",
+		"reason": "legal (punishment)"
+	},
+	{
+		"lemma": "tón",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (tone)"
+	},
+	{
+		"lemma": "utkání",
+		"from": "A1",
+		"to": "B1",
+		"reason": "sports (match)"
+	},
+	{
+		"lemma": "varianta",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (variant/option)"
+	},
+	{
+		"lemma": "vražda",
+		"from": "A1",
+		"to": "B1",
+		"reason": "legal (murder)"
+	},
+	{
+		"lemma": "vrchol",
+		"from": "A1",
+		"to": "B1",
+		"reason": "figurative (peak/summit)"
+	},
+	{
+		"lemma": "vybavení",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (equipment)"
+	},
+	{
+		"lemma": "vydání",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (edition/expenses)"
+	},
+	{
+		"lemma": "vítěz",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (winner/victor)"
+	},
+	{
+		"lemma": "vítězství",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (victory)"
+	},
+	{
+		"lemma": "výbor",
+		"from": "A1",
+		"to": "B1",
+		"reason": "political (committee)"
+	},
+	{
+		"lemma": "výběr",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (selection/choice)"
+	},
+	{
+		"lemma": "výchova",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (education/upbringing)"
+	},
+	{
+		"lemma": "výhoda",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (advantage)"
+	},
+	{
+		"lemma": "výklad",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (explanation/display)"
+	},
+	{
+		"lemma": "výměna",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (exchange)"
+	},
+	{
+		"lemma": "výraz",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (expression)"
+	},
+	{
+		"lemma": "výrobce",
+		"from": "A1",
+		"to": "B1",
+		"reason": "commercial (manufacturer)"
+	},
+	{
+		"lemma": "výrobek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "commercial (product)"
+	},
+	{
+		"lemma": "vývoj",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (development/evolution)"
+	},
+	{
+		"lemma": "větev",
+		"from": "A1",
+		"to": "B1",
+		"reason": "figurative (branch)"
+	},
+	{
+		"lemma": "zařízení",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (facility/equipment)"
+	},
+	{
+		"lemma": "znak",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (sign/symbol/feature)"
+	},
+	{
+		"lemma": "záměr",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (intention/purpose)"
+	},
+	{
+		"lemma": "zásah",
+		"from": "A1",
+		"to": "B1",
+		"reason": "specialized (intervention/hit)"
+	},
+	{
+		"lemma": "zásoba",
+		"from": "A1",
+		"to": "B1",
+		"reason": "less common (supply/stock)"
+	},
+	{
+		"lemma": "úloha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (role/task)"
+	},
+	{
+		"lemma": "úsek",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (section/segment)"
+	},
+	{
+		"lemma": "úsilí",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (effort)"
+	},
+	{
+		"lemma": "úvaha",
+		"from": "A1",
+		"to": "B1",
+		"reason": "abstract (consideration/reflection)"
+	},
+	{
+		"lemma": "území",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (territory/area)"
+	},
+	{
+		"lemma": "účastník",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (participant)"
+	},
+	{
+		"lemma": "úřad",
+		"from": "A1",
+		"to": "B1",
+		"reason": "bureaucratic (authority/office)"
+	},
+	{
+		"lemma": "žádost",
+		"from": "A1",
+		"to": "B1",
+		"reason": "formal (request/application)"
+	},
+	{
+		"lemma": "jev",
+		"from": "A1",
+		"to": "B2",
+		"reason": "academic (phenomenon)"
+	},
+	{
+		"lemma": "jádro",
+		"from": "A1",
+		"to": "B2",
+		"reason": "technical (kernel/core/nucleus)"
+	},
+	{
+		"lemma": "okruh",
+		"from": "A1",
+		"to": "B2",
+		"reason": "technical (radius/circuit/range)"
+	},
+	{
+		"lemma": "příslušník",
+		"from": "A1",
+		"to": "B2",
+		"reason": "bureaucratic (member/officer)"
+	},
+	{
+		"lemma": "představitel",
+		"from": "A1",
+		"to": "B2",
+		"reason": "formal/political (representative)"
+	},
+	{
+		"lemma": "tvrzení",
+		"from": "A1",
+		"to": "B2",
+		"reason": "academic (statement/assertion)"
+	},
+	{
+		"lemma": "výstavba",
+		"from": "A1",
+		"to": "B2",
+		"reason": "technical (construction/development)"
+	},
+	{
+		"lemma": "obličej",
+		"from": "A1",
+		"to": "B2",
+		"reason": "less common word for face (tvář is more common)"
+	},
+	{
+		"lemma": "zástupce",
+		"from": "A1",
+		"to": "B2",
+		"reason": "bureaucratic (deputy/representative)"
+	},
+	{
+		"lemma": "aktivita",
+		"from": "A1",
+		"to": "A2",
+		"reason": "slightly abstract (activity)"
+	},
+	{
+		"lemma": "aplikace",
+		"from": "A1",
+		"to": "A2",
+		"reason": "technology (application)"
+	},
+	{
+		"lemma": "automobil",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal synonym for auto"
+	},
+	{
+		"lemma": "autor",
+		"from": "A1",
+		"to": "A2",
+		"reason": "academic (author)"
+	},
+	{
+		"lemma": "bolest",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (pain)"
+	},
+	{
+		"lemma": "brána",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less basic (gate)"
+	},
+	{
+		"lemma": "cizinec",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less basic (foreigner)"
+	},
+	{
+		"lemma": "deník",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less basic (diary/daily paper)"
+	},
+	{
+		"lemma": "deska",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less basic (board/record)"
+	},
+	{
+		"lemma": "detail",
+		"from": "A1",
+		"to": "A2",
+		"reason": "slightly abstract (detail)"
+	},
+	{
+		"lemma": "diskuse",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (discussion)"
+	},
+	{
+		"lemma": "dokument",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (document)"
+	},
+	{
+		"lemma": "doprava",
+		"from": "A1",
+		"to": "A2",
+		"reason": "not core A1 (transport)"
+	},
+	{
+		"lemma": "dvojice",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (pair)"
+	},
+	{
+		"lemma": "důvod",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (reason)"
+	},
+	{
+		"lemma": "expert",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (expert)"
+	},
+	{
+		"lemma": "fotografie",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal synonym for fotka"
+	},
+	{
+		"lemma": "galerie",
+		"from": "A1",
+		"to": "A2",
+		"reason": "cultural (gallery)"
+	},
+	{
+		"lemma": "houba",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less basic food (mushroom)"
+	},
+	{
+		"lemma": "hrad",
+		"from": "A1",
+		"to": "A2",
+		"reason": "cultural (castle)"
+	},
+	{
+		"lemma": "kariéra",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (career)"
+	},
+	{
+		"lemma": "klient",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (client)"
+	},
+	{
+		"lemma": "kontakt",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (contact)"
+	},
+	{
+		"lemma": "kontrola",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (control/check)"
+	},
+	{
+		"lemma": "kost",
+		"from": "A1",
+		"to": "A2",
+		"reason": "specific body part (bone)"
+	},
+	{
+		"lemma": "kraj",
+		"from": "A1",
+		"to": "A2",
+		"reason": "geographical (region)"
+	},
+	{
+		"lemma": "krev",
+		"from": "A1",
+		"to": "A2",
+		"reason": "body (blood)"
+	},
+	{
+		"lemma": "kruh",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract shape (circle)"
+	},
+	{
+		"lemma": "materiál",
+		"from": "A1",
+		"to": "A2",
+		"reason": "slightly formal (material)"
+	},
+	{
+		"lemma": "mladík",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less common (young man)"
+	},
+	{
+		"lemma": "možnost",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (possibility)"
+	},
+	{
+		"lemma": "nabídka",
+		"from": "A1",
+		"to": "A2",
+		"reason": "commercial (offer)"
+	},
+	{
+		"lemma": "nebezpečí",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (danger)"
+	},
+	{
+		"lemma": "nehoda",
+		"from": "A1",
+		"to": "A2",
+		"reason": "situational (accident)"
+	},
+	{
+		"lemma": "názor",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (opinion)"
+	},
+	{
+		"lemma": "odchod",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (departure/leaving)"
+	},
+	{
+		"lemma": "omyl",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (mistake/error)"
+	},
+	{
+		"lemma": "oprava",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (repair/reconstruction)"
+	},
+	{
+		"lemma": "osoba",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (person)"
+	},
+	{
+		"lemma": "palác",
+		"from": "A1",
+		"to": "A2",
+		"reason": "uncommon (palace)"
+	},
+	{
+		"lemma": "podnikatel",
+		"from": "A1",
+		"to": "A2",
+		"reason": "specialized (businessman)"
+	},
+	{
+		"lemma": "potíž",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (trouble)"
+	},
+	{
+		"lemma": "potřeba",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (need)"
+	},
+	{
+		"lemma": "pozice",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (position)"
+	},
+	{
+		"lemma": "poznámka",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (note/remark)"
+	},
+	{
+		"lemma": "počet",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (number/count)"
+	},
+	{
+		"lemma": "pravidlo",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (rule)"
+	},
+	{
+		"lemma": "prodej",
+		"from": "A1",
+		"to": "A2",
+		"reason": "commercial (sale)"
+	},
+	{
+		"lemma": "produkt",
+		"from": "A1",
+		"to": "A2",
+		"reason": "commercial (product)"
+	},
+	{
+		"lemma": "profesor",
+		"from": "A1",
+		"to": "A2",
+		"reason": "academic (professor)"
+	},
+	{
+		"lemma": "program",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (programme)"
+	},
+	{
+		"lemma": "projekt",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (project)"
+	},
+	{
+		"lemma": "pád",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (fall/case)"
+	},
+	{
+		"lemma": "přechod",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (crossing/transition)"
+	},
+	{
+		"lemma": "předmět",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (subject/object)"
+	},
+	{
+		"lemma": "příprava",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (preparation)"
+	},
+	{
+		"lemma": "příjmení",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less basic (surname)"
+	},
+	{
+		"lemma": "příklad",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (example)"
+	},
+	{
+		"lemma": "radnice",
+		"from": "A1",
+		"to": "A2",
+		"reason": "civic (town hall)"
+	},
+	{
+		"lemma": "region",
+		"from": "A1",
+		"to": "A2",
+		"reason": "geographic (region)"
+	},
+	{
+		"lemma": "rostlina",
+		"from": "A1",
+		"to": "A2",
+		"reason": "nature (plant)"
+	},
+	{
+		"lemma": "rozdíl",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (difference)"
+	},
+	{
+		"lemma": "rozhovor",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (conversation/interview)"
+	},
+	{
+		"lemma": "rychlost",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (speed)"
+	},
+	{
+		"lemma": "silnice",
+		"from": "A1",
+		"to": "A2",
+		"reason": "transport (road)"
+	},
+	{
+		"lemma": "skupina",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (group)"
+	},
+	{
+		"lemma": "služba",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (service)"
+	},
+	{
+		"lemma": "studium",
+		"from": "A1",
+		"to": "A2",
+		"reason": "academic (studies)"
+	},
+	{
+		"lemma": "styl",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (style)"
+	},
+	{
+		"lemma": "tajemství",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (secret)"
+	},
+	{
+		"lemma": "termín",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (term/deadline)"
+	},
+	{
+		"lemma": "verze",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (version)"
+	},
+	{
+		"lemma": "vozidlo",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (vehicle)"
+	},
+	{
+		"lemma": "vstup",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (entrance/entry)"
+	},
+	{
+		"lemma": "vztah",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (relationship)"
+	},
+	{
+		"lemma": "vzduch",
+		"from": "A1",
+		"to": "A2",
+		"reason": "nature but not core A1 (air)"
+	},
+	{
+		"lemma": "věta",
+		"from": "A1",
+		"to": "A2",
+		"reason": "grammar (sentence)"
+	},
+	{
+		"lemma": "věž",
+		"from": "A1",
+		"to": "A2",
+		"reason": "less common (tower)"
+	},
+	{
+		"lemma": "vůz",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (vehicle/car)"
+	},
+	{
+		"lemma": "zaměstnanec",
+		"from": "A1",
+		"to": "A2",
+		"reason": "workplace (employee)"
+	},
+	{
+		"lemma": "zkouška",
+		"from": "A1",
+		"to": "A2",
+		"reason": "academic (exam/test)"
+	},
+	{
+		"lemma": "zkušenost",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (experience)"
+	},
+	{
+		"lemma": "změna",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (change)"
+	},
+	{
+		"lemma": "zpráva",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (news/message)"
+	},
+	{
+		"lemma": "zranění",
+		"from": "A1",
+		"to": "A2",
+		"reason": "medical (injury)"
+	},
+	{
+		"lemma": "zvuk",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (sound)"
+	},
+	{
+		"lemma": "zvyk",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (habit/custom)"
+	},
+	{
+		"lemma": "zájemce",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (interested person)"
+	},
+	{
+		"lemma": "zákazník",
+		"from": "A1",
+		"to": "A2",
+		"reason": "commercial (customer/client)"
+	},
+	{
+		"lemma": "úkol",
+		"from": "A1",
+		"to": "A2",
+		"reason": "academic (task/assignment)"
+	},
+	{
+		"lemma": "článek",
+		"from": "A1",
+		"to": "A2",
+		"reason": "formal (article)"
+	},
+	{
+		"lemma": "řeč",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (speech/language)"
+	},
+	{
+		"lemma": "šance",
+		"from": "A1",
+		"to": "A2",
+		"reason": "abstract (chance)"
+	},
+	{
+		"lemma": "demokracie",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political concept"
+	},
+	{
+		"lemma": "demokrat",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political term"
+	},
+	{
+		"lemma": "federace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political term"
+	},
+	{
+		"lemma": "koalice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political term"
+	},
+	{
+		"lemma": "komunista",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political term"
+	},
+	{
+		"lemma": "parlament",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political institution"
+	},
+	{
+		"lemma": "poslanec",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (deputy/MP)"
+	},
+	{
+		"lemma": "premiér",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (prime minister)"
+	},
+	{
+		"lemma": "prezident",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political leader"
+	},
+	{
+		"lemma": "primátor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (mayor)"
+	},
+	{
+		"lemma": "republika",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political concept"
+	},
+	{
+		"lemma": "senát",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political institution"
+	},
+	{
+		"lemma": "senátor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political term"
+	},
+	{
+		"lemma": "ministr",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (minister)"
+	},
+	{
+		"lemma": "ministerstvo",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political institution"
+	},
+	{
+		"lemma": "advokát",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (lawyer)"
+	},
+	{
+		"lemma": "legislativa",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal term"
+	},
+	{
+		"lemma": "obvinění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (accusation)"
+	},
+	{
+		"lemma": "pachatel",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (offender/perpetrator)"
+	},
+	{
+		"lemma": "rozsudek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (judgment/verdict)"
+	},
+	{
+		"lemma": "žaloba",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (lawsuit/prosecution)"
+	},
+	{
+		"lemma": "privatizace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "economic/legal term"
+	},
+	{
+		"lemma": "absence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal/academic"
+	},
+	{
+		"lemma": "alternativa",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (alternative)"
+	},
+	{
+		"lemma": "ambice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (ambition)"
+	},
+	{
+		"lemma": "analýza",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (analysis)"
+	},
+	{
+		"lemma": "analytik",
+		"from": "A2",
+		"to": "B1",
+		"reason": "professional (analyst)"
+	},
+	{
+		"lemma": "aparát",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (apparatus/machinery)"
+	},
+	{
+		"lemma": "argument",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (argument)"
+	},
+	{
+		"lemma": "aspekt",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (aspect)"
+	},
+	{
+		"lemma": "autorita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (authority)"
+	},
+	{
+		"lemma": "bilance",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (balance)"
+	},
+	{
+		"lemma": "bariéra",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (barrier)"
+	},
+	{
+		"lemma": "definice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (definition)"
+	},
+	{
+		"lemma": "disciplína",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (discipline)"
+	},
+	{
+		"lemma": "dispozice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (disposal/disposition)"
+	},
+	{
+		"lemma": "distribuce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "commercial (distribution)"
+	},
+	{
+		"lemma": "dodržování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (compliance/observation)"
+	},
+	{
+		"lemma": "dokumentace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (documentation)"
+	},
+	{
+		"lemma": "dosažení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (achievement)"
+	},
+	{
+		"lemma": "dovednost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (skill)"
+	},
+	{
+		"lemma": "efekt",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (effect)"
+	},
+	{
+		"lemma": "ekonom",
+		"from": "A2",
+		"to": "B1",
+		"reason": "professional (economist)"
+	},
+	{
+		"lemma": "ekonomika",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (economy)"
+	},
+	{
+		"lemma": "existence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (existence)"
+	},
+	{
+		"lemma": "experiment",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (experiment)"
+	},
+	{
+		"lemma": "expozice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "specialized (exhibition/exposure)"
+	},
+	{
+		"lemma": "faktor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (factor)"
+	},
+	{
+		"lemma": "fenomén",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (phenomenon)"
+	},
+	{
+		"lemma": "filozof",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (philosopher)"
+	},
+	{
+		"lemma": "filozofie",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (philosophy)"
+	},
+	{
+		"lemma": "financování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (financing)"
+	},
+	{
+		"lemma": "fond",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (fund)"
+	},
+	{
+		"lemma": "formát",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (format)"
+	},
+	{
+		"lemma": "frekvence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (frequency)"
+	},
+	{
+		"lemma": "fungování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (functioning/operation)"
+	},
+	{
+		"lemma": "funkce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (function)"
+	},
+	{
+		"lemma": "fáze",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (phase)"
+	},
+	{
+		"lemma": "generace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (generation)"
+	},
+	{
+		"lemma": "identita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (identity)"
+	},
+	{
+		"lemma": "ideál",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (ideal)"
+	},
+	{
+		"lemma": "iluze",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (illusion)"
+	},
+	{
+		"lemma": "impuls",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (impulse)"
+	},
+	{
+		"lemma": "index",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (index)"
+	},
+	{
+		"lemma": "iniciativa",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (initiative)"
+	},
+	{
+		"lemma": "inspirace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (inspiration)"
+	},
+	{
+		"lemma": "instituce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (institution)"
+	},
+	{
+		"lemma": "institut",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (institute)"
+	},
+	{
+		"lemma": "integrace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (integration)"
+	},
+	{
+		"lemma": "inteligence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (intelligence)"
+	},
+	{
+		"lemma": "intenzita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (intensity)"
+	},
+	{
+		"lemma": "interpretace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (interpretation)"
+	},
+	{
+		"lemma": "interval",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (interval)"
+	},
+	{
+		"lemma": "investor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (investor)"
+	},
+	{
+		"lemma": "izolace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (isolation)"
+	},
+	{
+		"lemma": "jednota",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (unity)"
+	},
+	{
+		"lemma": "jednotlivec",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (individual)"
+	},
+	{
+		"lemma": "kandidát",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (candidate)"
+	},
+	{
+		"lemma": "kapacita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (capacity)"
+	},
+	{
+		"lemma": "kapitál",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (capital)"
+	},
+	{
+		"lemma": "kategorie",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (category)"
+	},
+	{
+		"lemma": "kompetence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (competence)"
+	},
+	{
+		"lemma": "komplex",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (complex)"
+	},
+	{
+		"lemma": "komplikace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (complication)"
+	},
+	{
+		"lemma": "kompromis",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (compromise)"
+	},
+	{
+		"lemma": "komunikace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (communication)"
+	},
+	{
+		"lemma": "komunita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (community)"
+	},
+	{
+		"lemma": "koncentrace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (concentration)"
+	},
+	{
+		"lemma": "koncepce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (concept/conception)"
+	},
+	{
+		"lemma": "koncept",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (concept)"
+	},
+	{
+		"lemma": "kongres",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (congress)"
+	},
+	{
+		"lemma": "konkurent",
+		"from": "A2",
+		"to": "B1",
+		"reason": "commercial (competitor)"
+	},
+	{
+		"lemma": "konstrukce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (construction)"
+	},
+	{
+		"lemma": "kontext",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (context)"
+	},
+	{
+		"lemma": "kritérium",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (criterion)"
+	},
+	{
+		"lemma": "kvalifikace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (qualification)"
+	},
+	{
+		"lemma": "kód",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (code)"
+	},
+	{
+		"lemma": "licence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (licence)"
+	},
+	{
+		"lemma": "likvidace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (liquidation)"
+	},
+	{
+		"lemma": "limit",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (limit)"
+	},
+	{
+		"lemma": "logika",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (logic)"
+	},
+	{
+		"lemma": "management",
+		"from": "A2",
+		"to": "B1",
+		"reason": "business (management)"
+	},
+	{
+		"lemma": "manipulace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (manipulation)"
+	},
+	{
+		"lemma": "maximum",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (maximum)"
+	},
+	{
+		"lemma": "mechanismus",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (mechanism)"
+	},
+	{
+		"lemma": "menšina",
+		"from": "A2",
+		"to": "B1",
+		"reason": "sociological (minority)"
+	},
+	{
+		"lemma": "metoda",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (method)"
+	},
+	{
+		"lemma": "minimum",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (minimum)"
+	},
+	{
+		"lemma": "model",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (model)"
+	},
+	{
+		"lemma": "morálka",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (morality)"
+	},
+	{
+		"lemma": "motiv",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (motive)"
+	},
+	{
+		"lemma": "motivace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (motivation)"
+	},
+	{
+		"lemma": "mínění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (opinion)"
+	},
+	{
+		"lemma": "míra",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (rate/measure)"
+	},
+	{
+		"lemma": "mýtus",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (myth)"
+	},
+	{
+		"lemma": "norma",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (standard/norm)"
+	},
+	{
+		"lemma": "nutnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (necessity)"
+	},
+	{
+		"lemma": "náboženství",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (religion)"
+	},
+	{
+		"lemma": "nárůst",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (growth/increase)"
+	},
+	{
+		"lemma": "nástupce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (successor)"
+	},
+	{
+		"lemma": "obrana",
+		"from": "A2",
+		"to": "B1",
+		"reason": "military/abstract (defence)"
+	},
+	{
+		"lemma": "obsah",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (content)"
+	},
+	{
+		"lemma": "obvod",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (circumference/district)"
+	},
+	{
+		"lemma": "obyvatelstvo",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (population)"
+	},
+	{
+		"lemma": "ochrana",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (protection)"
+	},
+	{
+		"lemma": "odpovědnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (responsibility)"
+	},
+	{
+		"lemma": "okolnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (circumstance)"
+	},
+	{
+		"lemma": "omezení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (limitation)"
+	},
+	{
+		"lemma": "opatření",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (measure)"
+	},
+	{
+		"lemma": "operace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "medical/military (operation)"
+	},
+	{
+		"lemma": "opozice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (opposition)"
+	},
+	{
+		"lemma": "organismus",
+		"from": "A2",
+		"to": "B1",
+		"reason": "scientific (organism)"
+	},
+	{
+		"lemma": "organizace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (organization)"
+	},
+	{
+		"lemma": "orientace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (orientation)"
+	},
+	{
+		"lemma": "osobnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (personality)"
+	},
+	{
+		"lemma": "perspektiva",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (perspective/prospect)"
+	},
+	{
+		"lemma": "podmínka",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (condition)"
+	},
+	{
+		"lemma": "podnik",
+		"from": "A2",
+		"to": "B1",
+		"reason": "commercial (enterprise)"
+	},
+	{
+		"lemma": "podoba",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (form/likeness)"
+	},
+	{
+		"lemma": "podpora",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (support)"
+	},
+	{
+		"lemma": "podstata",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (essence)"
+	},
+	{
+		"lemma": "podvod",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (fraud)"
+	},
+	{
+		"lemma": "podíl",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (share/portion)"
+	},
+	{
+		"lemma": "pojem",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (notion/concept)"
+	},
+	{
+		"lemma": "pojetí",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (concept/understanding)"
+	},
+	{
+		"lemma": "pokles",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (decline/drop)"
+	},
+	{
+		"lemma": "pokračování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (continuation)"
+	},
+	{
+		"lemma": "pokrok",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (progress)"
+	},
+	{
+		"lemma": "politika",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (politics/policy)"
+	},
+	{
+		"lemma": "populace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (population)"
+	},
+	{
+		"lemma": "popularita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (popularity)"
+	},
+	{
+		"lemma": "porovnání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (comparison)"
+	},
+	{
+		"lemma": "porozumění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (understanding)"
+	},
+	{
+		"lemma": "porucha",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (malfunction)"
+	},
+	{
+		"lemma": "porušení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (breach/violation)"
+	},
+	{
+		"lemma": "porážka",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (defeat)"
+	},
+	{
+		"lemma": "postavení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (status/position)"
+	},
+	{
+		"lemma": "postup",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (procedure/approach)"
+	},
+	{
+		"lemma": "posun",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (shift)"
+	},
+	{
+		"lemma": "potenciál",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (potential)"
+	},
+	{
+		"lemma": "povinnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (duty/obligation)"
+	},
+	{
+		"lemma": "požadavek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (demand/requirement)"
+	},
+	{
+		"lemma": "pravděpodobnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (probability)"
+	},
+	{
+		"lemma": "pravomoc",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (authority/jurisdiction)"
+	},
+	{
+		"lemma": "prevence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (prevention)"
+	},
+	{
+		"lemma": "princip",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (principle)"
+	},
+	{
+		"lemma": "priorita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (priority)"
+	},
+	{
+		"lemma": "problematika",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (issues/problems)"
+	},
+	{
+		"lemma": "proces",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (process)"
+	},
+	{
+		"lemma": "produkce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "commercial (production)"
+	},
+	{
+		"lemma": "projev",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (expression/speech)"
+	},
+	{
+		"lemma": "proměna",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (transformation)"
+	},
+	{
+		"lemma": "propojení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (connection)"
+	},
+	{
+		"lemma": "prostor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (space/room)"
+	},
+	{
+		"lemma": "prostředek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (means/resource)"
+	},
+	{
+		"lemma": "prostředí",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (environment)"
+	},
+	{
+		"lemma": "protest",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (protest)"
+	},
+	{
+		"lemma": "protokol",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (protocol)"
+	},
+	{
+		"lemma": "provoz",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (operation/traffic)"
+	},
+	{
+		"lemma": "prvek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (element)"
+	},
+	{
+		"lemma": "průběh",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (course/progress)"
+	},
+	{
+		"lemma": "psychologie",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (psychology)"
+	},
+	{
+		"lemma": "publikace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (publication)"
+	},
+	{
+		"lemma": "předpoklad",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (assumption/condition)"
+	},
+	{
+		"lemma": "přehled",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (overview/survey)"
+	},
+	{
+		"lemma": "překlad",
+		"from": "A2",
+		"to": "B1",
+		"reason": "specialized (translation)"
+	},
+	{
+		"lemma": "přelom",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (turning point)"
+	},
+	{
+		"lemma": "přenos",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (broadcast/transfer)"
+	},
+	{
+		"lemma": "přesnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (accuracy)"
+	},
+	{
+		"lemma": "přesvědčení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (conviction/belief)"
+	},
+	{
+		"lemma": "převaha",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (superiority/predominance)"
+	},
+	{
+		"lemma": "příběh",
+		"from": "A2",
+		"to": "B1",
+		"reason": "literary (story)"
+	},
+	{
+		"lemma": "příjem",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (income/reception)"
+	},
+	{
+		"lemma": "příležitost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (opportunity)"
+	},
+	{
+		"lemma": "přínos",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (contribution/benefit)"
+	},
+	{
+		"lemma": "případ",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (case)"
+	},
+	{
+		"lemma": "příroda",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (nature)"
+	},
+	{
+		"lemma": "příspěvek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (contribution)"
+	},
+	{
+		"lemma": "přístup",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (approach/access)"
+	},
+	{
+		"lemma": "přítomnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (presence/the present)"
+	},
+	{
+		"lemma": "příčina",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (cause)"
+	},
+	{
+		"lemma": "působení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (impact/effect)"
+	},
+	{
+		"lemma": "působnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (jurisdiction/activity)"
+	},
+	{
+		"lemma": "reakce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (reaction/response)"
+	},
+	{
+		"lemma": "realizace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (implementation)"
+	},
+	{
+		"lemma": "reforma",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (reform)"
+	},
+	{
+		"lemma": "regulace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (regulation)"
+	},
+	{
+		"lemma": "rekonstrukce",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (reconstruction)"
+	},
+	{
+		"lemma": "reprezentace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (representation)"
+	},
+	{
+		"lemma": "respekt",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (respect)"
+	},
+	{
+		"lemma": "role",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (role)"
+	},
+	{
+		"lemma": "rovnováha",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (balance/equilibrium)"
+	},
+	{
+		"lemma": "rozbor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (analysis)"
+	},
+	{
+		"lemma": "rozdělení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (division)"
+	},
+	{
+		"lemma": "rozhodnutí",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (decision)"
+	},
+	{
+		"lemma": "rozhodování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (decision-making)"
+	},
+	{
+		"lemma": "rozpor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (contradiction)"
+	},
+	{
+		"lemma": "rozpočet",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (budget)"
+	},
+	{
+		"lemma": "rozsah",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (extent/scope)"
+	},
+	{
+		"lemma": "rozvoj",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (development)"
+	},
+	{
+		"lemma": "rozšíření",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (expansion)"
+	},
+	{
+		"lemma": "rámec",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (framework)"
+	},
+	{
+		"lemma": "schopnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (ability)"
+	},
+	{
+		"lemma": "sdružení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (association)"
+	},
+	{
+		"lemma": "sektor",
+		"from": "A2",
+		"to": "B1",
+		"reason": "economic (sector)"
+	},
+	{
+		"lemma": "shoda",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (agreement/consensus)"
+	},
+	{
+		"lemma": "signál",
+		"from": "A2",
+		"to": "B1",
+		"reason": "technical (signal)"
+	},
+	{
+		"lemma": "situace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (situation)"
+	},
+	{
+		"lemma": "skutečnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (reality)"
+	},
+	{
+		"lemma": "souvislost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (connection/context)"
+	},
+	{
+		"lemma": "součást",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (part/component)"
+	},
+	{
+		"lemma": "specialista",
+		"from": "A2",
+		"to": "B1",
+		"reason": "professional (specialist)"
+	},
+	{
+		"lemma": "spektrum",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (spectrum)"
+	},
+	{
+		"lemma": "spekulace",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (speculation)"
+	},
+	{
+		"lemma": "splnění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (fulfillment)"
+	},
+	{
+		"lemma": "spojení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (connection/conjunction)"
+	},
+	{
+		"lemma": "spokojenost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (satisfaction)"
+	},
+	{
+		"lemma": "společenství",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (community)"
+	},
+	{
+		"lemma": "spolupracovník",
+		"from": "A2",
+		"to": "B1",
+		"reason": "workplace (colleague)"
+	},
+	{
+		"lemma": "spotřeba",
+		"from": "A2",
+		"to": "B1",
+		"reason": "economic (consumption)"
+	},
+	{
+		"lemma": "spotřebitel",
+		"from": "A2",
+		"to": "B1",
+		"reason": "economic (consumer)"
+	},
+	{
+		"lemma": "spravedlnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (justice)"
+	},
+	{
+		"lemma": "správa",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (management/administration)"
+	},
+	{
+		"lemma": "stabilita",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (stability)"
+	},
+	{
+		"lemma": "standard",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (standard)"
+	},
+	{
+		"lemma": "stanovisko",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (standpoint)"
+	},
+	{
+		"lemma": "statistika",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (statistics)"
+	},
+	{
+		"lemma": "stav",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (condition/state)"
+	},
+	{
+		"lemma": "strategie",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (strategy)"
+	},
+	{
+		"lemma": "struktura",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (structure)"
+	},
+	{
+		"lemma": "subjekt",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal/legal (subject/entity)"
+	},
+	{
+		"lemma": "svoboda",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (freedom)"
+	},
+	{
+		"lemma": "systém",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (system)"
+	},
+	{
+		"lemma": "síť",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (network)"
+	},
+	{
+		"lemma": "tendence",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (tendency)"
+	},
+	{
+		"lemma": "teorie",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (theory)"
+	},
+	{
+		"lemma": "tradice",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (tradition)"
+	},
+	{
+		"lemma": "typ",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (type)"
+	},
+	{
+		"lemma": "událost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (event)"
+	},
+	{
+		"lemma": "uplatnění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (use/application)"
+	},
+	{
+		"lemma": "uspořádání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (arrangement/organization)"
+	},
+	{
+		"lemma": "uvolnění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (loosening/relaxation)"
+	},
+	{
+		"lemma": "uznání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (recognition/praise)"
+	},
+	{
+		"lemma": "vazba",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (relationship/bond)"
+	},
+	{
+		"lemma": "vedení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (management/leadership)"
+	},
+	{
+		"lemma": "vlastnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (quality/property)"
+	},
+	{
+		"lemma": "vliv",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (influence)"
+	},
+	{
+		"lemma": "vláda",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (government)"
+	},
+	{
+		"lemma": "vnímání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (perception)"
+	},
+	{
+		"lemma": "volba",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (election/choice)"
+	},
+	{
+		"lemma": "vyrovnání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (compensation/settlement)"
+	},
+	{
+		"lemma": "vystoupení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (performance/appearance)"
+	},
+	{
+		"lemma": "vysvětlení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (explanation)"
+	},
+	{
+		"lemma": "využití",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (use/utilization)"
+	},
+	{
+		"lemma": "vyšetřování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (investigation)"
+	},
+	{
+		"lemma": "vzdělávání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (education)"
+	},
+	{
+		"lemma": "vznik",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (origin/creation)"
+	},
+	{
+		"lemma": "válka",
+		"from": "A2",
+		"to": "B1",
+		"reason": "historical (war)"
+	},
+	{
+		"lemma": "výkon",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (performance/output)"
+	},
+	{
+		"lemma": "výpověď",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (testimony/notice)"
+	},
+	{
+		"lemma": "výroba",
+		"from": "A2",
+		"to": "B1",
+		"reason": "industrial (production)"
+	},
+	{
+		"lemma": "výrok",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal/formal (statement)"
+	},
+	{
+		"lemma": "výsledek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (result)"
+	},
+	{
+		"lemma": "výstava",
+		"from": "A2",
+		"to": "B1",
+		"reason": "cultural (exhibition)"
+	},
+	{
+		"lemma": "výzkum",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (research)"
+	},
+	{
+		"lemma": "výzva",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (challenge/call)"
+	},
+	{
+		"lemma": "zabezpečení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (security)"
+	},
+	{
+		"lemma": "zachování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (conservation/preservation)"
+	},
+	{
+		"lemma": "zahraničí",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (foreign countries/abroad)"
+	},
+	{
+		"lemma": "zajištění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (security/provision)"
+	},
+	{
+		"lemma": "zakladatel",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (founder)"
+	},
+	{
+		"lemma": "založení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (founding/establishment)"
+	},
+	{
+		"lemma": "zaměstnavatel",
+		"from": "A2",
+		"to": "B1",
+		"reason": "workplace (employer)"
+	},
+	{
+		"lemma": "zaměření",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (specialization/focus)"
+	},
+	{
+		"lemma": "zasedání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (session)"
+	},
+	{
+		"lemma": "zastoupení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (representation)"
+	},
+	{
+		"lemma": "zastupitel",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (council member)"
+	},
+	{
+		"lemma": "zastupitelstvo",
+		"from": "A2",
+		"to": "B1",
+		"reason": "political (council)"
+	},
+	{
+		"lemma": "zavedení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (introduction/implementation)"
+	},
+	{
+		"lemma": "zdravotnictví",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (health care)"
+	},
+	{
+		"lemma": "zemědělství",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (agriculture)"
+	},
+	{
+		"lemma": "zjištění",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (discovery/finding)"
+	},
+	{
+		"lemma": "zkoumání",
+		"from": "A2",
+		"to": "B1",
+		"reason": "academic (investigation/research)"
+	},
+	{
+		"lemma": "zlepšení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (improvement)"
+	},
+	{
+		"lemma": "zločin",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (crime)"
+	},
+	{
+		"lemma": "způsob",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (way/method)"
+	},
+	{
+		"lemma": "zpracování",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (processing)"
+	},
+	{
+		"lemma": "zrušení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (cancellation/abolition)"
+	},
+	{
+		"lemma": "zdroj",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (source/resource)"
+	},
+	{
+		"lemma": "zodpovědnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (responsibility)"
+	},
+	{
+		"lemma": "závislost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (dependency/addiction)"
+	},
+	{
+		"lemma": "závěr",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (conclusion)"
+	},
+	{
+		"lemma": "zákon",
+		"from": "A2",
+		"to": "B1",
+		"reason": "legal (law)"
+	},
+	{
+		"lemma": "zájem",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (interest)"
+	},
+	{
+		"lemma": "základ",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (foundation/basis)"
+	},
+	{
+		"lemma": "zásada",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (principle)"
+	},
+	{
+		"lemma": "účel",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (purpose)"
+	},
+	{
+		"lemma": "účinek",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (effect)"
+	},
+	{
+		"lemma": "účinnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (efficiency)"
+	},
+	{
+		"lemma": "účast",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (participation)"
+	},
+	{
+		"lemma": "úroveň",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (level)"
+	},
+	{
+		"lemma": "úspěch",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (success)"
+	},
+	{
+		"lemma": "ústav",
+		"from": "A2",
+		"to": "B1",
+		"reason": "institutional (institute)"
+	},
+	{
+		"lemma": "útok",
+		"from": "A2",
+		"to": "B1",
+		"reason": "military (attack)"
+	},
+	{
+		"lemma": "úvod",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (introduction)"
+	},
+	{
+		"lemma": "úvěr",
+		"from": "A2",
+		"to": "B1",
+		"reason": "financial (loan/credit)"
+	},
+	{
+		"lemma": "činnost",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (activity)"
+	},
+	{
+		"lemma": "členství",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (membership)"
+	},
+	{
+		"lemma": "řešení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (solution)"
+	},
+	{
+		"lemma": "řízení",
+		"from": "A2",
+		"to": "B1",
+		"reason": "formal (management/proceedings)"
+	},
+	{
+		"lemma": "šíření",
+		"from": "A2",
+		"to": "B1",
+		"reason": "abstract (spread/dissemination)"
+	},
+	{
+		"lemma": "živočich",
+		"from": "A2",
+		"to": "B1",
+		"reason": "scientific (animal)"
+	},
+	{
+		"lemma": "aparát",
+		"from": "A2",
+		"to": "B2",
+		"reason": "very formal (apparatus/machinery)"
+	},
+	{
+		"lemma": "bilance",
+		"from": "A2",
+		"to": "B2",
+		"reason": "specialized financial term"
+	},
+	{
+		"lemma": "císař",
+		"from": "A2",
+		"to": "B2",
+		"reason": "historical (emperor)"
+	},
+	{
+		"lemma": "dispozice",
+		"from": "A2",
+		"to": "B2",
+		"reason": "very formal (disposal)"
+	},
+	{
+		"lemma": "distribuce",
+		"from": "A2",
+		"to": "B2",
+		"reason": "commercial jargon"
+	},
+	{
+		"lemma": "dokumentace",
+		"from": "A2",
+		"to": "B2",
+		"reason": "technical jargon"
+	},
+	{
+		"lemma": "expozice",
+		"from": "A2",
+		"to": "B2",
+		"reason": "very specialized (exposure/exhibition)"
+	},
+	{
+		"lemma": "fenomén",
+		"from": "A2",
+		"to": "B2",
+		"reason": "academic (phenomenon)"
+	},
+	{
+		"lemma": "frekvence",
+		"from": "A2",
+		"to": "B2",
+		"reason": "technical (frequency)"
+	},
+	{
+		"lemma": "intenzita",
+		"from": "A2",
+		"to": "B2",
+		"reason": "scientific (intensity)"
+	},
+	{
+		"lemma": "interpretace",
+		"from": "A2",
+		"to": "B2",
+		"reason": "academic (interpretation)"
+	},
+	{
+		"lemma": "interval",
+		"from": "A2",
+		"to": "B2",
+		"reason": "technical/mathematical (interval)"
+	},
+	{
+		"lemma": "izolace",
+		"from": "A2",
+		"to": "B2",
+		"reason": "scientific/abstract (isolation)"
+	},
+	{
+		"lemma": "koncepce",
+		"from": "A2",
+		"to": "B2",
+		"reason": "very formal (conception)"
+	},
+	{
+		"lemma": "kongres",
+		"from": "A2",
+		"to": "B2",
+		"reason": "political jargon (congress)"
+	},
+	{
+		"lemma": "kritérium",
+		"from": "A2",
+		"to": "B2",
+		"reason": "academic (criterion)"
+	},
+	{
+		"lemma": "likvidace",
+		"from": "A2",
+		"to": "B2",
+		"reason": "legal/financial (liquidation)"
+	},
+	{
+		"lemma": "magistrát",
+		"from": "A2",
+		"to": "B2",
+		"reason": "bureaucratic (metropolitan authority)"
+	},
+	{
+		"lemma": "místopředseda",
+		"from": "A2",
+		"to": "B2",
+		"reason": "political (vice chairman)"
+	},
+	{
+		"lemma": "nakladatelství",
+		"from": "A2",
+		"to": "B2",
+		"reason": "specialized (publishing house)"
+	},
+	{
+		"lemma": "neschopnost",
+		"from": "A2",
+		"to": "B2",
+		"reason": "abstract (incompetence)"
+	},
+	{
+		"lemma": "parametr",
+		"from": "A2",
+		"to": "B2",
+		"reason": "technical (parameter)"
+	},
+	{
+		"lemma": "pravděpodobnost",
+		"from": "A2",
+		"to": "B2",
+		"reason": "academic/mathematical (probability)"
+	},
+	{
+		"lemma": "privatizace",
+		"from": "A2",
+		"to": "B2",
+		"reason": "political/economic (privatization)"
+	},
+	{
+		"lemma": "problematika",
+		"from": "A2",
+		"to": "B2",
+		"reason": "academic (issues/problematic)"
+	},
+	{
+		"lemma": "protokol",
+		"from": "A2",
+		"to": "B2",
+		"reason": "formal/technical (protocol)"
+	},
+	{
+		"lemma": "předchůdce",
+		"from": "A2",
+		"to": "B2",
+		"reason": "formal (predecessor)"
+	},
+	{
+		"lemma": "představenstvo",
+		"from": "A2",
+		"to": "B2",
+		"reason": "corporate (board of directors)"
+	},
+	{
+		"lemma": "působnost",
+		"from": "A2",
+		"to": "B2",
+		"reason": "bureaucratic (jurisdiction)"
+	},
+	{
+		"lemma": "spekulace",
+		"from": "A2",
+		"to": "B2",
+		"reason": "financial/abstract (speculation)"
+	},
+	{
+		"lemma": "spektrum",
+		"from": "A2",
+		"to": "B2",
+		"reason": "scientific (spectrum)"
+	},
+	{
+		"lemma": "subjekt",
+		"from": "A2",
+		"to": "B2",
+		"reason": "legal/philosophical (subject/entity)"
+	},
+	{
+		"lemma": "šampionát",
+		"from": "A2",
+		"to": "B2",
+		"reason": "sports jargon (championship)"
+	},
+	{
+		"lemma": "říše",
+		"from": "A2",
+		"to": "B2",
+		"reason": "historical/literary (empire)"
+	},
+	{
+		"lemma": "ústava",
+		"from": "A2",
+		"to": "B2",
+		"reason": "legal (constitution)"
+	},
+	{
+		"lemma": "vyšetřovatel",
+		"from": "A2",
+		"to": "B2",
+		"reason": "legal (investigator)"
+	}
+]

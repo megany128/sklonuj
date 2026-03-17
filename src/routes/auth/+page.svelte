@@ -68,6 +68,26 @@
 
 <svelte:head>
 	<title>Sign in - Skloňuj</title>
+	<meta
+		name="description"
+		content="Sign in to Skloňuj to sync your Czech declension practice progress across devices."
+	/>
+	<link rel="canonical" href="https://sklonuj.com/auth" />
+	<meta property="og:title" content="Sign in - Skloňuj" />
+	<meta
+		property="og:description"
+		content="Sign in to Skloňuj to sync your Czech declension practice progress across devices."
+	/>
+	<meta property="og:url" content="https://sklonuj.com/auth" />
+	<meta property="og:type" content="website" />
+	<meta property="og:image" content="https://sklonuj.com/og.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Sign in - Skloňuj" />
+	<meta
+		name="twitter:description"
+		content="Sign in to Skloňuj to sync your Czech declension practice progress across devices."
+	/>
+	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center px-4">

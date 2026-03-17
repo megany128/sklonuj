@@ -88,16 +88,11 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 			unlockedDifficulties.includes(word.difficulty)
 	);
 
-	// If template has semantic tags, filter further to words that have at least one matching tag
+	// If template has semantic tags, only return words that match at least one tag.
+	// Return empty if no words match — caller should skip this template.
 	const tags = template.semanticTags;
 	if (tags && tags.length > 0) {
-		const semanticMatches = categoryMatches.filter((word) =>
-			tags.some((tag) => word.categories.includes(tag))
-		);
-		// Fall back to category matches if semantic filtering is too restrictive
-		if (semanticMatches.length > 0) {
-			return semanticMatches;
-		}
+		return categoryMatches.filter((word) => tags.some((tag) => word.categories.includes(tag)));
 	}
 
 	return categoryMatches;

@@ -10,10 +10,12 @@
 		DrillResult,
 		DrillSettings,
 		DrillType,
-		Number_
+		Number_,
+		Progress,
+		WordEntry
 	} from '$lib/types';
-	import { ALL_CASES, CASE_LABELS, CASE_HEX, CASE_INDEX } from '$lib/types';
-	import { DIFFICULTY_META } from '$lib/constants';
+	import { ALL_CASES, CASE_LABELS, CASE_SHORT_LABELS, CASE_HEX, CASE_INDEX } from '$lib/types';
+
 	import {
 		loadWordBank,
 		loadTemplates,
@@ -45,7 +47,11 @@
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
+	import type { KzkChaptersConfig, KzkChapter } from '$lib/types';
+	import kzkChaptersData from '$lib/data/kzk_chapters.json';
+
 	import CasePillBar from '$lib/components/CasePillBar.svelte';
+	import ChapterSelector from '$lib/components/ChapterSelector.svelte';
 	import DrillSettings_ from '$lib/components/DrillSettings.svelte';
 	import DrillCard from '$lib/components/DrillCard.svelte';
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
@@ -54,12 +60,14 @@
 	import MilestoneToast from '$lib/components/ui/MilestoneToast.svelte';
 	import AuthModal from '$lib/components/ui/AuthModal.svelte';
 
+	const kzkChapters: KzkChaptersConfig = kzkChaptersData as KzkChaptersConfig;
+
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 
 	let user = $derived($page.data.user);
 
-	// Debounced sync to Supabase
+	// Debounced sync to Supabase via server API (browser client auth is unreliable)
 	let syncTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function scheduleSyncToSupabase(): void {
@@ -67,18 +75,18 @@
 		if (syncTimer) clearTimeout(syncTimer);
 		syncTimer = setTimeout(() => {
 			const current = get(progress);
-			const supabase = getSupabaseBrowserClient();
-			supabase
-				.from('user_progress')
-				.update({
-					level: current.level,
-					case_scores: current.caseScores,
-					paradigm_scores: current.paradigmScores,
-					last_session: current.lastSession,
-					updated_at: new Date().toISOString()
+			fetch('/api/sync', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					progress: {
+						level: current.level,
+						caseScores: current.caseScores,
+						paradigmScores: current.paradigmScores,
+						lastSession: current.lastSession
+					}
 				})
-				.eq('user_id', user!.id)
-				.then(() => {});
+			}).catch(() => {});
 		}, 1000);
 	}
 
@@ -99,20 +107,17 @@
 		if (!user) return;
 		if (sessionSyncTimer) clearTimeout(sessionSyncTimer);
 		sessionSyncTimer = setTimeout(() => {
-			const supabase = getSupabaseBrowserClient();
-			supabase
-				.from('practice_sessions')
-				.upsert(
-					{
-						user_id: user!.id,
-						session_date: getTodayDate(),
-						questions_attempted: todayAttempted,
-						questions_correct: todayCorrect,
-						updated_at: new Date().toISOString()
-					},
-					{ onConflict: 'user_id,session_date' }
-				)
-				.then(() => {});
+			fetch('/api/sync', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					session: {
+						sessionDate: getTodayDate(),
+						questionsAttempted: todayAttempted,
+						questionsCorrect: todayCorrect
+					}
+				})
+			}).catch(() => {});
 		}, 1000);
 	}
 
@@ -125,21 +130,18 @@
 
 	function loadTodaySession(): void {
 		if (!user) return;
-		const supabase = getSupabaseBrowserClient();
-		supabase
-			.from('practice_sessions')
-			.select('questions_attempted, questions_correct')
-			.eq('user_id', user.id)
-			.eq('session_date', getTodayDate())
-			.single()
+		// Load via server API to avoid browser client auth issues
+		fetch('/api/sync')
+			.then((res) => res.json())
 			.then(
-				({ data }: { data: { questions_attempted: number; questions_correct: number } | null }) => {
-					if (data) {
-						todayAttempted = data.questions_attempted;
-						todayCorrect = data.questions_correct;
+				(data: { todaySession?: { questions_attempted: number; questions_correct: number } }) => {
+					if (data.todaySession) {
+						todayAttempted = data.todaySession.questions_attempted;
+						todayCorrect = data.todaySession.questions_correct;
 					}
 				}
-			);
+			)
+			.catch(() => {});
 	}
 
 	interface ParadigmEntry {
@@ -269,6 +271,147 @@
 	let selectedCase = $state<Case | 'all'>('all');
 	let enabledCases = $state<Case[]>([...ALL_CASES]);
 
+	// KzK chapter mode
+	let chapterBook = $state<'kzk1' | 'kzk2' | null>(null);
+	let chapterSelection = $state<string | null>(null);
+	const CHAPTER_STORAGE_KEY = 'sklonuj_chapter';
+
+	function loadChapterFromStorage(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			const raw = localStorage.getItem(CHAPTER_STORAGE_KEY);
+			if (raw === null) return;
+			const parsed: unknown = JSON.parse(raw);
+			if (
+				typeof parsed === 'object' &&
+				parsed !== null &&
+				'book' in parsed &&
+				'chapter' in parsed
+			) {
+				const obj = parsed as Record<string, unknown>;
+				if (
+					(obj.book === 'kzk1' || obj.book === 'kzk2' || obj.book === null) &&
+					(typeof obj.chapter === 'string' || obj.chapter === null)
+				) {
+					chapterBook = obj.book;
+					chapterSelection = typeof obj.chapter === 'string' ? obj.chapter : null;
+				}
+			}
+		} catch {
+			// ignore
+		}
+	}
+
+	function saveChapterToStorage(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem(
+				CHAPTER_STORAGE_KEY,
+				JSON.stringify({ book: chapterBook, chapter: chapterSelection })
+			);
+		} catch {
+			// ignore
+		}
+	}
+
+	function getSelectedKzkChapter(): KzkChapter | null {
+		if (!chapterBook || !chapterSelection) return null;
+		const book = kzkChapters[chapterBook];
+		return book.chapters.find((ch) => ch.id === chapterSelection) ?? null;
+	}
+
+	/**
+	 * Get all coreLemmas from the current chapter and all previous chapters in the same book,
+	 * with current-chapter lemmas tagged separately for weighting.
+	 */
+	function getChapterLemmas(): {
+		currentLemmas: string[];
+		previousLemmas: string[];
+	} {
+		if (!chapterBook || !chapterSelection) return { currentLemmas: [], previousLemmas: [] };
+		const book = kzkChapters[chapterBook];
+		const chapterIndex = book.chapters.findIndex((ch) => ch.id === chapterSelection);
+		if (chapterIndex < 0) return { currentLemmas: [], previousLemmas: [] };
+
+		const currentLemmas = book.chapters[chapterIndex].coreLemmas;
+		const previousLemmas: string[] = [];
+		for (let i = 0; i < chapterIndex; i++) {
+			previousLemmas.push(...book.chapters[i].coreLemmas);
+		}
+		return { currentLemmas, previousLemmas };
+	}
+
+	function handleModeChange(book: 'kzk1' | 'kzk2' | null): void {
+		if (book === null) {
+			handleChapterChange(null, null);
+		} else {
+			const firstChapter = kzkChapters[book].chapters[0];
+			handleChapterChange(book, firstChapter.id);
+		}
+	}
+
+	function handleChapterChange(book: 'kzk1' | 'kzk2' | null, chapterId: string | null): void {
+		chapterBook = book;
+		chapterSelection = chapterId;
+		saveChapterToStorage();
+
+		// When chapter mode is active, override enabledCases, number mode, and difficulty
+		if (book && chapterId) {
+			const chapter = getSelectedKzkChapter();
+			if (chapter) {
+				enabledCases = [...chapter.unlockedCases];
+				if (!chapter.pluralUnlocked) {
+					drillSettings = { ...drillSettings, numberMode: 'sg' };
+					saveSettingsToStorage(drillSettings);
+				}
+				// Sync word difficulty with book
+				if (book === 'kzk1') {
+					handleLevelChange('A2'); // KzK 1 = A1+A2
+				} else if (book === 'kzk2') {
+					handleLevelChange('B1'); // KzK 2 = A1+A2+B1
+				}
+			}
+		} else {
+			// Restore all cases when chapter mode is turned off
+			enabledCases = [...ALL_CASES];
+		}
+
+		selectedCase = 'all';
+		generateNextQuestion();
+	}
+
+	function handleChapterStep(direction: 'prev' | 'next'): void {
+		if (!chapterBook || !chapterSelection) return;
+		const chapters = kzkChapters[chapterBook].chapters;
+		const idx = chapters.findIndex((ch) => ch.id === chapterSelection);
+		if (idx < 0) return;
+		let newIdx = direction === 'prev' ? idx - 1 : idx + 1;
+		if (newIdx < 0) newIdx = chapters.length - 1;
+		if (newIdx >= chapters.length) newIdx = 0;
+		handleChapterChange(chapterBook, chapters[newIdx].id);
+	}
+
+	// Derived: effective enabled cases (constrained by chapter if active)
+	let effectiveEnabledCases = $derived.by(() => {
+		const chapter = getSelectedKzkChapter();
+		if (chapter) {
+			// Intersect user-enabled cases with chapter's unlocked cases
+			const unlocked = chapter.unlockedCases;
+			const filtered = enabledCases.filter((c) => unlocked.includes(c));
+			return filtered.length > 0 ? filtered : unlocked;
+		}
+		return enabledCases;
+	});
+
+	// Derived: whether number mode should be forced to sg
+	let effectiveNumberMode = $derived.by(() => {
+		const chapter = getSelectedKzkChapter();
+		if (chapter && !chapter.pluralUnlocked) {
+			return 'sg' as const;
+		}
+		return drillSettings.numberMode;
+	});
+
 	// Top-level view
 	let activeView = $state<'exercise' | 'declension'>('exercise');
 
@@ -280,7 +423,7 @@
 
 	let relevantMistakeCount = $derived(
 		selectedCase === 'all'
-			? mistakes.filter((m) => enabledCases.includes(m.question.case)).length
+			? mistakes.filter((m) => effectiveEnabledCases.includes(m.question.case)).length
 			: mistakes.filter((m) => m.question.case === selectedCase).length
 	);
 
@@ -303,8 +446,13 @@
 	}
 
 	function openReferenceSidebar() {
-		refSidebarWord = question?.word.lemma ?? '';
-		refSidebarTab = 'declension';
+		if (!submitted) {
+			refSidebarWord = '';
+			refSidebarTab = 'cases';
+		} else {
+			refSidebarWord = question?.word.lemma ?? '';
+			refSidebarTab = 'declension';
+		}
 		refSidebarOpen = true;
 	}
 
@@ -360,6 +508,18 @@
 		}
 		const savedSettings = loadSettingsFromStorage();
 		drillSettings = savedSettings;
+		loadChapterFromStorage();
+
+		// If chapter mode is active, apply its constraints
+		if (chapterBook && chapterSelection) {
+			const chapter = getSelectedKzkChapter();
+			if (chapter) {
+				enabledCases = [...chapter.unlockedCases];
+				if (!chapter.pluralUnlocked) {
+					drillSettings = { ...drillSettings, numberMode: 'sg' };
+				}
+			}
+		}
 
 		// Generate first question immediately from local state
 		generateNextQuestion();
@@ -416,20 +576,25 @@
 	function pickDrillType(): DrillType {
 		// No case identification when a specific case is selected or fewer than 2 cases enabled
 		let allowed = drillSettings.selectedDrillTypes;
-		if (selectedCase !== 'all' || enabledCases.length < 2) {
+		if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
 			allowed = allowed.filter((dt) => dt !== 'case_identification');
 			if (allowed.length === 0) allowed = ['form_production'];
 		}
 
 		if (allowed.length === 1) return allowed[0];
 
-		const activeCases = selectedCase === 'all' ? enabledCases : [selectedCase];
+		const activeCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 
 		// Check if sentence-based drills are viable
 		if (allowed.includes('case_identification') || allowed.includes('sentence_fill_in')) {
 			const templates = loadTemplates();
+			const prog = get(progress);
+			const levelDifficulties = curriculum[prog.level].unlocked_difficulty;
 			const eligibleTemplates = templates.filter(
-				(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
+				(t) =>
+					activeCases.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					levelDifficulties.includes(t.difficulty)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -442,8 +607,89 @@
 	}
 
 	function matchesNumberMode(templateNumber: Number_): boolean {
-		if (drillSettings.numberMode === 'both') return true;
-		return templateNumber === drillSettings.numberMode;
+		if (effectiveNumberMode === 'both') return true;
+		return templateNumber === effectiveNumberMode;
+	}
+
+	/**
+	 * Pick a word from the word bank, biased toward chapter coreLemmas.
+	 * In chapter mode:
+	 *   - 75% current chapter, 25% previous chapters
+	 *   - From chapter 13 onward, 20% chance of a CEFR-level-filtered general pool word
+	 */
+	function pickWordForChapter(
+		eligibleWords: WordEntry[],
+		prog: Progress,
+		case_: Case,
+		number_: Number_
+	): WordEntry | null {
+		const { currentLemmas, previousLemmas } = getChapterLemmas();
+
+		// If no chapter lemmas, fall back to normal selection
+		if (currentLemmas.length === 0 && previousLemmas.length === 0) {
+			const valid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+			return valid.length > 0 ? weightedRandom(valid, prog, case_, number_) : null;
+		}
+
+		const allLemmasLower = new Set([
+			...currentLemmas.map((l) => l.toLowerCase()),
+			...previousLemmas.map((l) => l.toLowerCase())
+		]);
+		const currentLemmasLower = new Set(currentLemmas.map((l) => l.toLowerCase()));
+
+		// Chapter coreLemmas bypass the CEFR difficulty filter — if the textbook
+		// teaches a word in this chapter, we drill it regardless of its CEFR level.
+		const fullWordBank = loadWordBank();
+		const coreCurrentWords = fullWordBank.filter(
+			(w) => currentLemmasLower.has(w.lemma.toLowerCase()) && hasValidForm(w, case_, number_)
+		);
+		const corePreviousWords = fullWordBank.filter(
+			(w) =>
+				!currentLemmasLower.has(w.lemma.toLowerCase()) &&
+				allLemmasLower.has(w.lemma.toLowerCase()) &&
+				hasValidForm(w, case_, number_)
+		);
+
+		const hasCoreWords = coreCurrentWords.length > 0 || corePreviousWords.length > 0;
+
+		if (!hasCoreWords) {
+			const valid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+			return valid.length > 0 ? weightedRandom(valid, prog, case_, number_) : null;
+		}
+
+		// General pool only from chapter 13 onward, at 20%
+		const chapterIndex = getChapterIndex();
+		const generalPoolEnabled = chapterIndex >= 12; // 0-indexed, so 12 = chapter 13
+
+		if (generalPoolEnabled && Math.random() < 0.2) {
+			const generalWords = eligibleWords.filter(
+				(w) => !allLemmasLower.has(w.lemma.toLowerCase()) && hasValidForm(w, case_, number_)
+			);
+			if (generalWords.length > 0) {
+				return weightedRandom(generalWords, prog, case_, number_);
+			}
+		}
+
+		// Pick from chapter vocab: 75% current, 25% previous
+		const innerRoll = Math.random();
+		if (innerRoll < 0.75 && coreCurrentWords.length > 0) {
+			return weightedRandom(coreCurrentWords, prog, case_, number_);
+		} else if (corePreviousWords.length > 0) {
+			return weightedRandom(corePreviousWords, prog, case_, number_);
+		} else if (coreCurrentWords.length > 0) {
+			return weightedRandom(coreCurrentWords, prog, case_, number_);
+		}
+
+		// Absolute fallback
+		const allValid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+		return allValid.length > 0 ? weightedRandom(allValid, prog, case_, number_) : null;
+	}
+
+	function getChapterIndex(): number {
+		if (!chapterBook || !chapterSelection) return 0;
+		const chapters = kzkChapters[chapterBook].chapters;
+		const idx = chapters.findIndex((ch) => ch.id === chapterSelection);
+		return idx >= 0 ? idx : 0;
 	}
 
 	function generateNextQuestion(): void {
@@ -480,9 +726,6 @@
 
 		const eligibleWords = wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty));
 
-		// Templates are NOT filtered by difficulty — all templates are available at all levels.
-		// Only word difficulty is controlled by the user's level.
-
 		if (eligibleWords.length === 0) {
 			question = null;
 			return;
@@ -490,60 +733,213 @@
 
 		const drillType = pickDrillType();
 
-		// Pick case: either the selected one, or weighted random from enabled cases
-		const case_ = selectedCase === 'all' ? pickWeightedCase(enabledCases) : selectedCase;
+		// Use effective cases (constrained by chapter if active)
+		const activeCasesForPick = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 
-		// Pick number
+		// Pick case: either the selected one, or weighted random from effective enabled cases
+		const case_ = selectedCase === 'all' ? pickWeightedCase(effectiveEnabledCases) : selectedCase;
+
+		// Pick number (respecting chapter constraints)
 		let number_: Number_;
-		if (drillSettings.numberMode === 'sg') number_ = 'sg';
-		else if (drillSettings.numberMode === 'pl') number_ = 'pl';
+		if (effectiveNumberMode === 'sg') number_ = 'sg';
+		else if (effectiveNumberMode === 'pl') number_ = 'pl';
 		else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
 
-		const activeCases = selectedCase === 'all' ? enabledCases : [selectedCase];
+		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
 		if (drillType === 'form_production') {
-			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-			if (validWords.length === 0) {
-				question = null;
-				return;
-			}
-			const word = weightedRandom(validWords, prog, case_, number_);
-			question = generateFormProduction(word, case_, number_);
-		} else {
-			const templates = loadTemplates();
-			const eligibleTemplates = templates.filter(
-				(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
-			);
+			// Skip nominative for form_production — the answer is just the lemma itself,
+			// which is trivially obvious. Re-pick a non-nominative case.
+			let fpCase = case_;
+			if (fpCase === 'nom') {
+				const nonNomCases = effectiveEnabledCases.filter((c) => c !== 'nom');
+				if (nonNomCases.length > 0) {
+					fpCase = nonNomCases[Math.floor(Math.random() * nonNomCases.length)];
+				} else {
+					// Only nominative is enabled — use sentence_fill_in instead
+					const templates = loadTemplates();
+					const nomTemplates = templates.filter(
+						(t) =>
+							t.requiredCase === 'nom' &&
+							matchesNumberMode(t.number) &&
+							unlockedDifficulties.includes(t.difficulty)
+					);
+					if (nomTemplates.length > 0) {
+						const tmpl = nomTemplates[Math.floor(Math.random() * nomTemplates.length)];
+						const candidates = (
+							isChapterMode ? getCandidates(tmpl, prog) : getCandidates(tmpl, prog)
+						).filter((w) => hasValidForm(w, 'nom', tmpl.number));
 
-			if (eligibleTemplates.length === 0) {
-				const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-				if (validWords.length === 0) {
+						let word: WordEntry | null = null;
+						if (candidates.length > 0) {
+							word = weightedRandom(candidates, prog, 'nom', tmpl.number);
+						} else if (isChapterMode) {
+							word = pickWordForChapter(eligibleWords, prog, 'nom', tmpl.number);
+						}
+						if (word) {
+							question = generateSentenceDrill(tmpl, word);
+							lastResult = null;
+							paradigmNotes = null;
+							submitted = false;
+							if (advanceTimer !== null) {
+								clearTimeout(advanceTimer);
+								advanceTimer = null;
+							}
+							if (question) autoPlayPrompt(question);
+							return;
+						}
+					}
 					question = null;
 					return;
 				}
-				const word = weightedRandom(validWords, prog, case_, number_);
+			}
+			let word: WordEntry | null;
+			if (isChapterMode) {
+				word = pickWordForChapter(eligibleWords, prog, fpCase, number_);
+			} else {
+				const validWords = eligibleWords.filter((w) => hasValidForm(w, fpCase, number_));
+				word = validWords.length > 0 ? weightedRandom(validWords, prog, fpCase, number_) : null;
+			}
+			if (!word) {
+				question = null;
+				return;
+			}
+			question = generateFormProduction(word, fpCase, number_);
+		} else {
+			const templates = loadTemplates();
+			const eligibleTemplates = templates.filter(
+				(t) =>
+					activeCasesForPick.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
+			);
+
+			if (eligibleTemplates.length === 0) {
+				let word: WordEntry | null;
+				if (isChapterMode) {
+					word = pickWordForChapter(eligibleWords, prog, case_, number_);
+				} else {
+					const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+					word = validWords.length > 0 ? weightedRandom(validWords, prog, case_, number_) : null;
+				}
+				if (!word) {
+					question = null;
+					return;
+				}
 				question = generateFormProduction(word, case_, number_);
 			} else {
 				const template = eligibleTemplates[Math.floor(Math.random() * eligibleTemplates.length)];
-				const candidates = getCandidates(template, prog).filter((w) =>
-					hasValidForm(w, template.requiredCase, template.number)
-				);
 
-				if (candidates.length === 0) {
-					const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-					if (validWords.length === 0) {
-						question = null;
+				let candidates: WordEntry[];
+				if (isChapterMode) {
+					// In chapter mode, get candidates but bias toward coreLemmas.
+					// Chapter coreLemmas bypass CEFR difficulty — include them from
+					// the full word bank even if their level isn't unlocked yet.
+					const diffFiltered = getCandidates(template, prog).filter((w) =>
+						hasValidForm(w, template.requiredCase, template.number)
+					);
+					const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
+					const chapterLemmasLower = new Set([
+						...curL.map((l) => l.toLowerCase()),
+						...prevL.map((l) => l.toLowerCase())
+					]);
+					const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
+					const chapterExtras = loadWordBank().filter(
+						(w) =>
+							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
+							!diffLemmas.has(w.lemma) &&
+							w.categories.includes(template.lemmaCategory) &&
+							hasValidForm(w, template.requiredCase, template.number)
+					);
+					const baseCandidates = [...diffFiltered, ...chapterExtras];
+					if (baseCandidates.length === 0) {
+						// Try picking a chapter word directly
+						const word = pickWordForChapter(
+							eligibleWords,
+							prog,
+							template.requiredCase,
+							template.number
+						);
+						if (!word) {
+							question = null;
+							return;
+						}
+						if (drillType === 'case_identification') {
+							question = generateCaseIdentification(template, word);
+						} else {
+							question = generateSentenceDrill(template, word);
+						}
+						lastResult = null;
+						paradigmNotes = null;
+						submitted = false;
+						if (advanceTimer !== null) {
+							clearTimeout(advanceTimer);
+							advanceTimer = null;
+						}
+						if (question) autoPlayPrompt(question);
 						return;
 					}
-					const word = weightedRandom(validWords, prog, case_, number_);
-					question = generateFormProduction(word, case_, number_);
-				} else {
-					const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
+					// Apply chapter weighting to the template candidates
+					const { currentLemmas, previousLemmas } = getChapterLemmas();
+					const allLemmasLower = new Set([
+						...currentLemmas.map((l) => l.toLowerCase()),
+						...previousLemmas.map((l) => l.toLowerCase())
+					]);
+					const currentLemmasLower = new Set(currentLemmas.map((l) => l.toLowerCase()));
+
+					const coreCurrent = baseCandidates.filter((w) =>
+						currentLemmasLower.has(w.lemma.toLowerCase())
+					);
+					const corePrevious = baseCandidates.filter(
+						(w) =>
+							!currentLemmasLower.has(w.lemma.toLowerCase()) &&
+							allLemmasLower.has(w.lemma.toLowerCase())
+					);
+					const general = baseCandidates.filter((w) => !allLemmasLower.has(w.lemma.toLowerCase()));
+
+					const hasCoreWords = coreCurrent.length > 0 || corePrevious.length > 0;
+					let picked: WordEntry;
+
+					if (hasCoreWords && Math.random() < 0.7) {
+						if (Math.random() < 0.75 && coreCurrent.length > 0) {
+							picked = weightedRandom(coreCurrent, prog, template.requiredCase, template.number);
+						} else if (corePrevious.length > 0) {
+							picked = weightedRandom(corePrevious, prog, template.requiredCase, template.number);
+						} else {
+							picked = weightedRandom(coreCurrent, prog, template.requiredCase, template.number);
+						}
+					} else if (general.length > 0) {
+						picked = weightedRandom(general, prog, template.requiredCase, template.number);
+					} else {
+						picked = weightedRandom(baseCandidates, prog, template.requiredCase, template.number);
+					}
 
 					if (drillType === 'case_identification') {
-						question = generateCaseIdentification(template, word);
+						question = generateCaseIdentification(template, picked);
 					} else {
-						question = generateSentenceDrill(template, word);
+						question = generateSentenceDrill(template, picked);
+					}
+				} else {
+					candidates = getCandidates(template, prog).filter((w) =>
+						hasValidForm(w, template.requiredCase, template.number)
+					);
+
+					if (candidates.length === 0) {
+						const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+						if (validWords.length === 0) {
+							question = null;
+							return;
+						}
+						const word = weightedRandom(validWords, prog, case_, number_);
+						question = generateFormProduction(word, case_, number_);
+					} else {
+						const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
+
+						if (drillType === 'case_identification') {
+							question = generateCaseIdentification(template, word);
+						} else {
+							question = generateSentenceDrill(template, word);
+						}
 					}
 				}
 			}
@@ -563,9 +959,21 @@
 		}
 	}
 
-	function lookupParadigmNotes(paradigmId: string): Record<string, string> | null {
+	function lookupParadigmNotes(paradigmId: string, word: WordEntry): Record<string, string> | null {
 		const entry = paradigms.find((p) => p.id === paradigmId);
-		return entry?.whyNotes ?? null;
+		const notes: Record<string, string> = entry?.whyNotes ? { ...entry.whyNotes } : {};
+
+		// Add a note for plural-only words (all sg forms are empty)
+		const allSgEmpty = word.forms.sg.every((f) => f === '');
+		if (allSgEmpty) {
+			const pluralNote = `"${word.lemma}" is always plural — it has no singular form.`;
+			for (const c of ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'] as const) {
+				const key = `${c}_pl`;
+				notes[key] = notes[key] ? `${notes[key]} ${pluralNote}` : pluralNote;
+			}
+		}
+
+		return Object.keys(notes).length > 0 ? notes : null;
 	}
 
 	function trackSessionStats(result: DrillResult): void {
@@ -685,7 +1093,7 @@
 			trackSessionStats(result);
 			recordSessionActivity(false);
 			streak = 0;
-			paradigmNotes = lookupParadigmNotes(question.word.paradigm);
+			paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
 			autoPlayAnswer(question);
 			return;
 		}
@@ -741,7 +1149,7 @@
 			}
 		} else {
 			streak = 0;
-			paradigmNotes = lookupParadigmNotes(question.word.paradigm);
+			paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
 		}
 
 		checkMilestones(result);
@@ -832,11 +1240,49 @@
 />
 
 <svelte:head>
-	<title>Skloňuj -- Czech Declension Trainer</title>
+	<title>Skloňuj — Czech Declension Practice & Noun Case Trainer</title>
 	<meta
 		name="description"
-		content="Master Czech noun declensions with smart drilling and grammar explanations."
+		content="Practice Czech declension with interactive drills. Master all 7 Czech noun cases, learn grammar patterns, and build fluency with smart exercises for every level from A1 to B2."
 	/>
+	<meta
+		name="keywords"
+		content="Czech declension practice, Czech noun cases, Czech grammar trainer, learn Czech cases, Czech declension drill, skloňování, Czech language exercises, pádové koncovky"
+	/>
+	<link rel="canonical" href="https://sklonuj.com" />
+	<meta property="og:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
+	<meta
+		property="og:description"
+		content="Practice Czech declension with interactive drills. Master all 7 noun cases with smart exercises for every level from A1 to B2."
+	/>
+	<meta property="og:url" content="https://sklonuj.com" />
+	<meta property="og:type" content="website" />
+	<meta property="og:locale" content="en" />
+	<meta property="og:site_name" content="Skloňuj" />
+	<meta property="og:image" content="https://sklonuj.com/og.png" />
+	<meta property="og:image:width" content="2400" />
+	<meta property="og:image:height" content="1260" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
+	<meta
+		name="twitter:description"
+		content="Practice Czech declension with interactive drills. Master all 7 noun cases with smart exercises for every level from A1 to B2."
+	/>
+	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
+	<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "WebApplication",
+			"name": "Skloňuj",
+			"url": "https://sklonuj.com",
+			"description": "Interactive Czech declension practice tool. Drill all 7 noun cases with grammar explanations, smart exercises, and progress tracking from A1 to B2.",
+			"applicationCategory": "EducationalApplication",
+			"operatingSystem": "Any",
+			"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+			"inLanguage": ["en", "cs"],
+			"audience": { "@type": "EducationalAudience", "educationalRole": "student" }
+		}
+	</script>
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
@@ -854,157 +1300,259 @@
 
 	{#if activeView === 'exercise'}
 		<main class="mx-auto w-full max-w-[867px] flex-1 px-3 py-4 sm:px-4 sm:py-8">
-			<!-- Case selection pill bar -->
-			<div class="mb-5">
-				<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
-				{#if selectedCase === 'all'}
-					<div class="mt-3 text-center">
-						<button
-							onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
-							class="inline-flex items-center gap-1 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
+			<!-- Mode selector + Level (level only in Free Practice) -->
+			<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3">
+				<ChapterSelector selectedBook={chapterBook} onModeChange={handleModeChange} />
+				{#if chapterBook === null}
+					<div class="flex items-center gap-2">
+						<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
+							>Level</span
 						>
-							Filter cases
-							{#if enabledCases.length < ALL_CASES.length}
-								<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
-							{/if}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
-									? 'rotate-180'
-									: ''}"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</button>
-						{#if caseFilterExpanded}
-							<div
-								transition:slide={{ duration: 150 }}
-								class="mt-2 flex flex-wrap justify-center gap-1.5"
-							>
-								{#each ALL_CASES as c (c)}
-									{@const enabled = enabledCases.includes(c)}
-									<button
-										onclick={() => toggleEnabledCase(c)}
-										class="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150"
-										class:opacity-35={!enabled}
-										style="background-color: {CASE_HEX[c]}12; color: {CASE_HEX[
-											c
-										]}; border: 1px solid {enabled ? CASE_HEX[c] + '40' : 'transparent'}"
-										aria-pressed={enabled}
-									>
-										{CASE_LABELS[c]}
-									</button>
-								{/each}
-								{#if enabledCases.length < ALL_CASES.length}
-									<button
-										onclick={() => {
-											enabledCases = [...ALL_CASES];
-											generateNextQuestion();
-										}}
-										class="text-xs font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
-									>
-										Reset
-									</button>
-								{/if}
-							</div>
-						{/if}
+						<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
+							{#each ['A1', 'A2', 'B1', 'B2'] as const as lvl (lvl)}
+								<button
+									onclick={() => handleLevelChange(lvl)}
+									class="flex flex-col items-center justify-center rounded-[12px] px-3 py-2.5 transition-all
+										{currentLevel === lvl
+										? 'bg-shaded-background text-text-default'
+										: 'text-text-subtitle hover:text-text-default'}"
+								>
+									<span class="text-xs font-normal">{lvl}</span>
+								</button>
+							{/each}
+						</div>
 					</div>
 				{/if}
 			</div>
 
-			<!-- Toolbar: mistakes + settings -->
-			<div class="mb-4 flex items-center justify-end gap-2">
-				{#if relevantMistakeCount > 0}
+			{#if chapterBook === null}
+				<!-- Case selection pill bar (Free Practice mode) -->
+				<div class="mb-4">
+					<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
+				</div>
+			{/if}
+
+			<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings -->
+			<div class="relative mb-2 flex items-center">
+				{#if chapterBook !== null}
+					{@const kzkChapter = getSelectedKzkChapter()}
+					{#if kzkChapter}
+						<div class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2.5">
+							<button
+								onclick={() => handleChapterStep('prev')}
+								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+								aria-label="Previous chapter"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-4 w-4"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</button>
+
+							<div class="flex flex-col items-center gap-0.5">
+								<span class="text-base font-semibold leading-tight text-text-default">
+									{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
+								</span>
+								<div class="flex flex-wrap items-center justify-center gap-1">
+									{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
+										<span
+											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
+										>
+											All cases
+										</span>
+									{:else}
+										{#each kzkChapter.unlockedCases as c (c)}
+											<span
+												class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
+												style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
+											>
+												{CASE_SHORT_LABELS[c]}
+											</span>
+										{/each}
+									{/if}
+									<span
+										class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
+									>
+										{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
+									</span>
+								</div>
+							</div>
+
+							<button
+								onclick={() => handleChapterStep('next')}
+								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+								aria-label="Next chapter"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-4 w-4"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</button>
+						</div>
+					{/if}
+				{/if}
+				{#if chapterBook === null && selectedCase === 'all'}
 					<button
-						type="button"
-						onclick={() => {
-							practicingMistakes = !practicingMistakes;
-							lastMistakeIndex = -1;
-							generateNextQuestion();
-						}}
-						class="flex min-h-[44px] items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-all duration-150
+						onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
+						class="absolute left-1/2 inline-flex min-h-[44px] -translate-x-1/2 items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
+					>
+						Filter cases
+						{#if enabledCases.length < ALL_CASES.length}
+							<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
+						{/if}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
+								? 'rotate-180'
+								: ''}"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					</button>
+				{/if}
+				<div class="ml-auto flex items-center gap-2">
+					{#if relevantMistakeCount > 0}
+						<button
+							type="button"
+							onclick={() => {
+								practicingMistakes = !practicingMistakes;
+								lastMistakeIndex = -1;
+								generateNextQuestion();
+							}}
+							class="flex min-h-[44px] items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-all duration-150
 							{practicingMistakes
-							? 'border-negative-stroke bg-negative-background text-negative-stroke'
-							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-negative-stroke/40 hover:text-negative-stroke'}"
-					>
-						{#if practicingMistakes}
-							Reviewing {relevantMistakeCount}
-							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
-						{:else}
-							Review {relevantMistakeCount}
-							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
-						{/if}
-					</button>
-				{/if}
-				{#if ttsAvailable}
+								? 'border-negative-stroke bg-negative-background text-negative-stroke'
+								: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-negative-stroke/40 hover:text-negative-stroke'}"
+						>
+							{#if practicingMistakes}
+								Reviewing {relevantMistakeCount}
+								{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+							{:else}
+								Review {relevantMistakeCount}
+								{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+							{/if}
+						</button>
+					{/if}
+					{#if ttsAvailable}
+						<button
+							type="button"
+							onclick={toggleAutoplay}
+							class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+							aria-label="Toggle audio autoplay"
+						>
+							{#if autoplayAudio}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="size-4"
+								>
+									<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+									<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+									<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+								</svg>
+							{:else}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="size-4"
+								>
+									<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+									<line x1="23" y1="9" x2="17" y2="15" />
+									<line x1="17" y1="9" x2="23" y2="15" />
+								</svg>
+							{/if}
+						</button>
+					{/if}
 					<button
 						type="button"
-						onclick={toggleAutoplay}
+						onclick={() => (settingsExpanded = !settingsExpanded)}
 						class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-						aria-label="Toggle audio autoplay"
+						aria-label="Exercise settings"
 					>
-						{#if autoplayAudio}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="size-4"
-							>
-								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-								<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-								<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-							</svg>
-						{:else}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="size-4"
-							>
-								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-								<line x1="23" y1="9" x2="17" y2="15" />
-								<line x1="17" y1="9" x2="23" y2="15" />
-							</svg>
-						{/if}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="size-4"
+						>
+							<circle cx="12" cy="12" r="3" />
+							<path
+								d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+							/>
+						</svg>
 					</button>
-				{/if}
-				<button
-					type="button"
-					onclick={() => (settingsExpanded = !settingsExpanded)}
-					class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-					aria-label="Exercise settings"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="size-4"
-					>
-						<circle cx="12" cy="12" r="3" />
-						<path
-							d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-						/>
-					</svg>
-				</button>
+				</div>
 			</div>
+
+			<!-- Expandable case filter (Free Practice, below toolbar) -->
+			{#if chapterBook === null && caseFilterExpanded}
+				<div
+					transition:slide={{ duration: 150 }}
+					class="mb-6 flex flex-wrap justify-center gap-1.5"
+				>
+					{#each ALL_CASES as c (c)}
+						{@const enabled = enabledCases.includes(c)}
+						<button
+							onclick={() => toggleEnabledCase(c)}
+							class="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150"
+							class:opacity-35={!enabled}
+							style="background-color: {CASE_HEX[c]}12; color: {CASE_HEX[
+								c
+							]}; border: 1px solid {enabled ? CASE_HEX[c] + '40' : 'transparent'}"
+							aria-pressed={enabled}
+						>
+							{CASE_LABELS[c]}
+						</button>
+					{/each}
+					{#if enabledCases.length < ALL_CASES.length}
+						<button
+							onclick={() => {
+								enabledCases = [...ALL_CASES];
+								generateNextQuestion();
+							}}
+							class="text-xs font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
+						>
+							Reset
+						</button>
+					{/if}
+				</div>
+			{/if}
 
 			<!-- Settings panel -->
 			{#if settingsExpanded}
@@ -1012,42 +1560,20 @@
 					transition:slide={{ duration: 200 }}
 					class="mb-5 flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
 				>
-					<div class="flex flex-wrap items-center gap-2">
-						<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
-							>Word Difficulty</span
-						>
-						<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
-							{#each ['A1', 'A2', 'B1', 'B2'] as const as lvl (lvl)}
-								<button
-									onclick={() => handleLevelChange(lvl)}
-									class="flex flex-col items-center rounded-[12px] px-2 py-1 transition-all sm:px-3
-										{currentLevel === lvl
-										? 'bg-shaded-background text-text-default'
-										: 'text-text-subtitle hover:text-text-default'}"
-								>
-									<span class="text-xs font-normal">{lvl}</span>
-									<span
-										class="hidden text-[9px] leading-tight sm:inline {currentLevel === lvl
-											? 'text-text-subtitle'
-											: 'text-text-subtitle/50'}"
-									>
-										{DIFFICULTY_META[lvl].subtitle}
-									</span>
-								</button>
-							{/each}
-						</div>
-					</div>
 					<DrillSettings_
 						selectedDrillTypes={drillSettings.selectedDrillTypes}
-						numberMode={drillSettings.numberMode}
+						numberMode={effectiveNumberMode}
 						onSettingsChange={handleSettingsChange}
-						disableCaseIdentification={selectedCase !== 'all' || enabledCases.length < 2}
+						hiddenDrillTypes={selectedCase !== 'all' || effectiveEnabledCases.length < 2
+							? ['case_identification']
+							: []}
+						hideNumberMode={chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked}
 					/>
 				</div>
 			{/if}
 
 			<!-- Drill area -->
-			<div class="mx-auto max-w-[867px]">
+			<div class="mx-auto mt-6 max-w-[867px]">
 				<DrillCard
 					{question}
 					loading={wordsLoading}

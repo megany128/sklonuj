@@ -2,30 +2,40 @@
 	import type { Case, DrillType } from '$lib/types';
 	import { CASE_COLORS, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import DottedUnderline from './DottedUnderline.svelte';
+	import PrepositionHint from './PrepositionHint.svelte';
 
 	let {
 		correctAnswer,
 		nominative,
 		targetForm,
+		translation,
 		case_,
 		drillType,
 		nearMiss = false,
 		templateWhy,
 		whyNote,
+		trigger = undefined,
 		onSpeak,
 		onWordClick
 	}: {
 		correctAnswer: string;
 		nominative?: string;
 		targetForm?: string;
+		translation?: string;
 		case_: Case;
 		drillType: DrillType;
 		nearMiss?: boolean;
 		templateWhy?: string | null;
 		whyNote?: string | null;
+		trigger?: string;
 		onSpeak?: (text: string) => void;
 		onWordClick?: (lemma: string) => void;
 	} = $props();
+
+	/** Cases that commonly use prepositions */
+	const PREPOSITION_CASES: Case[] = ['gen', 'dat', 'acc', 'loc', 'ins'];
+
+	let showPrepositionHint = $derived(!!trigger || PREPOSITION_CASES.includes(case_));
 
 	let hasWhy = $derived(!!templateWhy || !!whyNote);
 </script>
@@ -50,6 +60,11 @@
 				<p class="text-sm text-text-subtitle">
 					{nominative} &rarr;
 					<span class="font-semibold {CASE_COLORS[case_].text}">{targetForm}</span>
+				</p>
+			{/if}
+			{#if translation}
+				<p class="text-xs italic text-text-subtitle">
+					{nominative ?? correctAnswer} = {translation}
 				</p>
 			{/if}
 		</div>
@@ -109,6 +124,11 @@
 					<span class="font-semibold {CASE_COLORS[case_].text}">{targetForm}</span>
 				</p>
 			{/if}
+			{#if translation}
+				<p class="text-xs italic text-text-subtitle">
+					{nominative ?? correctAnswer} = {translation}
+				</p>
+			{/if}
 		</div>
 	{/if}
 
@@ -146,5 +166,9 @@
 				</p>
 			{/if}
 		</div>
+	{/if}
+
+	{#if showPrepositionHint}
+		<PrepositionHint {case_} {trigger} />
 	{/if}
 </div>

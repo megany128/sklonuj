@@ -6,7 +6,8 @@
 		selectedDrillTypes,
 		numberMode,
 		onSettingsChange,
-		disableCaseIdentification = false
+		hiddenDrillTypes = [],
+		hideNumberMode = false
 	}: {
 		selectedDrillTypes: DrillType[];
 		numberMode: 'sg' | 'pl' | 'both';
@@ -14,8 +15,11 @@
 			selectedDrillTypes: DrillType[];
 			numberMode: 'sg' | 'pl' | 'both';
 		}) => void;
-		disableCaseIdentification?: boolean;
+		hiddenDrillTypes?: DrillType[];
+		hideNumberMode?: boolean;
 	} = $props();
+
+	let visibleDrillTypes = $derived(ALL_DRILL_TYPES.filter((dt) => !hiddenDrillTypes.includes(dt)));
 
 	function toggleDrillType(dt: DrillType) {
 		const isSelected = selectedDrillTypes.includes(dt);
@@ -42,18 +46,14 @@
 	<div class="flex items-center gap-2">
 		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
 		<div class="flex flex-wrap gap-1.5">
-			{#each ALL_DRILL_TYPES as dt (dt)}
-				{@const disabled = dt === 'case_identification' && disableCaseIdentification}
-				{@const active = selectedDrillTypes.includes(dt) && !disabled}
+			{#each visibleDrillTypes as dt (dt)}
+				{@const active = selectedDrillTypes.includes(dt)}
 				<button
 					onclick={() => toggleDrillType(dt)}
-					class="rounded-full border px-2.5 py-1 text-xs transition-all {disabled
-						? 'cursor-not-allowed border-card-stroke bg-card-bg text-text-subtitle/40'
-						: active
-							? 'border-emphasis bg-shaded-background font-semibold text-text-default'
-							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
+					class="rounded-full border px-2.5 py-1 text-xs transition-all {active
+						? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+						: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
 					aria-pressed={active}
-					{disabled}
 				>
 					{DRILL_TYPE_LABELS[dt]}
 				</button>
@@ -61,21 +61,23 @@
 		</div>
 	</div>
 
-	<!-- Number mode -->
-	<div class="flex items-center gap-2">
-		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Number</span>
-		<div class="flex flex-wrap gap-1.5">
-			{#each numberOptions as opt (opt.value)}
-				<button
-					onclick={() => setNumberMode(opt.value)}
-					aria-pressed={numberMode === opt.value}
-					class="rounded-full border px-2.5 py-1 text-xs transition-all {numberMode === opt.value
-						? 'border-emphasis bg-shaded-background font-semibold text-text-default'
-						: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
-				>
-					{opt.label}
-				</button>
-			{/each}
+	<!-- Number mode (hidden when chapter forces singular only) -->
+	{#if !hideNumberMode}
+		<div class="flex items-center gap-2">
+			<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Number</span>
+			<div class="flex flex-wrap gap-1.5">
+				{#each numberOptions as opt (opt.value)}
+					<button
+						onclick={() => setNumberMode(opt.value)}
+						aria-pressed={numberMode === opt.value}
+						class="rounded-full border px-2.5 py-1 text-xs transition-all {numberMode === opt.value
+							? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
+					>
+						{opt.label}
+					</button>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 </div>

@@ -47,6 +47,12 @@
 	--color-on-accent: #ffffff;
 	--color-page-background: #fbf6f3;
 	--color-icon-hover: rgba(0, 0, 0, 0.06);
+
+	/* Activity heatmap */
+	--color-heatmap-1: #9be9a8;
+	--color-heatmap-2: #40c463;
+	--color-heatmap-3: #30a14e;
+	--color-heatmap-4: #216e39;
 }
 
 @layer base {
@@ -62,13 +68,19 @@
 		--color-negative-stroke: #c06060;
 		--color-warning-text: #fbbf24;
 		--color-easter-egg-border: #b8860b;
-		--color-on-accent: #cdc8cd;
+		--color-on-accent: #ffffff;
 		--color-icon-hover: rgba(255, 255, 255, 0.08);
 		--color-card-bg: #22201e;
 		--color-card-stroke: #37342f;
 		--color-text-default: #dedbd8;
 		--color-text-subtitle: #888480;
 		--color-text-inverted: #1d1b19;
+
+		/* Activity heatmap */
+		--color-heatmap-1: #0e4429;
+		--color-heatmap-2: #006d32;
+		--color-heatmap-3: #26a641;
+		--color-heatmap-4: #39d353;
 
 		/* Brand colors — desaturated/shifted for dark surfaces */
 		--color-brand-50: oklch(0.17 0.02 250);

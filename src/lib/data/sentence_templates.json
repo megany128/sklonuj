@@ -431,7 +431,7 @@
 	{
 		"id": "loc_pri_040",
 		"template": "Při ___ nesmíš mluvit.",
-		"lemmaCategory": "abstract",
+		"lemmaCategory": "misc",
 		"semanticTags": ["event"],
 		"requiredCase": "loc",
 		"number": "sg",
@@ -745,7 +745,7 @@
 	{
 		"id": "nom_zacina_071",
 		"template": "___ začíná.",
-		"lemmaCategory": "time",
+		"lemmaCategory": "misc",
 		"semanticTags": ["event"],
 		"requiredCase": "nom",
 		"number": "sg",
@@ -754,7 +754,7 @@
 		"difficulty": "A2"
 	},
 	{
-		"id": "nom_dulezity_072",
+		"id": "nom_vporadku_072",
 		"template": "___ je v pořádku.",
 		"lemmaCategory": "misc",
 		"semanticTags": ["abstract"],
@@ -847,7 +847,7 @@
 	{
 		"id": "gen_behem_081",
 		"template": "Během ___ jsem spal.",
-		"lemmaCategory": "time",
+		"lemmaCategory": "misc",
 		"semanticTags": ["event"],
 		"requiredCase": "gen",
 		"number": "sg",
@@ -1283,13 +1283,13 @@
 		"difficulty": "A2"
 	},
 	{
-		"id": "voc_nechtela_124",
-		"template": "Nechceš si sednout, ___?",
+		"id": "voc_pojd_124",
+		"template": "Pojď si sednout, ___!",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When offering someone a seat by name, Czech uses the vocative case for direct address.",
+		"why": "When inviting someone by name ('Come sit down, ...!'), Czech uses the vocative case for direct address.",
 		"difficulty": "A2"
 	},
 	{
@@ -1367,7 +1367,7 @@
 	{
 		"id": "loc_pri_132",
 		"template": "Při ___ musíme být ticho.",
-		"lemmaCategory": "abstract",
+		"lemmaCategory": "misc",
 		"semanticTags": ["event"],
 		"requiredCase": "loc",
 		"number": "sg",
@@ -1820,6 +1820,411 @@
 		"number": "sg",
 		"trigger": "od",
 		"why": "'Od' (of/from) always takes the genitive case to express belonging.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_nemam_180",
+		"template": "Nemám ___.",
+		"lemmaCategory": "misc",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "In formal Czech, the direct object of a negated verb can take the genitive case instead of accusative.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_celou_181",
+		"template": "Čekám celou ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"why": "Time duration expressions take the accusative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_celou_182",
+		"template": "Běžel jsem celou ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"why": "Time duration expressions take the accusative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_bratr_183",
+		"template": "Bratr je ___.",
+		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Být' (to be) takes the instrumental case when expressing someone's profession or role.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_stala_184",
+		"template": "Sestra se stala ___.",
+		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Stát se' (to become) takes the instrumental case for the new role.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "ins_zustane_185",
+		"template": "Zůstane ___.",
+		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Zůstat' (to remain) takes the instrumental case for continued identity.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "loc_pri_186",
+		"template": "Při ___ musíme dávat pozor.",
+		"lemmaCategory": "misc",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "při",
+		"why": "'Při' (during/at) always takes the locative case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "loc_pri_187",
+		"template": "Při ___ se nesmí jíst.",
+		"lemmaCategory": "misc",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "při",
+		"why": "'Při' (during/at) always takes the locative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_bojim_188",
+		"template": "Bojím se ___.",
+		"lemmaCategory": "misc",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Bát se' (to be afraid of) governs the genitive case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_vsiml_189",
+		"template": "Všiml jsem si ___.",
+		"lemmaCategory": "misc",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Všimnout si' (to notice) governs the genitive case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "gen_zucastnil_190",
+		"template": "Zúčastnil jsem se ___.",
+		"lemmaCategory": "misc",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Zúčastnit se' (to participate in) governs the genitive case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "gen_zbavil_191",
+		"template": "Zbavil se ___.",
+		"lemmaCategory": "misc",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Zbavit se' (to get rid of) governs the genitive case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "gen_ptam_192",
+		"template": "Ptám se ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Ptát se' (to ask) governs the genitive case for the person being asked.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_dotykam_193",
+		"template": "Dotýkám se ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Dotýkat se' (to touch) governs the genitive case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "dat_dekuji_194",
+		"template": "Děkuji ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Děkovat' (to thank) governs the dative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "dat_odpovidam_195",
+		"template": "Odpovídám ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Odpovídat' (to answer) governs the dative case for the person being answered.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "dat_blahoprej_196",
+		"template": "Blahopřeji ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Blahopřát' (to congratulate) governs the dative case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "ins_hybe_197",
+		"template": "Hýbe ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Hýbat' (to move something) governs the instrumental case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "ins_otaci_198",
+		"template": "Otáčí ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Otáčet' (to turn) governs the instrumental case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "ins_trese_199",
+		"template": "Třese ___.",
+		"lemmaCategory": "body",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Třást' (to shake) governs the instrumental case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "ins_voni_200",
+		"template": "Voní ___.",
+		"lemmaCategory": "food",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Vonět' (to smell of) governs the instrumental case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_pohnul_201",
+		"template": "Pohnul ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Pohnout' (to move) governs the instrumental case.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "acc_nehlede_202",
+		"template": "Nehledě na ___, pokračujeme.",
+		"lemmaCategory": "misc",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Nehledě na' (regardless of) takes the accusative case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "dat_navzdory_203",
+		"template": "Navzdory ___ uspěl.",
+		"lemmaCategory": "misc",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "navzdory",
+		"why": "'Navzdory' (despite) always takes the dative case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "gen_namisto_204",
+		"template": "Namísto ___ přišel bratr.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "namísto",
+		"why": "'Namísto' (instead of) always takes the genitive case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "gen_krome_205",
+		"template": "Kromě ___ přišli všichni.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "kromě",
+		"why": "'Kromě' (except for/besides) always takes the genitive case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "dat_vuci_206",
+		"template": "Vůči ___ je to nespravedlivé.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "vůči",
+		"why": "'Vůči' (towards/regarding) always takes the dative case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "gen_uprostred_207",
+		"template": "Uprostřed ___ se zastavil.",
+		"lemmaCategory": "places",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "uprostřed",
+		"why": "'Uprostřed' (in the middle of) always takes the genitive case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "gen_misto_208",
+		"template": "Místo ___ jsem šel sám.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "místo",
+		"why": "'Místo' (instead of) always takes the genitive case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "dat_oproti_209",
+		"template": "Oproti ___ je to lepší.",
+		"lemmaCategory": "misc",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "oproti",
+		"why": "'Oproti' (compared to/as opposed to) always takes the dative case.",
+		"difficulty": "B2"
+	},
+	{
+		"id": "gen_bojim_210",
+		"template": "Bojím se ___.",
+		"lemmaCategory": "animals",
+		"requiredCase": "gen",
+		"number": "pl",
+		"trigger": "",
+		"why": "'Bát se' (to be afraid of) governs the genitive case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_vidim_211",
+		"template": "Vidím ___.",
+		"lemmaCategory": "nature",
+		"requiredCase": "acc",
+		"number": "pl",
+		"trigger": "",
+		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "dat_dam_212",
+		"template": "Dám to ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "pl",
+		"trigger": "",
+		"why": "The indirect object of 'dát' (to give) takes the dative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_jdu_213",
+		"template": "Jdu s ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "ins",
+		"number": "pl",
+		"trigger": "s",
+		"why": "'S' (with) always takes the instrumental case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_ahoj_214",
+		"template": "Ahoj, ___!",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "pl",
+		"trigger": "",
+		"why": "When directly addressing a group, Czech uses the vocative case (plural).",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_mezi_215",
+		"template": "Bydlím mezi ___.",
+		"lemmaCategory": "places",
+		"requiredCase": "ins",
+		"number": "pl",
+		"trigger": "mezi",
+		"why": "'Mezi' (among) takes the instrumental case when expressing location.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "loc_na_216",
+		"template": "Sedím na ___.",
+		"lemmaCategory": "objects",
+		"requiredCase": "loc",
+		"number": "pl",
+		"trigger": "na",
+		"why": "'Na' (on) takes the locative case when expressing location.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "loc_po_217",
+		"template": "Po ___ přijde léto.",
+		"lemmaCategory": "time",
+		"requiredCase": "loc",
+		"number": "pl",
+		"trigger": "po",
+		"why": "'Po' (after) takes the locative case when expressing time sequence.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "dat_dekuji_218",
+		"template": "Děkuji ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "pl",
+		"trigger": "",
+		"why": "'Děkovat' (to thank) governs the dative case.",
 		"difficulty": "A2"
 	}
 ]

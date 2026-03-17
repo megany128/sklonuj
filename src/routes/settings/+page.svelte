@@ -100,6 +100,7 @@
 
 <svelte:head>
 	<title>Settings - Skloňuj</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">

@@ -533,9 +533,6 @@
 						<div class="mt-2.5">
 							<DiacriticsBar {inputEl} inputValue={userInput} />
 						</div>
-						<p class="mt-2 text-center text-xs text-text-subtitle">
-							{userInput.trim() !== '' ? 'Press enter to submit' : 'Press enter to skip'}
-						</p>
 					{/if}
 				{/if}
 
@@ -610,9 +607,11 @@
 									: result.question.correctAnswer}
 								nominative={question.word.forms[question.number][0]}
 								targetForm={question.word.forms[question.number][CASE_INDEX[question.case]]}
+								translation={question.word.translation}
 								case_={question.case}
 								drillType={question.drillType}
 								nearMiss={result.nearMiss}
+								trigger={question.template.trigger || undefined}
 								{templateWhy}
 								{whyNote}
 								onSpeak={onSpeak ? (text: string) => onSpeak(text) : undefined}

@@ -24,6 +24,7 @@ vite.config.ts.timestamp-*
 
 # Source data files (not app code)
 src/lib/data/KzK1.apkg
+src/lib/data/KzK1/
 src/lib/data/KzK2/
 
 # Internal docs

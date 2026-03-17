@@ -1,7 +1,5 @@
-const DAY_MS = 86400000;
-
 /**
- * Format a timestamp as a local-timezone YYYY-MM-DD string.
+ * Format a Date as a local-timezone YYYY-MM-DD string.
  * Using local dates ensures "today" matches the user's actual calendar day.
  */
 export function toLocalDateStr(date: Date): string {
@@ -26,18 +24,22 @@ export interface HeatmapDay {
 
 export function buildHeatmapWeeks(data: Record<string, number>): Array<Array<HeatmapDay>> {
 	const today = new Date();
-	today.setHours(0, 0, 0, 0);
+	today.setHours(12, 0, 0, 0);
 	const todayDow = today.getDay(); // 0 = Sunday
-	// Go back 26 full weeks + the current partial week
-	const startMs = today.getTime() - (26 * 7 + todayDow) * DAY_MS;
-	const endMs = today.getTime();
+	const totalDays = 26 * 7 + todayDow;
+
+	// Start date: go back totalDays calendar days (using setDate to avoid DST issues)
+	const start = new Date(today);
+	start.setDate(start.getDate() - totalDays);
+
 	const weeks: Array<Array<HeatmapDay>> = [];
 	let currentWeek: Array<HeatmapDay> = [];
 
-	for (let ms = startMs; ms <= endMs; ms += DAY_MS) {
-		const d = new Date(ms);
-		const dateStr = toLocalDateStr(d);
-		const dow = d.getDay();
+	// Iterate by calendar day to avoid DST duplicate-date bugs
+	const cursor = new Date(start);
+	for (let i = 0; i <= totalDays; i++) {
+		const dateStr = toLocalDateStr(cursor);
+		const dow = cursor.getDay();
 		currentWeek.push({
 			date: dateStr,
 			count: data[dateStr] ?? 0,
@@ -48,6 +50,8 @@ export function buildHeatmapWeeks(data: Record<string, number>): Array<Array<Hea
 			weeks.push(currentWeek);
 			currentWeek = [];
 		}
+
+		cursor.setDate(cursor.getDate() + 1);
 	}
 
 	if (currentWeek.length > 0) {

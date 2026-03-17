@@ -99,8 +99,27 @@
 </script>
 
 <svelte:head>
-	<title>Contact -- Skloňuj</title>
-	<meta name="description" content="Send feedback or get in touch with the Skloňuj team." />
+	<title>Contact — Skloňuj Czech Declension Trainer</title>
+	<meta
+		name="description"
+		content="Send feedback, report issues, or get in touch with the Skloňuj team — the free Czech declension practice app."
+	/>
+	<link rel="canonical" href="https://sklonuj.com/contact" />
+	<meta property="og:title" content="Contact — Skloňuj Czech Declension Trainer" />
+	<meta
+		property="og:description"
+		content="Send feedback, report issues, or get in touch with the Skloňuj team — the free Czech declension practice app."
+	/>
+	<meta property="og:url" content="https://sklonuj.com/contact" />
+	<meta property="og:type" content="website" />
+	<meta property="og:image" content="https://sklonuj.com/og.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Contact — Skloňuj Czech Declension Trainer" />
+	<meta
+		name="twitter:description"
+		content="Send feedback, report issues, or get in touch with the Skloňuj team — the free Czech declension practice app."
+	/>
+	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
 	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </svelte:head>
 
@@ -194,6 +213,29 @@
 					That's cool too. Drop me a line and let me know how your Czech is coming along.
 				</p>
 			</div>
+		</div>
+
+		<!-- Credits -->
+		<div class="mt-10 rounded-2xl border border-card-stroke bg-card-bg p-6">
+			<h2 class="mb-3 text-sm font-semibold text-text-default">Credits & Acknowledgments</h2>
+			<ul class="space-y-2.5 text-xs leading-relaxed text-text-subtitle">
+				<li>
+					Morphological data powered by
+					<a
+						href="https://ufal.mff.cuni.cz/morphodita"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="font-medium text-text-default underline decoration-dotted underline-offset-2 hover:text-emphasis"
+						>MorphoDiTa</a
+					> from ÚFAL, Charles University.
+				</li>
+				<li>
+					Huge thanks to
+					<span class="font-medium text-text-default">David S. Danaher</span> for his chapter-by-chapter
+					vocabulary lists for Krok za krokem. They were an enormous help in building the curriculum and
+					saved me from having to compile everything manually.
+				</li>
+			</ul>
 		</div>
 	</main>
 </div>

@@ -2,36 +2,84 @@
 	"nom": {
 		"name": "Nominative (1. pád)",
 		"function": "The subject case — who or what performs the action. Also used after 'to je' (this is).",
-		"question": "Kdo? Co? (Who? What?)"
+		"question": "Kdo? Co? (Who? What?)",
+		"prepositions": []
 	},
 	"gen": {
 		"name": "Genitive (2. pád)",
 		"function": "Expresses possession, origin, absence, or quantity. Used after many prepositions (do, z, od, u, bez, etc.).",
-		"question": "Koho? Čeho? (Whom? Of what?)"
+		"question": "Koho? Čeho? (Whom? Of what?)",
+		"prepositions": [
+			{ "prep": "do", "meaning": "to, into", "example": "do školy" },
+			{ "prep": "z/ze", "meaning": "from, out of", "example": "ze školy" },
+			{ "prep": "od", "meaning": "from (a person/place)", "example": "od bratra" },
+			{ "prep": "bez", "meaning": "without", "example": "bez problému" },
+			{ "prep": "u", "meaning": "at, near, by", "example": "u domu" },
+			{ "prep": "vedle", "meaning": "next to", "example": "vedle parku" },
+			{ "prep": "kolem", "meaning": "around", "example": "kolem města" },
+			{ "prep": "podle", "meaning": "according to", "example": "podle knihy" },
+			{ "prep": "blízko", "meaning": "near", "example": "blízko školy" },
+			{ "prep": "uprostřed", "meaning": "in the middle of", "example": "uprostřed lesa" },
+			{ "prep": "během", "meaning": "during", "example": "během dne" },
+			{ "prep": "mimo", "meaning": "outside of", "example": "mimo město" },
+			{ "prep": "místo", "meaning": "instead of", "example": "místo bratra" },
+			{ "prep": "kromě", "meaning": "except, besides", "example": "kromě mě" }
+		]
 	},
 	"dat": {
 		"name": "Dative (3. pád)",
 		"function": "The indirect object case — the person receiving something or benefiting from an action. Used with k/ke.",
-		"question": "Komu? Čemu? (To whom? To what?)"
+		"question": "Komu? Čemu? (To whom? To what?)",
+		"prepositions": [
+			{ "prep": "k/ke", "meaning": "towards, to", "example": "k domu" },
+			{ "prep": "kvůli", "meaning": "because of", "example": "kvůli práci" },
+			{ "prep": "naproti", "meaning": "opposite", "example": "naproti škole" },
+			{ "prep": "navzdory", "meaning": "despite", "example": "navzdory počasí" },
+			{ "prep": "vůči", "meaning": "towards, regarding", "example": "vůči lidem" }
+		]
 	},
 	"acc": {
 		"name": "Accusative (4. pád)",
 		"function": "The direct object case — who or what is directly affected by the action. Used with na, pro, přes (direction).",
-		"question": "Koho? Co? (Whom? What?)"
+		"question": "Koho? Co? (Whom? What?)",
+		"prepositions": [
+			{ "prep": "na", "meaning": "to, onto (direction)", "example": "na stůl" },
+			{ "prep": "pro", "meaning": "for", "example": "pro bratra" },
+			{ "prep": "přes", "meaning": "across, over", "example": "přes most" },
+			{ "prep": "za", "meaning": "behind (direction)", "example": "za dům" },
+			{ "prep": "o", "meaning": "about (interest)", "example": "o historii" },
+			{ "prep": "mimo", "meaning": "past, outside", "example": "mimo město" }
+		]
 	},
 	"voc": {
 		"name": "Vocative (5. pád)",
 		"function": "Used for direct address — calling someone by name or title. The only case not governed by prepositions.",
-		"question": "Used when calling: 'Petře! Maminko! Pane!'"
+		"question": "Used when calling: 'Petře! Maminko! Pane!'",
+		"prepositions": []
 	},
 	"loc": {
 		"name": "Locative (6. pád)",
 		"function": "Expresses location or the topic of discussion. Always used with a preposition (v, na, o, po, při).",
-		"question": "O kom? O čem? (About whom? About what?)"
+		"question": "O kom? O čem? (About whom? About what?)",
+		"prepositions": [
+			{ "prep": "v/ve", "meaning": "in", "example": "ve městě" },
+			{ "prep": "na", "meaning": "on, at (location)", "example": "na stole" },
+			{ "prep": "o", "meaning": "about (discussion)", "example": "o knize" },
+			{ "prep": "po", "meaning": "after", "example": "po obědě" },
+			{ "prep": "při", "meaning": "during, at", "example": "při práci" }
+		]
 	},
 	"ins": {
 		"name": "Instrumental (7. pád)",
 		"function": "Expresses the means or instrument of action, accompaniment (with), or location behind/under/above. Used for professions with 'být'.",
-		"question": "Kým? Čím? (By whom? With what?)"
+		"question": "Kým? Čím? (By whom? With what?)",
+		"prepositions": [
+			{ "prep": "s/se", "meaning": "with", "example": "se sestrou" },
+			{ "prep": "za", "meaning": "behind (location)", "example": "za domem" },
+			{ "prep": "pod", "meaning": "under", "example": "pod stolem" },
+			{ "prep": "nad", "meaning": "above", "example": "nad městem" },
+			{ "prep": "před", "meaning": "in front of", "example": "před školou" },
+			{ "prep": "mezi", "meaning": "between, among", "example": "mezi stromy" }
+		]
 	}
 }
