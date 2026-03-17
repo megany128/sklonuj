@@ -1,10 +1,17 @@
 import { createBrowserClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 
 let browserClient: ReturnType<typeof createBrowserClient> | null = null;
 
 export function getSupabaseBrowserClient() {
 	if (browserClient) return browserClient;
-	browserClient = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+
+	const url = env.PUBLIC_SUPABASE_URL;
+	const key = env.PUBLIC_SUPABASE_ANON_KEY;
+	if (!url || !key) {
+		throw new Error('Missing PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_ANON_KEY');
+	}
+
+	browserClient = createBrowserClient(url, key);
 	return browserClient;
 }

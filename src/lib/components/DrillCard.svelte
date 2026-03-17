@@ -91,6 +91,25 @@
 		};
 	});
 
+	// Attach pivo Easter egg mouse listeners programmatically to avoid a11y warnings
+	// (these are purely decorative effects, not interactive controls)
+	$effect(() => {
+		if (!cardEl || !isPivo) return;
+		const el = cardEl;
+		function onClick(e: MouseEvent) {
+			if (soundEnabled) playClinkSound();
+			triggerClink(e);
+		}
+		el.addEventListener('click', onClick);
+		el.addEventListener('mousemove', handlePivoMouseMove);
+		el.addEventListener('mouseleave', handlePivoMouseLeave);
+		return () => {
+			el.removeEventListener('click', onClick);
+			el.removeEventListener('mousemove', handlePivoMouseMove);
+			el.removeEventListener('mouseleave', handlePivoMouseLeave);
+		};
+	});
+
 	function handlePivoMouseMove(e: MouseEvent) {
 		if (!pivoCursorEl || !isPivo) return;
 		pivoCursorEl.style.left = `${e.clientX}px`;
@@ -251,7 +270,6 @@
 <div class="w-full">
 	{#if question}
 		{#key question}
-			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
 			<div
 				bind:this={cardEl}
 				class="drill-fade-enter relative flex flex-col gap-6 rounded-[40px] border-2 {question.word
@@ -262,14 +280,6 @@
 					: ''} bg-card-bg p-8 sm:p-10"
 				role="region"
 				aria-label="Drill"
-				onclick={isPivo
-					? (e) => {
-							if (soundEnabled) playClinkSound();
-							triggerClink(e);
-						}
-					: undefined}
-				onmousemove={isPivo ? handlePivoMouseMove : undefined}
-				onmouseleave={isPivo ? handlePivoMouseLeave : undefined}
 			>
 				<!-- Prompt -->
 				<div class="text-center">

@@ -19,7 +19,7 @@ stromek
 sešit
 telefon
 počítač
-AutoMobile
+auto
 vlak
 autobus
 most
@@ -94,7 +94,7 @@ nos
 srdce
 
 # Food & drink
-chleb
+chléb
 mléko
 sýr
 máslo

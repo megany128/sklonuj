@@ -1,613 +1,99 @@
 [
 	{
-		"lemma": "most",
-		"translation": "bridge",
+		"lemma": "člověk",
+		"translation": "person",
 		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
 		"categories": ["misc"],
 		"forms": {
-			"sg": ["most", "mostu", "mostu", "most", "moste", "mostě", "mostem"],
-			"pl": ["mosty", "mostů", "mostům", "mosty", "mosty", "mostech", "mosty"]
-		}
-	},
-	{
-		"lemma": "matka",
-		"translation": "mother",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["matka", "matky", "matce", "matku", "matko", "matce", "matkou"],
-			"pl": ["matky", "matek", "matkám", "matky", "matky", "matkách", "matkami"]
-		}
-	},
-	{
-		"lemma": "syn",
-		"translation": "son",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "pán",
-		"difficulty": "A1",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["syn", "syna", "synu", "syna", "synu", "synu", "synem"],
-			"pl": ["synové", "synů", "synům", "syny", "synové", "synech", "syny"]
-		}
-	},
-	{
-		"lemma": "auto",
-		"translation": "car, automobile",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A1",
-		"categories": ["transportation"],
-		"forms": {
-			"sg": ["auto", "auta", "autu", "auto", "auto", "autě", "autem"],
-			"pl": ["auta", "aut", "autům", "auta", "auta", "autech", "auty"]
-		}
-	},
-	{
-		"lemma": "nos",
-		"translation": "nose",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["nos", "nosu", "nosu", "nos", "nose", "nosu", "nosem"],
-			"pl": ["nosy", "nosů", "nosům", "nosy", "nosy", "nosech", "nosy"]
-		}
-	},
-	{
-		"lemma": "pero",
-		"translation": "feather",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["pero", "pera", "peru", "pero", "pero", "peru", "perem"],
-			"pl": ["pera", "per", "perům", "pera", "pera", "perech", "pery"]
-		}
-	},
-	{
-		"lemma": "den",
-		"translation": "day (24 hours, usually from midnight to midnight)",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A1",
-		"categories": ["time"],
-		"forms": {
-			"sg": ["den", "dne", "dnovi", "dne", "dni", "dnovi", "dnem"],
-			"pl": ["dnové", "dnů", "dnům", "dny", "dnové", "dních", "dni"]
-		}
-	},
-	{
-		"lemma": "hotel",
-		"translation": "hotel",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["hotel", "hotelu", "hotelu", "hotel", "hotele", "hotelu", "hotelem"],
-			"pl": ["hotely", "hotelů", "hotelům", "hotely", "hotely", "hotelech", "hotely"]
-		}
-	},
-	{
-		"lemma": "hlava",
-		"translation": "head (part of the body)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["hlava", "hlavy", "hlavě", "hlavu", "hlavo", "hlavě", "hlavou"],
-			"pl": ["hlavy", "hlav", "hlavám", "hlavy", "hlavy", "hlavách", "hlavami"]
-		}
-	},
-	{
-		"lemma": "sestra",
-		"translation": "sister (sibling)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["sestra", "sestry", "sestře", "sestru", "sestro", "sestře", "sestrou"],
-			"pl": ["sestry", "sester", "sestrám", "sestry", "sestry", "sestrách", "sestrami"]
-		}
-	},
-	{
-		"lemma": "žena",
-		"translation": "woman",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["people"],
-		"forms": {
-			"sg": ["žena", "ženy", "ženě", "ženu", "ženo", "ženě", "ženou"],
-			"pl": ["ženy", "žen", "ženám", "ženy", "ženy", "ženách", "ženami"]
-		}
-	},
-	{
-		"lemma": "život",
-		"translation": "life",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["život", "života", "životu", "život", "živote", "životě", "životem"],
-			"pl": ["životy", "životů", "životům", "životy", "životy", "životech", "životy"]
-		}
-	},
-	{
-		"lemma": "slovo",
-		"translation": "word (distinct unit of language)",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B1",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["slovo", "slova", "slovu", "slovo", "slovo", "slově", "slovem"],
-			"pl": ["slova", "slov", "slovům", "slova", "slova", "slovech", "slovy"]
-		}
-	},
-	{
-		"lemma": "rok",
-		"translation": "year, the time it takes a planetary body to complete one revolution around a star",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A1",
-		"categories": ["time"],
-		"forms": {
-			"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
-			"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
-		}
-	},
-	{
-		"lemma": "student",
-		"translation": "student (academic, at university)",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "pán",
-		"difficulty": "B1",
-		"categories": ["people"],
-		"forms": {
-			"sg": ["student", "studenta", "studentu", "studenta", "studente", "studentu", "studentem"],
-			"pl": ["studenti", "studentů", "studentům", "studenty", "studenti", "studentech", "studenty"]
-		}
-	},
-	{
-		"lemma": "otec",
-		"translation": "father",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "muž",
-		"difficulty": "A1",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["otec", "otce", "otci", "otce", "otče", "otci", "otcem"],
-			"pl": ["otci", "otců", "otcům", "otce", "otci", "otcích", "otci"]
-		}
-	},
-	{
-		"lemma": "les",
-		"translation": "forest",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["les", "lesa", "lesu", "les", "lese", "lese", "lesem"],
-			"pl": ["lesy", "lesů", "lesům", "lesy", "lesy", "lesích", "lesy"]
-		}
-	},
-	{
-		"lemma": "telefon",
-		"translation": "phone, telephone",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["telefon", "telefonu", "telefonu", "telefon", "telefone", "telefonu", "telefonem"],
-			"pl": ["telefony", "telefonů", "telefonům", "telefony", "telefony", "telefonech", "telefony"]
-		}
-	},
-	{
-		"lemma": "hora",
-		"translation": "mountain",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["hora", "hory", "hoře", "horu", "horo", "hoře", "horou"],
-			"pl": ["hory", "hor", "horám", "hory", "hory", "horách", "horami"]
-		}
-	},
-	{
-		"lemma": "park",
-		"translation": "park",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["park", "parku", "parku", "park", "parku", "parku", "parkem"],
-			"pl": ["parky", "parků", "parkům", "parky", "parky", "parcích", "parky"]
-		}
-	},
-	{
-		"lemma": "rodina",
-		"translation": "family",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["rodina", "rodiny", "rodině", "rodinu", "rodino", "rodině", "rodinou"],
-			"pl": ["rodiny", "rodin", "rodinám", "rodiny", "rodiny", "rodinách", "rodinami"]
-		}
-	},
-	{
-		"lemma": "hodina",
-		"translation": "hour",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["time"],
-		"forms": {
-			"sg": ["hodina", "hodiny", "hodině", "hodinu", "hodino", "hodině", "hodinou"],
-			"pl": ["hodiny", "hodin", "hodinám", "hodiny", "hodiny", "hodinách", "hodinami"]
-		}
-	},
-	{
-		"lemma": "pes",
-		"translation": "dog",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "pán",
-		"difficulty": "A1",
-		"categories": ["animals"],
-		"forms": {
-			"sg": ["pes", "psa", "psu", "psa", "pse", "psu", "psem"],
-			"pl": ["psi", "psů", "psům", "psy", "psi", "psech", "psy"]
-		}
-	},
-	{
-		"lemma": "ruka",
-		"translation": "hand",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["ruka", "ruky", "ruce", "ruku", "ruko", "ruce", "rukou"],
-			"pl": ["ruce", "ruk", "rukám", "ruce", "ruce", "rukách", "rukami"]
-		}
-	},
-	{
-		"lemma": "noha",
-		"translation": "leg (of a person, animal, humanoid robot, puppet, etc.)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["noha", "nohy", "noze", "nohu", "noho", "noze", "nohou"],
-			"pl": ["nohy", "noh", "nohám", "nohy", "nohy", "nohách", "nohama"]
-		}
-	},
-	{
-		"lemma": "autobus",
-		"translation": "bus, coach, omnibus",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["transportation"],
-		"forms": {
-			"sg": ["autobus", "autobusu", "autobusu", "autobus", "autobuse", "autobusu", "autobusem"],
-			"pl": ["autobusy", "autobusů", "autobusům", "autobusy", "autobusy", "autobusech", "autobusy"]
-		}
-	},
-	{
-		"lemma": "voda",
-		"translation": "water",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["voda", "vody", "vodě", "vodu", "vodo", "vodě", "vodou"],
-			"pl": ["vody", "vod", "vodám", "vody", "vody", "vodách", "vodami"]
-		}
-	},
-	{
-		"lemma": "okno",
-		"translation": "window",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B1",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["okno", "okna", "oknu", "okno", "okno", "oknu", "oknem"],
-			"pl": ["okna", "oken", "oknům", "okna", "okna", "oknech", "okny"]
+			"sg": [
+				"nečlověk",
+				"nečlověka",
+				"nečlověkovi",
+				"nečlověka",
+				"nečlověku",
+				"nečlověkovi",
+				"nečlověkem"
+			],
+			"pl": [
+				"nečlověci",
+				"nečlověků",
+				"nečlověkům",
+				"nečlověky",
+				"nečlověci",
+				"nečlověcích",
+				"nečlověky"
+			]
 		}
 	},
 	{
 		"lemma": "muž",
-		"translation": "man (an adult male human)",
+		"translation": "man",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A1",
-		"categories": ["people"],
+		"categories": ["family"],
 		"forms": {
 			"sg": ["muž", "muže", "muži", "muže", "muži", "muži", "mužem"],
-			"pl": ["mužové", "mužů", "mužům", "muže", "mužové", "mužích", "muži"]
+			"pl": ["muži", "mužů", "mužům", "muže", "muži", "mužích", "muži"]
 		}
 	},
 	{
-		"lemma": "měsíc",
-		"translation": "moon",
+		"lemma": "chlapec",
+		"translation": "boy",
 		"gender": "m",
-		"animate": false,
-		"paradigm": "stroj",
-		"difficulty": "A2",
-		"categories": ["nature", "time"],
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
+		"categories": ["family"],
 		"forms": {
-			"sg": ["měsíc", "měsíce", "měsíci", "měsíc", "měsíci", "měsíci", "měsícem"],
-			"pl": ["měsíce", "měsíců", "měsícům", "měsíce", "měsíce", "měsících", "měsíci"]
+			"sg": ["chlapec", "chlapce", "chlapci", "chlapce", "chlapče", "chlapci", "chlapcem"],
+			"pl": ["chlapci", "chlapců", "chlapcům", "chlapce", "chlapci", "chlapcích", "chlapci"]
 		}
 	},
 	{
-		"lemma": "strom",
-		"translation": "tree",
+		"lemma": "student",
+		"translation": "student",
 		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["nature"],
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
+		"categories": ["misc"],
 		"forms": {
-			"sg": ["strom", "stromu", "stromu", "strom", "strome", "stromu", "stromem"],
-			"pl": ["stromy", "stromů", "stromům", "stromy", "stromy", "stromech", "stromy"]
+			"sg": [
+				"nestudent",
+				"nestudenta",
+				"nestudentovi",
+				"nestudenta",
+				"nestudente",
+				"nestudentovi",
+				"nestudentem"
+			],
+			"pl": [
+				"nestudenti",
+				"nestudentů",
+				"nestudentům",
+				"nestudenty",
+				"nestudenti",
+				"nestudentech",
+				"nestudenty"
+			]
 		}
 	},
 	{
-		"lemma": "strýc",
-		"translation": "uncle",
+		"lemma": "přítel",
+		"translation": "friend",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["family"],
+		"categories": ["misc"],
 		"forms": {
-			"sg": ["strýc", "strýce", "strýci", "strýce", "strýče", "strýci", "strýcem"],
-			"pl": ["strýci", "strýců", "strýcům", "strýce", "strýci", "strýcích", "strýci"]
-		}
-	},
-	{
-		"lemma": "oko",
-		"translation": "eye",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["oko", "oka", "oku", "oko", "oko", "oku", "okem"],
-			"pl": ["oka", "ok", "okům", "oka", "oka", "okách", "oky"]
-		}
-	},
-	{
-		"lemma": "čaj",
-		"translation": "tea (the dried leaves or buds of the tea plant, Camellia sinensis)",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "stroj",
-		"difficulty": "A2",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["čaj", "čaje", "čaji", "čaj", "čaji", "čaji", "čajem"],
-			"pl": ["čaje", "čajů", "čajům", "čaje", "čaje", "čajích", "čaji"]
-		}
-	},
-	{
-		"lemma": "dcera",
-		"translation": "daughter",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["dcera", "dcery", "dceři", "dceru", "dcero", "dceři", "dcerou"],
-			"pl": ["dcery", "dcer", "dcerám", "dcery", "dcery", "dcerách", "dcerami"]
-		}
-	},
-	{
-		"lemma": "minuta",
-		"translation": "minute (unit of time)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["time"],
-		"forms": {
-			"sg": ["minuta", "minuty", "minutě", "minutu", "minuto", "minutě", "minutou"],
-			"pl": ["minuty", "minut", "minutám", "minuty", "minuty", "minutách", "minutami"]
-		}
-	},
-	{
-		"lemma": "škola",
-		"translation": "school",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["škola", "školy", "škole", "školu", "školo", "škole", "školou"],
-			"pl": ["školy", "škol", "školám", "školy", "školy", "školách", "školami"]
-		}
-	},
-	{
-		"lemma": "pivo",
-		"translation": "beer",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["pivo", "piva", "pivu", "pivo", "pivo", "pivě", "pivem"],
-			"pl": ["piva", "piv", "pivům", "piva", "piva", "pivech", "pivy"]
-		}
-	},
-	{
-		"lemma": "ucho",
-		"translation": "ear (of a human, animal, puppet, humanoid robot, etc.)",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["ucho", "ucha", "uchu", "ucho", "ucho", "uchu", "uchem"],
-			"pl": ["uši", "uší", "uším", "uši", "uši", "uších", "ušima"]
-		}
-	},
-	{
-		"lemma": "jablko",
-		"translation": "apple",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A1",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["jablko", "jablka", "jablku", "jablko", "jablko", "jablku", "jablkem"],
-			"pl": ["jablka", "jablek", "jablkům", "jablka", "jablka", "jablkách", "jablky"]
-		}
-	},
-	{
-		"lemma": "dům",
-		"translation": "house (building, structure intended for housing)",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["dům", "domu", "domu", "dům", "dome", "domě", "domem"],
-			"pl": ["domy", "domů", "domům", "domy", "domy", "domech", "domy"]
-		}
-	},
-	{
-		"lemma": "babička",
-		"translation": "grandmother",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["babička", "babičky", "babičce", "babičku", "babičko", "babičce", "babičkou"],
-			"pl": ["babičky", "babiček", "babičkám", "babičky", "babičky", "babičkách", "babičkami"]
-		}
-	},
-	{
-		"lemma": "noc",
-		"translation": "night, nighttime (period of time from sundown to sunup)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "A2",
-		"categories": ["time"],
-		"forms": {
-			"sg": ["noc", "noci", "noci", "noc", "noci", "noci", "nocí"],
-			"pl": ["noci", "nocí", "nocím", "noci", "noci", "nocích", "nocemi"]
-		}
-	},
-	{
-		"lemma": "květ",
-		"translation": "flower (reproductive structure)",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["květ", "květu", "květu", "květ", "květe", "květu", "květem"],
-			"pl": ["květy", "květů", "květům", "květy", "květy", "květech", "květy"]
-		}
-	},
-	{
-		"lemma": "kočka",
-		"translation": "cat (domestic animal)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A1",
-		"categories": ["animals"],
-		"forms": {
-			"sg": ["kočka", "kočky", "kočce", "kočku", "kočko", "kočce", "kočkou"],
-			"pl": ["kočky", "koček", "kočkám", "kočky", "kočky", "kočkách", "kočkami"]
-		}
-	},
-	{
-		"lemma": "ulice",
-		"translation": "street",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "růže",
-		"difficulty": "A1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["ulice", "ulice", "ulici", "ulici", "ulice", "ulici", "ulicí"],
-			"pl": ["ulice", "ulic", "ulicím", "ulice", "ulice", "ulicích", "ulicemi"]
-		}
-	},
-	{
-		"lemma": "teta",
-		"translation": "aunt",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["teta", "tety", "tetě", "tetu", "teto", "tetě", "tetou"],
-			"pl": ["tety", "tet", "tetám", "tety", "tety", "tetách", "tetami"]
+			"sg": ["přítel", "přítele", "příteli", "přítele", "příteli", "příteli", "přítelem"],
+			"pl": ["přátelé", "přátel", "přátelům", "přátele", "přátelé", "přátelích", "přáteli"]
 		}
 	},
 	{
@@ -619,385 +105,34 @@
 		"difficulty": "A1",
 		"categories": ["family"],
 		"forms": {
-			"sg": ["bratr", "bratra", "bratru", "bratra", "bratře", "bratru", "bratrem"],
-			"pl": ["bratří", "bratří", "bratřím", "bratří", "bratří", "bratřích", "bratřími"]
+			"sg": ["bratr", "bratra", "bratrovi", "bratra", "bratře", "bratrovi", "bratrem"],
+			"pl": ["bratři", "bratrů", "bratrům", "bratry", "bratři", "bratrech", "bratry"]
 		}
 	},
 	{
-		"lemma": "smrt",
-		"translation": "death",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["smrt", "smrti", "smrti", "smrt", "smrti", "smrti", "smrtí"],
-			"pl": ["smrti", "smrtí", "smrtím", "smrti", "smrti", "smrtích", "smrtmi"]
-		}
-	},
-	{
-		"lemma": "člověk",
-		"translation": "human",
+		"lemma": "otec",
+		"translation": "father",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "B1",
-		"categories": ["people"],
-		"forms": {
-			"sg": ["člověk", "člověka", "člověku", "člověka", "člověče", "člověku", "člověkem"],
-			"pl": ["lidi", "lidí", "lidem", "lidi", "lidi", "lidech", "lidmi"]
-		}
-	},
-	{
-		"lemma": "kino",
-		"translation": "cinema",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["kino", "kina", "kinu", "kino", "kino", "kinu", "kinem"],
-			"pl": ["kina", "kin", "kinům", "kina", "kina", "kinech", "kiny"]
-		}
-	},
-	{
-		"lemma": "tráva",
-		"translation": "grass (plant of the family Poaceae)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["tráva", "trávy", "trávě", "trávu", "trávo", "trávě", "travou"],
-			"pl": ["trávy", "trav", "travám", "trávy", "trávy", "travách", "travami"]
-		}
-	},
-	{
-		"lemma": "káva",
-		"translation": "coffee",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["káva", "kávy", "kávě", "kávu", "kávo", "kávě", "kávou"],
-			"pl": ["kávy", "káv", "kávám", "kávy", "kávy", "kávách", "kávami"]
-		}
-	},
-	{
-		"lemma": "čas",
-		"translation": "time",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["family"],
 		"forms": {
-			"sg": ["čas", "času", "času", "čas", "čase", "času", "časem"],
-			"pl": ["časy", "časů", "časům", "časy", "časy", "časech", "časy"]
+			"sg": ["otec", "otce", "otci", "otce", "otče", "otci", "otcem"],
+			"pl": ["otci", "otců", "otcům", "otce", "otci", "otcích", "otci"]
 		}
 	},
 	{
-		"lemma": "hrad",
-		"translation": "castle",
+		"lemma": "syn",
+		"translation": "son",
 		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["hrad", "hradu", "hradu", "hrad", "hrade", "hradu", "hradem"],
-			"pl": ["hrady", "hradů", "hradům", "hrady", "hrady", "hradech", "hrady"]
-		}
-	},
-	{
-		"lemma": "svoboda",
-		"translation": "freedom",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["svoboda", "svobody", "svobodě", "svobodu", "svobodo", "svobodě", "svobodou"],
-			"pl": ["svobody", "svobod", "svobodám", "svobody", "svobody", "svobodách", "svobodami"]
-		}
-	},
-	{
-		"lemma": "pravda",
-		"translation": "truth",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["pravda", "pravdy", "pravdě", "pravdu", "pravdo", "pravdě", "pravdou"],
-			"pl": ["pravdy", "pravd", "pravdám", "pravdy", "pravdy", "pravdách", "pravdami"]
-		}
-	},
-	{
-		"lemma": "vejce",
-		"translation": "egg",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "moře",
-		"difficulty": "A2",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["vejce", "vejce", "vejci", "vejce", "vejce", "vejci", "vejcem"],
-			"pl": ["vejce", "vajec", "vejcím", "vejce", "vejce", "vejcích", "vejci"]
-		}
-	},
-	{
-		"lemma": "řeka",
-		"translation": "river",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["řeka", "řeky", "řece", "řeku", "řeko", "řece", "řekou"],
-			"pl": ["řeky", "řek", "řekám", "řeky", "řeky", "řekách", "řekami"]
-		}
-	},
-	{
-		"lemma": "ryba",
-		"translation": "fish (cold-blooded vertebrate animal that lives in water, moving with the help of fins and breathing with gills)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["food", "animals"],
-		"forms": {
-			"sg": ["ryba", "ryby", "rybě", "rybu", "rybo", "rybě", "rybou"],
-			"pl": ["ryby", "ryb", "rybám", "ryby", "ryby", "rybách", "rybami"]
-		}
-	},
-	{
-		"lemma": "bota",
-		"translation": "boot",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["bota", "boty", "botě", "botu", "boto", "botě", "botou"],
-			"pl": ["boty", "bot", "botám", "boty", "boty", "botách", "botami"]
-		}
-	},
-	{
-		"lemma": "kniha",
-		"translation": "book (a collection of sheets of paper bound together to hinge at one edge)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
+		"animate": true,
+		"paradigm": "pán",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["family"],
 		"forms": {
-			"sg": ["kniha", "knihy", "knize", "knihu", "kniho", "knize", "knihou"],
-			"pl": ["knihy", "knih", "knihám", "knihy", "knihy", "knihách", "knihami"]
-		}
-	},
-	{
-		"lemma": "maso",
-		"translation": "meat",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["maso", "masa", "masu", "maso", "maso", "masu", "masem"],
-			"pl": ["masa", "mas", "masům", "masa", "masa", "masech", "masy"]
-		}
-	},
-	{
-		"lemma": "vlak",
-		"translation": "train",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["transportation"],
-		"forms": {
-			"sg": ["vlak", "vlaku", "vlaku", "vlak", "vlaku", "vlaku", "vlakem"],
-			"pl": ["vlaky", "vlaků", "vlakům", "vlaky", "vlaky", "vlacích", "vlaky"]
-		}
-	},
-	{
-		"lemma": "tužka",
-		"translation": "pencil",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["tužka", "tužky", "tužce", "tužku", "tužko", "tužce", "tužkou"],
-			"pl": ["tužky", "tužek", "tužkám", "tužky", "tužky", "tužkách", "tužkami"]
-		}
-	},
-	{
-		"lemma": "mléko",
-		"translation": "milk",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A1",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["mléko", "mléka", "mléku", "mléko", "mléko", "mléku", "mlékem"],
-			"pl": ["mléka", "mlék", "mlékům", "mléka", "mléka", "mlécích", "mléky"]
-		}
-	},
-	{
-		"lemma": "stůl",
-		"translation": "table (item of furniture)",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A1",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["stůl", "stolu", "stolu", "stůl", "stole", "stolu", "stolem"],
-			"pl": ["stoly", "stolů", "stolům", "stoly", "stoly", "stolech", "stoly"]
-		}
-	},
-	{
-		"lemma": "jezero",
-		"translation": "lake",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["jezero", "jezera", "jezeru", "jezero", "jezero", "jezeru", "jezerem"],
-			"pl": ["jezera", "jezer", "jezerům", "jezera", "jezera", "jezerech", "jezery"]
-		}
-	},
-	{
-		"lemma": "moře",
-		"translation": "sea",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "moře",
-		"difficulty": "A2",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["moře", "moře", "moři", "moře", "moře", "moři", "mořem"],
-			"pl": ["moře", "moří", "mořím", "moře", "moře", "mořích", "moři"]
-		}
-	},
-	{
-		"lemma": "věž",
-		"translation": "tower",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["věž", "věže", "věži", "věž", "věži", "věži", "věží"],
-			"pl": ["věže", "věží", "věžím", "věže", "věže", "věžích", "věžemi"]
-		}
-	},
-	{
-		"lemma": "papír",
-		"translation": "paper",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["papír", "papíru", "papíru", "papír", "papíre", "papíře", "papírem"],
-			"pl": ["papíry", "papírů", "papírům", "papíry", "papíry", "papírech", "papíry"]
-		}
-	},
-	{
-		"lemma": "víno",
-		"translation": "wine",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B1",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["víno", "vína", "vínu", "víno", "víno", "víně", "vínem"],
-			"pl": ["vína", "vín", "vínům", "vína", "vína", "vínech", "víny"]
-		}
-	},
-	{
-		"lemma": "láska",
-		"translation": "love (intense feeling of affection and care toward another person)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["láska", "lásky", "lásce", "lásku", "lásko", "lásce", "láskou"],
-			"pl": ["lásky", "lásek", "láskám", "lásky", "lásky", "láskách", "láskami"]
-		}
-	},
-	{
-		"lemma": "štěstí",
-		"translation": "happiness",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "stavení",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["štěstí", "štěstí", "štěstí", "štěstí", "štěstí", "štěstí", "štěstím"],
-			"pl": ["štěstí", "štěstí", "štěstím", "štěstí", "štěstí", "štěstích", "štěstími"]
-		}
-	},
-	{
-		"lemma": "růže",
-		"translation": "rose",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "růže",
-		"difficulty": "B1",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["růže", "růže", "růži", "růži", "růže", "růži", "růží"],
-			"pl": ["růže", "růží", "růžím", "růže", "růže", "růžích", "růžemi"]
-		}
-	},
-	{
-		"lemma": "počítač",
-		"translation": "computer",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "stroj",
-		"difficulty": "B1",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["počítač", "počítače", "počítači", "počítač", "počítači", "počítači", "počítačem"],
-			"pl": ["počítače", "počítačů", "počítačům", "počítače", "počítače", "počítačích", "počítači"]
-		}
-	},
-	{
-		"lemma": "práce",
-		"translation": "work",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "růže",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["práce", "práce", "práci", "práci", "práce", "práci", "prací"],
-			"pl": ["práce", "prací", "pracím", "práce", "práce", "pracích", "pracemi"]
+			"sg": ["syn", "syna", "synovi", "syna", "syne", "synovi", "synem"],
+			"pl": ["synové", "synů", "synům", "syny", "synové", "synech", "syny"]
 		}
 	},
 	{
@@ -1014,342 +149,224 @@
 		}
 	},
 	{
-		"lemma": "košile",
-		"translation": "shirt",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "růže",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["košile", "košile", "košili", "košili", "košile", "košili", "košilí"],
-			"pl": ["košile", "košil", "košilím", "košile", "košile", "košilích", "košilemi"]
-		}
-	},
-	{
-		"lemma": "srdce",
-		"translation": "heart",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "moře",
-		"difficulty": "B1",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["srdce", "srdce", "srdci", "srdce", "srdce", "srdci", "srdcem"],
-			"pl": ["srdce", "srdcí", "srdcím", "srdce", "srdce", "srdcích", "srdci"]
-		}
-	},
-	{
-		"lemma": "hvězda",
-		"translation": "star",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["nature"],
-		"forms": {
-			"sg": ["hvězda", "hvězdy", "hvězdě", "hvězdu", "hvězdo", "hvězdě", "hvězdou"],
-			"pl": ["hvězdy", "hvězd", "hvězdám", "hvězdy", "hvězdy", "hvězdách", "hvězdami"]
-		}
-	},
-	{
-		"lemma": "přítel",
-		"translation": "friend",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "muž",
-		"difficulty": "A2",
-		"categories": ["people"],
-		"forms": {
-			"sg": ["přítel", "přítele", "příteli", "přítele", "příteli", "příteli", "přítelem"],
-			"pl": ["přátelé", "přátel", "přátelům", "přátele", "přátelé", "přátelích", "přáteli"]
-		}
-	},
-	{
-		"lemma": "manželka",
-		"translation": "wife",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["manželka", "manželky", "manželce", "manželku", "manželko", "manželce", "manželkou"],
-			"pl": [
-				"manželky",
-				"manželek",
-				"manželkám",
-				"manželky",
-				"manželky",
-				"manželkách",
-				"manželkami"
-			]
-		}
-	},
-	{
-		"lemma": "manžel",
-		"translation": "husband (a man in a marriage)",
+		"lemma": "pes",
+		"translation": "dog",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A2",
-		"categories": ["family"],
+		"difficulty": "A1",
+		"categories": ["animals"],
 		"forms": {
-			"sg": ["manžel", "manžela", "manželu", "manžela", "manželi", "manželu", "manželem"],
-			"pl": ["manželové", "manželů", "manželům", "manžele", "manželové", "manželích", "manželi"]
-		}
-	},
-	{
-		"lemma": "obchod",
-		"translation": "trade (commercial exchange of goods and services)",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["obchod", "obchodu", "obchodu", "obchod", "obchode", "obchodu", "obchodem"],
-			"pl": ["obchody", "obchodů", "obchodům", "obchody", "obchody", "obchodech", "obchody"]
-		}
-	},
-	{
-		"lemma": "tramvaj",
-		"translation": "tram, trolley, streetcar",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["transportation"],
-		"forms": {
-			"sg": ["tramvaj", "tramvaje", "tramvaji", "tramvaj", "tramvaji", "tramvaji", "tramvají"],
-			"pl": [
-				"tramvaje",
-				"tramvají",
-				"tramvajím",
-				"tramvaje",
-				"tramvaje",
-				"tramvajích",
-				"tramvajemi"
-			]
-		}
-	},
-	{
-		"lemma": "odpověď",
-		"translation": "answer",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["odpověď", "odpovědi", "odpovědi", "odpověď", "odpovědi", "odpovědi", "odpovědí"],
-			"pl": ["odpovědi", "odpovědí", "odpovědím", "odpovědi", "odpovědi", "odpovědích", "odpovědmi"]
-		}
-	},
-	{
-		"lemma": "místnost",
-		"translation": "room (separate part of a building, enclosed by walls, a floor and a ceiling)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": [
-				"místnost",
-				"místnosti",
-				"místnosti",
-				"místnost",
-				"místnosti",
-				"místnosti",
-				"místností"
-			],
-			"pl": [
-				"místnosti",
-				"místností",
-				"místnostem",
-				"místnosti",
-				"místnosti",
-				"místnostech",
-				"místnostmi"
-			]
-		}
-	},
-	{
-		"lemma": "muzeum",
-		"translation": "museum",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["muzeum", "muzea", "muzeu", "muzeum", "muzeum", "muzeu", "muzeem"],
-			"pl": ["muzea", "muzeí", "muzeím", "muzea", "muzea", "muzeích", "muzei"]
-		}
-	},
-	{
-		"lemma": "gymnázium",
-		"translation": "grammar school (UK) (secondary school that stresses academic over practical or vocational education)",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": [
-				"gymnázium",
-				"gymnázia",
-				"gymnáziu",
-				"gymnázium",
-				"gymnázium",
-				"gymnáziu",
-				"gymnáziem"
-			],
-			"pl": ["gymnázia", "gymnázií", "gymnáziím", "gymnázia", "gymnázia", "gymnáziích", "gymnázii"]
-		}
-	},
-	{
-		"lemma": "náměstí",
-		"translation": "square (open space in a town)",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "stavení",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["náměstí", "náměstí", "náměstí", "náměstí", "náměstí", "náměstí", "náměstím"],
-			"pl": ["náměstí", "náměstí", "náměstím", "náměstí", "náměstí", "náměstích", "náměstími"]
-		}
-	},
-	{
-		"lemma": "dědeček",
-		"translation": "grandfather",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "pán",
-		"difficulty": "A2",
-		"categories": ["family"],
-		"forms": {
-			"sg": ["dědeček", "dědečka", "dědečku", "dědečka", "dědečku", "dědečku", "dědečkem"],
-			"pl": ["dědečci", "dědečků", "dědečkům", "dědečky", "dědečci", "dědečcích", "dědečky"]
-		}
-	},
-	{
-		"lemma": "chlapec",
-		"translation": "boy",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "muž",
-		"difficulty": "A2",
-		"categories": ["people"],
-		"forms": {
-			"sg": ["chlapec", "chlapce", "chlapci", "chlapce", "chlapče", "chlapci", "chlapcem"],
-			"pl": ["chlapci", "chlapců", "chlapcům", "chlapce", "chlapci", "chlapcích", "chlapci"]
-		}
-	},
-	{
-		"lemma": "věc",
-		"translation": "thing",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["věc", "věci", "věci", "věc", "věci", "věci", "věcí"],
-			"pl": ["věci", "věcí", "věcem", "věci", "věci", "věcech", "věcmi"]
-		}
-	},
-	{
-		"lemma": "taška",
-		"translation": "bag (flexible container)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["objects"],
-		"forms": {
-			"sg": ["taška", "tašky", "tašce", "tašku", "taško", "tašce", "taškou"],
-			"pl": ["tašky", "tašek", "taškám", "tašky", "tašky", "taškách", "taškami"]
-		}
-	},
-	{
-		"lemma": "problém",
-		"translation": "problem",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["problém", "problému", "problému", "problém", "probléme", "problému", "problémem"],
-			"pl": ["problémy", "problémů", "problémům", "problémy", "problémy", "problémech", "problémy"]
-		}
-	},
-	{
-		"lemma": "radost",
-		"translation": "joy (feeling)",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "B1",
-		"categories": ["abstract"],
-		"forms": {
-			"sg": ["radost", "radosti", "radosti", "radost", "radosti", "radosti", "radostí"],
-			"pl": ["radosti", "radostí", "radostem", "radosti", "radosti", "radostech", "radostmi"]
-		}
-	},
-	{
-		"lemma": "máslo",
-		"translation": "butter (foodstuff)",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["máslo", "másla", "máslu", "máslo", "máslo", "másle", "máslem"],
-			"pl": ["másla", "másel", "máslům", "másla", "másla", "máslech", "másly"]
+			"sg": ["pes", "psa", "psovi", "psa", "pse", "psovi", "psem"],
+			"pl": ["psi", "psů", "psům", "psy", "psi", "psech", "psy"]
 		}
 	},
 	{
 		"lemma": "kocour",
-		"translation": "tomcat, male cat (domestic species)",
+		"translation": "tomcat",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "B1",
+		"difficulty": "A1",
 		"categories": ["animals"],
 		"forms": {
-			"sg": ["kocour", "kocoura", "kocouru", "kocoura", "kocoure", "kocouru", "kocourem"],
+			"sg": ["kocour", "kocoura", "kocourovi", "kocoura", "kocoure", "kocourovi", "kocourem"],
 			"pl": ["kocouři", "kocourů", "kocourům", "kocoury", "kocouři", "kocourech", "kocoury"]
 		}
 	},
 	{
-		"lemma": "děvče",
-		"translation": "girl (female child)",
-		"gender": "n",
+		"lemma": "dům",
+		"translation": "house",
+		"gender": "m",
 		"animate": false,
-		"paradigm": "kuře",
-		"difficulty": "B2",
-		"categories": ["people"],
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["places"],
 		"forms": {
-			"sg": ["děvče", "děvčete", "děvčeti", "děvče", "děvče", "děvčeti", "děvčetem"],
-			"pl": ["děvčata", "děvčat", "děvčatům", "děvčata", "děvčata", "děvčatech", "děvčaty"]
+			"sg": ["dům", "domu", "domu", "dům", "dome", "domě", "domem"],
+			"pl": ["domy", "domů", "domům", "domy", "domy", "domech", "domy"]
 		}
 	},
 	{
-		"lemma": "sýr",
-		"translation": "cheese (dairy product)",
+		"lemma": "stůl",
+		"translation": "table",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["nestůl", "nestolu", "nestolu", "nestůl", "nestole", "nestolu", "nestolem"],
+			"pl": ["nestoly", "nestolů", "nestolům", "nestoly", "nestoly", "nestolech", "nestoly"]
+		}
+	},
+	{
+		"lemma": "stromek",
+		"translation": "small tree",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["food"],
+		"categories": ["nature"],
 		"forms": {
-			"sg": ["sýr", "sýru", "sýru", "sýr", "sýre", "sýru", "sýrem"],
-			"pl": ["sýry", "sýrů", "sýrům", "sýry", "sýry", "sýrech", "sýry"]
+			"sg": ["stromek", "stromku", "stromku", "stromek", "stromku", "stromku", "stromkem"],
+			"pl": ["stromky", "stromků", "stromkům", "stromky", "stromky", "stromcích", "stromky"]
+		}
+	},
+	{
+		"lemma": "sešit",
+		"translation": "notebook",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["sešit", "sešitu", "sešitu", "sešit", "sešite", "sešitě", "sešitem"],
+			"pl": ["sešity", "sešitů", "sešitům", "sešity", "sešity", "sešitech", "sešity"]
+		}
+	},
+	{
+		"lemma": "telefon",
+		"translation": "phone",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["telefon", "telefonu", "telefonu", "telefon", "telefone", "telefonu", "telefonem"],
+			"pl": ["telefony", "telefonů", "telefonům", "telefony", "telefony", "telefonech", "telefony"]
+		}
+	},
+	{
+		"lemma": "počítač",
+		"translation": "computer",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["počítač", "počítače", "počítači", "počítač", "počítači", "počítači", "počítačem"],
+			"pl": ["počítače", "počítačů", "počítačům", "počítače", "počítače", "počítačích", "počítači"]
+		}
+	},
+	{
+		"lemma": "auto",
+		"translation": "car",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["transportation"],
+		"forms": {
+			"sg": ["auto", "auta", "autu", "auto", "auto", "autě", "autem"],
+			"pl": ["auta", "aut", "autům", "auta", "auta", "autech", "auty"]
+		}
+	},
+	{
+		"lemma": "vlak",
+		"translation": "train",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["transportation"],
+		"forms": {
+			"sg": ["vlak", "vlaku", "vlaku", "vlak", "vlaku", "vlaku", "vlakem"],
+			"pl": ["vlaky", "vlaků", "vlakům", "vlaky", "vlaky", "vlacích", "vlaky"]
+		}
+	},
+	{
+		"lemma": "autobus",
+		"translation": "bus",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["transportation"],
+		"forms": {
+			"sg": ["autobus", "autobusu", "autobusu", "autobus", "autobuse", "autobuse", "autobusem"],
+			"pl": ["autobusy", "autobusů", "autobusům", "autobusy", "autobusy", "autobusech", "autobusy"]
+		}
+	},
+	{
+		"lemma": "most",
+		"translation": "bridge",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["most", "mostu", "mostu", "most", "moste", "mostě", "mostem"],
+			"pl": ["mosty", "mostů", "mostům", "mosty", "mosty", "mostech", "mosty"]
+		}
+	},
+	{
+		"lemma": "park",
+		"translation": "park",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["park", "parku", "parku", "park", "parku", "parku", "parkem"],
+			"pl": ["parky", "parků", "parkům", "parky", "parky", "parcích", "parky"]
+		}
+	},
+	{
+		"lemma": "les",
+		"translation": "forest",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["les", "lesa", "lesu", "les", "lese", "lese", "lesem"],
+			"pl": ["lesy", "lesů", "lesům", "lesy", "lesy", "lesích", "lesy"]
+		}
+	},
+	{
+		"lemma": "hrad",
+		"translation": "castle",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["hrad", "hradu", "hradu", "hrad", "hrade", "hradě", "hradem"],
+			"pl": ["hrady", "hradů", "hradům", "hrady", "hrady", "hradech", "hrady"]
+		}
+	},
+	{
+		"lemma": "hotel",
+		"translation": "hotel",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["hotel", "hotelu", "hotelu", "hotel", "hotele", "hotelu", "hotelem"],
+			"pl": ["hotely", "hotelů", "hotelům", "hotely", "hotely", "hotelech", "hotely"]
+		}
+	},
+	{
+		"lemma": "obchod",
+		"translation": "shop",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["obchod", "obchodu", "obchodu", "obchod", "obchode", "obchodě", "obchodem"],
+			"pl": ["obchody", "obchodů", "obchodům", "obchody", "obchody", "obchodech", "obchody"]
 		}
 	},
 	{
@@ -1382,94 +399,123 @@
 		}
 	},
 	{
-		"lemma": "jídlo",
-		"translation": "meal",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "B1",
-		"categories": ["food"],
-		"forms": {
-			"sg": ["jídlo", "jídla", "jídlu", "jídlo", "jídlo", "jídlu", "jídlem"],
-			"pl": ["jídla", "jídel", "jídlům", "jídla", "jídla", "jídlech", "jídly"]
-		}
-	},
-	{
-		"lemma": "otázka",
-		"translation": "question",
+		"lemma": "žena",
+		"translation": "woman",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["abstract"],
+		"difficulty": "A1",
+		"categories": ["family"],
 		"forms": {
-			"sg": ["otázka", "otázky", "otázce", "otázku", "otázko", "otázce", "otázkou"],
-			"pl": ["otázky", "otázek", "otázkám", "otázky", "otázky", "otázkách", "otázkami"]
+			"sg": ["žena", "ženy", "ženě", "ženu", "ženo", "ženě", "ženou"],
+			"pl": ["ženy", "žen", "ženám", "ženy", "ženy", "ženách", "ženami"]
 		}
 	},
 	{
-		"lemma": "slunce",
-		"translation": "sun",
-		"gender": "n",
+		"lemma": "matka",
+		"translation": "mother",
+		"gender": "f",
 		"animate": false,
-		"paradigm": "moře",
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["matka", "matky", "matce", "matku", "matko", "matce", "matkou"],
+			"pl": ["matky", "matek", "matkám", "matky", "matky", "matkách", "matkami"]
+		}
+	},
+	{
+		"lemma": "dcera",
+		"translation": "daughter",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["dcera", "dcery", "dceři", "dceru", "dcero", "dceři", "dcerou"],
+			"pl": ["dcery", "dcer", "dcerám", "dcery", "dcery", "dcerách", "dcerami"]
+		}
+	},
+	{
+		"lemma": "sestra",
+		"translation": "sister",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["sestra", "sestry", "sestře", "sestru", "sestro", "sestře", "sestrou"],
+			"pl": ["sestry", "sester", "sestrám", "sestry", "sestry", "sestrách", "sestrami"]
+		}
+	},
+	{
+		"lemma": "přítelkyně",
+		"translation": "girlfriend",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["misc"],
 		"forms": {
-			"sg": ["slunce", "slunce", "slunci", "slunce", "slunce", "slunci", "sluncem"],
-			"pl": ["slunce", "sluncí", "sluncím", "slunce", "slunce", "sluncích", "slunci"]
+			"sg": [
+				"přítelkyně",
+				"přítelkyně",
+				"přítelkyni",
+				"přítelkyni",
+				"přítelkyně",
+				"přítelkyni",
+				"přítelkyní"
+			],
+			"pl": [
+				"přítelkyně",
+				"přítelkyní",
+				"přítelkyním",
+				"přítelkyně",
+				"přítelkyně",
+				"přítelkyních",
+				"přítelkyněmi"
+			]
 		}
 	},
 	{
-		"lemma": "město",
-		"translation": "city (large settlement)",
-		"gender": "n",
+		"lemma": "kniha",
+		"translation": "book",
+		"gender": "f",
 		"animate": false,
-		"paradigm": "město",
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["kniha", "knihy", "knize", "knihu", "kniho", "knize", "knihou"],
+			"pl": ["knihy", "knih", "knihám", "knihy", "knihy", "knihách", "knihami"]
+		}
+	},
+	{
+		"lemma": "škola",
+		"translation": "school",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
 		"difficulty": "A1",
 		"categories": ["places"],
 		"forms": {
-			"sg": ["město", "města", "městu", "město", "město", "městu", "městem"],
-			"pl": ["města", "měst", "městům", "města", "města", "městech", "městy"]
+			"sg": ["škola", "školy", "škole", "školu", "školo", "škole", "školou"],
+			"pl": ["školy", "škol", "školám", "školy", "školy", "školách", "školami"]
 		}
 	},
 	{
-		"lemma": "nádraží",
-		"translation": "station, railway station",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "stavení",
-		"difficulty": "B1",
-		"categories": ["places"],
-		"forms": {
-			"sg": ["nádraží", "nádraží", "nádraží", "nádraží", "nádraží", "nádraží", "nádražím"],
-			"pl": ["nádraží", "nádraží", "nádražím", "nádraží", "nádraží", "nádražích", "nádražími"]
-		}
-	},
-	{
-		"lemma": "kuře",
-		"translation": "chick (young chicken)",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "kuře",
-		"difficulty": "B2",
-		"categories": ["animals"],
-		"forms": {
-			"sg": ["kuře", "kuřete", "kuřeti", "kuře", "kuře", "kuřeti", "kuřetem"],
-			"pl": ["kuřata", "kuřat", "kuřatům", "kuřata", "kuřata", "kuřatech", "kuřaty"]
-		}
-	},
-	{
-		"lemma": "obloha",
-		"translation": "sky",
+		"lemma": "ulice",
+		"translation": "street",
 		"gender": "f",
 		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["nature"],
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["places"],
 		"forms": {
-			"sg": ["obloha", "oblohy", "obloze", "oblohu", "obloho", "obloze", "oblohou"],
-			"pl": ["oblohy", "obloh", "oblohám", "oblohy", "oblohy", "oblohách", "oblohami"]
+			"sg": ["ulice", "ulice", "ulici", "ulici", "ulice", "ulici", "ulicí"],
+			"pl": ["ulice", "ulic", "ulicím", "ulice", "ulice", "ulicích", "ulicemi"]
 		}
 	},
 	{
@@ -1478,7 +524,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "B1",
+		"difficulty": "A2",
 		"categories": ["places"],
 		"forms": {
 			"sg": ["vesnice", "vesnice", "vesnici", "vesnici", "vesnice", "vesnici", "vesnicí"],
@@ -1486,12 +532,421 @@
 		}
 	},
 	{
-		"lemma": "zápisník",
-		"translation": "notebook (book)",
+		"lemma": "kavárna",
+		"translation": "cafe",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["kavárna", "kavárny", "kavárně", "kavárnu", "kavárno", "kavárně", "kavárnou"],
+			"pl": ["kavárny", "kaváren", "kavárnám", "kavárny", "kavárny", "kavárnách", "kavárnami"]
+		}
+	},
+	{
+		"lemma": "místnost",
+		"translation": "room",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": [
+				"místnost",
+				"místnosti",
+				"místnosti",
+				"místnost",
+				"místnosti",
+				"místnosti",
+				"místností"
+			],
+			"pl": [
+				"místnosti",
+				"místností",
+				"místnostem",
+				"místnosti",
+				"místnosti",
+				"místnostech",
+				"místnostmi"
+			]
+		}
+	},
+	{
+		"lemma": "kočka",
+		"translation": "cat",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["animals"],
+		"forms": {
+			"sg": ["kočka", "kočky", "kočce", "kočku", "kočko", "kočce", "kočkou"],
+			"pl": ["kočky", "koček", "kočkám", "kočky", "kočky", "kočkách", "kočkami"]
+		}
+	},
+	{
+		"lemma": "růže",
+		"translation": "rose",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["růže", "růže", "růži", "růži", "růže", "růži", "růží"],
+			"pl": ["růže", "růží", "růžím", "růže", "růže", "růžích", "růžemi"]
+		}
+	},
+	{
+		"lemma": "věc",
+		"translation": "thing",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["věc", "věci", "věci", "věc", "věci", "věci", "věcí"],
+			"pl": ["věci", "věcí", "věcem", "věci", "věci", "věcech", "věcmi"]
+		}
+	},
+	{
+		"lemma": "práce",
+		"translation": "work",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["práce", "práce", "práci", "práci", "práce", "práci", "prací"],
+			"pl": ["práce", "prací", "pracím", "práce", "práce", "pracích", "pracemi"]
+		}
+	},
+	{
+		"lemma": "radost",
+		"translation": "joy",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["radost", "radosti", "radosti", "radost", "radosti", "radosti", "radostí"],
+			"pl": ["radosti", "radostí", "radostem", "radosti", "radosti", "radostech", "radostmi"]
+		}
+	},
+	{
+		"lemma": "noc",
+		"translation": "night",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["noc", "noci", "noci", "noc", "noci", "noci", "nocí"],
+			"pl": ["noci", "nocí", "nocím", "noci", "noci", "nocích", "nocemi"]
+		}
+	},
+	{
+		"lemma": "věž",
+		"translation": "tower",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["věž", "věže", "věži", "věž", "věži", "věži", "věží"],
+			"pl": ["věže", "věží", "věžím", "věže", "věže", "věžích", "věžemi"]
+		}
+	},
+	{
+		"lemma": "tramvaj",
+		"translation": "tram",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["transportation"],
+		"forms": {
+			"sg": ["tramvaj", "tramvaje", "tramvaji", "tramvaj", "tramvaji", "tramvaji", "tramvají"],
+			"pl": [
+				"tramvaje",
+				"tramvají",
+				"tramvajím",
+				"tramvaje",
+				"tramvaje",
+				"tramvajích",
+				"tramvajemi"
+			]
+		}
+	},
+	{
+		"lemma": "město",
+		"translation": "city",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["město", "města", "městu", "město", "město", "městě", "městem"],
+			"pl": ["města", "měst", "městům", "města", "města", "městech", "městy"]
+		}
+	},
+	{
+		"lemma": "moře",
+		"translation": "sea",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "moře",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["moře", "moře", "moři", "moře", "moře", "moři", "mořem"],
+			"pl": ["moře", "moří", "mořím", "moře", "moře", "mořích", "moři"]
+		}
+	},
+	{
+		"lemma": "okno",
+		"translation": "window",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["okno", "okna", "oknu", "okno", "okno", "okně", "oknem"],
+			"pl": ["okna", "oken", "oknům", "okna", "okna", "oknech", "okny"]
+		}
+	},
+	{
+		"lemma": "kuře",
+		"translation": "chicken",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "kuře",
+		"difficulty": "A1",
+		"categories": ["animals"],
+		"forms": {
+			"sg": ["kuře", "kuřete", "kuřeti", "kuře", "kuře", "kuřeti", "kuřetem"],
+			"pl": ["kuřata", "kuřat", "kuřatům", "kuřata", "kuřata", "kuřatech", "kuřaty"]
+		}
+	},
+	{
+		"lemma": "děvče",
+		"translation": "girl",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "kuře",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["děvče", "děvčete", "děvčeti", "děvče", "děvče", "děvčeti", "děvčetem"],
+			"pl": ["děvčata", "děvčat", "děvčatům", "děvčata", "děvčata", "děvčatech", "děvčaty"]
+		}
+	},
+	{
+		"lemma": "kino",
+		"translation": "cinema",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["kino", "kina", "kinu", "kino", "kino", "kině", "kinem"],
+			"pl": ["kina", "kin", "kinům", "kina", "kina", "kinech", "kiny"]
+		}
+	},
+	{
+		"lemma": "nádraží",
+		"translation": "station",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "stavení",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["nádraží", "nádraží", "nádraží", "nádraží", "nádraží", "nádraží", "nádražím"],
+			"pl": ["nádraží", "nádraží", "nádražím", "nádraží", "nádraží", "nádražích", "nádražími"]
+		}
+	},
+	{
+		"lemma": "náměstí",
+		"translation": "square",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "stavení",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["náměstí", "náměstí", "náměstí", "náměstí", "náměstí", "náměstí", "náměstím"],
+			"pl": ["náměstí", "náměstí", "náměstím", "náměstí", "náměstí", "náměstích", "náměstími"]
+		}
+	},
+	{
+		"lemma": "pivo",
+		"translation": "beer",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["pivo", "piva", "pivu", "pivo", "pivo", "pivě", "pivem"],
+			"pl": ["piva", "piv", "pivům", "piva", "piva", "pivech", "pivy"]
+		}
+	},
+	{
+		"lemma": "víno",
+		"translation": "wine",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["víno", "vína", "vínu", "víno", "víno", "víně", "vínem"],
+			"pl": ["vína", "vín", "vínům", "vína", "vína", "vínech", "víny"]
+		}
+	},
+	{
+		"lemma": "jídlo",
+		"translation": "food",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["jídlo", "jídla", "jídlu", "jídlo", "jídlo", "jídle", "jídlem"],
+			"pl": ["jídla", "jídel", "jídlům", "jídla", "jídla", "jídlech", "jídly"]
+		}
+	},
+	{
+		"lemma": "maso",
+		"translation": "meat",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["maso", "masa", "masu", "maso", "maso", "mase", "masem"],
+			"pl": ["masa", "mas", "masům", "masa", "masa", "masech", "masy"]
+		}
+	},
+	{
+		"lemma": "jablko",
+		"translation": "apple",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["jablko", "jablka", "jablku", "jablko", "jablko", "jablku", "jablkem"],
+			"pl": ["jablka", "jablek", "jablkům", "jablka", "jablka", "jablkách", "jablky"]
+		}
+	},
+	{
+		"lemma": "slovo",
+		"translation": "word",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["slovo", "slova", "slovu", "slovo", "slovo", "slově", "slovem"],
+			"pl": ["slova", "slov", "slovům", "slova", "slova", "slovech", "slovy"]
+		}
+	},
+	{
+		"lemma": "gymnázium",
+		"translation": "high school",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": [
+				"gymnázium",
+				"gymnázia",
+				"gymnáziu",
+				"gymnázium",
+				"gymnázium",
+				"gymnáziu",
+				"gymnáziem"
+			],
+			"pl": ["gymnázia", "gymnázií", "gymnáziím", "gymnázia", "gymnázia", "gymnáziích", "gymnázii"]
+		}
+	},
+	{
+		"lemma": "muzeum",
+		"translation": "museum",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["places"],
+		"forms": {
+			"sg": ["muzeum", "muzea", "muzeu", "muzeum", "muzeum", "muzeu", "muzeem"],
+			"pl": ["muzea", "muzeí", "muzeím", "muzea", "muzea", "muzeích", "muzei"]
+		}
+	},
+	{
+		"lemma": "pero",
+		"translation": "pen",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["pero", "pera", "peru", "pero", "pero", "peru", "perem"],
+			"pl": ["pera", "per", "perům", "pera", "pera", "perech", "pery"]
+		}
+	},
+	{
+		"lemma": "tužka",
+		"translation": "pencil",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["tužka", "tužky", "tužce", "tužku", "tužko", "tužce", "tužkou"],
+			"pl": ["tužky", "tužek", "tužkám", "tužky", "tužky", "tužkách", "tužkami"]
+		}
+	},
+	{
+		"lemma": "papír",
+		"translation": "paper",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "B1",
+		"difficulty": "A2",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["papír", "papíru", "papíru", "papír", "papíre", "papíře", "papírem"],
+			"pl": ["papíry", "papírů", "papírům", "papíry", "papíry", "papírech", "papíry"]
+		}
+	},
+	{
+		"lemma": "zápisník",
+		"translation": "notepad",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": [
@@ -1515,58 +970,742 @@
 		}
 	},
 	{
-		"lemma": "kavárna",
-		"translation": "café",
+		"lemma": "taška",
+		"translation": "bag",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["taška", "tašky", "tašce", "tašku", "taško", "tašce", "taškou"],
+			"pl": ["tašky", "tašek", "taškám", "tašky", "tašky", "taškách", "taškami"]
+		}
+	},
+	{
+		"lemma": "kabelka",
+		"translation": "handbag",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["places"],
+		"categories": ["objects"],
 		"forms": {
-			"sg": ["kavárna", "kavárny", "kavárně", "kavárnu", "kavárno", "kavárně", "kavárnou"],
-			"pl": ["kavárny", "kaváren", "kavárnám", "kavárny", "kavárny", "kavárnách", "kavárnami"]
+			"sg": ["kabelka", "kabelky", "kabelce", "kabelku", "kabelko", "kabelce", "kabelkou"],
+			"pl": ["kabelky", "kabelek", "kabelkám", "kabelky", "kabelky", "kabelkách", "kabelkami"]
 		}
 	},
 	{
-		"lemma": "přítelkyně",
-		"translation": "girlfriend (female partner in a romantic relationship)",
+		"lemma": "bota",
+		"translation": "shoe",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["bota", "boty", "botě", "botu", "boto", "botě", "botou"],
+			"pl": ["boty", "bot", "botám", "boty", "boty", "botách", "botami"]
+		}
+	},
+	{
+		"lemma": "kalhoty",
+		"translation": "trousers",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["objects"],
+		"forms": {
+			"sg": ["kalhota", "", "", "", "", "", ""],
+			"pl": ["kalhoty", "kalhot", "kalhotám", "kalhoty", "kalhoty", "kalhotách", "kalhotami"]
+		}
+	},
+	{
+		"lemma": "košile",
+		"translation": "shirt",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "B2",
-		"categories": ["people"],
+		"difficulty": "A2",
+		"categories": ["objects"],
 		"forms": {
-			"sg": [
-				"přítelkyně",
-				"přítelkyně",
-				"přítelkyni",
-				"přítelkyni",
-				"přítelkyně",
-				"přítelkyni",
-				"přítelkyní"
-			],
+			"sg": ["košile", "košile", "košili", "košili", "košile", "košili", "košilí"],
+			"pl": ["košile", "košilí", "košilím", "košile", "košile", "košilích", "košilemi"]
+		}
+	},
+	{
+		"lemma": "hlava",
+		"translation": "head",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["hlava", "hlavy", "hlavě", "hlavu", "hlavo", "hlavě", "hlavou"],
+			"pl": ["hlavy", "hlav", "hlavám", "hlavy", "hlavy", "hlavách", "hlavami"]
+		}
+	},
+	{
+		"lemma": "ruka",
+		"translation": "hand",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["ruka", "ruky", "ruce", "ruku", "ruko", "ruce", "rukou"],
+			"pl": ["ruce", "rukou", "rukám", "ruce", "ruce", "rukou", "rukama"]
+		}
+	},
+	{
+		"lemma": "noha",
+		"translation": "leg",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["noha", "nohy", "noze", "nohu", "noho", "noze", "nohou"],
+			"pl": ["nohy", "nohou", "nohám", "nohy", "nohy", "nohou", "nohama"]
+		}
+	},
+	{
+		"lemma": "oko",
+		"translation": "eye",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["oko", "oka", "oku", "oko", "oko", "oku", "okem"],
+			"pl": ["oči", "očí", "očím", "oči", "oči", "očích", "očima"]
+		}
+	},
+	{
+		"lemma": "ucho",
+		"translation": "ear",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["ucho", "ucha", "uchu", "ucho", "ucho", "uchu", "uchem"],
+			"pl": ["uši", "uší", "uším", "uši", "uši", "uších", "ušima"]
+		}
+	},
+	{
+		"lemma": "nos",
+		"translation": "nose",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["nos", "nosu", "nosu", "nos", "nose", "nose", "nosem"],
+			"pl": ["nosy", "nosů", "nosům", "nosy", "nosy", "nosech", "nosy"]
+		}
+	},
+	{
+		"lemma": "ústa",
+		"translation": "mouth",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["", "", "", "", "", "", ""],
+			"pl": ["ústa", "úst", "ústům", "ústa", "ústa", "ústech", "ústy"]
+		}
+	},
+	{
+		"lemma": "srdce",
+		"translation": "heart",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "moře",
+		"difficulty": "A2",
+		"categories": ["body"],
+		"forms": {
+			"sg": ["nesrdce", "nesrdce", "nesrdci", "nesrdce", "nesrdce", "nesrdci", "nesrdcem"],
+			"pl": ["nesrdce", "nesrdcí", "nesrdcím", "nesrdce", "nesrdce", "nesrdcích", "nesrdci"]
+		}
+	},
+	{
+		"lemma": "chléb",
+		"translation": "bread",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["chléb", "chleba", "chlebu", "chléb", "chlebe", "chlebě", "chlebem"],
+			"pl": ["chleby", "chlebů", "chlebům", "chleby", "chleby", "chlebech", "chleby"]
+		}
+	},
+	{
+		"lemma": "mléko",
+		"translation": "milk",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["mléko", "mléka", "mléku", "mléko", "mléko", "mléce", "mlékem"],
+			"pl": ["mléka", "mlék", "mlékům", "mléka", "mléka", "mlékách", "mléky"]
+		}
+	},
+	{
+		"lemma": "sýr",
+		"translation": "cheese",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["sýr", "sýru", "sýru", "sýr", "sýre", "sýru", "sýrem"],
+			"pl": ["sýry", "sýrů", "sýrům", "sýry", "sýry", "sýrech", "sýry"]
+		}
+	},
+	{
+		"lemma": "máslo",
+		"translation": "butter",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["máslo", "másla", "máslu", "máslo", "máslo", "másle", "máslem"],
+			"pl": ["másla", "másel", "máslům", "másla", "másla", "máslech", "másly"]
+		}
+	},
+	{
+		"lemma": "ryba",
+		"translation": "fish",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["ryba", "ryby", "rybě", "rybu", "rybo", "rybě", "rybou"],
+			"pl": ["ryby", "ryb", "rybám", "ryby", "ryby", "rybách", "rybami"]
+		}
+	},
+	{
+		"lemma": "vejce",
+		"translation": "egg",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "moře",
+		"difficulty": "A2",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["vejce", "vejce", "vejci", "vejce", "vejce", "vejci", "vejcem"],
+			"pl": ["vejce", "vajec", "vejcím", "vejce", "vejce", "vejcích", "vejci"]
+		}
+	},
+	{
+		"lemma": "káva",
+		"translation": "coffee",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["káva", "kávy", "kávě", "kávu", "kávo", "kávě", "kávou"],
+			"pl": ["kávy", "káv", "kávám", "kávy", "kávy", "kávách", "kávami"]
+		}
+	},
+	{
+		"lemma": "čaj",
+		"translation": "tea",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["čaj", "čaje", "čaji", "čaj", "čaji", "čaji", "čajem"],
+			"pl": ["čaje", "čajů", "čajům", "čaje", "čaje", "čajích", "čaji"]
+		}
+	},
+	{
+		"lemma": "voda",
+		"translation": "water",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["food"],
+		"forms": {
+			"sg": ["voda", "vody", "vodě", "vodu", "vodo", "vodě", "vodou"],
+			"pl": ["vody", "vod", "vodám", "vody", "vody", "vodách", "vodami"]
+		}
+	},
+	{
+		"lemma": "den",
+		"translation": "day",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["den", "dne", "dnu", "den", "dne", "dnu", "dnem"],
+			"pl": ["dny", "dnů", "dnům", "dny", "dny", "dnech", "dny"]
+		}
+	},
+	{
+		"lemma": "týden",
+		"translation": "week",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["týden", "týdne", "týdnu", "týden", "týdne", "týdnu", "týdnem"],
+			"pl": ["týdny", "týdnů", "týdnům", "týdny", "týdny", "týdnech", "týdny"]
+		}
+	},
+	{
+		"lemma": "měsíc",
+		"translation": "month",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["měsíc", "měsíce", "měsíci", "měsíc", "měsíci", "měsíci", "měsícem"],
+			"pl": ["měsíce", "měsíců", "měsícům", "měsíce", "měsíce", "měsících", "měsíci"]
+		}
+	},
+	{
+		"lemma": "rok",
+		"translation": "year",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["rok", "roka", "roku", "rok", "roku", "roku", "rokem"],
+			"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
+		}
+	},
+	{
+		"lemma": "hodina",
+		"translation": "hour",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["hodina", "hodiny", "hodině", "hodinu", "hodino", "hodině", "hodinou"],
+			"pl": ["hodiny", "hodin", "hodinám", "hodiny", "hodiny", "hodinách", "hodinami"]
+		}
+	},
+	{
+		"lemma": "minuta",
+		"translation": "minute",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["minuta", "minuty", "minutě", "minutu", "minuto", "minutě", "minutou"],
+			"pl": ["minuty", "minut", "minutám", "minuty", "minuty", "minutách", "minutami"]
+		}
+	},
+	{
+		"lemma": "rodina",
+		"translation": "family",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["rodina", "rodiny", "rodině", "rodinu", "rodino", "rodině", "rodinou"],
+			"pl": ["rodiny", "rodin", "rodinám", "rodiny", "rodiny", "rodinách", "rodinami"]
+		}
+	},
+	{
+		"lemma": "babička",
+		"translation": "grandmother",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["babička", "babičky", "babičce", "babičku", "babičko", "babičce", "babičkou"],
+			"pl": ["babičky", "babiček", "babičkám", "babičky", "babičky", "babičkách", "babičkami"]
+		}
+	},
+	{
+		"lemma": "dědeček",
+		"translation": "grandfather",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["dědeček", "dědečka", "dědečkovi", "dědečka", "dědečku", "dědečkovi", "dědečkem"],
+			"pl": ["dědečci", "dědečků", "dědečkům", "dědečky", "dědečci", "dědečcích", "dědečky"]
+		}
+	},
+	{
+		"lemma": "strýc",
+		"translation": "uncle",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A2",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["strýc", "strýce", "strýci", "strýce", "strýci", "strýci", "strýcem"],
+			"pl": ["strýci", "strýců", "strýcům", "strýce", "strýci", "strýcích", "strýci"]
+		}
+	},
+	{
+		"lemma": "teta",
+		"translation": "aunt",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["teta", "tety", "tetě", "tetu", "teto", "tetě", "tetou"],
+			"pl": ["tety", "tet", "tetám", "tety", "tety", "tetách", "tetami"]
+		}
+	},
+	{
+		"lemma": "manžel",
+		"translation": "husband",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["manžel", "manžela", "manželovi", "manžela", "manžele", "manželovi", "manželem"],
+			"pl": ["manželé", "manželů", "manželům", "manžely", "manželé", "manželech", "manžely"]
+		}
+	},
+	{
+		"lemma": "manželka",
+		"translation": "wife",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["family"],
+		"forms": {
+			"sg": ["manželka", "manželky", "manželce", "manželku", "manželko", "manželce", "manželkou"],
 			"pl": [
-				"přítelkyně",
-				"přítelkyní",
-				"přítelkyním",
-				"přítelkyně",
-				"přítelkyně",
-				"přítelkyních",
-				"přítelkyněmi"
+				"manželky",
+				"manželek",
+				"manželkám",
+				"manželky",
+				"manželky",
+				"manželkách",
+				"manželkami"
 			]
 		}
 	},
 	{
-		"lemma": "sešit",
-		"translation": "exercise book (a booklet for students, containing blank, lined or checkered pages for writing answers, drawing graphs etc.)",
+		"lemma": "příbuzný",
+		"translation": "relative",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A2",
+		"categories": ["family"],
+		"forms": {
+			"sg": [
+				"příbuzný",
+				"příbuzného",
+				"příbuznému",
+				"příbuzného",
+				"příbuzný",
+				"příbuzném",
+				"příbuzným"
+			],
+			"pl": [
+				"příbuzní",
+				"příbuzných",
+				"příbuzným",
+				"příbuzné",
+				"příbuzní",
+				"příbuzných",
+				"příbuznými"
+			]
+		}
+	},
+	{
+		"lemma": "strom",
+		"translation": "tree",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["nature"],
 		"forms": {
-			"sg": ["sešit", "sešitu", "sešitu", "sešit", "sešite", "sešitu", "sešitem"],
-			"pl": ["sešity", "sešitů", "sešitům", "sešity", "sešity", "sešitech", "sešity"]
+			"sg": ["strom", "stromu", "stromu", "strom", "strome", "stromě", "stromem"],
+			"pl": ["stromy", "stromů", "stromům", "stromy", "stromy", "stromech", "stromy"]
+		}
+	},
+	{
+		"lemma": "květ",
+		"translation": "flower",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["květ", "květu", "květu", "květ", "květe", "květu", "květem"],
+			"pl": ["květy", "květů", "květům", "květy", "květy", "květech", "květy"]
+		}
+	},
+	{
+		"lemma": "tráva",
+		"translation": "grass",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["tráva", "trávy", "trávě", "trávu", "trávo", "trávě", "trávou"],
+			"pl": ["trávy", "trav", "trávám", "trávy", "trávy", "trávách", "trávami"]
+		}
+	},
+	{
+		"lemma": "hora",
+		"translation": "mountain",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["hora", "hory", "hoře", "horu", "horo", "hoře", "horou"],
+			"pl": ["hory", "hor", "horám", "hory", "hory", "horách", "horami"]
+		}
+	},
+	{
+		"lemma": "řeka",
+		"translation": "river",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["řeka", "řeky", "řece", "řeku", "řeko", "řece", "řekou"],
+			"pl": ["řeky", "řek", "řekám", "řeky", "řeky", "řekách", "řekami"]
+		}
+	},
+	{
+		"lemma": "jezero",
+		"translation": "lake",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["jezero", "jezera", "jezeru", "jezero", "jezero", "jezeru", "jezerem"],
+			"pl": ["jezera", "jezer", "jezerům", "jezera", "jezera", "jezerech", "jezery"]
+		}
+	},
+	{
+		"lemma": "slunce",
+		"translation": "sun",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "moře",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["slunce", "slunce", "slunci", "slunce", "slunce", "slunci", "sluncem"],
+			"pl": ["slunce", "sluncí", "sluncím", "slunce", "slunce", "sluncích", "slunci"]
+		}
+	},
+	{
+		"lemma": "hvězda",
+		"translation": "star",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["hvězda", "hvězdy", "hvězdě", "hvězdu", "hvězdo", "hvězdě", "hvězdou"],
+			"pl": ["hvězdy", "hvězd", "hvězdám", "hvězdy", "hvězdy", "hvězdách", "hvězdami"]
+		}
+	},
+	{
+		"lemma": "obloha",
+		"translation": "sky",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["nature"],
+		"forms": {
+			"sg": ["obloha", "oblohy", "obloze", "oblohu", "obloho", "obloze", "oblohou"],
+			"pl": ["oblohy", "obloh", "oblohám", "oblohy", "oblohy", "oblohách", "oblohami"]
+		}
+	},
+	{
+		"lemma": "život",
+		"translation": "life",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["život", "života", "životu", "život", "živote", "životě", "životem"],
+			"pl": ["životy", "životů", "životům", "životy", "životy", "životech", "životy"]
+		}
+	},
+	{
+		"lemma": "smrt",
+		"translation": "death",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["smrt", "smrti", "smrti", "smrt", "smrti", "smrti", "smrtí"],
+			"pl": ["smrti", "smrtí", "smrtím", "smrti", "smrti", "smrtích", "smrtmi"]
+		}
+	},
+	{
+		"lemma": "čas",
+		"translation": "time",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["time"],
+		"forms": {
+			"sg": ["čas", "času", "času", "čas", "čase", "čase", "časem"],
+			"pl": ["časy", "časů", "časům", "časy", "časy", "časech", "časy"]
+		}
+	},
+	{
+		"lemma": "láska",
+		"translation": "love",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["láska", "lásky", "lásce", "lásku", "lásko", "lásce", "láskou"],
+			"pl": ["lásky", "lásek", "láskám", "lásky", "lásky", "láskách", "láskami"]
+		}
+	},
+	{
+		"lemma": "štěstí",
+		"translation": "happiness",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "stavení",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["štěstí", "štěstí", "štěstí", "štěstí", "štěstí", "štěstí", "štěstím"],
+			"pl": ["štěstí", "štěstí", "štěstím", "štěstí", "štěstí", "štěstích", "štěstími"]
+		}
+	},
+	{
+		"lemma": "problém",
+		"translation": "problem",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["problém", "problému", "problému", "problém", "probléme", "problému", "problémem"],
+			"pl": ["problémy", "problémů", "problémům", "problémy", "problémy", "problémech", "problémy"]
+		}
+	},
+	{
+		"lemma": "otázka",
+		"translation": "question",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["otázka", "otázky", "otázce", "otázku", "otázko", "otázce", "otázkou"],
+			"pl": ["otázky", "otázek", "otázkám", "otázky", "otázky", "otázkách", "otázkami"]
+		}
+	},
+	{
+		"lemma": "odpověď",
+		"translation": "answer",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "kost",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["neodpověď", "odpovědi", "odpovědi", "odpověď", "odpovědi", "odpovědi", "odpovědí"],
+			"pl": ["odpovědi", "odpovědí", "odpovědím", "odpovědi", "odpovědi", "odpovědích", "odpověďmi"]
+		}
+	},
+	{
+		"lemma": "pravda",
+		"translation": "truth",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["pravda", "pravdy", "pravdě", "pravdu", "pravdo", "pravdě", "pravdou"],
+			"pl": ["pravdy", "pravd", "pravdám", "pravdy", "pravdy", "pravdách", "pravdami"]
+		}
+	},
+	{
+		"lemma": "svoboda",
+		"translation": "freedom",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["misc"],
+		"forms": {
+			"sg": ["svoboda", "svobody", "svobodě", "svobodu", "svobodo", "svobodě", "svobodou"],
+			"pl": ["svobody", "svobod", "svobodám", "svobody", "svobody", "svobodách", "svobodami"]
 		}
 	}
 ]

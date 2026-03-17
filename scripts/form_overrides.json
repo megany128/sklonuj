@@ -1,0 +1,20 @@
+{
+	"dítě": {
+		"pl": ["děti", "dětí", "dětem", "děti", "děti", "dětech", "dětmi"]
+	},
+	"oko": {
+		"pl": ["oči", "očí", "očím", "oči", "oči", "očích", "očima"]
+	},
+	"ucho": {
+		"pl": ["uši", "uší", "uším", "uši", "uši", "uších", "ušima"]
+	},
+	"chléb": {
+		"sg": ["chléb", "chleba", "chlebu", "chléb", "chlebe", "chlebě", "chlebem"]
+	},
+	"ruka": {
+		"pl": ["ruce", "rukou", "rukám", "ruce", "ruce", "rukou", "rukama"]
+	},
+	"noha": {
+		"pl": ["nohy", "nohou", "nohám", "nohy", "nohy", "nohou", "nohama"]
+	}
+}

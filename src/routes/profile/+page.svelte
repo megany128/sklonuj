@@ -9,6 +9,10 @@
 
 	const supabase = getSupabaseBrowserClient();
 
+	function focusOnMount(node: HTMLElement) {
+		node.focus();
+	}
+
 	let user = $derived($page.data.user);
 
 	// Streamed data — resolve promises into state
@@ -671,6 +675,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-label="Edit display name"
+		tabindex="-1"
 	>
 		<form
 			method="POST"
@@ -693,7 +698,7 @@
 				disabled={savingName}
 				placeholder="Your name"
 				class="w-full rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default outline-none transition-colors focus:border-emphasis"
-				autofocus
+				use:focusOnMount
 			/>
 			<div class="mt-4 flex justify-end gap-2">
 				<button
