@@ -15,22 +15,13 @@
 		onClose: () => void;
 	} = $props();
 
-	let activeTab: TabId = $state('declension');
+	let activeTab: TabId = $derived(initialTab);
 
 	const tabs: { id: TabId; label: string }[] = [
 		{ id: 'declension', label: 'Declension' },
 		{ id: 'cases', label: 'Cases' },
 		{ id: 'prepositions', label: 'Prepositions' }
 	];
-
-	// Sync activeTab when initialWord or initialTab changes
-	$effect(() => {
-		if (initialWord && initialWord.trim() !== '') {
-			activeTab = 'declension';
-		} else {
-			activeTab = initialTab;
-		}
-	});
 </script>
 
 <div class="flex h-full flex-col bg-page-background">

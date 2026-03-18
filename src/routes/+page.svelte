@@ -456,7 +456,7 @@
 
 	function openReferenceSidebar() {
 		refSidebarWord = question?.word.lemma ?? '';
-		refSidebarTab = refSidebarWord ? 'declension' : 'cases';
+		refSidebarTab = 'cases';
 		refSidebarOpen = true;
 	}
 
