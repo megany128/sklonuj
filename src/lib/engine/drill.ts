@@ -71,6 +71,7 @@ interface RawWordBankEntry {
 	paradigm: string;
 	difficulty: string;
 	categories: string[];
+	pluralOnly?: boolean;
 	forms: {
 		sg: unknown;
 		pl: unknown;
@@ -87,6 +88,7 @@ interface RawTemplateEntry {
 	requiredCase: string;
 	number: string;
 	trigger: string;
+	requiredGender?: string;
 	why: string;
 	difficulty: string;
 }
@@ -127,6 +129,10 @@ export function loadWordBank(): WordEntry[] {
 				pl: entry.forms.pl
 			}
 		};
+
+		if (entry.pluralOnly) {
+			base.pluralOnly = true;
+		}
 
 		if (entry.variantForms) {
 			const vf = entry.variantForms;
@@ -171,7 +177,7 @@ export function loadTemplates(): SentenceTemplate[] {
 		if (!isDifficulty(entry.difficulty)) {
 			throw new Error(`Invalid difficulty "${entry.difficulty}" in template "${entry.id}"`);
 		}
-		return {
+		const mapped: SentenceTemplate = {
 			id: entry.id,
 			template: entry.template,
 			lemmaCategory: entry.lemmaCategory,
@@ -182,6 +188,10 @@ export function loadTemplates(): SentenceTemplate[] {
 			why: entry.why,
 			difficulty: entry.difficulty
 		};
+		if (entry.requiredGender && isGender(entry.requiredGender)) {
+			mapped.requiredGender = entry.requiredGender;
+		}
+		return mapped;
 	});
 	return cachedTemplates;
 }
@@ -227,11 +237,17 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	// If template has semantic tags, only return words that match at least one tag.
 	// Return empty if no words match — caller should skip this template.
 	const tags = template.semanticTags;
+	let filtered = categoryMatches;
 	if (tags && tags.length > 0) {
-		return categoryMatches.filter((word) => tags.some((tag) => word.categories.includes(tag)));
+		filtered = filtered.filter((word) => tags.some((tag) => word.categories.includes(tag)));
 	}
 
-	return categoryMatches;
+	// If template requires a specific gender, filter by it.
+	if (template.requiredGender) {
+		filtered = filtered.filter((word) => word.gender === template.requiredGender);
+	}
+
+	return filtered;
 }
 
 const PLACEHOLDER_TEMPLATE: SentenceTemplate = {
@@ -247,6 +263,7 @@ const PLACEHOLDER_TEMPLATE: SentenceTemplate = {
 
 /** Check if a word has a non-empty form for the given case and number. */
 export function hasValidForm(word: WordEntry, case_: Case, number_: Number_): boolean {
+	if (word.pluralOnly && number_ === 'sg') return false;
 	const form = word.forms[number_][CASE_INDEX[case_]];
 	return typeof form === 'string' && form.trim().length > 0;
 }
@@ -402,7 +419,35 @@ export function checkAnswer(
 		}
 	}
 
-	return { question, userAnswer, correct: false, nearMiss: false };
+	// Detect accidental case: check if the wrong answer matches another case form
+	const ALL_CASES_ORDERED: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+	const numbers: Number_[] = [question.number, question.number === 'sg' ? 'pl' : 'sg'];
+	let accidentalCase: { case: Case; number: Number_ } | undefined;
+
+	outer: for (const num of numbers) {
+		for (const c of ALL_CASES_ORDERED) {
+			if (c === question.case && num === question.number) continue;
+			const form = question.word.forms[num][CASE_INDEX[c]];
+			if (form && trimmedUser === form.trim().toLowerCase()) {
+				accidentalCase = { case: c, number: num };
+				break outer;
+			}
+			// Also check variant forms
+			const variants = question.word.variantForms;
+			if (variants) {
+				const numVariants = variants[num];
+				if (numVariants) {
+					const alts = numVariants[CASE_INDEX[c]];
+					if (alts?.some((alt) => trimmedUser === alt.trim().toLowerCase())) {
+						accidentalCase = { case: c, number: num };
+						break outer;
+					}
+				}
+			}
+		}
+	}
+
+	return { question, userAnswer, correct: false, nearMiss: false, accidentalCase };
 }
 
 /**

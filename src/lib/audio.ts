@@ -5,7 +5,10 @@ let voicesChangedRegistered = false;
 function getCzechVoice(): SpeechSynthesisVoice | null {
 	if (cachedVoice) return cachedVoice;
 	const voices = speechSynthesis.getVoices();
-	const found = voices.find((v) => v.lang.startsWith('cs'));
+	const czVoices = voices.filter((v) => v.lang.startsWith('cs'));
+	// Prefer enhanced/premium voices for better quality
+	const enhanced = czVoices.find((v) => v.name.includes('Enhanced') || v.name.includes('Premium'));
+	const found = enhanced ?? czVoices[0] ?? null;
 	if (found) {
 		cachedVoice = found;
 		return found;
@@ -21,7 +24,7 @@ function getCzechVoice(): SpeechSynthesisVoice | null {
 	return null;
 }
 
-export function speak(text: string, lang = 'cs-CZ', rate = 0.85): void {
+export function speak(text: string, lang = 'cs-CZ', rate = 0.92): void {
 	if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
 	if (speakTimer) {

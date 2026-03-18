@@ -677,6 +677,8 @@
 								case_={question.case}
 								drillType={question.drillType}
 								nearMiss={result.nearMiss}
+								accidentalCase={result.accidentalCase}
+								questionNumber={question.number}
 								trigger={question.template.trigger || undefined}
 								{templateWhy}
 								{whyNote}

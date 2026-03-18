@@ -17,7 +17,7 @@
 			"gen_pl": "Hard masculine inanimates take -ů in genitive plural (e.g. hradů).",
 			"dat_pl": "Hard masculine inanimates take -ům in dative plural (e.g. hradům).",
 			"acc_pl": "Hard masculine inanimates (non-animate) have accusative plural = nominative plural, so -y.",
-			"voc_pl": "Hard masculine inanimates take -y in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Hard masculine inanimates take -y in vocative plural.",
 			"loc_pl": "Hard masculine inanimates take -ech in locative plural (e.g. hradech), sometimes -ích after soft consonants.",
 			"ins_pl": "Hard masculine inanimates take -y in instrumental plural (e.g. hrady)."
 		}
@@ -40,7 +40,7 @@
 			"gen_pl": "Soft masculine inanimates take -ů in genitive plural (e.g. strojů).",
 			"dat_pl": "Soft masculine inanimates take -ům in dative plural (e.g. strojům).",
 			"acc_pl": "Soft masculine inanimates (non-animate) have accusative plural = nominative plural, so -e.",
-			"voc_pl": "Soft masculine inanimates take -e in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Soft masculine inanimates take -e in vocative plural.",
 			"loc_pl": "Soft masculine inanimates take -ích in locative plural (e.g. strojích).",
 			"ins_pl": "Soft masculine inanimates take -i in instrumental plural (e.g. stroji)."
 		}
@@ -63,7 +63,7 @@
 			"gen_pl": "Hard masculine animates take -ů in genitive plural (e.g. pánů).",
 			"dat_pl": "Hard masculine animates take -ům in dative plural (e.g. pánům).",
 			"acc_pl": "Hard masculine animates take -y in accusative plural (e.g. pány).",
-			"voc_pl": "Hard masculine animates take -i or -ové in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Hard masculine animates take -i or -ové in vocative plural.",
 			"loc_pl": "Hard masculine animates take -ech in locative plural (e.g. pánech), sometimes -ích.",
 			"ins_pl": "Hard masculine animates take -y in instrumental plural (e.g. pány)."
 		}
@@ -86,7 +86,7 @@
 			"gen_pl": "Soft masculine animates take -ů in genitive plural (e.g. mužů).",
 			"dat_pl": "Soft masculine animates take -ům in dative plural (e.g. mužům).",
 			"acc_pl": "Soft masculine animates take -e in accusative plural (e.g. muže).",
-			"voc_pl": "Soft masculine animates take -i or -ové in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Soft masculine animates take -i or -ové in vocative plural.",
 			"loc_pl": "Soft masculine animates take -ích in locative plural (e.g. mužích).",
 			"ins_pl": "Soft masculine animates take -i in instrumental plural (e.g. muži)."
 		}
@@ -109,7 +109,7 @@
 			"gen_pl": "Masculine -a stem animates take -ů in genitive plural (e.g. předsedů).",
 			"dat_pl": "Masculine -a stem animates take -ům in dative plural (e.g. předsedům).",
 			"acc_pl": "Masculine -a stem animates take -y in accusative plural (e.g. předsedy).",
-			"voc_pl": "Masculine -a stem animates take -ové in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Masculine -a stem animates take -ové in vocative plural.",
 			"loc_pl": "Masculine -a stem animates take -ech in locative plural (e.g. předsedech).",
 			"ins_pl": "Masculine -a stem animates take -y in instrumental plural (e.g. předsedy)."
 		}
@@ -132,7 +132,7 @@
 			"gen_pl": "Hard feminine -a nouns have a zero ending or take an epenthetic -e- in genitive plural (e.g. žen).",
 			"dat_pl": "Hard feminine -a nouns take -ám in dative plural (e.g. ženám).",
 			"acc_pl": "Hard feminine -a nouns take -y in accusative plural (e.g. ženy).",
-			"voc_pl": "Hard feminine -a nouns take -y in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Hard feminine -a nouns take -y in vocative plural.",
 			"loc_pl": "Hard feminine -a nouns take -ách in locative plural (e.g. ženách).",
 			"ins_pl": "Hard feminine -a nouns take -ami in instrumental plural (e.g. ženami)."
 		}
@@ -148,16 +148,39 @@
 			"gen_sg": "Soft feminine -e nouns take -e in genitive singular (e.g. růže).",
 			"dat_sg": "Soft feminine -e nouns take -i in dative singular (e.g. růži).",
 			"acc_sg": "Soft feminine -e nouns take -i in accusative singular (e.g. růži).",
-			"voc_sg": "Soft feminine -e nouns take -e in vocative singular (e.g. růže), same as nominative.",
+			"voc_sg": "Soft feminine -e nouns keep the same form in vocative singular as nominative (e.g. růže). The vocative is identical to the nominative for this paradigm.",
 			"loc_sg": "Soft feminine -e nouns take -i in locative singular (e.g. růži).",
 			"ins_sg": "Soft feminine -e nouns take -í in instrumental singular (e.g. růží).",
 			"nom_pl": "Soft feminine -e nouns take -e in nominative plural (e.g. růže).",
 			"gen_pl": "Soft feminine -e nouns take -í in genitive plural (e.g. růží).",
 			"dat_pl": "Soft feminine -e nouns take -ím in dative plural (e.g. růžím).",
 			"acc_pl": "Soft feminine -e nouns take -e in accusative plural (e.g. růže).",
-			"voc_pl": "Soft feminine -e nouns take -e in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Soft feminine -e nouns take -e in vocative plural.",
 			"loc_pl": "Soft feminine -e nouns take -ích in locative plural (e.g. růžích).",
 			"ins_pl": "Soft feminine -e nouns take -emi in instrumental plural (e.g. růžemi)."
+		}
+	},
+	{
+		"id": "píseň",
+		"name": "Soft feminine consonant stem (ň-type)",
+		"gender": "f",
+		"animate": false,
+		"exampleLemma": "píseň",
+		"whyNotes": {
+			"nom_sg": "Soft feminine ň-stem nouns have a zero ending (consonant) in nominative singular (e.g. píseň).",
+			"gen_sg": "Soft feminine ň-stem nouns take -ě/-e in genitive singular (e.g. písně).",
+			"dat_sg": "Soft feminine ň-stem nouns take -i in dative singular (e.g. písni).",
+			"acc_sg": "Soft feminine ň-stem nouns have a zero ending in accusative singular (acc = nom, e.g. píseň).",
+			"voc_sg": "Soft feminine ň-stem nouns take -i in vocative singular (e.g. písni).",
+			"loc_sg": "Soft feminine ň-stem nouns take -i in locative singular (e.g. písni).",
+			"ins_sg": "Soft feminine ň-stem nouns take -í in instrumental singular (e.g. písní).",
+			"nom_pl": "Soft feminine ň-stem nouns take -ě/-e in nominative plural (e.g. písně).",
+			"gen_pl": "Soft feminine ň-stem nouns take -í in genitive plural (e.g. písní).",
+			"dat_pl": "Soft feminine ň-stem nouns take -ím in dative plural (e.g. písním).",
+			"acc_pl": "Soft feminine ň-stem nouns take -ě/-e in accusative plural (e.g. písně).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Soft feminine ň-stem nouns take -ě/-e in vocative plural.",
+			"loc_pl": "Soft feminine ň-stem nouns take -ích in locative plural (e.g. písních).",
+			"ins_pl": "Soft feminine ň-stem nouns take -ěmi in instrumental plural (e.g. písněmi)."
 		}
 	},
 	{
@@ -171,14 +194,14 @@
 			"gen_sg": "Feminine -i stem nouns take -i in genitive singular (e.g. kosti).",
 			"dat_sg": "Feminine -i stem nouns take -i in dative singular (e.g. kosti).",
 			"acc_sg": "Feminine -i stem nouns have a zero ending in accusative singular (acc = nom, e.g. kost).",
-			"voc_sg": "Feminine -i stem nouns take -i in vocative singular (e.g. kosti).",
+			"voc_sg": "Feminine -i stem nouns take -i in vocative singular (e.g. kosti). Note that the vocative is identical to the genitive for this paradigm (both end in -i).",
 			"loc_sg": "Feminine -i stem nouns take -i in locative singular (e.g. kosti).",
 			"ins_sg": "Feminine -i stem nouns take -í in instrumental singular (e.g. kostí).",
 			"nom_pl": "Feminine -i stem nouns take -i in nominative plural (e.g. kosti).",
 			"gen_pl": "Feminine -i stem nouns take -í in genitive plural (e.g. kostí).",
 			"dat_pl": "Feminine -i stem nouns take -em in dative plural (e.g. kostem).",
 			"acc_pl": "Feminine -i stem nouns take -i in accusative plural (e.g. kosti).",
-			"voc_pl": "Feminine -i stem nouns take -i in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Feminine -i stem nouns take -i in vocative plural.",
 			"loc_pl": "Feminine -i stem nouns take -ech in locative plural (e.g. kostech).",
 			"ins_pl": "Feminine -i stem nouns take -mi in instrumental plural (e.g. kostmi), sometimes -emi."
 		}
@@ -194,14 +217,14 @@
 			"gen_sg": "Hard neuter -o nouns take -a in genitive singular (e.g. města).",
 			"dat_sg": "Hard neuter -o nouns take -u in dative singular (e.g. městu).",
 			"acc_sg": "Hard neuter -o nouns end in -o in accusative singular (acc = nom, e.g. město).",
-			"voc_sg": "Hard neuter -o nouns end in -o in vocative singular (voc = nom, e.g. město).",
+			"voc_sg": "Hard neuter -o nouns keep the same form in vocative singular as nominative (e.g. město). Neuter nouns don't change in the vocative.",
 			"loc_sg": "Hard neuter -o nouns take -ě or -u in locative singular (e.g. městě), with possible consonant alternation (k>c, h>z, r>ř).",
 			"ins_sg": "Hard neuter -o nouns take -em in instrumental singular (e.g. městem).",
 			"nom_pl": "Hard neuter -o nouns take -a in nominative plural (e.g. města).",
 			"gen_pl": "Hard neuter -o nouns have a zero ending in genitive plural (e.g. měst), sometimes with epenthetic vowel.",
 			"dat_pl": "Hard neuter -o nouns take -ům in dative plural (e.g. městům).",
 			"acc_pl": "Hard neuter -o nouns take -a in accusative plural (acc = nom plural, e.g. města).",
-			"voc_pl": "Hard neuter -o nouns take -a in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Hard neuter -o nouns take -a in vocative plural.",
 			"loc_pl": "Hard neuter -o nouns take -ech in locative plural (e.g. městech), sometimes -ích.",
 			"ins_pl": "Hard neuter -o nouns take -y in instrumental plural (e.g. městy)."
 		}
@@ -217,14 +240,14 @@
 			"gen_sg": "Soft neuter -e nouns take -e in genitive singular (e.g. moře).",
 			"dat_sg": "Soft neuter -e nouns take -i in dative singular (e.g. moři).",
 			"acc_sg": "Soft neuter -e nouns end in -e in accusative singular (acc = nom, e.g. moře).",
-			"voc_sg": "Soft neuter -e nouns end in -e in vocative singular (voc = nom, e.g. moře).",
+			"voc_sg": "Soft neuter -e nouns keep the same form in vocative singular as nominative (e.g. moře). Neuter nouns don't change in the vocative.",
 			"loc_sg": "Soft neuter -e nouns take -i in locative singular (e.g. moři).",
 			"ins_sg": "Soft neuter -e nouns take -em in instrumental singular (e.g. mořem).",
 			"nom_pl": "Soft neuter -e nouns take -e in nominative plural (e.g. moře).",
 			"gen_pl": "Soft neuter -e nouns take -í in genitive plural (e.g. moří).",
 			"dat_pl": "Soft neuter -e nouns take -ím in dative plural (e.g. mořím).",
 			"acc_pl": "Soft neuter -e nouns take -e in accusative plural (acc = nom plural, e.g. moře).",
-			"voc_pl": "Soft neuter -e nouns take -e in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Soft neuter -e nouns take -e in vocative plural.",
 			"loc_pl": "Soft neuter -e nouns take -ích in locative plural (e.g. mořích).",
 			"ins_pl": "Soft neuter -e nouns take -i in instrumental plural (e.g. moři)."
 		}
@@ -240,14 +263,14 @@
 			"gen_sg": "Neuter t-stem nouns take -ete in genitive singular, extending the stem with -et- (e.g. kuřete).",
 			"dat_sg": "Neuter t-stem nouns take -eti in dative singular, with the -et- stem extension (e.g. kuřeti).",
 			"acc_sg": "Neuter t-stem nouns end in -e in accusative singular (acc = nom, e.g. kuře).",
-			"voc_sg": "Neuter t-stem nouns end in -e in vocative singular (voc = nom, e.g. kuře).",
+			"voc_sg": "Neuter t-stem nouns keep the same form in vocative singular as nominative (e.g. kuře). Neuter nouns don't change in the vocative.",
 			"loc_sg": "Neuter t-stem nouns take -eti in locative singular, with the -et- stem extension (e.g. kuřeti).",
 			"ins_sg": "Neuter t-stem nouns take -etem in instrumental singular, with the -et- stem extension (e.g. kuřetem).",
 			"nom_pl": "Neuter t-stem nouns take -ata in nominative plural (e.g. kuřata).",
 			"gen_pl": "Neuter t-stem nouns take -at in genitive plural (e.g. kuřat).",
 			"dat_pl": "Neuter t-stem nouns take -atům in dative plural (e.g. kuřatům).",
 			"acc_pl": "Neuter t-stem nouns take -ata in accusative plural (acc = nom plural, e.g. kuřata).",
-			"voc_pl": "Neuter t-stem nouns take -ata in vocative plural (same as nominative plural).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Neuter t-stem nouns take -ata in vocative plural.",
 			"loc_pl": "Neuter t-stem nouns take -atech in locative plural (e.g. kuřatech).",
 			"ins_pl": "Neuter t-stem nouns take -aty in instrumental plural (e.g. kuřaty)."
 		}
@@ -263,14 +286,14 @@
 			"gen_sg": "Neuter -í stem nouns keep -í in genitive singular (e.g. stavení), all singular forms are identical.",
 			"dat_sg": "Neuter -í stem nouns keep -í in dative singular (e.g. stavení), all singular forms are identical.",
 			"acc_sg": "Neuter -í stem nouns keep -í in accusative singular (e.g. stavení), all singular forms are identical.",
-			"voc_sg": "Neuter -í stem nouns keep -í in vocative singular (e.g. stavení), all singular forms are identical.",
+			"voc_sg": "Neuter -í stem nouns keep the same form in vocative singular as nominative (e.g. stavení). Neuter nouns don't change in the vocative.",
 			"loc_sg": "Neuter -í stem nouns keep -í in locative singular (e.g. stavení), all singular forms are identical.",
 			"ins_sg": "Neuter -í stem nouns take -ím in instrumental singular (e.g. stavením).",
 			"nom_pl": "Neuter -í stem nouns keep -í in nominative plural (e.g. stavení), singular and plural are identical.",
 			"gen_pl": "Neuter -í stem nouns keep -í in genitive plural (e.g. stavení).",
 			"dat_pl": "Neuter -í stem nouns take -ím in dative plural (e.g. stavením).",
 			"acc_pl": "Neuter -í stem nouns keep -í in accusative plural (e.g. stavení).",
-			"voc_pl": "Neuter -í stem nouns keep -í in vocative plural (e.g. stavení).",
+			"voc_pl": "The vocative plural is always identical to the nominative plural. Neuter -í stem nouns keep -í in vocative plural (e.g. stavení).",
 			"loc_pl": "Neuter -í stem nouns take -ích in locative plural (e.g. staveních).",
 			"ins_pl": "Neuter -í stem nouns take -ími in instrumental plural (e.g. staveními)."
 		}

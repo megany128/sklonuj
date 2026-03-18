@@ -104,6 +104,7 @@ export interface WordEntry {
 	paradigm: Paradigm;
 	difficulty: Difficulty;
 	categories: string[];
+	pluralOnly?: boolean;
 	forms: {
 		sg: CaseForms;
 		pl: CaseForms;
@@ -122,6 +123,7 @@ export interface SentenceTemplate {
 	requiredCase: Case;
 	number: Number_;
 	trigger: string;
+	requiredGender?: Gender;
 	why: string;
 	difficulty: Difficulty;
 }
@@ -140,6 +142,7 @@ export interface DrillResult {
 	userAnswer: string;
 	correct: boolean;
 	nearMiss: boolean;
+	accidentalCase?: { case: Case; number: Number_ };
 }
 
 export interface DrillSettings {

@@ -366,11 +366,14 @@
 					drillSettings = { ...drillSettings, numberMode: 'sg' };
 					saveSettingsToStorage(drillSettings);
 				}
-				// Sync word difficulty with book
+				// Set CEFR level based on chapter position (use setLevel directly
+				// to avoid double generateNextQuestion call)
+				const chIdx = kzkChapters[book].chapters.findIndex((ch) => ch.id === chapterId);
 				if (book === 'kzk1') {
-					handleLevelChange('A2'); // KzK 1 = A1+A2
+					// KzK1 L1-13 = A1, L14+ = A2
+					setLevel(chIdx >= 13 ? 'A2' : 'A1');
 				} else if (book === 'kzk2') {
-					handleLevelChange('B1'); // KzK 2 = A1+A2+B1
+					setLevel('B1');
 				}
 			}
 		} else {
@@ -422,6 +425,7 @@
 	// Settings expanded state
 	let settingsExpanded = $state(false);
 	let caseFilterExpanded = $state(false);
+	let chapterPickerOpen = $state(false);
 	let practicingMistakes = $state(false);
 	let lastMistakeIndex = $state(-1);
 	let lastTemplateId: string | null = null;
@@ -512,6 +516,15 @@
 				if (!chapter.pluralUnlocked) {
 					drillSettings = { ...drillSettings, numberMode: 'sg' };
 				}
+				// Set CEFR level to match the chapter position
+				const chIdx = kzkChapters[chapterBook].chapters.findIndex(
+					(ch) => ch.id === chapterSelection
+				);
+				if (chapterBook === 'kzk1') {
+					setLevel(chIdx >= 13 ? 'A2' : 'A1');
+				} else if (chapterBook === 'kzk2') {
+					setLevel('B1');
+				}
 			}
 		}
 
@@ -586,8 +599,13 @@
 		let allowed = drillSettings.selectedDrillTypes;
 		if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
 			allowed = allowed.filter((dt) => dt !== 'case_identification');
-			if (allowed.length === 0) allowed = ['form_production'];
 		}
+		// No form_production when only nominative is enabled — nom→nom is trivial
+		const nonNomCases = effectiveEnabledCases.filter((c) => c !== 'nom');
+		if (nonNomCases.length === 0) {
+			allowed = allowed.filter((dt) => dt !== 'form_production');
+		}
+		if (allowed.length === 0) allowed = ['sentence_fill_in'];
 
 		if (allowed.length === 1) return allowed[0];
 
@@ -774,41 +792,8 @@
 				if (nonNomCases.length > 0) {
 					fpCase = nonNomCases[Math.floor(Math.random() * nonNomCases.length)];
 				} else {
-					// Only nominative is enabled — use sentence_fill_in instead
-					const templates = loadTemplates();
-					const nomTemplates = templates.filter(
-						(t) =>
-							t.requiredCase === 'nom' &&
-							matchesNumberMode(t.number) &&
-							unlockedDifficulties.includes(t.difficulty)
-					);
-					if (nomTemplates.length > 0) {
-						const tmpl = pickTemplate(nomTemplates);
-						const candidates = (
-							isChapterMode ? getCandidates(tmpl, prog) : getCandidates(tmpl, prog)
-						).filter((w) => hasValidForm(w, 'nom', tmpl.number));
-
-						let word: WordEntry | null = null;
-						if (candidates.length > 0) {
-							word = weightedRandom(candidates, prog, 'nom', tmpl.number);
-						} else if (isChapterMode) {
-							word = pickWordForChapter(eligibleWords, prog, 'nom', tmpl.number);
-						}
-						if (word) {
-							const generated = generateSentenceDrill(tmpl, word);
-							question = generated;
-							lastResult = null;
-							paradigmNotes = null;
-							submitted = false;
-							lastTemplateId = generated ? generated.template.id : null;
-							if (advanceTimer !== null) {
-								clearTimeout(advanceTimer);
-								advanceTimer = null;
-							}
-							if (generated) autoPlayPrompt(generated);
-							return;
-						}
-					}
+					// Only nominative is enabled — no meaningful declension drills possible.
+					// Show nothing rather than trivial nom→nom exercises.
 					question = null;
 					return;
 				}
@@ -835,18 +820,30 @@
 			);
 
 			if (eligibleTemplates.length === 0) {
+				// Fallback to form_production — but skip nom (trivial nom→nom)
+				let fallbackCase = case_;
+				if (fallbackCase === 'nom') {
+					const nonNom = effectiveEnabledCases.filter((c) => c !== 'nom');
+					if (nonNom.length > 0) {
+						fallbackCase = nonNom[Math.floor(Math.random() * nonNom.length)];
+					} else {
+						question = null;
+						return;
+					}
+				}
 				let word: WordEntry | null;
 				if (isChapterMode) {
-					word = pickWordForChapter(eligibleWords, prog, case_, number_);
+					word = pickWordForChapter(eligibleWords, prog, fallbackCase, number_);
 				} else {
-					const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-					word = validWords.length > 0 ? weightedRandom(validWords, prog, case_, number_) : null;
+					const validWords = eligibleWords.filter((w) => hasValidForm(w, fallbackCase, number_));
+					word =
+						validWords.length > 0 ? weightedRandom(validWords, prog, fallbackCase, number_) : null;
 				}
 				if (!word) {
 					question = null;
 					return;
 				}
-				question = generateFormProduction(word, case_, number_);
+				question = generateFormProduction(word, fallbackCase, number_);
 			} else {
 				const template = pickTemplate(eligibleTemplates);
 
@@ -921,6 +918,10 @@
 					const hasCoreWords = coreCurrent.length > 0 || corePrevious.length > 0;
 					let picked: WordEntry;
 
+					// Before chapter 13, only use chapter words — don't leak general pool words
+					const chIdx = getChapterIndex();
+					const allowGeneral = chIdx >= 12; // 0-indexed, so 12 = chapter 13
+
 					if (hasCoreWords && Math.random() < 0.7) {
 						if (Math.random() < 0.75 && coreCurrent.length > 0) {
 							picked = weightedRandom(coreCurrent, prog, template.requiredCase, template.number);
@@ -929,8 +930,45 @@
 						} else {
 							picked = weightedRandom(coreCurrent, prog, template.requiredCase, template.number);
 						}
-					} else if (general.length > 0) {
+					} else if (hasCoreWords) {
+						// 30% chance we still pick from chapter words instead of general
+						const allCore = [...coreCurrent, ...corePrevious];
+						picked = weightedRandom(allCore, prog, template.requiredCase, template.number);
+					} else if (allowGeneral && general.length > 0) {
 						picked = weightedRandom(general, prog, template.requiredCase, template.number);
+					} else if (!allowGeneral) {
+						// Early chapter, no chapter words match this template — use the
+						// template with a chapter word directly (sentence fill-in is still
+						// valid even when the word's category doesn't perfectly match).
+						const word = pickWordForChapter(
+							eligibleWords,
+							prog,
+							template.requiredCase,
+							template.number
+						);
+						if (!word) {
+							question = null;
+							return;
+						}
+						if (drillType === 'case_identification') {
+							question = generateCaseIdentification(template, word);
+						} else {
+							question = generateSentenceDrill(template, word);
+						}
+						if (!question) {
+							question = null;
+							return;
+						}
+						lastResult = null;
+						paradigmNotes = null;
+						submitted = false;
+						lastTemplateId = question.template.id;
+						if (advanceTimer !== null) {
+							clearTimeout(advanceTimer);
+							advanceTimer = null;
+						}
+						autoPlayPrompt(question);
+						return;
 					} else {
 						picked = weightedRandom(baseCandidates, prog, template.requiredCase, template.number);
 					}
@@ -946,13 +984,24 @@
 					);
 
 					if (candidates.length === 0) {
-						const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+						// Fallback to form_production — skip nom→nom (trivial)
+						let fbCase2 = case_;
+						if (fbCase2 === 'nom') {
+							const nonNom = effectiveEnabledCases.filter((c) => c !== 'nom');
+							if (nonNom.length > 0) {
+								fbCase2 = nonNom[Math.floor(Math.random() * nonNom.length)];
+							} else {
+								question = null;
+								return;
+							}
+						}
+						const validWords = eligibleWords.filter((w) => hasValidForm(w, fbCase2, number_));
 						if (validWords.length === 0) {
 							question = null;
 							return;
 						}
-						const word = weightedRandom(validWords, prog, case_, number_);
-						question = generateFormProduction(word, case_, number_);
+						const word = weightedRandom(validWords, prog, fbCase2, number_);
+						question = generateFormProduction(word, fbCase2, number_);
 					} else {
 						const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
 
@@ -1259,10 +1308,20 @@
 <svelte:window
 	onkeydown={(e) => {
 		if (e.key === 'Escape') {
-			if (authModalOpen) {
+			if (chapterPickerOpen) {
+				chapterPickerOpen = false;
+			} else if (authModalOpen) {
 				authModalOpen = false;
 			} else if (refSidebarOpen) {
 				refSidebarOpen = false;
+			}
+		}
+	}}
+	onclick={(e) => {
+		if (chapterPickerOpen) {
+			const target = e.target as HTMLElement;
+			if (!target.closest('[aria-haspopup="listbox"], [role="listbox"]')) {
+				chapterPickerOpen = false;
 			}
 		}
 	}}
@@ -1366,106 +1425,163 @@
 			{/if}
 
 			<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings -->
-			<div class="relative mb-2 flex items-center">
-				{#if chapterBook !== null}
-					{@const kzkChapter = getSelectedKzkChapter()}
-					{#if kzkChapter}
-						<div class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2.5">
-							<button
-								onclick={() => handleChapterStep('prev')}
-								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-								aria-label="Previous chapter"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
+			<div class="relative z-30 mb-2 grid grid-cols-[1fr_auto_1fr] items-center">
+				<div></div>
+				<div class="flex min-w-0 justify-center">
+					{#if chapterBook !== null}
+						{@const kzkChapter = getSelectedKzkChapter()}
+						{#if kzkChapter}
+							<div class="flex min-w-0 items-center gap-2.5">
+								<button
+									onclick={() => handleChapterStep('prev')}
+									class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+									aria-label="Previous chapter"
 								>
-									<path
-										fill-rule="evenodd"
-										d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-							</button>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+										class="h-4 w-4"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+								</button>
 
-							<div class="flex flex-col items-center gap-0.5">
-								<span class="text-base font-semibold leading-tight text-text-default">
-									{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
-								</span>
-								<div class="flex flex-wrap items-center justify-center gap-1">
-									{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
+								<div class="relative flex min-w-0 flex-col items-center gap-0.5">
+									<button
+										type="button"
+										onclick={() => (chapterPickerOpen = !chapterPickerOpen)}
+										class="flex items-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
+										aria-expanded={chapterPickerOpen}
+										aria-haspopup="listbox"
+									>
+										<span class="truncate text-base font-semibold leading-tight text-text-default">
+											{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
+										</span>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											class="h-3.5 w-3.5 shrink-0 text-text-subtitle transition-transform duration-200 {chapterPickerOpen
+												? 'rotate-180'
+												: ''}"
+										>
+											<path
+												fill-rule="evenodd"
+												d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+												clip-rule="evenodd"
+											/>
+										</svg>
+									</button>
+									{#if chapterPickerOpen}
+										<div
+											class="fixed left-2 right-2 z-50 max-h-72 overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-1.5 shadow-lg sm:absolute sm:left-1/2 sm:right-auto sm:top-full sm:mt-1 sm:w-80 sm:-translate-x-1/2"
+											role="listbox"
+											tabindex="-1"
+											aria-label="Select chapter"
+											onkeydown={(e) => {
+												if (e.key === 'Escape') chapterPickerOpen = false;
+											}}
+										>
+											{#each kzkChapters[chapterBook].chapters as ch (ch.id)}
+												<button
+													type="button"
+													role="option"
+													aria-selected={ch.id === chapterSelection}
+													onclick={() => {
+														handleChapterChange(chapterBook, ch.id);
+														chapterPickerOpen = false;
+													}}
+													class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors {ch.id ===
+													chapterSelection
+														? 'bg-shaded-background font-semibold text-text-default'
+														: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
+												>
+													<span class="shrink-0 font-semibold">{ch.label}</span>
+													{#if ch.subtitle}
+														<span class="truncate text-xs text-text-subtitle">{ch.subtitle}</span>
+													{/if}
+												</button>
+											{/each}
+										</div>
+									{/if}
+									<div class="flex flex-wrap items-center justify-center gap-1">
+										{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
+											<span
+												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
+											>
+												All cases
+											</span>
+										{:else}
+											{#each kzkChapter.unlockedCases as c (c)}
+												<span
+													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
+													style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
+												>
+													{CASE_SHORT_LABELS[c]}
+												</span>
+											{/each}
+										{/if}
 										<span
 											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
 										>
-											All cases
+											{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
 										</span>
-									{:else}
-										{#each kzkChapter.unlockedCases as c (c)}
-											<span
-												class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
-												style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
-											>
-												{CASE_SHORT_LABELS[c]}
-											</span>
-										{/each}
-									{/if}
-									<span
-										class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
-									>
-										{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
-									</span>
+									</div>
 								</div>
-							</div>
 
-							<button
-								onclick={() => handleChapterStep('next')}
-								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-								aria-label="Next chapter"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
+								<button
+									onclick={() => handleChapterStep('next')}
+									class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+									aria-label="Next chapter"
 								>
-									<path
-										fill-rule="evenodd"
-										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-							</button>
-						</div>
-					{/if}
-				{/if}
-				{#if chapterBook === null && selectedCase === 'all'}
-					<button
-						onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
-						class="absolute left-1/2 inline-flex min-h-[44px] -translate-x-1/2 items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
-					>
-						Filter cases
-						{#if enabledCases.length < ALL_CASES.length}
-							<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+										class="h-4 w-4"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+								</button>
+							</div>
 						{/if}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
-								? 'rotate-180'
-								: ''}"
+					{/if}
+					{#if chapterBook === null && selectedCase === 'all'}
+						<button
+							onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
+							class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
 						>
-							<path
-								fill-rule="evenodd"
-								d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-					</button>
-				{/if}
-				<div class="ml-auto flex items-center gap-2">
+							Filter cases
+							{#if enabledCases.length < ALL_CASES.length}
+								<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
+							{/if}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
+									? 'rotate-180'
+									: ''}"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						</button>
+					{/if}
+				</div>
+				<div class="flex items-center justify-end gap-2">
 					{#if relevantMistakeCount > 0}
 						<button
 							type="button"

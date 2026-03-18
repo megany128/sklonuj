@@ -217,6 +217,7 @@
 		předseda: 'předseda',
 		žena: 'žena',
 		růže: 'růže',
+		píseň: 'píseň',
 		kost: 'kost',
 		město: 'město',
 		moře: 'moře',
@@ -241,7 +242,7 @@
 	const GENDER_GROUP_ORDER = ['Masculine', 'Feminine', 'Neuter'] as const;
 	const GENDER_GROUP_IDS: Record<string, string[]> = {
 		Masculine: ['hrad', 'stroj', 'pán', 'muž', 'předseda'],
-		Feminine: ['žena', 'růže', 'kost'],
+		Feminine: ['žena', 'růže', 'píseň', 'kost'],
 		Neuter: ['město', 'moře', 'kuře', 'stavení']
 	};
 

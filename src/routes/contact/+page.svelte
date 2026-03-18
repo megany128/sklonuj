@@ -87,9 +87,9 @@
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Feedback & Contact</h1>
 			<p class="mt-1 text-sm text-darker-subtitle">
-				My name is Megan and I'm the creator of Skloňuj! I've been learning Czech because of my
-				boyfriend, but declensions have been the bane of my existence. If you have ideas to make
-				this better, I'd love to hear them.
+				My name is Megan and I'm learning Czech because of my boyfriend! Declensions have been the
+				bane of my existence, and so I created Skloňuj to make studying them easier. If you have
+				ideas to make this better, I'd love to hear them.
 			</p>
 		</div>
 

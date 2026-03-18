@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Case, DrillType } from '$lib/types';
+	import type { Case, DrillType, Number_ } from '$lib/types';
 	import { CASE_COLORS, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import DottedUnderline from './DottedUnderline.svelte';
 	import PrepositionHint from './PrepositionHint.svelte';
@@ -12,6 +12,8 @@
 		case_,
 		drillType,
 		nearMiss = false,
+		accidentalCase = undefined,
+		questionNumber = undefined,
 		templateWhy,
 		whyNote,
 		trigger = undefined,
@@ -25,6 +27,8 @@
 		case_: Case;
 		drillType: DrillType;
 		nearMiss?: boolean;
+		accidentalCase?: { case: Case; number: Number_ };
+		questionNumber?: Number_;
 		templateWhy?: string | null;
 		whyNote?: string | null;
 		trigger?: string;
@@ -137,6 +141,20 @@
 
 	{#if nearMiss}
 		<p class="text-sm font-semibold text-warning-text">Almost! Check your diacritics.</p>
+	{/if}
+
+	{#if accidentalCase}
+		<p class="text-sm text-text-subtitle">
+			You typed the <span class="font-semibold {CASE_COLORS[accidentalCase.case].text}"
+				>{CASE_NUMBER[accidentalCase.case]}. {CASE_LABELS[
+					accidentalCase.case
+				]}{accidentalCase.number !== questionNumber
+					? accidentalCase.number === 'pl'
+						? ' (plural)'
+						: ' (singular)'
+					: ''}</span
+			> form instead.
+		</p>
 	{/if}
 
 	{#if hasWhy}

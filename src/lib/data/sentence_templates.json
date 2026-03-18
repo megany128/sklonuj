@@ -41,7 +41,7 @@
 	},
 	{
 		"id": "gen_z_012",
-		"template": "Přijel jsem z ___.",
+		"template": "Jedu z ___.",
 		"lemmaCategory": "places",
 		"requiredCase": "gen",
 		"number": "sg",
@@ -51,7 +51,7 @@
 	},
 	{
 		"id": "gen_od_013",
-		"template": "Dostal jsem dopis od ___.",
+		"template": "Mám dopis od ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "gen",
@@ -62,7 +62,7 @@
 	},
 	{
 		"id": "gen_bez_014",
-		"template": "Nepiju kávu bez ___.",
+		"template": "Nedám si to bez ___.",
 		"lemmaCategory": "food",
 		"requiredCase": "gen",
 		"number": "sg",
@@ -92,7 +92,7 @@
 	},
 	{
 		"id": "gen_kolem_017",
-		"template": "Šel jsem kolem ___.",
+		"template": "Jdu kolem ___.",
 		"lemmaCategory": "nature",
 		"requiredCase": "gen",
 		"number": "sg",
@@ -102,7 +102,7 @@
 	},
 	{
 		"id": "gen_podle_018",
-		"template": "Podle ___ je to správně.",
+		"template": "Podle ___ to je dobře.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "gen",
@@ -118,7 +118,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "do",
-		"why": "'Do' (to/back to) always takes the genitive case when expressing direction.",
+		"why": "'Do' (to/back to) always takes the genitive case.",
 		"difficulty": "A1"
 	},
 	{
@@ -534,10 +534,11 @@
 		"id": "ins_byt_050",
 		"template": "Chci být ___.",
 		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Být' (to be) takes the instrumental case when expressing profession or identity.",
+		"why": "'Být' (to be) takes the instrumental case when expressing profession or identity in formal/written Czech. In colloquial Czech, the nominative is sometimes used instead.",
 		"difficulty": "B1"
 	},
 	{
@@ -878,7 +879,7 @@
 	},
 	{
 		"id": "gen_od_084",
-		"template": "Slyšel jsem to od ___.",
+		"template": "Vím to od ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "gen",
 		"number": "pl",
@@ -928,7 +929,7 @@
 	},
 	{
 		"id": "dat_kvuli_089",
-		"template": "Přišel jsem kvůli ___.",
+		"template": "Jsem tady kvůli ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "dat",
 		"number": "sg",
@@ -1258,7 +1259,20 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "In letter greetings ('Dear ...'), Czech uses the vocative case for the addressee.",
+		"requiredGender": "m",
+		"why": "In letter greetings ('Dear ...'), Czech uses the vocative case for the addressee. 'Milý' is the masculine form.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_milá_121b",
+		"template": "Milá ___,",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"requiredGender": "f",
+		"why": "In letter greetings ('Dear ...'), Czech uses the vocative case for the addressee. 'Milá' is the feminine form.",
 		"difficulty": "A2"
 	},
 	{
@@ -1373,7 +1387,7 @@
 		"number": "sg",
 		"trigger": "při",
 		"why": "'Při' (during) always takes the locative case.",
-		"difficulty": "B1"
+		"difficulty": "A2"
 	},
 	{
 		"id": "loc_o_133",
@@ -1456,16 +1470,6 @@
 		"trigger": "o",
 		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
 		"difficulty": "A2"
-	},
-	{
-		"id": "ins_stat_141",
-		"template": "Stal se ___.",
-		"lemmaCategory": "people",
-		"requiredCase": "ins",
-		"number": "sg",
-		"trigger": "",
-		"why": "'Stát se' (to become) takes the instrumental case for the new identity or profession.",
-		"difficulty": "B1"
 	},
 	{
 		"id": "ins_s_142",
@@ -1581,7 +1585,7 @@
 	},
 	{
 		"id": "gen_od_153",
-		"template": "Daleko od ___.",
+		"template": "Bydlím daleko od ___.",
 		"lemmaCategory": "places",
 		"requiredCase": "gen",
 		"number": "sg",
@@ -1744,12 +1748,12 @@
 	},
 	{
 		"id": "ins_za_169",
-		"template": "Schoval se za ___.",
+		"template": "Je schovaný za ___.",
 		"lemmaCategory": "objects",
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "za",
-		"why": "'Za' (behind) takes the instrumental case when expressing location.",
+		"why": "'Za' (behind) takes the instrumental case when expressing static location.",
 		"difficulty": "A2"
 	},
 	{
@@ -1813,23 +1817,143 @@
 		"difficulty": "A2"
 	},
 	{
-		"id": "gen_od_176",
+		"id": "nom_to_176",
+		"template": "To je ___.",
+		"lemmaCategory": "people",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_tady_177",
+		"template": "___ je tady.",
+		"lemmaCategory": "people",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "The subject of 'být' (to be) takes the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_kde_178",
+		"template": "Kde je ___?",
+		"lemmaCategory": "people",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "The subject of 'být' (to be) stays in the nominative case, even in questions.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_179",
+		"template": "To jsou ___.",
+		"lemmaCategory": "people",
+		"requiredCase": "nom",
+		"number": "pl",
+		"trigger": "",
+		"why": "After 'to jsou' (these are), the noun stays in the nominative case (plural).",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_180",
+		"template": "To je ___.",
+		"lemmaCategory": "places",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_182",
+		"template": "To jsou ___.",
+		"lemmaCategory": "clothing",
+		"requiredCase": "nom",
+		"number": "pl",
+		"trigger": "",
+		"why": "After 'to jsou' (these are), the noun stays in the nominative case (plural).",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_kde_183",
+		"template": "Kde jsou ___?",
+		"lemmaCategory": "clothing",
+		"requiredCase": "nom",
+		"number": "pl",
+		"trigger": "",
+		"why": "The subject of 'být' (to be) stays in the nominative case, even in questions.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_184",
+		"template": "To je ___.",
+		"lemmaCategory": "profession",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_tady_185",
+		"template": "___ je tady.",
+		"lemmaCategory": "profession",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "The subject of 'být' (to be) takes the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_186",
+		"template": "To je ___.",
+		"lemmaCategory": "readable",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_187",
+		"template": "To je ___.",
+		"lemmaCategory": "travel",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_188",
+		"template": "To je ___.",
+		"lemmaCategory": "meal",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "nom_to_189",
+		"template": "To je ___.",
+		"lemmaCategory": "event",
+		"requiredCase": "nom",
+		"number": "sg",
+		"trigger": "",
+		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "gen_od_181",
 		"template": "Mám klíče od ___.",
-		"lemmaCategory": "objects",
+		"lemmaCategory": "places",
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "od",
 		"why": "'Od' (of/from) always takes the genitive case to express belonging.",
-		"difficulty": "A2"
-	},
-	{
-		"id": "gen_nemam_180",
-		"template": "Nemám ___.",
-		"lemmaCategory": "misc",
-		"requiredCase": "gen",
-		"number": "sg",
-		"trigger": "",
-		"why": "In formal Czech, the direct object of a negated verb can take the genitive case instead of accusative.",
 		"difficulty": "A2"
 	},
 	{
@@ -1839,7 +1963,19 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "Time duration expressions take the accusative case.",
+		"requiredGender": "f",
+		"why": "Time duration expressions take the accusative case. 'Celou' is the feminine accusative form of 'whole'.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_cely_181b",
+		"template": "Čekám celý ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"requiredGender": "m",
+		"why": "Time duration expressions ('celý den', 'celý týden') take the accusative case.",
 		"difficulty": "A2"
 	},
 	{
@@ -1849,7 +1985,19 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "Time duration expressions take the accusative case.",
+		"requiredGender": "f",
+		"why": "Time duration expressions take the accusative case. 'Celou' is the feminine accusative form of 'whole'.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_cely_182b",
+		"template": "Běžel jsem celý ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "",
+		"requiredGender": "m",
+		"why": "Time duration expressions take the accusative case. 'Celý' is the masculine accusative form of 'whole'.",
 		"difficulty": "A2"
 	},
 	{
@@ -1893,7 +2041,7 @@
 		"number": "sg",
 		"trigger": "při",
 		"why": "'Při' (during/at) always takes the locative case.",
-		"difficulty": "B1"
+		"difficulty": "A2"
 	},
 	{
 		"id": "loc_pri_187",
@@ -2183,7 +2331,38 @@
 		"requiredCase": "voc",
 		"number": "pl",
 		"trigger": "",
-		"why": "When directly addressing a group, Czech uses the vocative case (plural).",
+		"why": "When directly addressing a group, Czech uses the vocative case (plural). In the plural, the vocative is always identical to the nominative.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_dobryden_238",
+		"template": "Dobrý den, ___!",
+		"lemmaCategory": "people",
+		"requiredCase": "voc",
+		"number": "pl",
+		"trigger": "",
+		"why": "When formally greeting a group by name, Czech uses the vocative case. In the plural, the vocative is always identical to the nominative.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_pojdte_239",
+		"template": "Pojďte, ___!",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "pl",
+		"trigger": "",
+		"why": "When calling a group to come ('Come on, ...!'), Czech uses the vocative case. In the plural, the vocative is always identical to the nominative.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_diky_240",
+		"template": "Díky, ___!",
+		"lemmaCategory": "people",
+		"requiredCase": "voc",
+		"number": "pl",
+		"trigger": "",
+		"why": "When casually thanking a group, Czech uses the vocative case. In the plural, the vocative is always identical to the nominative.",
 		"difficulty": "A2"
 	},
 	{
@@ -2226,5 +2405,248 @@
 		"trigger": "",
 		"why": "'Děkovat' (to thank) governs the dative case.",
 		"difficulty": "A2"
+	},
+	{
+		"id": "acc_za_230",
+		"template": "Přijdu za ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "za",
+		"why": "'Za' (in/after) takes the accusative case when expressing time duration.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_za_231",
+		"template": "Vrátím se za ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "za",
+		"why": "'Za' (in/after) takes the accusative case when expressing time duration.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "loc_na_232",
+		"template": "Záleží na ___.",
+		"lemmaCategory": "abstract",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Na' (on) takes the locative case in the expression 'záležet na' (to depend on).",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_od_233",
+		"template": "Pracuji od ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "od",
+		"why": "'Od' (from) takes the genitive case when expressing the starting point of a time period.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_do_234",
+		"template": "Pracuji do ___.",
+		"lemmaCategory": "time",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "do",
+		"why": "'Do' (until/to) takes the genitive case when expressing the end point of a time period.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_byt_235",
+		"template": "Sestra je ___.",
+		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Být' (to be) takes the instrumental case when expressing profession or occupation.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "ins_stal_236",
+		"template": "Stal se ___.",
+		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Stát se' (to become) takes the instrumental case when expressing a change of profession or role.",
+		"difficulty": "B1"
+	},
+	{
+		"id": "ins_byt_237",
+		"template": "Otec je ___.",
+		"lemmaCategory": "people",
+		"semanticTags": ["profession"],
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "",
+		"why": "'Být' (to be) takes the instrumental case when expressing profession or occupation.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_possess_240",
+		"template": "To je dům ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "The genitive case expresses possession — 'dům otce' means 'father's house'.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_possess_241",
+		"template": "To je auto ___.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "The genitive case expresses possession — 'auto bratra' means 'brother's car'.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_partitive_242",
+		"template": "Dej mi kousek ___.",
+		"lemmaCategory": "food",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "After quantity words like 'kousek' (a piece of), the noun takes the genitive case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "gen_partitive_243",
+		"template": "Koupím kilo ___.",
+		"lemmaCategory": "food",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "After units of measurement like 'kilo', the noun takes the genitive case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_tesim_244",
+		"template": "Těším se na ___.",
+		"lemmaCategory": "misc",
+		"semanticTags": ["event"],
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Těšit se na' (to look forward to) takes 'na' + accusative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "acc_myslim_245",
+		"template": "Myslím na ___.",
+		"lemmaCategory": "people",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "'Myslet na' (to think about) takes 'na' + accusative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "dat_diky_246",
+		"template": "Díky ___ to dopadlo dobře.",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "díky",
+		"why": "'Díky' (thanks to) always takes the dative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "dat_diky_247",
+		"template": "Díky ___ jsem to zvládl.",
+		"lemmaCategory": "people",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "díky",
+		"why": "'Díky' (thanks to) always takes the dative case.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_proboha_248",
+		"template": "Pomoc, ___!",
+		"lemmaCategory": "people",
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"why": "When calling out for help, Czech uses the vocative case for direct address.",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_maminko_249",
+		"template": "___, pojď sem!",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"why": "When calling out to a family member, Czech uses the vocative case for direct address.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "voc_pane_250",
+		"template": "Vážený ___!",
+		"lemmaCategory": "people",
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"requiredGender": "m",
+		"why": "Formal letter salutations use the vocative case — 'Vážený pane' (Dear Sir).",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_pani_251",
+		"template": "Vážená ___!",
+		"lemmaCategory": "people",
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"requiredGender": "f",
+		"why": "Formal letter salutations use the vocative case — 'Vážená paní' (Dear Madam).",
+		"difficulty": "A2"
+	},
+	{
+		"id": "voc_prosim_252",
+		"template": "Prosím tě, ___!",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"why": "When making a personal request and addressing someone by name, Czech uses the vocative case.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "voc_pozor_254",
+		"template": "Pozor, ___!",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"why": "When warning someone, Czech uses the vocative case for direct address.",
+		"difficulty": "A1"
+	},
+	{
+		"id": "voc_neboj_255",
+		"template": "Neboj se, ___!",
+		"lemmaCategory": "family",
+		"semanticTags": ["people"],
+		"requiredCase": "voc",
+		"number": "sg",
+		"trigger": "",
+		"why": "When reassuring someone, Czech uses the vocative case for direct address.",
+		"difficulty": "A1"
 	}
 ]
