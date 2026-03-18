@@ -1,4 +1,8 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import { resolve } from '$app/paths';
+import { createClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/public';
+import { env as privateEnv } from '$env/dynamic/private';
 import type { Actions, PageServerLoad } from './$types';
 
 interface ProfileData {
@@ -123,5 +127,75 @@ export const actions: Actions = {
 		if (error) return fail(500, { message: 'Failed to update name' });
 
 		return { success: true };
+	},
+
+	resetProgress: async ({ locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+		const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
+
+		if (!supabaseUrl || !serviceRoleKey) {
+			return fail(500, { message: 'Server configuration error' });
+		}
+
+		const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+		// Reset progress first — if this fails, sessions are still intact
+		const { error: progressError } = await adminClient
+			.from('user_progress')
+			.update({
+				level: 'A1',
+				case_scores: {},
+				paradigm_scores: {},
+				last_session: ''
+			})
+			.eq('user_id', user.id);
+
+		if (progressError) return fail(500, { message: 'Failed to reset progress' });
+
+		// Then delete practice sessions
+		const { error: sessionsError } = await adminClient
+			.from('practice_sessions')
+			.delete()
+			.eq('user_id', user.id);
+
+		if (sessionsError) return fail(500, { message: 'Failed to delete practice sessions' });
+
+		return { success: true };
+	},
+
+	deleteAccount: async ({ locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+		const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
+
+		if (!supabaseUrl || !serviceRoleKey) {
+			return fail(500, { message: 'Server configuration error' });
+		}
+
+		// Use service role client to delete the user from auth
+		// All related data (profiles, user_progress, user_settings, practice_sessions)
+		// will be cascade-deleted via ON DELETE CASCADE foreign keys
+		const adminClient = createClient(supabaseUrl, serviceRoleKey);
+		const { error } = await adminClient.auth.admin.deleteUser(user.id);
+
+		if (error) {
+			console.error('Failed to delete user:', error.message);
+			return fail(500, { message: 'Failed to delete account' });
+		}
+
+		// Sign out and clear auth cookies. signOut() may fail since the user
+		// no longer exists, but we call it primarily to clear the local cookies
+		// so they don't linger as invalid tokens on subsequent requests.
+		const signOutResult = await locals.supabase.auth.signOut();
+		if (signOutResult.error) {
+			console.warn('signOut after deleteUser failed (expected):', signOutResult.error.message);
+		}
+
+		redirect(303, resolve('/'));
 	}
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
@@ -151,6 +151,15 @@
 	let editingName = $state(false);
 	let nameInput = $state('');
 	let savingName = $state(false);
+
+	// Reset progress
+	let confirmingReset = $state(false);
+	let resettingProgress = $state(false);
+	let resetError = $state<string | null>(null);
+
+	// Delete account
+	let confirmingDelete = $state(false);
+	let deletingAccount = $state(false);
 
 	let displayName = $derived(serverProfile?.display_name ?? '');
 
@@ -932,6 +941,47 @@
 					{/if}
 				</div>
 			</section>
+			<!-- 5. Danger zone -->
+			<section class="mb-8">
+				<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+					Danger zone
+				</h2>
+				<div
+					class="flex flex-col gap-3 rounded-xl border border-red-300 bg-card-bg p-4 dark:border-red-800"
+				>
+					<div class="flex items-center justify-between gap-4">
+						<div>
+							<p class="text-sm font-medium text-text-default">Reset progress</p>
+							<p class="text-xs text-text-subtitle">
+								Clear all your practice history and scores. This cannot be undone.
+							</p>
+						</div>
+						<button
+							type="button"
+							onclick={() => (confirmingReset = true)}
+							class="shrink-0 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+						>
+							Reset
+						</button>
+					</div>
+					<div class="border-t border-red-200 dark:border-red-800"></div>
+					<div class="flex items-center justify-between gap-4">
+						<div>
+							<p class="text-sm font-medium text-text-default">Delete account</p>
+							<p class="text-xs text-text-subtitle">
+								Permanently delete your account and all associated data. This cannot be undone.
+							</p>
+						</div>
+						<button
+							type="button"
+							onclick={() => (confirmingDelete = true)}
+							class="shrink-0 rounded-lg border border-red-300 bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 dark:border-red-700"
+						>
+							Delete
+						</button>
+					</div>
+				</div>
+			</section>
 		{/if}
 	</main>
 </div>
@@ -1003,6 +1053,118 @@
 						class="rounded-lg bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 					>
 						{savingName ? 'Saving...' : 'Save'}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- Reset progress confirmation modal -->
+{#if confirmingReset}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+		onclick={(e) => {
+			if (e.target === e.currentTarget) confirmingReset = false;
+		}}
+		onkeydown={(e) => {
+			if (e.key === 'Escape') confirmingReset = false;
+		}}
+	>
+		<div role="dialog" aria-modal="true" aria-label="Confirm reset progress">
+			<form
+				method="POST"
+				action="?/resetProgress"
+				use:enhance={() => {
+					resettingProgress = true;
+					resetError = null;
+					return async ({ result }) => {
+						if (result.type === 'success') {
+							await invalidateAll();
+							confirmingReset = false;
+						} else if (result.type === 'failure') {
+							const data = result.data as Record<string, unknown> | undefined;
+							resetError =
+								typeof data?.message === 'string' ? data.message : 'Failed to reset progress';
+						}
+						resettingProgress = false;
+					};
+				}}
+				class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
+			>
+				<h2 class="mb-2 text-base font-semibold text-text-default">Reset all progress?</h2>
+				<p class="mb-4 text-sm text-text-subtitle">
+					This will permanently delete all your practice history, scores, and streaks. This action
+					cannot be undone.
+				</p>
+				{#if resetError}
+					<p class="mb-3 text-sm text-red-600 dark:text-red-400">{resetError}</p>
+				{/if}
+				<div class="flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={() => (confirmingReset = false)}
+						class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						disabled={resettingProgress}
+						class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-red-700 disabled:opacity-50"
+					>
+						{resettingProgress ? 'Resetting...' : 'Reset progress'}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- Delete account confirmation modal -->
+{#if confirmingDelete}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+		onclick={(e) => {
+			if (e.target === e.currentTarget) confirmingDelete = false;
+		}}
+		onkeydown={(e) => {
+			if (e.key === 'Escape') confirmingDelete = false;
+		}}
+	>
+		<div role="dialog" aria-modal="true" aria-label="Confirm delete account">
+			<form
+				method="POST"
+				action="?/deleteAccount"
+				use:enhance={() => {
+					deletingAccount = true;
+					return async ({ update }) => {
+						await update();
+					};
+				}}
+				class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
+			>
+				<h2 class="mb-2 text-base font-semibold text-red-600 dark:text-red-400">Delete account?</h2>
+				<p class="mb-4 text-sm text-text-subtitle">
+					This will permanently delete your account and all associated data, including your profile,
+					progress, practice history, and settings. This action cannot be undone.
+				</p>
+				<div class="flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={() => (confirmingDelete = false)}
+						class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						disabled={deletingAccount}
+						class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-red-700 disabled:opacity-50"
+					>
+						{deletingAccount ? 'Deleting...' : 'Delete account'}
 					</button>
 				</div>
 			</form>
