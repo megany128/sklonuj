@@ -37,10 +37,12 @@
 
 	let showPrepositionHint = $derived(!!trigger || PREPOSITION_CASES.includes(case_));
 
-	let hasWhy = $derived(!!templateWhy || !!whyNote);
+	let hasWhy = $derived(!!templateWhy?.trim() || !!whyNote?.trim());
 </script>
 
 <div
+	role="status"
+	aria-live="polite"
 	class="flex flex-col items-center gap-4 rounded-[24px] border-2 border-darker-subtitle bg-shaded-background p-6 text-center"
 >
 	<p class="text-sm text-text-default">Correct answer:</p>
@@ -75,6 +77,7 @@
 					<button
 						type="button"
 						onclick={() => onWordClick?.(correctAnswer)}
+						aria-label="Look up {correctAnswer}"
 						class="cursor-pointer text-2xl font-semibold {CASE_COLORS[case_]
 							.text} transition-opacity hover:opacity-70"
 					>

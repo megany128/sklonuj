@@ -64,7 +64,9 @@ describe('generateFormProduction', () => {
 		expect(hrad).toBeDefined();
 		if (!hrad) return;
 		const question = generateFormProduction(hrad, 'loc', 'sg');
-		expect(question.correctAnswer).toBe('hradu');
+		expect(question).not.toBeNull();
+		if (!question) return;
+		expect(question.correctAnswer).toBe('hradě');
 		expect(question.case).toBe('loc');
 		expect(question.number).toBe('sg');
 		expect(question.word.lemma).toBe('hrad');
@@ -83,6 +85,8 @@ describe('generateSentenceDrill', () => {
 		expect(dum).toBeDefined();
 		if (!dum) return;
 		const question = generateSentenceDrill(template, dum);
+		expect(question).not.toBeNull();
+		if (!question) return;
 		// loc_v_001 requires loc sg; dům loc sg (index 5) = "domě"
 		expect(question.correctAnswer).toBe('domě');
 		expect(question.case).toBe('loc');
@@ -116,8 +120,12 @@ describe('generateCaseIdentification', () => {
 		const word = bank[0];
 		const question = generateCaseIdentification(template, word);
 		const correct = checkAnswer(question, 'acc');
+		expect(correct).not.toBeNull();
+		if (!correct) return;
 		expect(correct.correct).toBe(true);
 		const wrong = checkAnswer(question, 'loc');
+		expect(wrong).not.toBeNull();
+		if (!wrong) return;
 		expect(wrong.correct).toBe(false);
 	});
 });
@@ -129,7 +137,11 @@ describe('checkAnswer', () => {
 		expect(dum).toBeDefined();
 		if (!dum) return;
 		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
 		const result = checkAnswer(question, 'domě');
+		expect(result).not.toBeNull();
+		if (!result) return;
 		expect(result.correct).toBe(true);
 		expect(result.nearMiss).toBe(false);
 	});
@@ -140,8 +152,12 @@ describe('checkAnswer', () => {
 		expect(dum).toBeDefined();
 		if (!dum) return;
 		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
 		// correctAnswer is "domě", user types "dome" (missing háček)
 		const result = checkAnswer(question, 'dome');
+		expect(result).not.toBeNull();
+		if (!result) return;
 		expect(result.correct).toBe(true);
 		expect(result.nearMiss).toBe(true);
 	});
@@ -152,10 +168,78 @@ describe('checkAnswer', () => {
 		expect(dum).toBeDefined();
 		if (!dum) return;
 		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
 		// correctAnswer is "domě", user types "xyz" — completely wrong
 		const result = checkAnswer(question, 'xyz');
+		expect(result).not.toBeNull();
+		if (!result) return;
 		expect(result.correct).toBe(false);
 		expect(result.nearMiss).toBe(false);
+	});
+
+	it('at A1, near-miss (wrong diacritics) counts as correct with nearMiss true', () => {
+		const bank = loadWordBank();
+		const dum = bank.find((w) => w.lemma === 'dům');
+		expect(dum).toBeDefined();
+		if (!dum) return;
+		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
+		// correctAnswer is "domě", user types "dome" (missing háček), level A1
+		const result = checkAnswer(question, 'dome', 'A1');
+		expect(result).not.toBeNull();
+		if (!result) return;
+		expect(result.correct).toBe(true);
+		expect(result.nearMiss).toBe(true);
+	});
+
+	it('at B1, near-miss (wrong diacritics) counts as INCORRECT with nearMiss true', () => {
+		const bank = loadWordBank();
+		const dum = bank.find((w) => w.lemma === 'dům');
+		expect(dum).toBeDefined();
+		if (!dum) return;
+		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
+		// correctAnswer is "domě", user types "dome" (missing háček), level B1
+		const result = checkAnswer(question, 'dome', 'B1');
+		expect(result).not.toBeNull();
+		if (!result) return;
+		expect(result.correct).toBe(false);
+		expect(result.nearMiss).toBe(true);
+	});
+
+	it('at B2, near-miss (wrong diacritics) counts as INCORRECT with nearMiss true', () => {
+		const bank = loadWordBank();
+		const dum = bank.find((w) => w.lemma === 'dům');
+		expect(dum).toBeDefined();
+		if (!dum) return;
+		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
+		// correctAnswer is "domě", user types "dome" (missing háček), level B2
+		const result = checkAnswer(question, 'dome', 'B2');
+		expect(result).not.toBeNull();
+		if (!result) return;
+		expect(result.correct).toBe(false);
+		expect(result.nearMiss).toBe(true);
+	});
+
+	it('at A2, near-miss (wrong diacritics) counts as correct with nearMiss true', () => {
+		const bank = loadWordBank();
+		const dum = bank.find((w) => w.lemma === 'dům');
+		expect(dum).toBeDefined();
+		if (!dum) return;
+		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
+		// correctAnswer is "domě", user types "dome" (missing háček), level A2
+		const result = checkAnswer(question, 'dome', 'A2');
+		expect(result).not.toBeNull();
+		if (!result) return;
+		expect(result.correct).toBe(true);
+		expect(result.nearMiss).toBe(true);
 	});
 
 	it('variant form is accepted as correct', () => {
@@ -164,8 +248,12 @@ describe('checkAnswer', () => {
 		expect(dum).toBeDefined();
 		if (!dum) return;
 		const question = generateFormProduction(dum, 'loc', 'sg');
+		expect(question).not.toBeNull();
+		if (!question) return;
 		// Primary form is "domě", variant is "domu" — both should be correct
 		const result = checkAnswer(question, 'domu');
+		expect(result).not.toBeNull();
+		if (!result) return;
 		expect(result.correct).toBe(true);
 		expect(result.nearMiss).toBe(false);
 	});

@@ -3,12 +3,12 @@
 		icon,
 		onclick,
 		size = 'md',
-		label = ''
+		label
 	}: {
 		icon: 'speaker' | 'settings' | 'info' | 'close';
 		onclick: () => void;
 		size?: 'sm' | 'md';
-		label?: string;
+		label: string;
 	} = $props();
 
 	let sizeClasses = $derived(size === 'sm' ? 'h-7 w-7' : 'h-9 w-9');
@@ -18,7 +18,7 @@
 <button
 	type="button"
 	{onclick}
-	class="flex shrink-0 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-card-stroke hover:text-text-default {sizeClasses}"
+	class="flex shrink-0 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-card-stroke hover:text-text-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emphasis {sizeClasses}"
 	aria-label={label}
 >
 	{#if icon === 'speaker'}

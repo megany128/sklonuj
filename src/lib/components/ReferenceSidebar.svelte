@@ -58,10 +58,16 @@
 
 	<!-- Tab bar - segmented control style -->
 	<div class="shrink-0 px-6 py-2">
-		<div class="flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
+		<div
+			role="tablist"
+			aria-label="Reference tabs"
+			class="flex rounded-[16px] border border-card-stroke bg-card-bg p-1"
+		>
 			{#each tabs as tab (tab.id)}
 				<button
 					type="button"
+					role="tab"
+					aria-selected={activeTab === tab.id}
 					onclick={() => (activeTab = tab.id)}
 					class="flex-1 rounded-[12px] px-3 py-2 text-sm font-normal transition-all
 						{activeTab === tab.id

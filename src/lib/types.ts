@@ -67,15 +67,19 @@ export type Paradigm =
 	| 'předseda'
 	| 'žena'
 	| 'růže'
+	| 'píseň'
 	| 'kost'
 	| 'město'
 	| 'moře'
 	| 'kuře'
-	| 'stavení';
+	| 'stavení'
+	| 'soudce';
 
 export type CaseForms = [string, string, string, string, string, string, string];
 
-export const CASE_INDEX: Record<Case, number> = {
+export type CaseIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+export const CASE_INDEX: Record<Case, CaseIndex> = {
 	nom: 0,
 	gen: 1,
 	dat: 2,
@@ -90,7 +94,7 @@ export const CASE_INDEX: Record<Case, number> = {
  * Keys are case indices (0-6), values are arrays of alternate accepted forms.
  * E.g. { 2: ["pánu"] } means dative (index 2) also accepts "pánu".
  */
-export type VariantForms = Partial<Record<number, string[]>>;
+export type VariantForms = Partial<Record<CaseIndex, string[]>>;
 
 export interface WordEntry {
 	lemma: string;
@@ -146,6 +150,18 @@ export interface DrillSettings {
 
 export const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
+const CASE_SET: ReadonlySet<string> = new Set<string>(ALL_CASES);
+
+export function isCase(value: string): value is Case {
+	return CASE_SET.has(value);
+}
+
+const NUMBER_SET: ReadonlySet<string> = new Set<string>(['sg', 'pl']);
+
+export function isNumber(value: string): value is Number_ {
+	return NUMBER_SET.has(value);
+}
+
 export const ALL_DRILL_TYPES: DrillType[] = [
 	'form_production',
 	'case_identification',
@@ -160,7 +176,7 @@ export const DRILL_TYPE_LABELS: Record<DrillType, string> = {
 
 export interface KzkPreposition {
 	prep: string;
-	case: string;
+	case: Case;
 }
 
 export interface KzkChapter {

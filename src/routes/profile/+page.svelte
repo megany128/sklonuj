@@ -3,11 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
-	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-
-	const supabase = getSupabaseBrowserClient();
 
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -18,30 +15,83 @@
 		correct: number;
 	}
 
+	interface ProfileData {
+		display_name: string | null;
+		created_at: string;
+	}
+
+	interface ProgressData {
+		level: string;
+		case_scores: Record<string, ScoreEntry>;
+		paradigm_scores: Record<string, ScoreEntry>;
+	}
+
+	interface SessionData {
+		session_date: string;
+		questions_attempted: number;
+		questions_correct: number;
+	}
+
 	let user = $derived($page.data.user);
+	let loadError = $derived.by<string | null>(() => {
+		const val: unknown = $page.data.loadError;
+		return typeof val === 'string' ? val : null;
+	});
 
-	let serverProfile = $derived(
-		($page.data.profile ?? null) as { display_name: string | null; created_at: string } | null
-	);
-	let serverProgress = $derived(
-		($page.data.progress ?? null) as {
-			level: string;
-			case_scores: Record<string, ScoreEntry>;
-			paradigm_scores: Record<string, ScoreEntry>;
-		} | null
-	);
-	let serverSessions = $derived(
-		($page.data.sessions ?? []) as Array<{
-			session_date: string;
-			questions_attempted: number;
-			questions_correct: number;
-		}>
-	);
+	function isProfileData(v: unknown): v is ProfileData {
+		if (typeof v !== 'object' || v === null) return false;
+		const obj = v as Record<string, unknown>;
+		return (
+			(typeof obj.display_name === 'string' || obj.display_name === null) &&
+			typeof obj.created_at === 'string'
+		);
+	}
 
-	let caseScores = $derived(serverProgress?.case_scores ?? ({} as Record<string, ScoreEntry>));
-	let paradigmScores = $derived(
-		serverProgress?.paradigm_scores ?? ({} as Record<string, ScoreEntry>)
-	);
+	function isProgressData(v: unknown): v is ProgressData {
+		if (typeof v !== 'object' || v === null) return false;
+		const obj = v as Record<string, unknown>;
+		return (
+			typeof obj.level === 'string' &&
+			typeof obj.case_scores === 'object' &&
+			obj.case_scores !== null &&
+			typeof obj.paradigm_scores === 'object' &&
+			obj.paradigm_scores !== null
+		);
+	}
+
+	function isSessionArray(v: unknown): v is SessionData[] {
+		if (!Array.isArray(v)) return false;
+		return v.every(
+			(item) =>
+				typeof item === 'object' &&
+				item !== null &&
+				typeof (item as Record<string, unknown>).session_date === 'string' &&
+				typeof (item as Record<string, unknown>).questions_attempted === 'number' &&
+				typeof (item as Record<string, unknown>).questions_correct === 'number'
+		);
+	}
+
+	let serverProfile = $derived.by<ProfileData | null>(() => {
+		const raw: unknown = $page.data.profile ?? null;
+		return isProfileData(raw) ? raw : null;
+	});
+	let serverProgress = $derived.by<ProgressData | null>(() => {
+		const raw: unknown = $page.data.progress ?? null;
+		return isProgressData(raw) ? raw : null;
+	});
+	let serverSessions = $derived.by<SessionData[]>(() => {
+		const raw: unknown = $page.data.sessions ?? [];
+		return isSessionArray(raw) ? raw : [];
+	});
+
+	// Server load data is always available on first render. A new user may have no profile
+	// row and no error — both null — but that is still a valid loaded state. We check that
+	// the server load has populated the page data by looking for the 'profile' key.
+	let loaded = $derived('profile' in $page.data);
+
+	const emptyScores: Record<string, ScoreEntry> = {};
+	let caseScores = $derived(serverProgress?.case_scores ?? emptyScores);
+	let paradigmScores = $derived(serverProgress?.paradigm_scores ?? emptyScores);
 
 	let expandedCase = $state<string | null>(null);
 	let breakdownTab = $state<'case' | 'paradigm'>('case');
@@ -86,39 +136,16 @@
 		'stavení'
 	];
 
-	// Dark mode
+	// Dark mode (shared module)
+	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
 	let darkMode = $state(false);
-	let darkModeInitialized = $state(false);
-
 	$effect(() => {
-		if (darkModeInitialized) return;
-		darkModeInitialized = true;
-		if (typeof window === 'undefined') return;
-		const stored = localStorage.getItem('sklonuj_dark');
-		if (stored !== null) {
-			darkMode = stored === 'true';
-		} else {
-			darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		}
-		document.documentElement.classList.toggle('dark', darkMode);
-	});
-
-	function toggleDarkMode(): void {
-		darkMode = !darkMode;
-		document.documentElement.classList.toggle('dark', darkMode);
-		localStorage.setItem('sklonuj_dark', String(darkMode));
-	}
-
-	function handleSignOut() {
-		supabase.auth.signOut().catch(() => {});
-		document.cookie.split(';').forEach((c) => {
-			const name = c.trim().split('=')[0];
-			if (name.startsWith('sb-')) {
-				document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-			}
+		initDarkMode();
+		const unsub = darkModeStore.subscribe((v) => {
+			darkMode = v;
 		});
-		window.location.href = '/';
-	}
+		return unsub;
+	});
 
 	// Display name editing
 	let editingName = $state(false);
@@ -350,8 +377,15 @@
 		y: number;
 	} | null>(null);
 
-	function handleCellEnter(e: MouseEvent, paradigm: string, caseKey: string, num: string): void {
-		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+	function handleCellEnter(
+		e: MouseEvent | FocusEvent,
+		paradigm: string,
+		caseKey: string,
+		num: string
+	): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const rect = target.getBoundingClientRect();
 		hoveredCell = {
 			paradigm,
 			caseKey,
@@ -393,7 +427,10 @@
 		onToggleDarkMode={toggleDarkMode}
 		{user}
 		onSignIn={() => goto(resolve('/'))}
-		onNavigate={() => goto(resolve('/'))}
+		onNavigate={(page) => {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- appending query param to resolved route
+			goto(page === 'lookup' ? `${resolve('/')}?view=lookup` : resolve('/'));
+		}}
 	/>
 
 	<main class="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
@@ -407,7 +444,35 @@
 					Go to home
 				</a>
 			</div>
+		{:else if !loaded}
+			<div class="flex flex-col items-center justify-center py-24">
+				<svg
+					class="mb-3 size-8 animate-spin text-emphasis"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+					></circle>
+					<path
+						class="opacity-75"
+						fill="currentColor"
+						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+					></path>
+				</svg>
+				<p class="text-sm text-text-subtitle">Loading profile...</p>
+			</div>
 		{:else}
+			{#if loadError}
+				<div
+					class="mb-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300"
+					role="alert"
+				>
+					<p class="font-medium">Some data could not be loaded</p>
+					<p class="mt-1 text-xs opacity-80">{loadError}</p>
+				</div>
+			{/if}
+
 			<!-- 1. User info -->
 			<section class="mb-8">
 				<div class="flex items-center justify-between gap-2">
@@ -436,13 +501,6 @@
 							</svg>
 						</button>
 					</div>
-					<button
-						type="button"
-						onclick={handleSignOut}
-						class="shrink-0 rounded-lg px-3 py-1.5 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-					>
-						Sign out
-					</button>
 				</div>
 				<div class="mt-1">
 					<span class="text-sm text-text-subtitle">Member since {memberSince}</span>
@@ -780,15 +838,21 @@
 														? Math.round((score.correct / score.attempts) * 100)
 														: -1}
 												<div class="flex shrink-0 justify-center" style="width: 32px;">
-													<!-- svelte-ignore a11y_no_static_element_interactions -->
 													<div
 														class="paradigm-cell h-5 w-6 rounded-[3px]"
 														style="background-color: {pct >= 0
 															? cellColor(pct)
 															: 'var(--color-shaded-background)'}; opacity: {pct >= 0 ? 0.85 : 1};"
+														role="gridcell"
+														tabindex="0"
+														aria-label="{cm.label} singular: {pct >= 0
+															? `${pct}% accuracy, ${score.attempts} attempts`
+															: 'no data'}"
 														onmouseenter={(e: MouseEvent) =>
 															handleCellEnter(e, paradigm, cm.key, 'sg')}
 														onmouseleave={handleCellLeave}
+														onfocus={(e: FocusEvent) => handleCellEnter(e, paradigm, cm.key, 'sg')}
+														onblur={handleCellLeave}
 													></div>
 												</div>
 											{/each}
@@ -803,15 +867,21 @@
 														? Math.round((score.correct / score.attempts) * 100)
 														: -1}
 												<div class="flex shrink-0 justify-center" style="width: 32px;">
-													<!-- svelte-ignore a11y_no_static_element_interactions -->
 													<div
 														class="paradigm-cell h-5 w-6 rounded-[3px]"
 														style="background-color: {pct >= 0
 															? cellColor(pct)
 															: 'var(--color-shaded-background)'}; opacity: {pct >= 0 ? 0.85 : 1};"
+														role="gridcell"
+														tabindex="0"
+														aria-label="{cm.label} plural: {pct >= 0
+															? `${pct}% accuracy, ${score.attempts} attempts`
+															: 'no data'}"
 														onmouseenter={(e: MouseEvent) =>
 															handleCellEnter(e, paradigm, cm.key, 'pl')}
 														onmouseleave={handleCellLeave}
+														onfocus={(e: FocusEvent) => handleCellEnter(e, paradigm, cm.key, 'pl')}
+														onblur={handleCellLeave}
 													></div>
 												</div>
 											{/each}
@@ -862,16 +932,6 @@
 					{/if}
 				</div>
 			</section>
-
-			<!-- Settings link -->
-			<div class="mt-8 text-center">
-				<a
-					href={resolve('/settings')}
-					class="text-sm text-text-subtitle underline underline-offset-2 hover:text-text-default"
-				>
-					Account settings
-				</a>
-			</div>
 		{/if}
 	</main>
 </div>
@@ -895,6 +955,7 @@
 
 <!-- Edit name modal -->
 {#if editingName}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
 		onclick={(e) => {
@@ -903,51 +964,49 @@
 		onkeydown={(e) => {
 			if (e.key === 'Escape') closeNameModal();
 		}}
-		role="dialog"
-		aria-modal="true"
-		aria-label="Edit display name"
-		tabindex="-1"
 	>
-		<form
-			method="POST"
-			action="?/updateName"
-			use:enhance={() => {
-				savingName = true;
-				return async ({ update }) => {
-					await update();
-					savingName = false;
-					editingName = false;
-				};
-			}}
-			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
-		>
-			<h2 class="mb-4 text-base font-semibold text-text-default">Edit display name</h2>
-			<input
-				type="text"
-				name="display_name"
-				bind:value={nameInput}
-				disabled={savingName}
-				placeholder="Your name"
-				class="w-full rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-base text-text-default outline-none transition-colors focus:border-emphasis"
-				use:focusOnMount
-			/>
-			<div class="mt-4 flex justify-end gap-2">
-				<button
-					type="button"
-					onclick={closeNameModal}
-					class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-				>
-					Cancel
-				</button>
-				<button
-					type="submit"
+		<div role="dialog" aria-modal="true" aria-label="Edit display name">
+			<form
+				method="POST"
+				action="?/updateName"
+				use:enhance={() => {
+					savingName = true;
+					return async ({ update }) => {
+						await update();
+						savingName = false;
+						editingName = false;
+					};
+				}}
+				class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
+			>
+				<h2 class="mb-4 text-base font-semibold text-text-default">Edit display name</h2>
+				<input
+					type="text"
+					name="display_name"
+					bind:value={nameInput}
 					disabled={savingName}
-					class="rounded-lg bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
-				>
-					{savingName ? 'Saving...' : 'Save'}
-				</button>
-			</div>
-		</form>
+					placeholder="Your name"
+					class="w-full rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-base text-text-default outline-none transition-colors focus:border-emphasis"
+					use:focusOnMount
+				/>
+				<div class="mt-4 flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={closeNameModal}
+						class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						disabled={savingName}
+						class="rounded-lg bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+					>
+						{savingName ? 'Saving...' : 'Save'}
+					</button>
+				</div>
+			</form>
+		</div>
 	</div>
 {/if}
 
@@ -975,7 +1034,10 @@
 		transition: transform 100ms ease-out;
 	}
 
-	.paradigm-cell:hover {
+	.paradigm-cell:hover,
+	.paradigm-cell:focus {
 		transform: scale(1.2);
+		outline: 2px solid var(--color-emphasis);
+		outline-offset: 1px;
 	}
 </style>

@@ -12,7 +12,59 @@
 	let error = $state('');
 	let confirmationSent = $state(false);
 
+	let modalEl = $state<HTMLDivElement | undefined>(undefined);
+	let previouslyFocusedEl: Element | null = null;
+
 	const supabase = getSupabaseBrowserClient();
+
+	$effect(() => {
+		if (open && modalEl) {
+			previouslyFocusedEl = document.activeElement;
+			// Auto-focus first input after a tick so the DOM is ready
+			const firstInput = modalEl.querySelector<HTMLElement>(
+				'input, button:not([aria-label="Close"])'
+			);
+			if (firstInput) {
+				firstInput.focus();
+			}
+		}
+		if (!open && previouslyFocusedEl) {
+			if (previouslyFocusedEl instanceof HTMLElement && document.contains(previouslyFocusedEl)) {
+				previouslyFocusedEl.focus();
+			}
+			previouslyFocusedEl = null;
+		}
+	});
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			e.stopPropagation();
+			handleClose();
+			return;
+		}
+		if (e.key === 'Tab' && modalEl) {
+			e.stopPropagation();
+			const focusable = Array.from(
+				modalEl.querySelectorAll<HTMLElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+			);
+			if (focusable.length === 0) return;
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (e.shiftKey) {
+				if (document.activeElement === first) {
+					e.preventDefault();
+					last.focus();
+				}
+			} else {
+				if (document.activeElement === last) {
+					e.preventDefault();
+					first.focus();
+				}
+			}
+		}
+	}
 
 	function reset() {
 		mode = 'login';
@@ -89,14 +141,9 @@
 	<div
 		class="fixed inset-0 z-[60] flex items-center justify-center px-4"
 		data-modal
-		role="dialog"
-		aria-modal="true"
-		aria-label={mode === 'signup' ? 'Create your account' : 'Sign in'}
+		role="presentation"
 		tabindex="-1"
-		onkeydown={(e) => {
-			e.stopPropagation();
-			if (e.key === 'Escape') handleClose();
-		}}
+		onkeydown={handleKeydown}
 	>
 		<button
 			type="button"
@@ -107,7 +154,13 @@
 		></button>
 
 		<!-- Modal -->
-		<div class="relative z-10 w-full max-w-sm">
+		<div
+			bind:this={modalEl}
+			class="relative z-10 w-full max-w-sm"
+			role="dialog"
+			aria-modal="true"
+			aria-label={mode === 'signup' ? 'Create your account' : 'Sign in'}
+		>
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl">
 				<!-- Close button -->
 				<button
@@ -207,6 +260,11 @@
 							placeholder="Email"
 							required
 							aria-label="Email address"
+							aria-describedby={error ? 'auth-error' : undefined}
+							aria-invalid={!!error}
+							oninput={() => {
+								error = '';
+							}}
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 						/>
 
@@ -217,12 +275,15 @@
 							required
 							minlength="6"
 							aria-label="Password"
+							oninput={() => {
+								error = '';
+							}}
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 						/>
 
 						<div aria-live="assertive">
 							{#if error}
-								<p class="text-xs text-negative-stroke" role="alert">{error}</p>
+								<p id="auth-error" class="text-xs text-negative-stroke" role="alert">{error}</p>
 							{/if}
 						</div>
 

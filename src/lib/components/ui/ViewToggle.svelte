@@ -10,10 +10,13 @@
 	} = $props();
 </script>
 
-<div class="flex w-full rounded-[20px] border border-card-stroke bg-card-bg p-1.5">
+<div role="tablist" class="flex w-full rounded-[20px] border border-card-stroke bg-card-bg p-1.5">
 	{#each tabs as tab (tab.id)}
 		<button
 			type="button"
+			role="tab"
+			aria-selected={activeTab === tab.id}
+			aria-controls="{tab.id}-panel"
 			onclick={() => onTabChange(tab.id)}
 			class="flex-1 rounded-[16px] px-4 py-3 text-sm transition-all
 				{activeTab === tab.id

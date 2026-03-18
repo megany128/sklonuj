@@ -1,10 +1,65 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
+interface ProfileData {
+	display_name: string | null;
+	created_at: string;
+}
+
+interface ScoreEntry {
+	attempts: number;
+	correct: number;
+}
+
+interface ProgressData {
+	level: string;
+	case_scores: Record<string, ScoreEntry>;
+	paradigm_scores: Record<string, ScoreEntry>;
+}
+
+interface SessionData {
+	session_date: string;
+	questions_attempted: number;
+	questions_correct: number;
+}
+
+function isProfileData(v: unknown): v is ProfileData {
+	if (typeof v !== 'object' || v === null) return false;
+	const obj = v as Record<string, unknown>;
+	return (
+		(typeof obj.display_name === 'string' || obj.display_name === null) &&
+		typeof obj.created_at === 'string'
+	);
+}
+
+function isProgressData(v: unknown): v is ProgressData {
+	if (typeof v !== 'object' || v === null) return false;
+	const obj = v as Record<string, unknown>;
+	return (
+		typeof obj.level === 'string' &&
+		typeof obj.case_scores === 'object' &&
+		obj.case_scores !== null &&
+		typeof obj.paradigm_scores === 'object' &&
+		obj.paradigm_scores !== null
+	);
+}
+
+function isSessionArray(v: unknown): v is SessionData[] {
+	if (!Array.isArray(v)) return false;
+	return v.every(
+		(item) =>
+			typeof item === 'object' &&
+			item !== null &&
+			typeof (item as Record<string, unknown>).session_date === 'string' &&
+			typeof (item as Record<string, unknown>).questions_attempted === 'number' &&
+			typeof (item as Record<string, unknown>).questions_correct === 'number'
+	);
+}
+
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
 	if (!user) {
-		return { profile: null, progress: null, sessions: [] };
+		return { profile: null, progress: null, sessions: [], loadError: null };
 	}
 
 	const supabase = locals.supabase;
@@ -27,14 +82,27 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.order('session_date', { ascending: true })
 	]);
 
+	const errors: string[] = [];
+
+	if (profileResult.error) {
+		errors.push(`Profile: ${profileResult.error.message}`);
+	}
+	if (progressResult.error) {
+		errors.push(`Progress: ${progressResult.error.message}`);
+	}
+	if (sessionsResult.error) {
+		errors.push(`Sessions: ${sessionsResult.error.message}`);
+	}
+
+	const profile = isProfileData(profileResult.data) ? profileResult.data : null;
+	const progress = isProgressData(progressResult.data) ? progressResult.data : null;
+	const sessions = isSessionArray(sessionsResult.data) ? sessionsResult.data : [];
+
 	return {
-		profile: profileResult.data ?? null,
-		progress: progressResult.data ?? null,
-		sessions: (sessionsResult.data ?? []) satisfies Array<{
-			session_date: string;
-			questions_attempted: number;
-			questions_correct: number;
-		}>
+		profile,
+		progress,
+		sessions,
+		loadError: errors.length > 0 ? errors.join('; ') : null
 	};
 };
 

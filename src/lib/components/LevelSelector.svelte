@@ -15,13 +15,13 @@
 <div class="flex items-center gap-3">
 	<div
 		class="inline-flex rounded-xl border border-card-stroke bg-shaded-background p-1"
-		role="tablist"
+		role="radiogroup"
 		aria-label="Difficulty level"
 	>
 		{#each levels as lvl (lvl)}
 			<button
-				role="tab"
-				aria-selected={lvl === level && !isCustom}
+				role="radio"
+				aria-checked={lvl === level && !isCustom}
 				class="relative flex flex-col items-center rounded-lg px-4 py-1.5 transition-all duration-200
 					{lvl === level && !isCustom
 					? 'bg-card-bg text-text-default shadow-sm'

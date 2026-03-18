@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 
 	let mode = $state<'login' | 'signup'>('login');
@@ -11,6 +13,23 @@
 	let confirmationSent = $state(false);
 
 	const supabase = getSupabaseBrowserClient();
+
+	// Redirect already-authenticated users to home
+	$effect(() => {
+		if ($page.data.user) {
+			goto(resolve('/'));
+		}
+	});
+
+	onMount(() => {
+		// Reset loading state in case user navigates back from OAuth redirect
+		loading = false;
+		// Show error from OAuth callback redirect (e.g., /auth?error=...)
+		const oauthError = $page.url.searchParams.get('error');
+		if (oauthError) {
+			error = oauthError;
+		}
+	});
 
 	async function handleEmailAuth() {
 		if (!email.trim()) {
@@ -27,11 +46,17 @@
 			return;
 		}
 
+		if (mode === 'signup' && password.length < 6) {
+			error = 'Password must be at least 6 characters.';
+			loading = false;
+			return;
+		}
+
 		if (mode === 'signup') {
 			const { data, error: err } = await supabase.auth.signUp({
 				email,
 				password,
-				options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+				options: { emailRedirectTo: `${$page.url.origin}/auth/callback` }
 			});
 			if (err) {
 				error = err.message;
@@ -57,12 +82,16 @@
 		error = '';
 		const { error: err } = await supabase.auth.signInWithOAuth({
 			provider: 'google',
-			options: { redirectTo: `${window.location.origin}/auth/callback` }
+			options: { redirectTo: `${$page.url.origin}/auth/callback` }
 		});
 		if (err) {
 			error = err.message;
 			loading = false;
 		}
+	}
+
+	function clearError() {
+		error = '';
 	}
 </script>
 
@@ -179,6 +208,7 @@
 						placeholder="Email"
 						required
 						aria-label="Email address"
+						oninput={clearError}
 						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
 
@@ -189,6 +219,7 @@
 						required
 						minlength="6"
 						aria-label="Password"
+						oninput={clearError}
 						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
 

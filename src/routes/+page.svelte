@@ -12,7 +12,8 @@
 		DrillType,
 		Number_,
 		Progress,
-		WordEntry
+		WordEntry,
+		SentenceTemplate
 	} from '$lib/types';
 	import { ALL_CASES, CASE_LABELS, CASE_SHORT_LABELS, CASE_HEX, CASE_INDEX } from '$lib/types';
 
@@ -41,9 +42,9 @@
 		isTTSAvailable,
 		warmUpVoices,
 		playCorrectSound,
-		playStreakSound
+		playStreakSound,
+		prepareSentenceForTTS
 	} from '$lib/audio';
-	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
@@ -51,6 +52,7 @@
 	import kzkChaptersData from '$lib/data/kzk_chapters.json';
 
 	import CasePillBar from '$lib/components/CasePillBar.svelte';
+	import CasePillBarSkeleton from '$lib/components/CasePillBarSkeleton.svelte';
 	import ChapterSelector from '$lib/components/ChapterSelector.svelte';
 	import DrillSettings_ from '$lib/components/DrillSettings.svelte';
 	import DrillCard from '$lib/components/DrillCard.svelte';
@@ -212,11 +214,11 @@
 		}
 	}
 
-	let currentLevel: Difficulty = $state('A1');
+	let currentProgress = $state(get(progress));
+	let currentLevel: Difficulty = $derived(currentProgress.level);
 	let drillSettings: DrillSettings = $state(getDefaultSettings());
 	let question: DrillQuestion | null = $state(null);
 	let lastResult: DrillResult | null = $state(null);
-	let currentProgress = $state(get(progress));
 	let paradigmNotes: Record<string, string> | null = $state(null);
 	let submitted = $state(false);
 	let advanceTimer: ReturnType<typeof setTimeout> | null = $state(null);
@@ -249,19 +251,19 @@
 	let toastIdCounter = $state(0);
 
 	// Animated stat counters
-	const prefersReducedMotion =
-		typeof window !== 'undefined'
-			? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-			: false;
-	const tweenDuration = prefersReducedMotion ? 0 : 600;
-	const displayTotal = tweened(0, { duration: tweenDuration, easing: cubicOut });
-	const displayPct = tweened(0, { duration: tweenDuration, easing: cubicOut });
+	let prefersReducedMotion = $derived(
+		typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+	);
+	let tweenDuration = $derived(prefersReducedMotion ? 0 : 600);
+	const displayTotal = tweened(0, { duration: 600, easing: cubicOut });
+	const displayPct = tweened(0, { duration: 600, easing: cubicOut });
 
 	// Update animated counters when stats change
 	$effect(() => {
 		const total = sessionCorrect + sessionWrong;
-		displayTotal.set(total);
-		displayPct.set(total > 0 ? Math.round((sessionCorrect / total) * 100) : 0);
+		const dur = tweenDuration;
+		displayTotal.set(total, { duration: dur });
+		displayPct.set(total > 0 ? Math.round((sessionCorrect / total) * 100) : 0, { duration: dur });
 	});
 
 	// Mistakes
@@ -412,14 +414,17 @@
 		return drillSettings.numberMode;
 	});
 
-	// Top-level view
-	let activeView = $state<'exercise' | 'declension'>('exercise');
+	// Top-level view — derived from SvelteKit page store to avoid SSR/client mismatch
+	let activeView = $state<'exercise' | 'declension'>(
+		get(page).url.searchParams.get('view') === 'lookup' ? 'declension' : 'exercise'
+	);
 
 	// Settings expanded state
 	let settingsExpanded = $state(false);
 	let caseFilterExpanded = $state(false);
 	let practicingMistakes = $state(false);
 	let lastMistakeIndex = $state(-1);
+	let lastTemplateId: string | null = null;
 
 	let relevantMistakeCount = $derived(
 		selectedCase === 'all'
@@ -464,31 +469,20 @@
 		}
 	}
 
-	// Dark mode
+	// Dark mode (shared module)
+	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
 	let darkMode = $state(false);
+	$effect(() => {
+		const unsub = darkModeStore.subscribe((v) => {
+			darkMode = v;
+		});
+		return unsub;
+	});
 
-	function initDarkMode(): void {
-		if (typeof window === 'undefined') return;
-		const stored = localStorage.getItem('sklonuj_dark');
-		if (stored !== null) {
-			darkMode = stored === 'true';
-		} else {
-			darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		}
-		document.documentElement.classList.toggle('dark', darkMode);
-	}
-
-	function toggleDarkMode(): void {
-		darkMode = !darkMode;
-		document.documentElement.classList.toggle('dark', darkMode);
-		localStorage.setItem('sklonuj_dark', String(darkMode));
-	}
-
-	// Subscribe to progress store
+	// Subscribe to progress store to keep local rune state in sync
 	$effect(() => {
 		const unsubscribe = progress.subscribe((value) => {
 			currentProgress = value;
-			currentLevel = value.level;
 		});
 		return unsubscribe;
 	});
@@ -521,45 +515,59 @@
 			}
 		}
 
-		// Generate first question immediately from local state
+		// Load today's session stats if logged in
+		if (user) {
+			loadTodaySession();
+		}
+
+		// Generate first question using local progress (layout handles Supabase sync on auth changes)
 		generateNextQuestion();
 		wordsLoading = false;
 
-		// If user is logged in, load progress from Supabase in the background
-		if (user) {
-			loadTodaySession();
-			const supabase = getSupabaseBrowserClient();
-			supabase
-				.from('user_progress')
-				.select('*')
-				.eq('user_id', user.id)
-				.single()
-				.then(
-					({
-						data
-					}: {
-						data: {
-							level: string;
-							case_scores: Record<string, { attempts: number; correct: number }>;
-							paradigm_scores: Record<string, { attempts: number; correct: number }>;
-							last_session: string;
-						} | null;
-					}) => {
-						if (data) {
-							progress.set({
-								level: data.level as Difficulty,
-								caseScores: data.case_scores ?? {},
-								paradigmScores: data.paradigm_scores ?? {},
-								lastSession: data.last_session ?? ''
-							});
-							// Regenerate with server-side progress for better weighted selection
-							generateNextQuestion();
-						}
-					}
+		// Flush pending syncs on page unload to avoid data loss
+		function handleBeforeUnload(): void {
+			if (syncTimer) {
+				clearTimeout(syncTimer);
+				syncTimer = null;
+				const current = get(progress);
+				const blob = new Blob(
+					[
+						JSON.stringify({
+							progress: {
+								level: current.level,
+								caseScores: current.caseScores,
+								paradigmScores: current.paradigmScores,
+								lastSession: current.lastSession
+							}
+						})
+					],
+					{ type: 'application/json' }
 				);
+				navigator.sendBeacon('/api/sync', blob);
+			}
+			if (sessionSyncTimer) {
+				clearTimeout(sessionSyncTimer);
+				sessionSyncTimer = null;
+				const blob = new Blob(
+					[
+						JSON.stringify({
+							session: {
+								sessionDate: getTodayDate(),
+								questionsAttempted: todayAttempted,
+								questionsCorrect: todayCorrect
+							}
+						})
+					],
+					{ type: 'application/json' }
+				);
+				navigator.sendBeacon('/api/sync', blob);
+			}
 		}
 
+		window.addEventListener('beforeunload', handleBeforeUnload);
+
 		return () => {
+			window.removeEventListener('beforeunload', handleBeforeUnload);
 			if (advanceTimer !== null) {
 				clearTimeout(advanceTimer);
 				advanceTimer = null;
@@ -692,6 +700,16 @@
 		return idx >= 0 ? idx : 0;
 	}
 
+	function pickTemplate(templates: SentenceTemplate[]): SentenceTemplate {
+		if (templates.length > 1 && lastTemplateId !== null) {
+			const filtered = templates.filter((t) => t.id !== lastTemplateId);
+			if (filtered.length > 0) {
+				return filtered[Math.floor(Math.random() * filtered.length)];
+			}
+		}
+		return templates[Math.floor(Math.random() * templates.length)];
+	}
+
 	function generateNextQuestion(): void {
 		// Practice mistakes mode: only serve from mistakes list
 		if (practicingMistakes) {
@@ -765,7 +783,7 @@
 							unlockedDifficulties.includes(t.difficulty)
 					);
 					if (nomTemplates.length > 0) {
-						const tmpl = nomTemplates[Math.floor(Math.random() * nomTemplates.length)];
+						const tmpl = pickTemplate(nomTemplates);
 						const candidates = (
 							isChapterMode ? getCandidates(tmpl, prog) : getCandidates(tmpl, prog)
 						).filter((w) => hasValidForm(w, 'nom', tmpl.number));
@@ -777,15 +795,17 @@
 							word = pickWordForChapter(eligibleWords, prog, 'nom', tmpl.number);
 						}
 						if (word) {
-							question = generateSentenceDrill(tmpl, word);
+							const generated = generateSentenceDrill(tmpl, word);
+							question = generated;
 							lastResult = null;
 							paradigmNotes = null;
 							submitted = false;
+							lastTemplateId = generated ? generated.template.id : null;
 							if (advanceTimer !== null) {
 								clearTimeout(advanceTimer);
 								advanceTimer = null;
 							}
-							if (question) autoPlayPrompt(question);
+							if (generated) autoPlayPrompt(generated);
 							return;
 						}
 					}
@@ -828,7 +848,7 @@
 				}
 				question = generateFormProduction(word, case_, number_);
 			} else {
-				const template = eligibleTemplates[Math.floor(Math.random() * eligibleTemplates.length)];
+				const template = pickTemplate(eligibleTemplates);
 
 				let candidates: WordEntry[];
 				if (isChapterMode) {
@@ -872,6 +892,7 @@
 						lastResult = null;
 						paradigmNotes = null;
 						submitted = false;
+						lastTemplateId = question?.template.id ?? null;
 						if (advanceTimer !== null) {
 							clearTimeout(advanceTimer);
 							advanceTimer = null;
@@ -948,6 +969,7 @@
 		lastResult = null;
 		paradigmNotes = null;
 		submitted = false;
+		lastTemplateId = question?.template.id ?? null;
 
 		if (advanceTimer !== null) {
 			clearTimeout(advanceTimer);
@@ -1131,6 +1153,16 @@
 		submitted = true;
 		sessionCount++;
 		const result = checkAnswer(question, answer, currentLevel);
+
+		// If checkAnswer returns null, the question had an empty correct answer (data issue).
+		// Skip it and generate the next question without recording anything.
+		if (result === null) {
+			submitted = false;
+			sessionCount--;
+			generateNextQuestion();
+			return;
+		}
+
 		lastResult = result;
 		recordResult(result);
 		scheduleSyncToSupabase();
@@ -1160,7 +1192,6 @@
 	function handleLevelChange(level: Difficulty): void {
 		setLevel(level);
 		scheduleSyncToSupabase();
-		currentLevel = level;
 		generateNextQuestion();
 	}
 
@@ -1193,11 +1224,9 @@
 		if (q.drillType === 'form_production') {
 			return q.word.lemma;
 		} else if (q.drillType === 'sentence_fill_in') {
-			// Read the text before and after the blank with a pause in between
 			const form = q.word.forms[q.number][CASE_INDEX[q.case]];
 			const voiced = applyPrepositionVoicing(q.template.template, form);
-			const parts = voiced.split('___');
-			return [parts[0].trim(), parts[1]?.trim()].filter(Boolean).join(', ');
+			return prepareSentenceForTTS(voiced);
 		} else {
 			// case_identification: read only the nominative form so the user figures out the case
 			return q.word.forms[q.number][0];
@@ -1328,7 +1357,11 @@
 			{#if chapterBook === null}
 				<!-- Case selection pill bar (Free Practice mode) -->
 				<div class="mb-4">
-					<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
+					{#if wordsLoading || question === null}
+						<CasePillBarSkeleton />
+					{:else}
+						<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
+					{/if}
 				</div>
 			{/if}
 
@@ -1576,7 +1609,7 @@
 			<div class="mx-auto mt-6 max-w-[867px]">
 				<DrillCard
 					{question}
-					loading={wordsLoading}
+					loading={wordsLoading || (question === null && !initialized)}
 					result={lastResult}
 					onSubmit={handleSubmit}
 					onSpeak={ttsAvailable ? handleSpeak : null}

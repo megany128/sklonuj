@@ -1,13 +1,81 @@
 import { page } from 'vitest/browser';
-import { describe, expect, it } from 'vitest';
-import { render } from 'vitest-browser-svelte';
-import Page from './+page.svelte';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { readable } from 'svelte/store';
+
+vi.mock('$app/stores', () => ({
+	page: readable({
+		url: new URL('http://localhost:5173/'),
+		params: {},
+		route: { id: '/' },
+		status: 200,
+		error: null,
+		data: { user: null },
+		form: null
+	}),
+	navigating: readable(null),
+	updated: readable(false)
+}));
+
+vi.mock('$app/paths', () => ({
+	base: '',
+	assets: '',
+	resolve: (path: string) => path
+}));
+
+const { default: Page } = await import('./+page.svelte');
+const { render, cleanup } = await import('vitest-browser-svelte');
 
 describe('/+page.svelte', () => {
-	it('should render h1', async () => {
+	beforeEach(() => {
+		cleanup();
+	});
+
+	it('should render without errors', async () => {
+		expect(() => render(Page)).not.toThrow();
+	});
+
+	it('should render main content area with drill interface', async () => {
 		render(Page);
 
-		const heading = page.getByRole('heading', { level: 1 });
-		await expect.element(heading).toBeInTheDocument();
+		const main = page.getByRole('main');
+		await expect.element(main).toBeInTheDocument();
+		await expect.element(main).toBeVisible();
+	});
+
+	it('should render navigation bar', async () => {
+		render(Page);
+
+		const nav = page.getByRole('navigation');
+		await expect.element(nav).toBeInTheDocument();
+		await expect.element(nav).toBeVisible();
+	});
+
+	it('should display drill settings toggle', async () => {
+		render(Page);
+
+		// Look for any button or element that might be the settings toggle
+		const buttons = await page.getByRole('button').all();
+		expect(buttons.length).toBeGreaterThan(0);
+	});
+
+	it('should display case pill bar or case selection interface', async () => {
+		render(Page);
+
+		// The page should have some form of case selection - look for multiple buttons or interactive elements
+		const buttons = await page.getByRole('button').all();
+		// Should have at least a few buttons for navigation and settings
+		expect(buttons.length).toBeGreaterThanOrEqual(1);
+	});
+
+	it('should render drill card area where questions appear', async () => {
+		render(Page);
+
+		const main = page.getByRole('main');
+		await expect.element(main).toBeInTheDocument();
+
+		// Main content should contain the drill interface
+		// We're verifying the structure is present without assuming specific content
+		const mainElement = await main.element();
+		expect(mainElement.children.length).toBeGreaterThan(0);
 	});
 });

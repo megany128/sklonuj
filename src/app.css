@@ -43,6 +43,7 @@
 	--color-negative-background: rgba(230, 68, 68, 0.1);
 	--color-negative-stroke: #d73e3e;
 	--color-warning-text: #d97706;
+	--color-warning-background: rgba(217, 119, 6, 0.1);
 	--color-easter-egg-border: #fcd34d;
 	--color-on-accent: #ffffff;
 	--color-page-background: #fbf6f3;
@@ -67,6 +68,7 @@
 		--color-negative-background: rgba(230, 68, 68, 0.08);
 		--color-negative-stroke: #c06060;
 		--color-warning-text: #fbbf24;
+		--color-warning-background: rgba(251, 191, 36, 0.08);
 		--color-easter-egg-border: #b8860b;
 		--color-on-accent: #ffffff;
 		--color-icon-hover: rgba(255, 255, 255, 0.08);
@@ -177,7 +179,7 @@ label:has(input[type='radio']) {
 	}
 }
 
-:root.dark .correct-flash {
+.dark .correct-flash {
 	animation: correctPulseDark 0.8s ease-out;
 }
 

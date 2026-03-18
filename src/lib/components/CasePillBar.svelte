@@ -27,8 +27,9 @@
 	}
 </script>
 
-<div class="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-2">
+<div role="group" aria-label="Case filter" class="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-2">
 	<button
+		aria-pressed={selectedCase === 'all'}
 		class="flex cursor-pointer items-center justify-center gap-1.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-all duration-200 sm:px-2 sm:py-2
 			{selectedCase === 'all'
 			? 'border-emphasis bg-emphasis text-text-inverted'
@@ -45,6 +46,7 @@
 		{@const accuracyPct = strength.attempts > 0 ? Math.round(strength.accuracy * 100) : null}
 		{@const accColor = strength.attempts > 0 ? accuracyColor(strength.accuracy) : null}
 		<button
+			aria-pressed={isSelected}
 			class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-all duration-200 ease-out sm:px-2 sm:py-2
 				{accColor && !isSelected ? '' : 'border-card-stroke'}"
 			style={isSelected

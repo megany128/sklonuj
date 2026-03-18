@@ -10,6 +10,18 @@ export default defineConfig({
 		projects: [
 			{
 				extends: './vite.config.ts',
+				resolve: {
+					alias: {
+						'$env/dynamic/public': new URL('src/test-mocks/env-dynamic-public.ts', import.meta.url)
+							.pathname,
+						'$env/dynamic/private': new URL(
+							'src/test-mocks/env-dynamic-private.ts',
+							import.meta.url
+						).pathname,
+						'$app/stores': new URL('src/test-mocks/app-stores.ts', import.meta.url).pathname,
+						'$app/paths': new URL('src/test-mocks/app-paths.ts', import.meta.url).pathname
+					}
+				},
 				test: {
 					name: 'client',
 					browser: {

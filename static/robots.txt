@@ -1,5 +1,6 @@
 User-agent: *
-Disallow: /settings
+Disallow: /api/
+Disallow: /auth/callback
 Disallow: /profile
 Disallow: /auth
 

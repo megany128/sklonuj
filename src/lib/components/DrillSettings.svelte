@@ -43,7 +43,7 @@
 
 <div class="flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6">
 	<!-- Drill types -->
-	<div class="flex items-center gap-2">
+	<div class="flex items-center gap-2" role="group" aria-label="Exercise type">
 		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
 		<div class="flex flex-wrap gap-1.5">
 			{#each visibleDrillTypes as dt (dt)}
@@ -63,7 +63,7 @@
 
 	<!-- Number mode (hidden when chapter forces singular only) -->
 	{#if !hideNumberMode}
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-2" role="group" aria-label="Grammatical number">
 			<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Number</span>
 			<div class="flex flex-wrap gap-1.5">
 				{#each numberOptions as opt (opt.value)}

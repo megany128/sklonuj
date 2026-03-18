@@ -1,0 +1,10 @@
+{
+	"name": "Skloňuj — Czech Declension Trainer",
+	"short_name": "Skloňuj",
+	"description": "Practice Czech noun declension with interactive drills",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#fbf6f3",
+	"theme_color": "#1e293b",
+	"icons": []
+}

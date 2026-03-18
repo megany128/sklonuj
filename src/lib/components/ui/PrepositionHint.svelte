@@ -17,9 +17,10 @@
 		example: string;
 	}
 
-	let prepositions: PrepEntry[] = $derived(
-		(caseDescriptions[case_] as { prepositions: PrepEntry[] }).prepositions
-	);
+	let prepositions: PrepEntry[] = $derived.by(() => {
+		const desc: { prepositions?: PrepEntry[] } | undefined = caseDescriptions[case_];
+		return desc?.prepositions ?? [];
+	});
 
 	let expanded = $state(false);
 
@@ -35,6 +36,7 @@
 		<button
 			type="button"
 			onclick={() => (expanded = !expanded)}
+			aria-expanded={expanded}
 			class="flex w-full items-center justify-center gap-1.5 text-xs text-darker-subtitle transition-colors hover:text-text-default"
 		>
 			<svg

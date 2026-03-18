@@ -1,6 +1,5 @@
 import type { Progress, CaseScore, Difficulty } from '../types';
-
-const STORAGE_KEY = 'sklonuj_progress';
+import { STORAGE_KEY, isValidProgress } from './progress';
 
 export function loadProgressFromLocalStorage(): Progress | null {
 	if (typeof window === 'undefined') return null;
@@ -9,11 +8,9 @@ export function loadProgressFromLocalStorage(): Progress | null {
 		const raw = localStorage.getItem(STORAGE_KEY);
 		if (!raw) return null;
 		const parsed: unknown = JSON.parse(raw);
-		if (typeof parsed !== 'object' || parsed === null) return null;
-		const obj = parsed as Record<string, unknown>;
-		if (obj.level !== 'A1' && obj.level !== 'A2' && obj.level !== 'B1' && obj.level !== 'B2')
-			return null;
-		return parsed as Progress;
+		if (!isValidProgress(parsed)) return null;
+		parsed.paradigmScores ??= {};
+		return parsed;
 	} catch {
 		return null;
 	}
@@ -29,12 +26,13 @@ function mergeScores(
 		const l = local[key];
 		const r = merged[key];
 		if (r) {
-			// Take the higher value — local and remote are mirrors once synced,
-			// so summing would double-count. Use max to handle the case where
-			// one side has newer progress the other hasn't seen yet.
+			// Take the maximum of each field independently so that data from
+			// neither side is silently discarded. This prevents data loss when
+			// a user practices on two devices.
+			const attempts = Math.max(l.attempts, r.attempts);
 			merged[key] = {
-				attempts: Math.max(l.attempts, r.attempts),
-				correct: Math.max(l.correct, r.correct)
+				attempts,
+				correct: Math.min(Math.max(l.correct, r.correct), attempts)
 			};
 		} else {
 			merged[key] = { ...l };

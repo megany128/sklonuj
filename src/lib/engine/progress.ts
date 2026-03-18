@@ -1,8 +1,8 @@
 import { writable, get } from 'svelte/store';
 import type { Progress, DrillResult, Difficulty, CaseScore, Case } from '../types.ts';
-import { ALL_CASES } from '../types.ts';
 
-const STORAGE_KEY = 'sklonuj_progress';
+export const STORAGE_KEY = 'sklonuj_progress';
+export const STORAGE_USER_KEY = 'sklonuj_progress_user';
 
 const DEFAULT_PROGRESS: Progress = {
 	level: 'A1',
@@ -11,38 +11,41 @@ const DEFAULT_PROGRESS: Progress = {
 	lastSession: ''
 };
 
-function isValidCaseScore(value: unknown): value is CaseScore {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		'attempts' in value &&
-		'correct' in value &&
-		typeof (value as CaseScore).attempts === 'number' &&
-		typeof (value as CaseScore).correct === 'number'
-	);
+export function isRecordLike(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isValidScoresRecord(value: unknown): value is Record<string, CaseScore> {
-	if (typeof value !== 'object' || value === null) return false;
-	const scores = value as Record<string, unknown>;
-	for (const key of Object.keys(scores)) {
-		if (!isValidCaseScore(scores[key])) return false;
+export function isValidCaseScore(value: unknown): value is CaseScore {
+	if (!isRecordLike(value)) return false;
+	return typeof value['attempts'] === 'number' && typeof value['correct'] === 'number';
+}
+
+export function isValidScoresRecord(value: unknown): value is Record<string, CaseScore> {
+	if (!isRecordLike(value)) return false;
+	for (const [, v] of Object.entries(value)) {
+		if (!isValidCaseScore(v)) return false;
 	}
 	return true;
 }
 
-function isValidProgress(value: unknown): value is Progress {
-	if (typeof value !== 'object' || value === null) return false;
+export function isValidProgress(value: unknown): value is Progress {
+	if (!isRecordLike(value)) return false;
+	const rec = value;
 
-	const obj = value as Record<string, unknown>;
-
-	if (obj.level !== 'A1' && obj.level !== 'A2' && obj.level !== 'B1' && obj.level !== 'B2')
+	if (
+		rec['level'] !== 'A1' &&
+		rec['level'] !== 'A2' &&
+		rec['level'] !== 'B1' &&
+		rec['level'] !== 'B2'
+	)
 		return false;
-	if (typeof obj.lastSession !== 'string') return false;
-	if (!isValidScoresRecord(obj.caseScores)) return false;
+	if (typeof rec['lastSession'] !== 'string') return false;
+	if (!isValidScoresRecord(rec['caseScores'])) return false;
 
-	// paradigmScores is optional for backwards compatibility — default to {} if missing
-	if (obj.paradigmScores !== undefined && !isValidScoresRecord(obj.paradigmScores)) return false;
+	// paradigmScores is optional for backwards compatibility — accept when missing.
+	if (rec['paradigmScores'] !== undefined && !isValidScoresRecord(rec['paradigmScores'])) {
+		return false;
+	}
 
 	return true;
 }
@@ -57,8 +60,8 @@ function loadFromStorage(): Progress {
 
 		const parsed: unknown = JSON.parse(raw);
 		if (isValidProgress(parsed)) {
-			// Backwards compatibility: default paradigmScores to {} if missing from stored data
-			return { ...parsed, paradigmScores: parsed.paradigmScores ?? {} };
+			parsed.paradigmScores ??= {};
+			return parsed;
 		}
 		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {} };
 	} catch {
@@ -150,14 +153,22 @@ export function getCombinedCaseStrength(case_: Case): { accuracy: number; attemp
 }
 
 export function getAllCaseStrengths(): Record<Case, { accuracy: number; attempts: number }> {
-	const result = {} as Record<Case, { accuracy: number; attempts: number }>;
-	for (const c of ALL_CASES) {
-		result[c] = getCombinedCaseStrength(c);
-	}
-	return result;
+	return {
+		nom: getCombinedCaseStrength('nom'),
+		gen: getCombinedCaseStrength('gen'),
+		dat: getCombinedCaseStrength('dat'),
+		acc: getCombinedCaseStrength('acc'),
+		voc: getCombinedCaseStrength('voc'),
+		loc: getCombinedCaseStrength('loc'),
+		ins: getCombinedCaseStrength('ins')
+	};
 }
 
 export function pickWeightedCase(cases: Case[]): Case {
+	if (cases.length === 0) {
+		throw new Error('pickWeightedCase called with empty cases array');
+	}
+
 	const strengths = getAllCaseStrengths();
 	const weights = cases.map((c) => {
 		const s = strengths[c];

@@ -1,17 +1,20 @@
 import type {
 	Case,
 	CaseForms,
+	CaseIndex,
 	CaseScore,
 	Difficulty,
 	DrillQuestion,
 	DrillResult,
+	Gender,
 	Number_,
+	Paradigm,
 	Progress,
 	SentenceTemplate,
 	VariantForms,
 	WordEntry
-} from '../types.ts';
-import { CASE_INDEX } from '../types.ts';
+} from '../types';
+import { CASE_INDEX, isCase, isNumber } from '../types';
 import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
@@ -25,37 +28,126 @@ interface CurriculumLevel {
 
 const curriculum: Record<string, CurriculumLevel> = curriculumData;
 
+const VALID_GENDERS = new Set<string>(['m', 'f', 'n']);
+const VALID_PARADIGMS = new Set<string>([
+	'hrad',
+	'stroj',
+	'pán',
+	'muž',
+	'předseda',
+	'žena',
+	'růže',
+	'píseň',
+	'kost',
+	'město',
+	'moře',
+	'kuře',
+	'stavení',
+	'soudce'
+]);
+const VALID_DIFFICULTIES = new Set<string>(['A1', 'A2', 'B1', 'B2']);
+function isGender(value: string): value is Gender {
+	return VALID_GENDERS.has(value);
+}
+
+function isParadigm(value: string): value is Paradigm {
+	return VALID_PARADIGMS.has(value);
+}
+
+function isDifficulty(value: string): value is Difficulty {
+	return VALID_DIFFICULTIES.has(value);
+}
+
+function isCaseForms(value: unknown): value is CaseForms {
+	return Array.isArray(value) && value.length === 7 && value.every((v) => typeof v === 'string');
+}
+
+/** Shape of a single word_bank.json entry before validation. */
+interface RawWordBankEntry {
+	lemma: string;
+	translation: string;
+	gender: string;
+	animate: boolean;
+	paradigm: string;
+	difficulty: string;
+	categories: string[];
+	forms: {
+		sg: unknown;
+		pl: unknown;
+	};
+	variantForms?: Record<string, Record<string, string[] | undefined> | undefined>;
+}
+
+/** Shape of a single sentence_templates.json entry before validation. */
+interface RawTemplateEntry {
+	id: string;
+	template: string;
+	lemmaCategory: string;
+	semanticTags?: string[];
+	requiredCase: string;
+	number: string;
+	trigger: string;
+	why: string;
+	difficulty: string;
+}
+
 let cachedWordBank: WordEntry[] | null = null;
 let cachedTemplates: SentenceTemplate[] | null = null;
 
 export function loadWordBank(): WordEntry[] {
 	if (cachedWordBank) return cachedWordBank;
-	cachedWordBank = wordBankData.map((entry) => {
+	const rawEntries: RawWordBankEntry[] = wordBankData;
+	cachedWordBank = rawEntries.map((entry) => {
+		if (!isGender(entry.gender)) {
+			throw new Error(`Invalid gender "${entry.gender}" for word "${entry.lemma}"`);
+		}
+		if (!isParadigm(entry.paradigm)) {
+			throw new Error(`Invalid paradigm "${entry.paradigm}" for word "${entry.lemma}"`);
+		}
+		if (!isDifficulty(entry.difficulty)) {
+			throw new Error(`Invalid difficulty "${entry.difficulty}" for word "${entry.lemma}"`);
+		}
+		if (!isCaseForms(entry.forms.sg)) {
+			throw new Error(`Invalid sg forms for word "${entry.lemma}"`);
+		}
+		if (!isCaseForms(entry.forms.pl)) {
+			throw new Error(`Invalid pl forms for word "${entry.lemma}"`);
+		}
+
 		const base: WordEntry = {
-			...entry,
-			gender: entry.gender as WordEntry['gender'],
-			paradigm: entry.paradigm as WordEntry['paradigm'],
-			difficulty: entry.difficulty as WordEntry['difficulty'],
+			lemma: entry.lemma,
+			translation: entry.translation,
+			gender: entry.gender,
+			animate: entry.animate,
+			paradigm: entry.paradigm,
+			difficulty: entry.difficulty,
+			categories: entry.categories,
 			forms: {
-				sg: entry.forms.sg as CaseForms,
-				pl: entry.forms.pl as CaseForms
+				sg: entry.forms.sg,
+				pl: entry.forms.pl
 			}
 		};
-		const raw = entry as Record<string, unknown>;
-		if (raw.variantForms) {
-			const vf = raw.variantForms as Record<string, Record<string, string[]>>;
+
+		if (entry.variantForms) {
+			const vf = entry.variantForms;
+			function toCaseIndex(n: number): CaseIndex {
+				if (n === 0 || n === 1 || n === 2 || n === 3 || n === 4 || n === 5 || n === 6) {
+					return n;
+				}
+				throw new Error(`Invalid case index ${n}`);
+			}
 			const parsed: { sg?: VariantForms; pl?: VariantForms } = {};
 			if (vf.sg) {
 				const sgVariants: VariantForms = {};
 				for (const [k, v] of Object.entries(vf.sg)) {
-					sgVariants[Number(k)] = v;
+					if (v) sgVariants[toCaseIndex(Number(k))] = v;
 				}
 				parsed.sg = sgVariants;
 			}
 			if (vf.pl) {
 				const plVariants: VariantForms = {};
 				for (const [k, v] of Object.entries(vf.pl)) {
-					plVariants[Number(k)] = v;
+					if (v) plVariants[toCaseIndex(Number(k))] = v;
 				}
 				parsed.pl = plVariants;
 			}
@@ -68,19 +160,63 @@ export function loadWordBank(): WordEntry[] {
 
 export function loadTemplates(): SentenceTemplate[] {
 	if (cachedTemplates) return cachedTemplates;
-	cachedTemplates = templateData.map((entry) => ({
-		...entry,
-		requiredCase: entry.requiredCase as SentenceTemplate['requiredCase'],
-		number: entry.number as SentenceTemplate['number'],
-		difficulty: entry.difficulty as SentenceTemplate['difficulty']
-	}));
+	const rawEntries: RawTemplateEntry[] = templateData;
+	cachedTemplates = rawEntries.map((entry) => {
+		if (!isCase(entry.requiredCase)) {
+			throw new Error(`Invalid requiredCase "${entry.requiredCase}" in template "${entry.id}"`);
+		}
+		if (!isNumber(entry.number)) {
+			throw new Error(`Invalid number "${entry.number}" in template "${entry.id}"`);
+		}
+		if (!isDifficulty(entry.difficulty)) {
+			throw new Error(`Invalid difficulty "${entry.difficulty}" in template "${entry.id}"`);
+		}
+		return {
+			id: entry.id,
+			template: entry.template,
+			lemmaCategory: entry.lemmaCategory,
+			semanticTags: entry.semanticTags,
+			requiredCase: entry.requiredCase,
+			number: entry.number,
+			trigger: entry.trigger,
+			why: entry.why,
+			difficulty: entry.difficulty
+		};
+	});
 	return cachedTemplates;
 }
 
 export function getCandidates(template: SentenceTemplate, progress: Progress): WordEntry[] {
 	const wordBank = loadWordBank();
 	const level = curriculum[progress.level];
+	if (!level) {
+		// Unknown level — fall back to the first curriculum level if available, else return no candidates
+		const firstKey = Object.keys(curriculum)[0];
+		if (!firstKey) return [];
+		if (!isDifficulty(firstKey)) return [];
+		if (firstKey === progress.level) return [];
+		return getCandidates(template, { ...progress, level: firstKey });
+	}
+
+	// Check curriculum constraints: is the template's case unlocked?
+	if (!level.unlocked_cases.includes(template.requiredCase)) return [];
+
+	// Check curriculum constraints: is the template's number allowed?
+	if (template.number === 'pl') {
+		if (!level.plural_unlocked) return [];
+		if (level.plural_unlocked === 'sg_first') {
+			// Only show plural templates if the user has >= 60% accuracy on the singular form of the same case
+			const sgKey = `${template.requiredCase}_sg`;
+			const sgScore: CaseScore | undefined = progress.caseScores[sgKey];
+			const sgAccuracy = sgScore && sgScore.attempts > 0 ? sgScore.correct / sgScore.attempts : 0;
+			if (sgAccuracy < 0.6) return [];
+		}
+	}
+
 	const unlockedDifficulties = level.unlocked_difficulty;
+
+	// Check curriculum constraints: is the template's difficulty unlocked?
+	if (!unlockedDifficulties.includes(template.difficulty)) return [];
 
 	const categoryMatches = wordBank.filter(
 		(word) =>
@@ -119,8 +255,9 @@ export function generateFormProduction(
 	word: WordEntry,
 	case_: Case,
 	number_: Number_
-): DrillQuestion {
+): DrillQuestion | null {
 	const correctAnswer = word.forms[number_][CASE_INDEX[case_]];
+	if (!correctAnswer || correctAnswer.trim().length === 0) return null;
 	return {
 		word,
 		template: PLACEHOLDER_TEMPLATE,
@@ -145,8 +282,12 @@ export function generateCaseIdentification(
 	};
 }
 
-export function generateSentenceDrill(template: SentenceTemplate, word: WordEntry): DrillQuestion {
+export function generateSentenceDrill(
+	template: SentenceTemplate,
+	word: WordEntry
+): DrillQuestion | null {
 	const correctAnswer = word.forms[template.number][CASE_INDEX[template.requiredCase]];
+	if (!correctAnswer || correctAnswer.trim().length === 0) return null;
 	return {
 		word,
 		template,
@@ -218,13 +359,17 @@ export function checkAnswer(
 	question: DrillQuestion,
 	userAnswer: string,
 	level: Difficulty = 'A1'
-): DrillResult {
+): DrillResult | null {
 	const trimmedUser = userAnswer.trim().toLowerCase();
 	const trimmedCorrect = question.correctAnswer.trim().toLowerCase();
 
-	// Guard: if the correct answer is empty (data issue), always mark as correct to avoid frustration
+	// Guard: if the correct answer is empty (data issue), log a warning and signal
+	// the caller to skip this question by returning null.
 	if (trimmedCorrect === '') {
-		return { question, userAnswer, correct: true, nearMiss: false };
+		console.warn(
+			`[drill] Skipping question with empty correct answer: word="${question.word.lemma}", case=${question.case}, number=${question.number}`
+		);
+		return null;
 	}
 
 	// For case identification, do an exact match on the case abbreviation
@@ -270,8 +415,10 @@ export function checkAnswer(
  * preposition immediately before the blank.
  */
 export function applyPrepositionVoicing(template: string, filledForm: string): string {
+	if (filledForm.length === 0) return template;
+
 	const lower = filledForm.toLowerCase();
-	const firstChar = lower[0] ?? '';
+	const firstChar = lower[0];
 	const firstTwo = lower.slice(0, 2);
 
 	// Detect consonant cluster: first two chars are both consonants (not vowels)
@@ -339,10 +486,15 @@ export function weightedRandom(
 	case_: Case,
 	number_: Number_
 ): WordEntry {
+	if (candidates.length === 0) {
+		throw new Error('weightedRandom called with empty candidates array');
+	}
+
 	const weights = candidates.map((word) => {
 		const paradigmKey = `${word.paradigm}_${case_}_${number_}`;
 		const score: CaseScore | undefined = progress.paradigmScores[paradigmKey];
-		const accuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
+		const rawAccuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
+		const accuracy = Math.min(rawAccuracy, 1);
 		return 1 / (accuracy + 0.1);
 	});
 

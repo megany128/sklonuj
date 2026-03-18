@@ -22,9 +22,14 @@
 
 <div class="flex items-center gap-2">
 	<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle">Mode</span>
-	<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
+	<div
+		role="group"
+		aria-label="Practice mode"
+		class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1"
+	>
 		{#each modeOptions as opt (opt.value)}
 			<button
+				aria-pressed={activeMode === opt.value}
 				onclick={() => handleModeSelect(opt.value)}
 				class="rounded-[12px] px-3 py-2.5 text-xs transition-all
 					{activeMode === opt.value

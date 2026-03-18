@@ -1,11 +1,24 @@
-let speakTimer: ReturnType<typeof setTimeout> | null = null;
-let cachedVoice: SpeechSynthesisVoice | null = null;
+let speakTimer: number | null = null;
+let cachedVoice: SpeechSynthesisVoice | undefined;
+let voicesChangedRegistered = false;
 
 function getCzechVoice(): SpeechSynthesisVoice | null {
 	if (cachedVoice) return cachedVoice;
 	const voices = speechSynthesis.getVoices();
-	cachedVoice = voices.find((v) => v.lang.startsWith('cs')) ?? null;
-	return cachedVoice;
+	const found = voices.find((v) => v.lang.startsWith('cs'));
+	if (found) {
+		cachedVoice = found;
+		return found;
+	}
+	// On Chrome, voices may not be loaded yet. Register a one-time listener
+	// so the cache is invalidated when voices become available.
+	if (!voicesChangedRegistered) {
+		voicesChangedRegistered = true;
+		speechSynthesis.addEventListener('voiceschanged', () => {
+			cachedVoice = undefined;
+		});
+	}
+	return null;
 }
 
 export function speak(text: string, lang = 'cs-CZ', rate = 0.85): void {
@@ -16,9 +29,11 @@ export function speak(text: string, lang = 'cs-CZ', rate = 0.85): void {
 		speakTimer = null;
 	}
 
-	speechSynthesis.cancel();
+	if (speechSynthesis.speaking) {
+		speechSynthesis.cancel();
+	}
 
-	speakTimer = setTimeout(() => {
+	speakTimer = window.setTimeout(() => {
 		speakTimer = null;
 		const utterance = new SpeechSynthesisUtterance(text);
 		utterance.lang = lang;
@@ -49,7 +64,7 @@ export function playCorrectSound(): void {
 
 	// Resume if suspended (browser autoplay policy)
 	if (ctx.state === 'suspended') {
-		ctx.resume();
+		void ctx.resume();
 	}
 
 	const now = ctx.currentTime;
@@ -85,7 +100,7 @@ export function playStreakSound(streak: number): void {
 	if (!ctx) return;
 
 	if (ctx.state === 'suspended') {
-		ctx.resume();
+		void ctx.resume();
 	}
 
 	const now = ctx.currentTime;
@@ -140,7 +155,7 @@ export function playClinkSound(): void {
 	if (!ctx) return;
 
 	if (ctx.state === 'suspended') {
-		ctx.resume();
+		void ctx.resume();
 	}
 
 	const now = ctx.currentTime;
@@ -194,6 +209,15 @@ export function playClinkSound(): void {
 	ring2Gain.connect(ctx.destination);
 	ring2.start(now);
 	ring2.stop(now + 0.18);
+}
+
+/** Remove the ___ gap placeholder and clean up whitespace/punctuation for natural TTS. */
+export function prepareSentenceForTTS(text: string): string {
+	return text
+		.replace('___', '')
+		.replace(/\s+/g, ' ')
+		.replace(/\s([.,!?])/g, '$1')
+		.trim();
 }
 
 export function isTTSAvailable(): boolean {

@@ -33,16 +33,12 @@
 
 	// Process dictionary JSON into typed entries.
 	// Each raw entry is [lemma, translation, sg[7], pl[7]].
-	interface DictEntry {
-		lemma: string;
-		translation: string;
-		sg: CaseForms;
-		pl: CaseForms;
-		paradigmHint: string;
-	}
 
-	function loadDictionary(): DictEntry[] {
-		const entries: DictEntry[] = [];
+	let cachedDictionary: DeclensionEntry[] | null = null;
+
+	function loadDictionary(): DeclensionEntry[] {
+		if (cachedDictionary) return cachedDictionary;
+		const entries: DeclensionEntry[] = [];
 		for (const raw of dictionaryData) {
 			const lemma = String(raw[0]);
 			const translation = String(raw[1]);
@@ -73,6 +69,7 @@
 				paradigmHint: raw[4] != null ? String(raw[4]) : ''
 			});
 		}
+		cachedDictionary = entries;
 		return entries;
 	}
 
@@ -106,8 +103,8 @@
 	}
 
 	// Build lookup maps for fast dictionary search by lemma (exact and stripped)
-	const dictByLemma: Record<string, DictEntry> = {};
-	const dictByStripped: Record<string, DictEntry> = {};
+	const dictByLemma: Record<string, DeclensionEntry> = {};
+	const dictByStripped: Record<string, DeclensionEntry> = {};
 	for (const entry of dictionary) {
 		const key = entry.lemma.toLowerCase();
 		if (!(key in dictByLemma)) {
@@ -125,13 +122,12 @@
 		word: w
 	}));
 
-	const dictStripped: Array<{ key: string; stripped: string; entry: DictEntry }> = dictionary.map(
-		(e) => ({
+	const dictStripped: Array<{ key: string; stripped: string; entry: DeclensionEntry }> =
+		dictionary.map((e) => ({
 			key: e.lemma.toLowerCase(),
 			stripped: stripDiacritics(e.lemma.toLowerCase()),
 			entry: e
-		})
-	);
+		}));
 
 	function wordBankToEntry(w: WordEntry): DeclensionEntry {
 		return {
@@ -143,14 +139,8 @@
 		};
 	}
 
-	function dictToEntry(d: DictEntry): DeclensionEntry {
-		return {
-			lemma: d.lemma,
-			translation: d.translation,
-			sg: d.sg,
-			pl: d.pl,
-			paradigmHint: d.paradigmHint
-		};
+	function dictToEntry(d: DeclensionEntry): DeclensionEntry {
+		return d;
 	}
 
 	function lookupWord(query: string): DeclensionEntry | null {
@@ -515,6 +505,9 @@
 						aria-expanded={dropdownOpen}
 						aria-controls="declension-suggestions"
 						aria-autocomplete="list"
+						aria-activedescendant={highlightedIndex >= 0
+							? 'suggestion-' + highlightedIndex
+							: undefined}
 						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-base text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis"
 					/>
 					{#if searchQuery !== ''}
@@ -523,7 +516,7 @@
 							onclick={clearSearch}
 							class="absolute right-2 top-1/2 -translate-y-1/2 text-text-subtitle hover:text-text-default"
 							aria-label="Clear search"
-							tabindex="-1"
+							tabindex="0"
 						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
@@ -548,6 +541,7 @@
 									<button
 										type="button"
 										role="option"
+										id="suggestion-{idx}"
 										aria-selected={idx === highlightedIndex}
 										onmousedown={() => selectWord(s.lemma)}
 										onmouseenter={() => (highlightedIndex = idx)}

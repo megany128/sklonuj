@@ -80,7 +80,6 @@
 			onclick={() => insertChar(d.char)}
 			class="inline-flex size-11 cursor-pointer items-center justify-center rounded-full border border-card-stroke text-base font-normal text-text-subtitle transition-all duration-150 hover:bg-shaded-background hover:text-text-default active:scale-95 sm:size-[53px] sm:text-lg"
 			aria-label="Insert {d.char}"
-			tabindex="-1"
 		>
 			{d.char}
 		</button>

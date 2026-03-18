@@ -16,7 +16,13 @@ export function createSupabaseServerClient(cookies: Cookies) {
 			},
 			setAll(cookiesToSet) {
 				cookiesToSet.forEach(({ name, value, options }) =>
-					cookies.set(name, value, { ...options, path: '/' })
+					cookies.set(name, value, {
+						...options,
+						path: '/',
+						httpOnly: true,
+						secure: true,
+						sameSite: 'lax'
+					})
 				);
 			}
 		}

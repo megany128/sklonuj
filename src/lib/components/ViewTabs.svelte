@@ -9,24 +9,58 @@
 		onViewChange: (view: View) => void;
 	} = $props();
 
+	let tablistEl: HTMLDivElement | undefined = $state();
+
 	const tabs: { id: View; label: string }[] = [
 		{ id: 'exercise', label: 'Exercises' },
 		{ id: 'declension', label: 'Look Up' }
 	];
+
+	function handleKeydown(e: KeyboardEvent, currentIndex: number) {
+		let newIndex = currentIndex;
+		if (e.key === 'ArrowLeft') {
+			e.preventDefault();
+			newIndex = currentIndex === 0 ? tabs.length - 1 : currentIndex - 1;
+		} else if (e.key === 'ArrowRight') {
+			e.preventDefault();
+			newIndex = currentIndex === tabs.length - 1 ? 0 : currentIndex + 1;
+		} else if (e.key === 'Home') {
+			e.preventDefault();
+			newIndex = 0;
+		} else if (e.key === 'End') {
+			e.preventDefault();
+			newIndex = tabs.length - 1;
+		} else {
+			return;
+		}
+		onViewChange(tabs[newIndex].id);
+		// Focus the newly active tab after the DOM updates
+		requestAnimationFrame(() => {
+			const buttons = tablistEl?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+			buttons?.[newIndex]?.focus();
+		});
+	}
 </script>
 
 <div class="mx-auto w-full max-w-4xl px-4 pt-6 pb-3">
 	<div
-		class="flex overflow-hidden rounded-xl border border-slate-200/80 bg-white dark:border-slate-700/60 dark:bg-slate-800/80"
+		bind:this={tablistEl}
+		role="tablist"
+		aria-label="View switcher"
+		class="flex overflow-hidden rounded-xl border border-card-stroke bg-card-bg"
 	>
-		{#each tabs as tab (tab.id)}
+		{#each tabs as tab, index (tab.id)}
 			<button
 				type="button"
+				role="tab"
+				aria-selected={activeView === tab.id}
+				tabindex={activeView === tab.id ? 0 : -1}
 				onclick={() => onViewChange(tab.id)}
+				onkeydown={(e) => handleKeydown(e, index)}
 				class="flex-1 py-2.5 text-center text-sm font-semibold transition-colors
 					{activeView === tab.id
 					? 'bg-brand-600 text-on-accent dark:bg-brand-500'
-					: 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-200'}"
+					: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
 			>
 				{tab.label}
 			</button>

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
-	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER } from '$lib/types';
+	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER, isCase } from '$lib/types';
 	import { applyPrepositionVoicing } from '$lib/engine/drill';
-	import { playClinkSound } from '$lib/audio';
+	import { playClinkSound, prepareSentenceForTTS } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
 	import CaseBadge from '$lib/components/ui/CaseBadge.svelte';
@@ -40,26 +40,59 @@
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 	let showFeedback = $state(false);
 
-	let unlockedCases = $derived(selectedCases);
-
 	const MAX_CASE_OPTIONS = 3;
+
+	// Simple seeded PRNG (mulberry32) for deterministic shuffle
+	function mulberry32(seed: number): () => number {
+		let s = seed | 0;
+		return () => {
+			s = (s + 0x6d2b79f5) | 0;
+			let t = Math.imul(s ^ (s >>> 15), 1 | s);
+			t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+			return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+		};
+	}
+
+	/** Single-shot seeded random: takes a seed integer, returns float in [0, 1) */
+	function seededRandom(seed: number): number {
+		let s = seed | 0;
+		s = (s + 0x6d2b79f5) | 0;
+		let t = Math.imul(s ^ (s >>> 15), 1 | s);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	}
+
+	function hashString(str: string): number {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			hash = (hash * 31 + str.charCodeAt(i)) | 0;
+		}
+		return hash;
+	}
 
 	// For case identification, pick max 3 options: correct answer + random distractors
 	let caseOptions = $derived.by(() => {
-		if (!question || question.drillType !== 'case_identification') return unlockedCases;
-		const correctCase = question.correctAnswer as Case;
-		if (unlockedCases.length <= MAX_CASE_OPTIONS) return unlockedCases;
-		const distractors = unlockedCases.filter((c) => c !== correctCase);
-		// Shuffle distractors deterministically based on question content
-		const shuffled = [...distractors].sort(() => {
-			// Use a simple seeded approach based on the question's template id + word
-			return 0.5 - Math.random();
-		});
+		if (!question || question.drillType !== 'case_identification') return selectedCases;
+		if (!isCase(question.correctAnswer)) return selectedCases;
+		const correctCase = question.correctAnswer;
+		if (selectedCases.length <= MAX_CASE_OPTIONS) return selectedCases;
+		const distractors = selectedCases.filter((c) => c !== correctCase);
+		// Shuffle distractors deterministically based on stable question data
+		const seed = hashString(question.correctAnswer + question.word.lemma + question.template.id);
+		const rng = mulberry32(seed);
+		const shuffled = [...distractors].sort(() => rng() - 0.5);
 		const picked = shuffled.slice(0, MAX_CASE_OPTIONS - 1);
-		// Combine correct + distractors and sort by original order in unlockedCases
+		// Combine correct + distractors and sort by original order in selectedCases
 		const result = [correctCase, ...picked];
 		return result.sort((a, b) => CASE_NUMBER[a] - CASE_NUMBER[b]);
 	});
+
+	let streakParticles = $derived(
+		Array.from({ length: streak >= 25 ? 10 : streak >= 10 ? 8 : 4 }, (_, i) => ({
+			left: 10 + seededRandom(streak * 100 + i * 37) * 80,
+			bottom: 20 + seededRandom(streak * 100 + i * 73 + 1000) * 40
+		}))
+	);
 
 	let isPivo = $derived(question?.word.lemma === 'pivo');
 	let cardEl: HTMLDivElement | undefined = $state(undefined);
@@ -131,7 +164,7 @@
 		clinkX = e.clientX;
 		clinkY = e.clientY;
 		clinkAnimating = true;
-		setTimeout(() => {
+		trackTimeout(() => {
 			clinkAnimating = false;
 		}, 800);
 	}
@@ -139,9 +172,35 @@
 	let showCheers = $state(false);
 	let canAdvance = $state(false);
 
+	// Track active timers and listeners for cleanup
+	let activeTimers: ReturnType<typeof setTimeout>[] = [];
+	let pendingKeyUpHandler: (() => void) | null = null;
+
+	function trackTimeout(fn: () => void, ms: number): void {
+		const id = setTimeout(() => {
+			activeTimers = activeTimers.filter((t) => t !== id);
+			fn();
+		}, ms);
+		activeTimers.push(id);
+	}
+
+	// Clean up all timers and listeners on component teardown
+	$effect(() => {
+		return () => {
+			for (const id of activeTimers) {
+				clearTimeout(id);
+			}
+			activeTimers = [];
+			if (pendingKeyUpHandler) {
+				window.removeEventListener('keyup', pendingKeyUpHandler);
+				pendingKeyUpHandler = null;
+			}
+		};
+	});
+
 	function triggerCheers() {
 		showCheers = true;
-		setTimeout(() => {
+		trackTimeout(() => {
 			showCheers = false;
 		}, 1000);
 	}
@@ -215,13 +274,18 @@
 	function enableAdvance() {
 		// Wait for the submitting key to be fully released before allowing advance
 		// This prevents the same keypress from both submitting and advancing
+		if (pendingKeyUpHandler) {
+			window.removeEventListener('keyup', pendingKeyUpHandler);
+		}
 		function onKeyUp() {
+			pendingKeyUpHandler = null;
 			// Use requestAnimationFrame to ensure the advance isn't possible
 			// until the next frame after the key is released
 			requestAnimationFrame(() => {
 				canAdvance = true;
 			});
 		}
+		pendingKeyUpHandler = onKeyUp;
 		window.addEventListener('keyup', onKeyUp, { once: true });
 	}
 
@@ -274,7 +338,8 @@
 
 	function sentenceWithGap(q: DrillQuestion): string {
 		const form = q.word.forms[q.number][CASE_INDEX[q.case]];
-		return applyPrepositionVoicing(q.template.template, form).replace('___', '...');
+		const voiced = applyPrepositionVoicing(q.template.template, form);
+		return prepareSentenceForTTS(voiced);
 	}
 </script>
 
@@ -565,11 +630,11 @@
 								<div
 									class="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px] sm:rounded-[40px]"
 								>
-									{#each Array.from({ length: streak >= 25 ? 10 : streak >= 10 ? 8 : 4 }, (_, i) => i) as i (i)}
+									{#each streakParticles as particle, i (i)}
 										<span
 											class="streak-float absolute text-xl"
-											style="left: {10 + Math.random() * 80}%; bottom: {20 +
-												Math.random() * 40}%; animation-delay: {i * 0.1}s"
+											style="left: {particle.left}%; bottom: {particle.bottom}%; animation-delay: {i *
+												0.1}s"
 										>
 											{['🔥', '⭐', '✨', '💥', '🌟'][i % 5]}
 										</span>
@@ -602,8 +667,9 @@
 							{@const templateWhy =
 								question.template.id !== '_form_production' ? question.template.why : null}
 							<CorrectAnswerPanel
-								correctAnswer={question.drillType === 'case_identification'
-									? CASE_LABELS[question.correctAnswer as Case]
+								correctAnswer={question.drillType === 'case_identification' &&
+								isCase(question.correctAnswer)
+									? CASE_LABELS[question.correctAnswer]
 									: result.question.correctAnswer}
 								nominative={question.word.forms[question.number][0]}
 								targetForm={question.word.forms[question.number][CASE_INDEX[question.case]]}
@@ -643,9 +709,34 @@
 		{/key}
 	{:else if loading}
 		<div
-			class="rounded-[24px] border-2 border-card-stroke bg-card-bg p-5 text-center sm:rounded-[40px] sm:p-8"
+			class="rounded-[24px] border-2 border-card-stroke bg-card-bg p-5 sm:rounded-[40px] sm:p-8 md:p-10"
 		>
-			<p class="text-sm text-text-subtitle">Loading exercises...</p>
+			<!-- Skeleton loading state -->
+			<div class="space-y-4 sm:space-y-6">
+				<!-- Question type label skeleton -->
+				<div class="flex justify-center">
+					<div class="h-4 w-16 animate-pulse rounded bg-shaded-background"></div>
+				</div>
+
+				<!-- Main content skeleton (sentence/word) -->
+				<div class="flex flex-col items-center gap-2">
+					<div class="h-9 w-48 animate-pulse rounded-lg bg-shaded-background sm:h-10 sm:w-64"></div>
+					<div class="h-6 w-32 animate-pulse rounded-full bg-shaded-background"></div>
+				</div>
+
+				<!-- Input/answer area skeleton -->
+				<div class="mt-2 space-y-2">
+					<div
+						class="h-12 w-full animate-pulse rounded-[16px] bg-shaded-background sm:h-14 sm:rounded-[20px]"
+					></div>
+					<!-- Diacritics bar skeleton -->
+					<div class="flex justify-center gap-1">
+						{#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as n (n)}
+							<div class="size-8 animate-pulse rounded-lg bg-shaded-background"></div>
+						{/each}
+					</div>
+				</div>
+			</div>
 		</div>
 	{:else}
 		<div

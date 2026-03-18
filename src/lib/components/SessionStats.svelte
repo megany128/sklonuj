@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { CASE_LABELS } from '$lib/types';
-	import type { Case, Number_ } from '$lib/types';
+	import { CASE_LABELS, isCase, isNumber } from '$lib/types';
 
 	let {
 		totalAnswered,
@@ -20,10 +19,11 @@
 		if (!key) return 'None yet';
 		const parts = key.split('_');
 		if (parts.length < 2) return key;
-		const caseKey = parts[0] as Case;
-		const number_ = parts[1] as Number_;
-		const caseName = CASE_LABELS[caseKey] ?? caseKey;
-		return `${caseName} ${number_ === 'pl' ? 'plural' : 'singular'}`;
+		const caseStr = parts[0];
+		const numberStr = parts[1];
+		if (!caseStr || !numberStr || !isCase(caseStr) || !isNumber(numberStr)) return key;
+		const caseName = CASE_LABELS[caseStr];
+		return `${caseName} ${numberStr === 'pl' ? 'plural' : 'singular'}`;
 	}
 </script>
 
@@ -35,12 +35,12 @@
 	>
 		Session checkpoint
 	</p>
-	<p class="text-center text-lg font-semibold text-slate-800 dark:text-slate-200">
+	<p class="text-center text-lg font-semibold text-emphasis">
 		{totalAnswered} questions answered: {correctCount}/{totalAnswered} correct ({pct}%)
 	</p>
 	{#if weakestArea}
-		<p class="mt-1 text-center text-sm text-slate-500 dark:text-slate-400">
-			Weakest area: <span class="font-semibold text-rose-600 dark:text-rose-400"
+		<p class="mt-1 text-center text-sm text-text-subtitle">
+			Weakest area: <span class="font-semibold text-negative-stroke"
 				>{formatWeakestArea(weakestArea)}</span
 			>
 		</p>
