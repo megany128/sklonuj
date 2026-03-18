@@ -455,13 +455,8 @@
 	}
 
 	function openReferenceSidebar() {
-		if (!submitted) {
-			refSidebarWord = '';
-			refSidebarTab = 'cases';
-		} else {
-			refSidebarWord = question?.word.lemma ?? '';
-			refSidebarTab = 'declension';
-		}
+		refSidebarWord = question?.word.lemma ?? '';
+		refSidebarTab = refSidebarWord ? 'declension' : 'cases';
 		refSidebarOpen = true;
 	}
 
@@ -472,6 +467,14 @@
 			openReferenceSidebar();
 		}
 	}
+
+	// Keep sidebar word in sync with the current question
+	$effect(() => {
+		const lemma = question?.word.lemma ?? '';
+		if (refSidebarOpen && lemma) {
+			refSidebarWord = lemma;
+		}
+	});
 
 	// Dark mode (shared module)
 	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
