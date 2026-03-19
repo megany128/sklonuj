@@ -261,7 +261,8 @@
 					"žena"
 				],
 				"pluralUnlocked": false,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty"]
 			},
 			{
 				"id": "kzk1_05",
@@ -306,7 +307,8 @@
 					"časopis"
 				],
 				"pluralUnlocked": false,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona"]
 			},
 			{
 				"id": "kzk1_06",
@@ -334,7 +336,8 @@
 						"prep": "na",
 						"case": "loc"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona"]
 			},
 			{
 				"id": "kzk1_07",
@@ -391,7 +394,8 @@
 						"prep": "za",
 						"case": "acc"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni"]
 			},
 			{
 				"id": "kzk1_08",
@@ -435,7 +439,8 @@
 						"prep": "k/ke",
 						"case": "dat"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni"]
 			},
 			{
 				"id": "kzk1_09",
@@ -489,7 +494,8 @@
 						"prep": "u",
 						"case": "gen"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni"]
 			},
 			{
 				"id": "kzk1_10",
@@ -540,7 +546,8 @@
 						"prep": "uprostřed",
 						"case": "gen"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_11",
@@ -584,7 +591,8 @@
 					"zákusek"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_12",
@@ -609,7 +617,8 @@
 					"čert"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_13",
@@ -645,7 +654,8 @@
 						"prep": "za",
 						"case": "ins"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_14",
@@ -689,7 +699,8 @@
 						"prep": "při",
 						"case": "loc"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_15",
@@ -732,7 +743,8 @@
 						"prep": "naproti",
 						"case": "dat"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_16",
@@ -782,7 +794,8 @@
 						"prep": "před",
 						"case": "ins"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_17",
@@ -823,7 +836,8 @@
 						"prep": "mezi",
 						"case": "ins"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_18",
@@ -871,7 +885,8 @@
 						"prep": "s/se",
 						"case": "ins"
 					}
-				]
+				],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_19",
@@ -927,7 +942,8 @@
 					"špenát"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_20",
@@ -988,7 +1004,8 @@
 					"švagrová"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_21",
@@ -1023,7 +1040,8 @@
 					"zvíře"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_22",
@@ -1112,7 +1130,8 @@
 					"úředník"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_23",
@@ -1137,7 +1156,8 @@
 					"umění"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk1_24",
@@ -1162,7 +1182,8 @@
 					"řeka"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			}
 		],
 		"unassignedLemmas": [
@@ -1812,7 +1833,8 @@
 					"zaměstnání"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_02",
@@ -1821,7 +1843,8 @@
 				"unlockedCases": ["nom", "gen", "dat", "acc", "voc", "loc", "ins"],
 				"coreLemmas": ["generace", "potomek", "prarodič", "stravenka", "strýc", "svatba", "teta"],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_03",
@@ -1868,7 +1891,8 @@
 					"život"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_04",
@@ -1899,7 +1923,8 @@
 					"úspěch"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_05",
@@ -1972,7 +1997,8 @@
 					"časopis"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_06",
@@ -2005,7 +2031,8 @@
 					"čumáček"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_07",
@@ -2055,7 +2082,8 @@
 					"špendlík"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_08",
@@ -2094,7 +2122,8 @@
 					"čarodějnice"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_09",
@@ -2124,7 +2153,8 @@
 					"čistírna"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_10",
@@ -2170,7 +2200,8 @@
 					"šachta"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_11",
@@ -2209,7 +2240,8 @@
 					"žaludek"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_12",
@@ -2272,7 +2304,8 @@
 					"řada"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_13",
@@ -2297,7 +2330,8 @@
 					"šok"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_14",
@@ -2338,7 +2372,8 @@
 					"čtenářka"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_15",
@@ -2370,7 +2405,8 @@
 					"štěstí"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_16",
@@ -2417,7 +2453,8 @@
 					"žárovka"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_17",
@@ -2464,7 +2501,8 @@
 					"ředitelka"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_18",
@@ -2526,7 +2564,8 @@
 					"župan"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_19",
@@ -2571,7 +2610,8 @@
 					"školství"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			},
 			{
 				"id": "kzk2_20",
@@ -2616,7 +2656,8 @@
 					"žánr"
 				],
 				"pluralUnlocked": true,
-				"newPrepositions": []
+				"newPrepositions": [],
+				"corePronounLemmas": ["já", "ty", "on", "ona", "ono", "my", "vy", "oni", "se"]
 			}
 		]
 	}

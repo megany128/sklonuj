@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CASE_COLORS, CASE_NUMBER } from '$lib/types';
 	import type { Case } from '$lib/types';
+	import { casePrepositions } from '$lib/data/prepositions';
 
 	let {
 		alwaysExpanded = false
@@ -9,6 +10,15 @@
 	} = $props();
 
 	let expanded = $state(false);
+	let prepExpanded: Record<Case, boolean> = $state({
+		nom: false,
+		gen: false,
+		dat: false,
+		acc: false,
+		voc: false,
+		loc: false,
+		ins: false
+	});
 
 	interface CaseInfo {
 		key: Case;
@@ -20,6 +30,8 @@
 		exampleTranslation: string;
 	}
 
+	const prepsByCase = new Map(casePrepositions.map((g) => [g.key, g.prepositions]));
+
 	const cases: CaseInfo[] = [
 		{
 			key: 'nom',
@@ -27,7 +39,7 @@
 			question: 'Kdo? Co? (Who? What?)',
 			mnemonic: 'The subject — who or what does the action.',
 			description:
-				'The default/dictionary form. Used for the subject of a sentence and after "to je" (this is).',
+				'The default dictionary form. Used for the subject of a sentence and after "to je" (this is).',
 			example: 'Pes běží.',
 			exampleTranslation: 'The dog is running.'
 		},
@@ -37,7 +49,7 @@
 			question: 'Koho? Čeho? (Of whom? Of what?)',
 			mnemonic: 'Possession, absence, origin — think "of" or "from".',
 			description:
-				"Used after do/z/od/bez/u and for possession (kniha matky = mother's book). Also for quantities and negation.",
+				'Expresses belonging, origin, and absence. Also used for quantities and after negated verbs.',
 			example: 'Jdu do města.',
 			exampleTranslation: "I'm going to the city."
 		},
@@ -47,7 +59,7 @@
 			question: 'Komu? Čemu? (To whom? To what?)',
 			mnemonic: 'The receiver — who gets something or benefits.',
 			description:
-				'Used for indirect objects (giving/telling someone). After k/ke. With verbs like pomáhat, věřit, volat.',
+				'Used for indirect objects — the person who receives, benefits, or is affected. Common with verbs of giving, helping, and communicating.',
 			example: 'Dám knihu bratrovi.',
 			exampleTranslation: "I'll give the book to my brother."
 		},
@@ -57,7 +69,7 @@
 			question: 'Koho? Co? (Whom? What?)',
 			mnemonic: 'The direct object — what the action is done to.',
 			description:
-				'Used for direct objects (I see X, I want X). After na (motion), pro, přes. The most common case after nominative.',
+				'Used for direct objects — whatever the action targets. Also expresses motion toward something.',
 			example: 'Vidím kočku.',
 			exampleTranslation: 'I see the cat.'
 		},
@@ -87,7 +99,7 @@
 			question: 'Kým? Čím? (By whom? By/with what?)',
 			mnemonic: 'The tool, companion, or means — "with" or "by".',
 			description:
-				'Used after s/se (with), za, pod, nad, před, mezi. Also after být for professions (Je lékařem = He is a doctor).',
+				'Expresses the tool, means, or companion. Also used to state professions with být (Je lékařem = He is a doctor).',
 			example: 'Jedu autem.',
 			exampleTranslation: "I'm going by car."
 		}
@@ -154,6 +166,42 @@
 							<span class="text-emphasis">{c.example}</span>
 							<span class="text-text-subtitle"> {c.exampleTranslation}</span>
 						</p>
+
+						{#if prepsByCase.has(c.key)}
+							<button
+								type="button"
+								onclick={() => (prepExpanded[c.key] = !prepExpanded[c.key])}
+								class="flex w-full items-center gap-1.5 text-xs font-semibold text-text-subtitle transition-colors hover:text-text-default"
+								aria-expanded={prepExpanded[c.key]}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-3.5 w-3.5 transition-transform duration-200 {prepExpanded[c.key]
+										? 'rotate-180'
+										: ''}"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+								Prepositions
+							</button>
+
+							{#if prepExpanded[c.key]}
+								<div class="flex flex-wrap gap-x-4 gap-y-1 pl-5">
+									{#each prepsByCase.get(c.key) ?? [] as prep (prep.czech)}
+										<span class="text-sm">
+											<span class="text-emphasis">{prep.czech}</span>
+											<span class="text-text-subtitle"> {prep.english}</span>
+										</span>
+									{/each}
+								</div>
+							{/if}
+						{/if}
 					</div>
 				</div>
 			{/each}

@@ -19,11 +19,12 @@ import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
 
-interface CurriculumLevel {
+export interface CurriculumLevel {
 	unlocked_cases: string[];
 	unlocked_difficulty: string[];
 	adjectives_unlocked: boolean;
 	plural_unlocked: boolean | string;
+	pronouns_unlocked: boolean;
 }
 
 const curriculum: Record<string, CurriculumLevel> = curriculumData;
@@ -346,7 +347,7 @@ const DIACRITICS_MAP: Record<string, string> = {
 	Ň: 'N'
 };
 
-function stripDiacritics(s: string): string {
+export function stripDiacritics(s: string): string {
 	let result = '';
 	for (const ch of s) {
 		result += DIACRITICS_MAP[ch] ?? ch;
@@ -387,6 +388,69 @@ export function checkAnswer(
 			`[drill] Skipping question with empty correct answer: word="${question.word.lemma}", case=${question.case}, number=${question.number}`
 		);
 		return null;
+	}
+
+	// Delegate pronoun questions to the pronoun-specific checker
+	if (question.wordCategory === 'pronoun' && question.acceptedAnswers) {
+		const accepted = question.acceptedAnswers;
+
+		// Exact match
+		for (const form of accepted) {
+			if (trimmedUser === form.trim().toLowerCase()) {
+				return { question, userAnswer, correct: true, nearMiss: false };
+			}
+		}
+
+		// Accidental case detection for pronouns — must run BEFORE diacritics check
+		// so that e.g. "ní" (gen/dat) is not mistaken for a near-miss of "ni" (acc),
+		// and "mne" (gen) is not mistaken for a near-miss of "mně" (dat).
+		if (question.pronoun) {
+			const pronoun = question.pronoun;
+			const ALL_PRONOUN_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+			const numbers: Number_[] = question.number === 'sg' ? ['sg', 'pl'] : ['pl', 'sg'];
+			let accidentalCase: { case: Case; number: Number_ } | undefined;
+
+			outer: for (const num of numbers) {
+				const caseForms = num === 'sg' ? pronoun.forms.sg : pronoun.forms.pl;
+				if (!caseForms) continue;
+				for (const c of ALL_PRONOUN_CASES) {
+					if (c === question.case && num === question.number) continue;
+					const form = caseForms[c];
+					const prepForms = form.prep
+						? form.prep.split('/').map((f) => f.trim().toLowerCase())
+						: [];
+					const bareForms = form.bare
+						? form.bare.split('/').map((f) => f.trim().toLowerCase())
+						: [];
+					const allForms = [...prepForms, ...bareForms];
+					for (const f of allForms) {
+						if (f && trimmedUser === f) {
+							accidentalCase = { case: c, number: num };
+							break outer;
+						}
+					}
+				}
+			}
+
+			if (accidentalCase) {
+				return { question, userAnswer, correct: false, nearMiss: false, accidentalCase };
+			}
+		}
+
+		// Near-miss (diacritics) — only reached if not an exact match for another case
+		const strippedUser = stripDiacritics(trimmedUser);
+		for (const form of accepted) {
+			const stripped = stripDiacritics(form.trim().toLowerCase());
+			if (strippedUser === stripped) {
+				const strictDiacritics = level === 'B1' || level === 'B2';
+				if (strictDiacritics) {
+					return { question, userAnswer, correct: false, nearMiss: true };
+				}
+				return { question, userAnswer, correct: true, nearMiss: true };
+			}
+		}
+
+		return { question, userAnswer, correct: false, nearMiss: false };
 	}
 
 	// For case identification, do an exact match on the case abbreviation

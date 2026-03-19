@@ -5,12 +5,14 @@
 	import { page } from '$app/stores';
 	import type {
 		Case,
+		ContentMode,
 		Difficulty,
 		DrillQuestion,
 		DrillResult,
 		DrillSettings,
 		DrillType,
 		Number_,
+		PronounEntry,
 		Progress,
 		WordEntry,
 		SentenceTemplate
@@ -27,7 +29,8 @@
 		checkAnswer,
 		weightedRandom,
 		hasValidForm,
-		applyPrepositionVoicing
+		applyPrepositionVoicing,
+		type CurriculumLevel
 	} from '$lib/engine/drill';
 	import {
 		progress,
@@ -37,6 +40,15 @@
 		getCombinedCaseStrength,
 		pickWeightedCase
 	} from '$lib/engine/progress';
+	import {
+		loadPronounBank,
+		loadPronounTemplates,
+		generatePronounFormProduction,
+		generatePronounSentenceDrill,
+		getPronounCandidates,
+		weightedRandomPronoun,
+		makePlaceholderWord
+	} from '$lib/engine/pronoun-drill';
 	import {
 		speak,
 		isTTSAvailable,
@@ -155,13 +167,6 @@
 		whyNotes: Record<string, string>;
 	}
 
-	interface CurriculumLevel {
-		unlocked_cases: string[];
-		unlocked_difficulty: string[];
-		adjectives_unlocked: boolean;
-		plural_unlocked: boolean | string;
-	}
-
 	const paradigms: ParadigmEntry[] = paradigmsData;
 	const curriculum: Record<string, CurriculumLevel> = curriculumData;
 
@@ -171,7 +176,8 @@
 		return {
 			selectedCases: ALL_CASES,
 			selectedDrillTypes: ['form_production', 'case_identification', 'sentence_fill_in'],
-			numberMode: 'both'
+			numberMode: 'both',
+			contentMode: 'both'
 		};
 	}
 
@@ -196,6 +202,13 @@
 		if (!Array.isArray(obj.selectedCases) || obj.selectedCases.length === 0) return false;
 		if (!Array.isArray(obj.selectedDrillTypes) || obj.selectedDrillTypes.length === 0) return false;
 		if (obj.numberMode !== 'sg' && obj.numberMode !== 'pl' && obj.numberMode !== 'both')
+			return false;
+		if (
+			obj.contentMode !== undefined &&
+			obj.contentMode !== 'nouns' &&
+			obj.contentMode !== 'pronouns' &&
+			obj.contentMode !== 'both'
+		)
 			return false;
 		const validCases = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 		const validTypes = ['form_production', 'case_identification', 'sentence_fill_in'];
@@ -396,6 +409,14 @@
 		handleChapterChange(chapterBook, chapters[newIdx].id);
 	}
 
+	// Derived: whether pronouns are unlocked at the current level
+	let pronounsUnlocked = $derived(curriculum[currentLevel]?.pronouns_unlocked ?? false);
+
+	// Derived: effective content mode (forced to nouns if pronouns not unlocked)
+	let effectiveContentMode: ContentMode = $derived(
+		pronounsUnlocked ? (drillSettings.contentMode ?? 'both') : 'nouns'
+	);
+
 	// Derived: effective enabled cases (constrained by chapter if active)
 	let effectiveEnabledCases = $derived.by(() => {
 		const chapter = getSelectedKzkChapter();
@@ -446,11 +467,21 @@
 	// Reference sidebar
 	let refSidebarOpen = $state(false);
 	let refSidebarWord = $state('');
-	let refSidebarTab = $state<'declension' | 'cases' | 'prepositions'>('cases');
+	let refSidebarPronoun = $state('');
+	let refSidebarTab = $state<'declension' | 'pronouns' | 'cases'>('cases');
 
 	function handleWordClick(lemma: string) {
-		refSidebarWord = lemma;
-		refSidebarTab = 'declension';
+		const pronounBank = loadPronounBank();
+		const isPronoun = pronounBank.some((p) => p.lemma === lemma);
+		if (isPronoun) {
+			refSidebarPronoun = lemma;
+			refSidebarWord = '';
+			refSidebarTab = 'pronouns';
+		} else {
+			refSidebarWord = lemma;
+			refSidebarPronoun = '';
+			refSidebarTab = 'declension';
+		}
 		refSidebarOpen = true;
 	}
 
@@ -470,9 +501,12 @@
 
 	// Keep sidebar word in sync with the current question
 	$effect(() => {
-		const lemma = question?.word.lemma ?? '';
-		if (refSidebarOpen && lemma) {
-			refSidebarWord = lemma;
+		if (!refSidebarOpen || !question) return;
+		if (question.wordCategory === 'pronoun' && question.pronoun) {
+			refSidebarPronoun = question.pronoun.lemma;
+		} else {
+			const lemma = question.word.lemma;
+			if (lemma) refSidebarWord = lemma;
 		}
 	});
 
@@ -731,6 +765,171 @@
 		return templates[Math.floor(Math.random() * templates.length)];
 	}
 
+	function generatePronounQuestion(): DrillQuestion | null {
+		const prog = get(progress);
+		const levelConfig = curriculum[prog.level];
+		const unlockedDifficulties = levelConfig.unlocked_difficulty;
+
+		const pronounBank = loadPronounBank();
+		const eligiblePronouns = pronounBank.filter((p) => unlockedDifficulties.includes(p.difficulty));
+
+		if (eligiblePronouns.length === 0) return null;
+
+		// In chapter mode, filter by corePronounLemmas
+		const isChapterMode = chapterBook !== null && chapterSelection !== null;
+		let candidates = eligiblePronouns;
+		if (isChapterMode) {
+			const chapter = getSelectedKzkChapter();
+			if (chapter?.corePronounLemmas && chapter.corePronounLemmas.length > 0) {
+				const chapterLemmas = new Set(chapter.corePronounLemmas);
+				const filtered = eligiblePronouns.filter((p) => chapterLemmas.has(p.lemma));
+				if (filtered.length > 0) candidates = filtered;
+			}
+		}
+
+		const drillType = pickDrillType();
+		// Exclude vocative for pronoun drills (almost no pronoun has a vocative form)
+		const pronounCases: Case[] = (
+			selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]
+		).filter((c) => c !== 'voc');
+		if (pronounCases.length === 0) return null;
+		const case_ = pronounCases.length === 1 ? pronounCases[0] : pickWeightedCase(pronounCases);
+
+		// Pick number - for pronouns, we need to respect whether the pronoun has sg or pl forms
+		let number_: Number_;
+		if (effectiveNumberMode === 'sg') number_ = 'sg';
+		else if (effectiveNumberMode === 'pl') number_ = 'pl';
+		else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+
+		// Filter candidates that have the right number forms
+		let numberCandidates = candidates.filter((p) => {
+			if (number_ === 'sg') return p.forms.sg !== null;
+			return p.forms.pl !== null;
+		});
+
+		// If no candidates for this number, try the other
+		if (numberCandidates.length === 0) {
+			number_ = number_ === 'sg' ? 'pl' : 'sg';
+			numberCandidates = candidates.filter((p) => {
+				if (number_ === 'sg') return p.forms.sg !== null;
+				return p.forms.pl !== null;
+			});
+			if (numberCandidates.length === 0) return null;
+		}
+		candidates = numberCandidates;
+
+		if (drillType === 'form_production') {
+			// Skip nominative for form_production (trivial)
+			let fpCase = case_;
+			if (fpCase === 'nom') {
+				const nonNom = pronounCases.filter((c) => c !== 'nom');
+				if (nonNom.length > 0) {
+					fpCase = nonNom[Math.floor(Math.random() * nonNom.length)];
+				} else {
+					return null;
+				}
+			}
+
+			const pronoun = weightedRandomPronoun(candidates, prog, fpCase, number_);
+			return generatePronounFormProduction(pronoun, fpCase, number_);
+		} else if (drillType === 'sentence_fill_in') {
+			// Use pronoun templates
+			const templates = loadPronounTemplates();
+			const eligibleTemplates = templates.filter(
+				(t) =>
+					pronounCases.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
+			);
+
+			if (eligibleTemplates.length === 0) {
+				// Fall back to form production
+				let fpCase = case_;
+				if (fpCase === 'nom') {
+					const nonNom = pronounCases.filter((c) => c !== 'nom');
+					if (nonNom.length > 0) fpCase = nonNom[Math.floor(Math.random() * nonNom.length)];
+					else return null;
+				}
+				const pronoun = weightedRandomPronoun(candidates, prog, fpCase, number_);
+				return generatePronounFormProduction(pronoun, fpCase, number_);
+			}
+
+			const template = pickTemplate(eligibleTemplates);
+
+			// Get pronoun candidates for this specific template
+			const templateCandidates = getPronounCandidates(
+				template,
+				prog,
+				isChapterMode ? getSelectedKzkChapter()?.corePronounLemmas : undefined
+			);
+
+			// Filter by number
+			const validCandidates = templateCandidates.filter((p) => {
+				if (template.number === 'sg') return p.forms.sg !== null;
+				return p.forms.pl !== null;
+			});
+
+			if (validCandidates.length === 0) {
+				// Fall back: pick any candidate and do form production
+				const pronoun = weightedRandomPronoun(candidates, prog, case_, number_);
+				return generatePronounFormProduction(pronoun, case_, number_);
+			}
+
+			const pronoun = weightedRandomPronoun(
+				validCandidates,
+				prog,
+				template.requiredCase,
+				template.number
+			);
+			return generatePronounSentenceDrill(template, pronoun);
+		} else {
+			// case_identification - use pronoun templates too
+			const templates = loadPronounTemplates();
+			const eligibleTemplates = templates.filter(
+				(t) =>
+					pronounCases.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
+			);
+
+			if (eligibleTemplates.length === 0) return null;
+
+			const template = pickTemplate(eligibleTemplates);
+			const templateCandidates = getPronounCandidates(
+				template,
+				prog,
+				isChapterMode ? getSelectedKzkChapter()?.corePronounLemmas : undefined
+			);
+			const validCandidates = templateCandidates.filter((p) => {
+				if (template.number === 'sg') return p.forms.sg !== null;
+				return p.forms.pl !== null;
+			});
+
+			if (validCandidates.length === 0) return null;
+
+			const pronoun = weightedRandomPronoun(
+				validCandidates,
+				prog,
+				template.requiredCase,
+				template.number
+			);
+			const placeholder = makePlaceholderWord(pronoun);
+
+			// For case identification, create a question where the answer is the case name
+			const q: DrillQuestion = {
+				word: placeholder,
+				template: template,
+				correctAnswer: template.requiredCase,
+				case: template.requiredCase,
+				number: template.number,
+				drillType: 'case_identification',
+				wordCategory: 'pronoun',
+				pronoun: pronoun
+			};
+			return q;
+		}
+	}
+
 	function generateNextQuestion(): void {
 		// Practice mistakes mode: only serve from mistakes list
 		if (practicingMistakes) {
@@ -756,6 +955,32 @@
 				autoPlayPrompt(question);
 				return;
 			}
+		}
+
+		// Decide if this should be a pronoun question
+		const shouldDoPronoun = (() => {
+			if (effectiveContentMode === 'pronouns') return true;
+			if (effectiveContentMode === 'nouns') return false;
+			// 'both' mode: ~30% chance of pronoun
+			return Math.random() < 0.3;
+		})();
+
+		if (shouldDoPronoun) {
+			const pronounQ = generatePronounQuestion();
+			if (pronounQ) {
+				question = pronounQ;
+				lastResult = null;
+				paradigmNotes = pronounQ.pronoun?.notes ?? null;
+				submitted = false;
+				lastTemplateId = pronounQ.template.id;
+				if (advanceTimer !== null) {
+					clearTimeout(advanceTimer);
+					advanceTimer = null;
+				}
+				autoPlayPrompt(pronounQ);
+				return;
+			}
+			// If pronoun generation failed, fall through to noun generation
 		}
 
 		const wordBank = loadWordBank();
@@ -1033,6 +1258,32 @@
 		}
 	}
 
+	function lookupPronounNotes(
+		pronoun: PronounEntry,
+		case_: string,
+		number_: string
+	): Record<string, string> | null {
+		const noteKey = `${case_}_${number_}`;
+		const notes: Record<string, string> = {};
+		if (pronoun.notes[noteKey]) {
+			notes[noteKey] = pronoun.notes[noteKey];
+		}
+		if (pronoun.notes['general']) {
+			notes[noteKey] = notes[noteKey]
+				? `${notes[noteKey]} ${pronoun.notes['general']}`
+				: pronoun.notes['general'];
+		}
+		return Object.keys(notes).length > 0 ? notes : null;
+	}
+
+	function getPronounFormForTTS(q: DrillQuestion): string {
+		if (!q.pronoun) return '';
+		const caseForms = q.number === 'sg' ? q.pronoun.forms.sg : q.pronoun.forms.pl;
+		if (!caseForms) return '';
+		const form = caseForms[q.case];
+		return form.prep || form.bare || '';
+	}
+
 	function lookupParadigmNotes(paradigmId: string, word: WordEntry): Record<string, string> | null {
 		const entry = paradigms.find((p) => p.id === paradigmId);
 		const notes: Record<string, string> = entry?.whyNotes ? { ...entry.whyNotes } : {};
@@ -1167,7 +1418,11 @@
 			trackSessionStats(result);
 			recordSessionActivity(false);
 			streak = 0;
-			paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
+			if (question.wordCategory === 'pronoun' && question.pronoun) {
+				paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
+			} else {
+				paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
+			}
 			autoPlayAnswer(question);
 			return;
 		}
@@ -1233,7 +1488,11 @@
 			}
 		} else {
 			streak = 0;
-			paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
+			if (question.wordCategory === 'pronoun' && question.pronoun) {
+				paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
+			} else {
+				paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
+			}
 		}
 
 		checkMilestones(result);
@@ -1250,6 +1509,7 @@
 	function handleSettingsChange(settings: {
 		selectedDrillTypes: DrillType[];
 		numberMode: 'sg' | 'pl' | 'both';
+		contentMode?: ContentMode;
 	}): void {
 		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
@@ -1274,14 +1534,17 @@
 
 	function questionPromptText(q: DrillQuestion): string {
 		if (q.drillType === 'form_production') {
-			return q.word.lemma;
+			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? q.word.lemma) : q.word.lemma;
 		} else if (q.drillType === 'sentence_fill_in') {
-			const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+			const form =
+				q.wordCategory === 'pronoun'
+					? getPronounFormForTTS(q)
+					: q.word.forms[q.number][CASE_INDEX[q.case]];
 			const voiced = applyPrepositionVoicing(q.template.template, form);
 			return prepareSentenceForTTS(voiced);
 		} else {
-			// case_identification: read only the nominative form so the user figures out the case
-			return q.word.forms[q.number][0];
+			// case_identification: read only the nominative/lemma form so the user figures out the case
+			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? '') : q.word.forms[q.number][0];
 		}
 	}
 
@@ -1293,10 +1556,16 @@
 	function autoPlayAnswer(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
 		if (q.drillType === 'case_identification') {
-			// After revealing the answer, read the full sentence with the correct form
-			const form = q.word.forms[q.number][CASE_INDEX[q.case]];
-			const voiced = applyPrepositionVoicing(q.template.template, form);
-			speak(voiced.replace('___', form));
+			if (q.wordCategory === 'pronoun') {
+				const form = getPronounFormForTTS(q);
+				const voiced = applyPrepositionVoicing(q.template.template, form);
+				speak(voiced.replace('___', form));
+			} else {
+				// After revealing the answer, read the full sentence with the correct form
+				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+				const voiced = applyPrepositionVoicing(q.template.template, form);
+				speak(voiced.replace('___', form));
+			}
 			return;
 		}
 		speak(q.correctAnswer);
@@ -1715,6 +1984,8 @@
 					<DrillSettings_
 						selectedDrillTypes={drillSettings.selectedDrillTypes}
 						numberMode={effectiveNumberMode}
+						contentMode={drillSettings.contentMode ?? 'nouns'}
+						{pronounsUnlocked}
 						onSettingsChange={handleSettingsChange}
 						hiddenDrillTypes={selectedCase !== 'all' || effectiveEnabledCases.length < 2
 							? ['case_identification']
@@ -1854,6 +2125,7 @@
 			<aside class="h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md">
 				<ReferenceSidebar
 					initialWord={refSidebarWord}
+					initialPronoun={refSidebarPronoun}
 					initialTab={refSidebarTab}
 					onClose={() => (refSidebarOpen = false)}
 				/>

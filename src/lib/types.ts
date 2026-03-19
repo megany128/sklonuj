@@ -126,6 +126,10 @@ export interface SentenceTemplate {
 	requiredGender?: Gender;
 	why: string;
 	difficulty: Difficulty;
+	// Pronoun template fields (optional)
+	pronounCategory?: string;
+	requiredPronoun?: string;
+	formContext?: PronounFormContext;
 }
 
 export interface DrillQuestion {
@@ -135,6 +139,11 @@ export interface DrillQuestion {
 	case: Case;
 	number: Number_;
 	drillType: DrillType;
+	// Pronoun fields (optional — only set for pronoun drills)
+	wordCategory?: 'noun' | 'pronoun';
+	pronoun?: PronounEntry;
+	acceptedAnswers?: string[];
+	expectedFormContext?: PronounFormContext;
 }
 
 export interface DrillResult {
@@ -149,7 +158,32 @@ export interface DrillSettings {
 	selectedCases: Case[];
 	selectedDrillTypes: DrillType[];
 	numberMode: 'sg' | 'pl' | 'both';
+	contentMode?: ContentMode;
 }
+
+export type PronounFormContext = 'prep' | 'bare' | 'either';
+
+export interface PronounCaseForm {
+	prep: string; // form used after prepositions
+	bare: string; // enclitic/standalone form; empty string if none exists
+}
+
+export type PronounCaseForms = Record<Case, PronounCaseForm>;
+
+export interface PronounEntry {
+	lemma: string;
+	translation: string;
+	gender: Gender | null;
+	difficulty: Difficulty;
+	categories: string[];
+	forms: {
+		sg: PronounCaseForms | null;
+		pl: PronounCaseForms | null;
+	};
+	notes: Record<string, string>;
+}
+
+export type ContentMode = 'nouns' | 'pronouns' | 'both';
 
 export const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
@@ -190,6 +224,7 @@ export interface KzkChapter {
 	pluralUnlocked: boolean;
 	newPrepositions: KzkPreposition[];
 	coreLemmas: string[];
+	corePronounLemmas?: string[];
 }
 
 export interface KzkBook {

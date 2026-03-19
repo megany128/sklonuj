@@ -72,6 +72,25 @@
 		const totalAtt = scores.reduce((sum, s) => sum + s.attempts, 0);
 		return totalAtt > 0 ? Math.round((totalCorrect / totalAtt) * 100) : 0;
 	});
+
+	let pronounScores = $derived.by(() => {
+		const scores: Record<string, { attempts: number; correct: number }> = {};
+		for (const [key, value] of Object.entries(progress.paradigmScores)) {
+			if (key.startsWith('pronoun_')) {
+				// Extract lemma from key: pronoun_já_dat_sg -> já
+				const parts = key.split('_');
+				const lemma = parts[1];
+				if (!scores[lemma]) {
+					scores[lemma] = { attempts: 0, correct: 0 };
+				}
+				scores[lemma].attempts += value.attempts;
+				scores[lemma].correct += value.correct;
+			}
+		}
+		return scores;
+	});
+
+	let hasPronounScores = $derived(Object.keys(pronounScores).length > 0);
 </script>
 
 <div class="w-full">
@@ -144,5 +163,42 @@
 				</tbody>
 			</table>
 		</div>
+
+		{#if hasPronounScores}
+			<div class="mt-3 overflow-hidden rounded-xl border border-card-stroke">
+				<div class="bg-card-bg px-3 py-2">
+					<span class="text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+						>Pronouns</span
+					>
+				</div>
+				<div class="divide-y divide-card-stroke">
+					{#each Object.entries(pronounScores).sort( (a, b) => a[0].localeCompare(b[0]) ) as [lemma, score] (lemma)}
+						{@const accuracy =
+							score.attempts > 0 ? Math.round((score.correct / score.attempts) * 100) : 0}
+						{@const colorClass =
+							score.attempts === 0
+								? 'bg-shaded-background text-text-subtitle'
+								: accuracy >= 80
+									? 'bg-positive-background text-positive-stroke'
+									: accuracy >= 50
+										? 'bg-warning-background text-warning-text'
+										: 'bg-negative-background text-negative-stroke'}
+						<div
+							class="flex items-center justify-between px-3 py-2 transition-colors hover:bg-shaded-background/50"
+						>
+							<span class="text-xs font-semibold text-emphasis">{lemma}</span>
+							<div class="flex items-center gap-2">
+								<span class="text-xs text-text-subtitle">{score.attempts} attempts</span>
+								<span
+									class="inline-block min-w-[2.5rem] rounded-lg px-2 py-1 text-center text-xs font-semibold {colorClass}"
+								>
+									{accuracy}%
+								</span>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	{/if}
 </div>

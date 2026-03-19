@@ -1,26 +1,34 @@
 <script lang="ts">
 	import DeclensionTable from './DeclensionTable.svelte';
+	import PronounTable from './PronounTable.svelte';
 	import CaseGuide from './CaseGuide.svelte';
-	import CheatSheet from './CheatSheet.svelte';
 
-	type TabId = 'declension' | 'cases' | 'prepositions';
+	type TabId = 'declension' | 'pronouns' | 'cases';
 
 	let {
 		initialWord = '',
+		initialPronoun = '',
 		initialTab = 'declension',
 		onClose
 	}: {
 		initialWord?: string;
+		initialPronoun?: string;
 		initialTab?: TabId;
 		onClose: () => void;
 	} = $props();
 
-	let activeTab: TabId = $derived(initialTab);
+	// eslint-disable-next-line svelte/prefer-writable-derived -- $derived.writable not available in this Svelte version
+	let activeTab: TabId = $state('declension');
+
+	// Sync when parent changes the initial tab (e.g. clicking a pronoun lemma)
+	$effect(() => {
+		activeTab = initialTab;
+	});
 
 	const tabs: { id: TabId; label: string }[] = [
-		{ id: 'declension', label: 'Declension' },
-		{ id: 'cases', label: 'Cases' },
-		{ id: 'prepositions', label: 'Prepositions' }
+		{ id: 'declension', label: 'Nouns' },
+		{ id: 'pronouns', label: 'Pronouns' },
+		{ id: 'cases', label: 'Cases' }
 	];
 </script>
 
@@ -72,13 +80,13 @@
 	</div>
 
 	<!-- Scrollable content -->
-	<div class="flex-1 overflow-y-auto px-6 py-3">
+	<div class="flex-1 overflow-y-auto px-6 pb-8 pt-3">
 		{#if activeTab === 'declension'}
 			<DeclensionTable {initialWord} alwaysExpanded={true} />
+		{:else if activeTab === 'pronouns'}
+			<PronounTable {initialPronoun} alwaysExpanded={true} />
 		{:else if activeTab === 'cases'}
 			<CaseGuide alwaysExpanded={true} />
-		{:else if activeTab === 'prepositions'}
-			<CheatSheet alwaysExpanded={true} />
 		{/if}
 	</div>
 </div>

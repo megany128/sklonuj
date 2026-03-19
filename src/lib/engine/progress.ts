@@ -94,7 +94,10 @@ export function recordResult(result: DrillResult): void {
 			correct: existingCase.correct + (result.correct ? 1 : 0)
 		};
 
-		const paradigmKey = `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
+		const paradigmKey =
+			result.question.wordCategory === 'pronoun' && result.question.pronoun
+				? `pronoun_${result.question.pronoun.lemma}_${result.question.case}_${result.question.number}`
+				: `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
 		const existingParadigm: CaseScore = current.paradigmScores[paradigmKey] ?? {
 			attempts: 0,
 			correct: 0

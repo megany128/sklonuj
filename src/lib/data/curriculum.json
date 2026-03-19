@@ -3,24 +3,28 @@
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
 		"unlocked_difficulty": ["A1"],
 		"adjectives_unlocked": false,
-		"plural_unlocked": false
+		"plural_unlocked": false,
+		"pronouns_unlocked": false
 	},
 	"A2": {
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
 		"unlocked_difficulty": ["A1", "A2"],
 		"adjectives_unlocked": false,
-		"plural_unlocked": "sg_first"
+		"plural_unlocked": "sg_first",
+		"pronouns_unlocked": true
 	},
 	"B1": {
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
 		"unlocked_difficulty": ["A1", "A2", "B1"],
 		"adjectives_unlocked": true,
-		"plural_unlocked": true
+		"plural_unlocked": true,
+		"pronouns_unlocked": true
 	},
 	"B2": {
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
 		"unlocked_difficulty": ["A1", "A2", "B1", "B2"],
 		"adjectives_unlocked": true,
-		"plural_unlocked": true
+		"plural_unlocked": true,
+		"pronouns_unlocked": true
 	}
 }
