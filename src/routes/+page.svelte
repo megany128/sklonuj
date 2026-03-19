@@ -1488,11 +1488,13 @@
 			}
 		} else {
 			streak = 0;
-			if (question.wordCategory === 'pronoun' && question.pronoun) {
-				paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
-			} else {
-				paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
-			}
+		}
+
+		// Always populate paradigm notes so "Why?" explanations show for both correct and incorrect answers
+		if (question.wordCategory === 'pronoun' && question.pronoun) {
+			paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
+		} else {
+			paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
 		}
 
 		checkMilestones(result);
