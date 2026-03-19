@@ -731,6 +731,41 @@
 									more common
 								</p>
 							{/if}
+							{@const correctNoteKey = `${question.case}_${question.number}`}
+							{@const correctWhyNote = paradigmNotes?.[correctNoteKey] ?? null}
+							{@const correctTemplateWhy =
+								question.template.id !== '_form_production' ? question.template.why : null}
+							{#if correctTemplateWhy?.trim() || correctWhyNote?.trim()}
+								<div class="w-full border-t border-darker-subtitle/30 pt-4">
+									<div class="mb-2 flex items-center justify-center gap-1.5">
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											class="h-3.5 w-3.5 text-darker-subtitle"
+										>
+											<path
+												d="M10 1a6 6 0 00-3.815 10.631C7.237 12.5 8 13.443 8 14.456v.644a.75.75 0 00.75.75h2.5a.75.75 0 00.75-.75v-.644c0-1.013.762-1.957 1.815-2.825A6 6 0 0010 1zM8.863 17.414a.75.75 0 00-.226 1.483 9.066 9.066 0 002.726 0 .75.75 0 00-.226-1.483 7.563 7.563 0 01-2.274 0z"
+											/>
+										</svg>
+										<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
+									</div>
+									{#if correctTemplateWhy}
+										<p class="text-center text-sm leading-relaxed text-darker-subtitle">
+											{correctTemplateWhy}
+										</p>
+									{/if}
+									{#if correctWhyNote}
+										<p
+											class="text-center text-sm leading-relaxed {correctTemplateWhy
+												? 'mt-1.5'
+												: ''} text-text-subtitle"
+										>
+											{correctWhyNote}
+										</p>
+									{/if}
+								</div>
+							{/if}
 						{:else}
 							<!-- Wrong answer display: only show for skipped answers since the input already shows wrong answers in red -->
 							{#if question.drillType !== 'case_identification' && result.userAnswer === ''}
