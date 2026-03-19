@@ -734,7 +734,10 @@
 							{@const correctNoteKey = `${question.case}_${question.number}`}
 							{@const correctWhyNote = paradigmNotes?.[correctNoteKey] ?? null}
 							{@const correctTemplateWhy =
-								question.template.id !== '_form_production' && question.template.id !== '_pronoun_form_production' ? question.template.why : null}
+								question.template.id !== '_form_production' &&
+								question.template.id !== '_pronoun_form_production'
+									? question.template.why
+									: null}
 							{#if correctTemplateWhy?.trim() || correctWhyNote?.trim()}
 								<div class="w-full border-t border-darker-subtitle/30 pt-4">
 									<div class="mb-2 flex items-center justify-center gap-1.5">
@@ -776,7 +779,10 @@
 							{@const noteKey = `${question.case}_${question.number}`}
 							{@const whyNote = paradigmNotes?.[noteKey] ?? null}
 							{@const templateWhy =
-								question.template.id !== '_form_production' && question.template.id !== '_pronoun_form_production' ? question.template.why : null}
+								question.template.id !== '_form_production' &&
+								question.template.id !== '_pronoun_form_production'
+									? question.template.why
+									: null}
 							<CorrectAnswerPanel
 								correctAnswer={question.drillType === 'case_identification' &&
 								isCase(question.correctAnswer)

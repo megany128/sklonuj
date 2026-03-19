@@ -290,6 +290,53 @@
 	let chapterBook = $state<'kzk1' | 'kzk2' | null>(null);
 	let chapterSelection = $state<string | null>(null);
 	const CHAPTER_STORAGE_KEY = 'sklonuj_chapter';
+	const CHAPTER_SCORES_KEY = 'sklonuj_chapter_scores';
+	let chapterScores = $state<Record<string, { attempts: number; correct: number }>>({});
+
+	function loadChapterScores(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			const raw = localStorage.getItem(CHAPTER_SCORES_KEY);
+			if (raw === null) return;
+			const parsed: unknown = JSON.parse(raw);
+			if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+				const valid: Record<string, { attempts: number; correct: number }> = {};
+				for (const [key, val] of Object.entries(parsed as Record<string, unknown>)) {
+					if (
+						typeof val === 'object' &&
+						val !== null &&
+						'attempts' in val &&
+						'correct' in val &&
+						typeof val.attempts === 'number' &&
+						typeof val.correct === 'number'
+					) {
+						valid[key] = { attempts: val.attempts, correct: val.correct };
+					}
+				}
+				chapterScores = valid;
+			}
+		} catch {
+			// ignore
+		}
+	}
+
+	function recordChapterResult(chapterId: string, correct: boolean): void {
+		const existing = chapterScores[chapterId] ?? { attempts: 0, correct: 0 };
+		chapterScores = {
+			...chapterScores,
+			[chapterId]: {
+				attempts: existing.attempts + 1,
+				correct: existing.correct + (correct ? 1 : 0)
+			}
+		};
+		if (typeof window !== 'undefined') {
+			try {
+				localStorage.setItem(CHAPTER_SCORES_KEY, JSON.stringify(chapterScores));
+			} catch {
+				// ignore
+			}
+		}
+	}
 
 	function loadChapterFromStorage(): void {
 		if (typeof window === 'undefined') return;
@@ -407,6 +454,12 @@
 		if (newIdx < 0) newIdx = chapters.length - 1;
 		if (newIdx >= chapters.length) newIdx = 0;
 		handleChapterChange(chapterBook, chapters[newIdx].id);
+	}
+
+	function chapterAccuracyColor(accuracy: number): string {
+		if (accuracy < 0.5) return '#d73e3e';
+		if (accuracy < 0.8) return '#e5a000';
+		return '#40c607';
 	}
 
 	// Derived: whether pronouns are unlocked at the current level
@@ -544,6 +597,7 @@
 		const savedSettings = loadSettingsFromStorage();
 		drillSettings = savedSettings;
 		loadChapterFromStorage();
+		loadChapterScores();
 
 		// If chapter mode is active, apply its constraints
 		if (chapterBook && chapterSelection) {
@@ -1414,6 +1468,7 @@
 			};
 			lastResult = result;
 			recordResult(result);
+			if (chapterSelection) recordChapterResult(chapterSelection, false);
 			scheduleSyncToSupabase();
 			trackSessionStats(result);
 			recordSessionActivity(false);
@@ -1472,6 +1527,7 @@
 
 		lastResult = result;
 		recordResult(result);
+		if (chapterSelection) recordChapterResult(chapterSelection, result.correct);
 		scheduleSyncToSupabase();
 		trackSessionStats(result);
 		recordSessionActivity(result.correct);
@@ -1705,6 +1761,15 @@
 					{#if chapterBook !== null}
 						{@const kzkChapter = getSelectedKzkChapter()}
 						{#if kzkChapter}
+							{@const chScore = chapterScores[kzkChapter.id]}
+							{@const chapterAccPct =
+								chScore && chScore.attempts > 0
+									? Math.round((chScore.correct / chScore.attempts) * 100)
+									: null}
+							{@const chapterAccColor =
+								chScore && chScore.attempts > 0
+									? chapterAccuracyColor(chScore.correct / chScore.attempts)
+									: null}
 							<div class="flex min-w-0 items-center gap-2.5">
 								<button
 									onclick={() => handleChapterStep('prev')}
@@ -1724,7 +1789,6 @@
 										/>
 									</svg>
 								</button>
-
 								<div class="relative flex min-w-0 flex-col items-center gap-0.5">
 									<button
 										type="button"
@@ -1736,6 +1800,11 @@
 										<span class="truncate text-base font-semibold leading-tight text-text-default">
 											{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
 										</span>
+										{#if chapterAccPct !== null && chapterAccColor}
+											<span class="text-xs font-bold" style="color: {chapterAccColor}"
+												>{chapterAccPct}%</span
+											>
+										{/if}
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											viewBox="0 0 20 20"
@@ -1762,6 +1831,15 @@
 											}}
 										>
 											{#each kzkChapters[chapterBook].chapters as ch (ch.id)}
+												{@const chSc = chapterScores[ch.id]}
+												{@const accPct =
+													chSc && chSc.attempts > 0
+														? Math.round((chSc.correct / chSc.attempts) * 100)
+														: null}
+												{@const accClr =
+													chSc && chSc.attempts > 0
+														? chapterAccuracyColor(chSc.correct / chSc.attempts)
+														: null}
 												<button
 													type="button"
 													role="option"
@@ -1772,12 +1850,22 @@
 													}}
 													class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors {ch.id ===
 													chapterSelection
-														? 'bg-shaded-background font-semibold text-text-default'
+														? 'font-semibold text-text-default'
 														: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
+													style={accClr
+														? `background-color: ${accClr}${ch.id === chapterSelection ? '20' : '10'}`
+														: ch.id === chapterSelection
+															? 'background-color: var(--color-shaded-background)'
+															: ''}
 												>
 													<span class="shrink-0 font-semibold">{ch.label}</span>
 													{#if ch.subtitle}
 														<span class="truncate text-xs text-text-subtitle">{ch.subtitle}</span>
+													{/if}
+													{#if accPct !== null && accClr}
+														<span class="ml-auto shrink-0 text-xs font-bold" style="color: {accClr}"
+															>{accPct}%</span
+														>
 													{/if}
 												</button>
 											{/each}
@@ -1997,39 +2085,29 @@
 				</div>
 			{/if}
 
-			<!-- Drill area -->
-			<div class="mx-auto mt-6 max-w-[867px]">
-				<DrillCard
-					{question}
-					loading={wordsLoading || (question === null && !initialized)}
-					result={lastResult}
-					onSubmit={handleSubmit}
-					onSpeak={ttsAvailable ? handleSpeak : null}
-					selectedCases={ALL_CASES}
-					{paradigmNotes}
-					onWordClick={handleWordClick}
-					{streak}
-					soundEnabled={autoplayAudio}
-				/>
-			</div>
-
 			<!-- Sign-up prompt for guests after 10 questions -->
 			{#if !user && sessionCount >= 10 && !signupPromptDismissed}
 				<div
 					transition:slide={{ duration: 200 }}
-					class="mx-auto mt-6 max-w-md rounded-2xl border border-card-stroke bg-card-bg p-5"
+					class="mx-auto mb-3 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg px-4 py-3 sm:px-5 sm:py-3.5"
 				>
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<p class="text-sm font-semibold text-text-default">
+					<div class="flex items-center gap-4">
+						<div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+							<p class="shrink-0 text-sm font-semibold text-text-default">
 								You're on a roll — don't lose it!
 							</p>
-							<ul class="mt-1.5 space-y-1 text-xs text-text-subtitle">
-								<li>The algorithm learns your weak spots and drills them more</li>
-								<li>Pick up exactly where you left off, on any device</li>
-								<li>Track your accuracy for every case and paradigm</li>
-							</ul>
+							<p class="text-xs text-text-subtitle">
+								Save progress across devices &middot; smart weak-spot drilling &middot; track
+								accuracy
+							</p>
 						</div>
+						<button
+							type="button"
+							onclick={() => (authModalOpen = true)}
+							class="shrink-0 rounded-xl bg-emphasis px-4 py-2 text-xs font-semibold text-text-inverted transition-opacity hover:opacity-90"
+						>
+							Sign up free
+						</button>
 						<button
 							type="button"
 							onclick={() => (signupPromptDismissed = true)}
@@ -2048,15 +2126,24 @@
 							</svg>
 						</button>
 					</div>
-					<button
-						type="button"
-						onclick={() => (authModalOpen = true)}
-						class="mt-3 inline-block rounded-xl bg-emphasis px-4 py-2 text-xs font-semibold text-text-inverted transition-opacity hover:opacity-90"
-					>
-						Create free account
-					</button>
 				</div>
 			{/if}
+
+			<!-- Drill area -->
+			<div class="mx-auto mt-6 max-w-[867px]">
+				<DrillCard
+					{question}
+					loading={wordsLoading || (question === null && !initialized)}
+					result={lastResult}
+					onSubmit={handleSubmit}
+					onSpeak={ttsAvailable ? handleSpeak : null}
+					selectedCases={ALL_CASES}
+					{paradigmNotes}
+					onWordClick={handleWordClick}
+					{streak}
+					soundEnabled={autoplayAudio}
+				/>
+			</div>
 
 			<!-- Session stats -->
 			{#if sessionCount > 0}
