@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
@@ -7,6 +8,8 @@
 	import type { Progress, CaseScore, Difficulty } from '$lib/types';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
+	import { initPostHog } from '$lib/posthog';
+	import posthog from '$lib/posthog';
 
 	let { children } = $props();
 
@@ -59,6 +62,7 @@
 	}
 
 	onMount(() => {
+		initPostHog();
 		const supabase = getSupabaseBrowserClient();
 
 		const {
@@ -155,6 +159,7 @@
 
 						localStorage.setItem(STORAGE_USER_KEY, userId);
 						lastMergedUserId = userId;
+						posthog.identify(userId);
 					} catch (err) {
 						console.error('Error during SIGNED_IN progress sync:', err);
 					}
@@ -164,6 +169,7 @@
 					lastMergedUserId = null;
 					localStorage.removeItem(STORAGE_USER_KEY);
 					clearProgress();
+					posthog.reset();
 				}
 
 				// Refresh server data (user session)
@@ -188,4 +194,17 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children()}
+<div class="flex min-h-screen flex-col">
+	<div class="flex-1">{@render children()}</div>
+
+	<footer class="py-6 text-center text-xs text-text-subtitle">
+		<div class="flex items-center justify-center gap-3">
+			<a href={resolve('/contact')} class="transition-colors hover:text-text-default">Contact</a>
+			<span aria-hidden="true">·</span>
+			<a href={resolve('/privacy')} class="transition-colors hover:text-text-default"
+				>Privacy Policy</a
+			>
+		</div>
+		<div class="mt-1.5 font-medium">Skloňuj</div>
+	</footer>
+</div>

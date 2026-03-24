@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
 	import { page } from '$app/stores';
@@ -78,6 +77,7 @@
 
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
+	import posthog from '$lib/posthog';
 
 	let user = $derived($page.data.user);
 
@@ -1454,6 +1454,9 @@
 	}
 
 	function handleSubmit(answer: string): void {
+		if (!hasInteracted) {
+			posthog.capture('practice_started', { level: currentLevel, drillType: question?.drillType });
+		}
 		hasInteracted = true;
 
 		if (answer === '__skip__') {
@@ -1531,6 +1534,12 @@
 		scheduleSyncToSupabase();
 		trackSessionStats(result);
 		recordSessionActivity(result.correct);
+		posthog.capture('question_answered', {
+			correct: result.correct,
+			drillType: result.question.drillType,
+			case: result.question.case,
+			level: currentLevel
+		});
 
 		if (result.correct) {
 			streak++;
@@ -1703,7 +1712,7 @@
 	</script>
 </svelte:head>
 
-<div class="flex min-h-screen flex-col">
+<div class="flex flex-col">
 	<NavBar
 		activePage={activeView === 'exercise' ? 'exercises' : 'lookup'}
 		onNavigate={(page) => {
@@ -2221,17 +2230,6 @@
 			</aside>
 		</div>
 	{/if}
-
-	<!-- Footer -->
-	<footer class="pb-6 pt-4 text-center">
-		<p class="text-xs text-text-subtitle">
-			Skloňuj
-			<span class="mx-1">&middot;</span>
-			<a href={resolve('/contact')} class="underline underline-offset-2 hover:text-text-default"
-				>Contact</a
-			>
-		</p>
-	</footer>
 </div>
 
 <AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />
