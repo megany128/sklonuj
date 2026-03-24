@@ -210,11 +210,12 @@
 	}
 
 	const PARADIGM_LABELS: Record<string, string> = {
-		hrad: 'hrad',
-		stroj: 'stroj',
 		pán: 'pán',
 		muž: 'muž',
 		předseda: 'předseda',
+		soudce: 'soudce',
+		hrad: 'hrad',
+		stroj: 'stroj',
 		žena: 'žena',
 		růže: 'růže',
 		píseň: 'píseň',
@@ -241,7 +242,7 @@
 
 	const GENDER_GROUP_ORDER = ['Masculine', 'Feminine', 'Neuter'] as const;
 	const GENDER_GROUP_IDS: Record<string, string[]> = {
-		Masculine: ['hrad', 'stroj', 'pán', 'muž', 'předseda'],
+		Masculine: ['pán', 'muž', 'předseda', 'soudce', 'hrad', 'stroj'],
 		Feminine: ['žena', 'růže', 'píseň', 'kost'],
 		Neuter: ['město', 'moře', 'kuře', 'stavení']
 	};

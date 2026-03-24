@@ -125,33 +125,60 @@
 	];
 
 	const PARADIGM_NAMES: Record<string, string> = {
-		hrad: 'Hard masc. inanimate',
-		stroj: 'Soft masc. inanimate',
-		pán: 'Hard masc. animate',
-		muž: 'Soft masc. animate',
-		předseda: 'Masc. -a ending',
-		žena: 'Hard feminine',
-		růže: 'Soft feminine',
-		kost: 'Feminine -ost',
-		město: 'Hard neuter',
-		moře: 'Soft neuter',
-		kuře: 'Neuter -e/-e',
-		stavení: 'Neuter -í'
+		pán: 'Hard Masc. Animate',
+		muž: 'Soft Masc. Animate',
+		předseda: 'Masc. Animate (-a)',
+		soudce: 'Masc. Animate (-e)',
+		hrad: 'Hard Masc. Inanimate',
+		stroj: 'Soft Masc. Inanimate',
+		žena: 'Feminine (-a)',
+		růže: 'Feminine (-e)',
+		píseň: 'Feminine (soft cons.)',
+		kost: 'Feminine (hard cons.)',
+		město: 'Neuter (-o)',
+		moře: 'Neuter (-e)',
+		kuře: 'Neuter (-e/-ě)',
+		stavení: 'Neuter (-í)'
+	};
+
+	const PARADIGM_DESC: Record<string, string> = {
+		pán: 'hard consonant ending',
+		muž: 'soft consonant ending',
+		předseda: 'vowel -a ending',
+		soudce: 'vowel -e ending',
+		hrad: 'hard consonant ending',
+		stroj: 'soft consonant ending',
+		žena: 'vowel -a ending',
+		růže: 'vowel -e ending',
+		píseň: 'soft consonant ending',
+		kost: 'hard consonant ending',
+		město: 'vowel -o ending',
+		moře: 'vowel -e ending',
+		kuře: 'vowel -e/-ě ending',
+		stavení: 'vowel -í ending'
 	};
 
 	const PARADIGM_ORDER = [
-		'hrad',
-		'stroj',
 		'pán',
 		'muž',
 		'předseda',
+		'soudce',
+		'hrad',
+		'stroj',
 		'žena',
 		'růže',
+		'píseň',
 		'kost',
 		'město',
 		'moře',
 		'kuře',
 		'stavení'
+	];
+
+	const PARADIGM_GROUPS: Array<{ label: string; paradigms: string[] }> = [
+		{ label: 'Masculine', paradigms: ['pán', 'muž', 'předseda', 'soudce', 'hrad', 'stroj'] },
+		{ label: 'Feminine', paradigms: ['žena', 'růže', 'píseň', 'kost'] },
+		{ label: 'Neuter', paradigms: ['město', 'moře', 'kuře', 'stavení'] }
 	];
 
 	const PRONOUN_TRANSLATIONS: Record<string, string> = {
@@ -407,6 +434,10 @@
 		return labels;
 	});
 
+	function attemptLabel(n: number): string {
+		return `${n} attempt${n === 1 ? '' : 's'}`;
+	}
+
 	function accuracyColor(pct: number): string {
 		if (pct >= 80) return '#22c55e';
 		if (pct >= 60) return '#eab308';
@@ -541,7 +572,7 @@
 						<button
 							type="button"
 							onclick={openNameModal}
-							class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+							class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 							aria-label="Edit display name"
 						>
 							<svg
@@ -616,7 +647,7 @@
 									>
 									paradigm
 								{/if}
-								({weakestArea.accuracy}% accuracy, {weakestArea.attempts} attempts)
+								({weakestArea.accuracy}% accuracy, {attemptLabel(weakestArea.attempts)})
 							</p>
 						</div>
 					</div>
@@ -726,9 +757,9 @@
 								{@const isSelected = expandedCase === caseMeta.key}
 								<button
 									type="button"
-									class="flex flex-col items-center gap-2 rounded-xl border p-4 transition-colors {isSelected
+									class="flex flex-col items-center gap-2 rounded-xl border p-4 transition {isSelected
 										? 'border-emphasis/40 bg-card-bg'
-										: 'border-card-stroke bg-card-bg hover:border-emphasis/20'}"
+										: 'border-card-stroke bg-card-bg hover:border-emphasis/40 hover:bg-shaded-background'}"
 									onclick={() => (expandedCase = isSelected ? null : caseMeta.key)}
 								>
 									<svg width="72" height="72" viewBox="0 0 72 72" class="pointer-events-none">
@@ -768,7 +799,7 @@
 									<div class="pointer-events-none text-center">
 										<p class="text-xs font-medium text-text-default">{caseMeta.label}</p>
 										<p class="text-xs text-text-subtitle">
-											{totals.attempts > 0 ? `${totals.attempts} attempts` : 'No data'}
+											{totals.attempts > 0 ? attemptLabel(totals.attempts) : 'No data'}
 										</p>
 									</div>
 								</button>
@@ -815,7 +846,7 @@
 												>
 													{sg.attempts > 0 ? `${sgPct}%` : '--'}
 												</p>
-												<p class="text-xs text-text-subtitle">{sg.attempts} attempts</p>
+												<p class="text-xs text-text-subtitle">{attemptLabel(sg.attempts)}</p>
 											</div>
 											<div class="rounded-lg bg-shaded-background p-3">
 												<p class="text-xs text-text-subtitle">Plural</p>
@@ -827,7 +858,7 @@
 												>
 													{pl.attempts > 0 ? `${plPct}%` : '--'}
 												</p>
-												<p class="text-xs text-text-subtitle">{pl.attempts} attempts</p>
+												<p class="text-xs text-text-subtitle">{attemptLabel(pl.attempts)}</p>
 											</div>
 										</div>
 
@@ -865,6 +896,170 @@
 								</div>
 							</div>
 						{/if}
+					{:else if breakdownTab === 'paradigm'}
+						<!-- By Paradigm view: grouped by gender -->
+						<div class="flex flex-col gap-4">
+							{#if Object.keys(paradigmScores).filter((k) => !k.startsWith('pronoun_')).length === 0}
+								<p class="py-8 text-center text-sm text-text-subtitle">
+									No paradigm practice data yet.
+								</p>
+							{:else}
+								{#each PARADIGM_GROUPS as group (group.label)}
+									{@const groupParadigms = group.paradigms.filter(
+										(p) => getParadigmTotals(p).attempts > 0
+									)}
+									{#if groupParadigms.length > 0}
+										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+											<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
+												<p class="text-xs font-semibold uppercase tracking-wide text-text-subtitle">
+													{group.label}
+												</p>
+											</div>
+											<div class="overflow-x-auto pb-2">
+												<!-- Case header labels -->
+												<div class="mb-1 flex items-center">
+													<div class="w-28 shrink-0"></div>
+													<div class="w-5 shrink-0"></div>
+													{#each CASE_META as cm (cm.key)}
+														<div
+															class="shrink-0 text-center text-[10px] text-text-subtitle"
+															style="width: 32px;"
+														>
+															{cm.abbrev}
+														</div>
+													{/each}
+												</div>
+												<!-- Paradigm rows -->
+												{#each groupParadigms as paradigm, pi (paradigm)}
+													<!-- Divider between paradigms -->
+													{#if pi > 0}
+														<div class="my-1.5 border-t border-card-stroke"></div>
+													{/if}
+													<!-- Wrapper: label spans both Sg+Pl rows -->
+													<div class="flex items-center">
+														<!-- Left label: name + description, spanning both rows -->
+														<div class="w-28 shrink-0 pr-2">
+															<p class="text-[10px] font-medium leading-tight text-text-default">
+																{paradigm}
+															</p>
+															<p class="text-[9px] leading-tight text-text-subtitle">
+																{PARADIGM_DESC[paradigm] ?? ''}
+															</p>
+														</div>
+														<!-- Sg + Pl rows stacked -->
+														<div class="flex flex-col gap-0.5">
+															<!-- Sg row -->
+															<div class="flex items-center">
+																<div class="w-5 shrink-0 text-right text-[10px] text-text-subtitle">
+																	Sg
+																</div>
+																{#each CASE_META as cm (cm.key)}
+																	{@const score = getParadigmCaseNumberScore(
+																		paradigm,
+																		cm.key,
+																		'sg'
+																	)}
+																	{@const pct =
+																		score.attempts > 0
+																			? Math.round((score.correct / score.attempts) * 100)
+																			: -1}
+																	<div class="flex shrink-0 justify-center" style="width: 32px;">
+																		<div
+																			class="paradigm-cell h-5 w-6 rounded-[3px]"
+																			style="background-color: {pct >= 0
+																				? cellColor(pct)
+																				: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																				? 0.85
+																				: 1};"
+																			role="gridcell"
+																			tabindex="0"
+																			aria-label="{paradigm} {cm.label} singular: {pct >= 0
+																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																				: 'no data'}"
+																			onmouseenter={(e: MouseEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'sg')}
+																			onmouseleave={handleCellLeave}
+																			onfocus={(e: FocusEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'sg')}
+																			onblur={handleCellLeave}
+																		></div>
+																	</div>
+																{/each}
+															</div>
+															<!-- Pl row -->
+															<div class="flex items-center">
+																<div class="w-5 shrink-0 text-right text-[10px] text-text-subtitle">
+																	Pl
+																</div>
+																{#each CASE_META as cm (cm.key)}
+																	{@const score = getParadigmCaseNumberScore(
+																		paradigm,
+																		cm.key,
+																		'pl'
+																	)}
+																	{@const pct =
+																		score.attempts > 0
+																			? Math.round((score.correct / score.attempts) * 100)
+																			: -1}
+																	<div class="flex shrink-0 justify-center" style="width: 32px;">
+																		<div
+																			class="paradigm-cell h-5 w-6 rounded-[3px]"
+																			style="background-color: {pct >= 0
+																				? cellColor(pct)
+																				: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																				? 0.85
+																				: 1};"
+																			role="gridcell"
+																			tabindex="0"
+																			aria-label="{paradigm} {cm.label} plural: {pct >= 0
+																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																				: 'no data'}"
+																			onmouseenter={(e: MouseEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'pl')}
+																			onmouseleave={handleCellLeave}
+																			onfocus={(e: FocusEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'pl')}
+																			onblur={handleCellLeave}
+																		></div>
+																	</div>
+																{/each}
+															</div>
+														</div>
+													</div>
+												{/each}
+											</div>
+										</div>
+									{/if}
+								{/each}
+
+								<!-- Legend -->
+								<div class="flex items-center justify-center gap-3 text-[10px] text-text-subtitle">
+									<div class="flex items-center gap-1">
+										<div
+											class="h-3 w-3 rounded-[2px]"
+											style="background-color: var(--color-shaded-background);"
+										></div>
+										No data
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #ef4444;"></div>
+										&lt;40%
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #f97316;"></div>
+										40–59%
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #eab308;"></div>
+										60–79%
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #22c55e;"></div>
+										≥80%
+									</div>
+								</div>
+							{/if}
+						</div>
 					{:else if breakdownTab === 'pronoun'}
 						<!-- By Pronoun view: heatmap grid cards -->
 						<div class="flex flex-col gap-4">
@@ -896,7 +1091,7 @@
 										</div>
 
 										<!-- Mini heatmap: 7 cases x 2 rows (sg, pl) -->
-										<div class="overflow-x-auto">
+										<div class="overflow-x-auto pb-1">
 											<!-- Case header labels -->
 											<div class="mb-1 flex items-center">
 												<div class="w-7 shrink-0"></div>
@@ -929,7 +1124,7 @@
 															role="gridcell"
 															tabindex="0"
 															aria-label="{cm.label} singular: {pct >= 0
-																? `${pct}% accuracy, ${score.attempts} attempts`
+																? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
 																: 'no data'}"
 															onmouseenter={(e: MouseEvent) =>
 																handleCellEnter(e, pronounParadigm, cm.key, 'sg')}
@@ -961,7 +1156,7 @@
 															role="gridcell"
 															tabindex="0"
 															aria-label="{cm.label} plural: {pct >= 0
-																? `${pct}% accuracy, ${score.attempts} attempts`
+																? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
 																: 'no data'}"
 															onmouseenter={(e: MouseEvent) =>
 																handleCellEnter(e, pronounParadigm, cm.key, 'pl')}
@@ -1074,7 +1269,7 @@
 		<p class="font-medium text-text-default">{hoveredCellScore.label}</p>
 		{#if hoveredCellScore.pct >= 0}
 			<p style="color: {cellColor(hoveredCellScore.pct)}">
-				{hoveredCellScore.pct}% ({hoveredCellScore.attempts} attempts)
+				{hoveredCellScore.pct}% ({attemptLabel(hoveredCellScore.attempts)})
 			</p>
 		{:else}
 			<p class="text-text-subtitle">No data</p>
