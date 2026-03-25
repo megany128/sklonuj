@@ -7,6 +7,7 @@ import type {
 	DrillQuestion,
 	DrillResult,
 	Gender,
+	MultiStepQuestion,
 	Number_,
 	Paradigm,
 	Progress,
@@ -316,6 +317,25 @@ export function generateSentenceDrill(
 	};
 }
 
+export function generateMultiStepQuestion(
+	word: WordEntry,
+	template: SentenceTemplate,
+	showCaseStep: boolean
+): MultiStepQuestion | null {
+	const correctForm = word.forms[template.number][CASE_INDEX[template.requiredCase]];
+	if (!correctForm || correctForm.trim().length === 0) return null;
+	return {
+		word,
+		template,
+		case: template.requiredCase,
+		number: template.number,
+		correctParadigm: word.paradigm,
+		correctCase: template.requiredCase,
+		correctForm,
+		showCaseStep
+	};
+}
+
 const DIACRITICS_MAP: Record<string, string> = {
 	ě: 'e',
 	š: 's',
@@ -512,6 +532,55 @@ export function checkAnswer(
 	}
 
 	return { question, userAnswer, correct: false, nearMiss: false, accidentalCase };
+}
+
+export function checkMultiStepForm(
+	question: MultiStepQuestion,
+	userForm: string,
+	level: Difficulty = 'A1'
+): { correct: boolean; nearMiss: boolean } {
+	const trimmedUser = userForm.trim().toLowerCase();
+	const trimmedCorrect = question.correctForm.trim().toLowerCase();
+
+	if (trimmedCorrect === '') {
+		return { correct: false, nearMiss: false };
+	}
+
+	// Collect accepted forms: primary + variants
+	const acceptedForms = [question.correctForm];
+	const variants = question.word.variantForms;
+	if (variants) {
+		const numberVariants = variants[question.number];
+		if (numberVariants) {
+			const caseIdx = CASE_INDEX[question.case];
+			const alts = numberVariants[caseIdx];
+			if (alts) {
+				acceptedForms.push(...alts);
+			}
+		}
+	}
+
+	// Exact match
+	for (const form of acceptedForms) {
+		if (trimmedUser === form.trim().toLowerCase()) {
+			return { correct: true, nearMiss: false };
+		}
+	}
+
+	// Near-miss (diacritics only)
+	const strippedUser = stripDiacritics(trimmedUser);
+	for (const form of acceptedForms) {
+		const strippedForm = stripDiacritics(form.trim().toLowerCase());
+		if (strippedUser === strippedForm) {
+			const strictDiacritics = level === 'B1' || level === 'B2';
+			if (strictDiacritics) {
+				return { correct: false, nearMiss: true };
+			}
+			return { correct: true, nearMiss: true };
+		}
+	}
+
+	return { correct: false, nearMiss: false };
 }
 
 /**

@@ -20,11 +20,11 @@
 	let { inputEl, inputValue = '' }: { inputEl: HTMLInputElement | undefined; inputValue?: string } =
 		$props();
 
-	let visibleDiacritics = $derived.by(() => {
+	let highlightedBases = $derived.by(() => {
 		const lastChar = inputValue.slice(-1).toLowerCase();
-		if (!lastChar) return CZECH_DIACRITICS;
-		const filtered = CZECH_DIACRITICS.filter((d) => d.base === lastChar);
-		return filtered.length > 0 ? filtered : CZECH_DIACRITICS;
+		if (!lastChar) return null;
+		const hasMatch = CZECH_DIACRITICS.some((d) => d.base === lastChar);
+		return hasMatch ? lastChar : null;
 	});
 
 	const BASE_LOOKUP = new Map(CZECH_DIACRITICS.map((d) => [d.char, d.base]));
@@ -74,11 +74,14 @@
 	role="toolbar"
 	aria-label="Czech diacritics helper"
 >
-	{#each visibleDiacritics as d (d.char)}
+	{#each CZECH_DIACRITICS as d (d.char)}
+		{@const isHighlighted = highlightedBases === null || d.base === highlightedBases}
 		<button
 			type="button"
 			onclick={() => insertChar(d.char)}
-			class="inline-flex size-11 cursor-pointer items-center justify-center rounded-full border border-card-stroke text-base font-normal text-text-subtitle transition-all duration-150 hover:bg-shaded-background hover:text-text-default active:scale-95 sm:size-[53px] sm:text-lg"
+			class="inline-flex size-11 cursor-pointer items-center justify-center rounded-full border text-base font-normal transition-all duration-150 active:scale-95 sm:size-[53px] sm:text-lg {isHighlighted
+				? 'border-card-stroke text-text-subtitle hover:bg-shaded-background hover:text-text-default'
+				: 'border-transparent text-text-subtitle/30'}"
 			aria-label="Insert {d.char}"
 		>
 			{d.char}

@@ -10,6 +10,8 @@
 		DrillResult,
 		DrillSettings,
 		DrillType,
+		MultiStepQuestion,
+		MultiStepResult,
 		Number_,
 		PronounEntry,
 		Progress,
@@ -24,6 +26,7 @@
 		generateFormProduction,
 		generateCaseIdentification,
 		generateSentenceDrill,
+		generateMultiStepQuestion,
 		getCandidates,
 		checkAnswer,
 		weightedRandom,
@@ -34,6 +37,7 @@
 	import {
 		progress,
 		recordResult,
+		recordMultiStepResult,
 		setLevel,
 		getAllCaseStrengths,
 		getCombinedCaseStrength,
@@ -67,6 +71,7 @@
 	import ChapterSelector from '$lib/components/ChapterSelector.svelte';
 	import DrillSettings_ from '$lib/components/DrillSettings.svelte';
 	import DrillCard from '$lib/components/DrillCard.svelte';
+	import MultiStepCard from '$lib/components/MultiStepCard.svelte';
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
 	import DeclensionTable from '$lib/components/DeclensionTable.svelte';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
@@ -175,7 +180,12 @@
 	function getDefaultSettings(): DrillSettings {
 		return {
 			selectedCases: ALL_CASES,
-			selectedDrillTypes: ['form_production', 'case_identification', 'sentence_fill_in'],
+			selectedDrillTypes: [
+				'form_production',
+				'case_identification',
+				'sentence_fill_in',
+				'multi_step'
+			],
 			numberMode: 'both',
 			contentMode: 'both'
 		};
@@ -211,7 +221,7 @@
 		)
 			return false;
 		const validCases = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
-		const validTypes = ['form_production', 'case_identification', 'sentence_fill_in'];
+		const validTypes = ['form_production', 'case_identification', 'sentence_fill_in', 'multi_step'];
 		if (!obj.selectedCases.every((c: unknown) => validCases.includes(c as string))) return false;
 		if (!obj.selectedDrillTypes.every((dt: unknown) => validTypes.includes(dt as string)))
 			return false;
@@ -231,6 +241,7 @@
 	let currentLevel: Difficulty = $derived(currentProgress.level);
 	let drillSettings: DrillSettings = $state(getDefaultSettings());
 	let question: DrillQuestion | null = $state(null);
+	let multiStepQuestion: MultiStepQuestion | null = $state(null);
 	let lastResult: DrillResult | null = $state(null);
 	let paradigmNotes: Record<string, string> | null = $state(null);
 	let submitted = $state(false);
@@ -696,14 +707,18 @@
 		if (nonNomCases.length === 0) {
 			allowed = allowed.filter((dt) => dt !== 'form_production');
 		}
+		// multi_step requires templates (like sentence_fill_in), filter it the same way
 		if (allowed.length === 0) allowed = ['sentence_fill_in'];
 
 		if (allowed.length === 1) return allowed[0];
 
 		const activeCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 
-		// Check if sentence-based drills are viable
-		if (allowed.includes('case_identification') || allowed.includes('sentence_fill_in')) {
+		// Check if sentence-based drills are viable (sentence_fill_in, case_identification, multi_step all need templates)
+		const needsTemplates = allowed.some(
+			(dt) => dt === 'case_identification' || dt === 'sentence_fill_in' || dt === 'multi_step'
+		);
+		if (needsTemplates) {
 			const templates = loadTemplates();
 			const prog = get(progress);
 			const levelDifficulties = curriculum[prog.level].unlocked_difficulty;
@@ -715,6 +730,11 @@
 			);
 
 			if (eligibleTemplates.length === 0) {
+				// No templates available — remove all template-requiring types
+				allowed = allowed.filter(
+					(dt) => dt !== 'case_identification' && dt !== 'sentence_fill_in' && dt !== 'multi_step'
+				);
+				if (allowed.length === 0) allowed = ['form_production'];
 				if (allowed.includes('form_production')) return 'form_production';
 				return allowed[Math.floor(Math.random() * allowed.length)];
 			}
@@ -1065,7 +1085,71 @@
 
 		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
-		if (drillType === 'form_production') {
+		if (drillType === 'multi_step') {
+			// Multi-step: needs a template + word, produces a MultiStepQuestion
+			const templates = loadTemplates();
+			const msEligibleTemplates = templates.filter(
+				(t) =>
+					activeCasesForPick.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
+			);
+			if (msEligibleTemplates.length === 0) {
+				// Fallback to form_production
+				question = null;
+				multiStepQuestion = null;
+				return;
+			}
+			const template = pickTemplate(msEligibleTemplates);
+			let candidates: WordEntry[];
+			if (isChapterMode) {
+				const diffFiltered = getCandidates(template, prog).filter((w) =>
+					hasValidForm(w, template.requiredCase, template.number)
+				);
+				const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
+				const chapterLemmasLower = new Set([
+					...curL.map((l) => l.toLowerCase()),
+					...prevL.map((l) => l.toLowerCase())
+				]);
+				const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
+				const chapterExtras = loadWordBank().filter(
+					(w) =>
+						chapterLemmasLower.has(w.lemma.toLowerCase()) &&
+						!diffLemmas.has(w.lemma) &&
+						w.categories.includes(template.lemmaCategory) &&
+						hasValidForm(w, template.requiredCase, template.number)
+				);
+				candidates = [...diffFiltered, ...chapterExtras];
+			} else {
+				candidates = getCandidates(template, prog).filter((w) =>
+					hasValidForm(w, template.requiredCase, template.number)
+				);
+			}
+			if (candidates.length === 0) {
+				question = null;
+				multiStepQuestion = null;
+				return;
+			}
+			const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
+			const showCaseStep = effectiveEnabledCases.length > 1;
+			const msq = generateMultiStepQuestion(word, template, showCaseStep);
+			if (!msq) {
+				question = null;
+				multiStepQuestion = null;
+				return;
+			}
+			multiStepQuestion = msq;
+			question = null;
+			lastResult = null;
+			paradigmNotes = lookupParadigmNotes(word.paradigm, word);
+			submitted = false;
+			lastTemplateId = template.id;
+			if (advanceTimer !== null) {
+				clearTimeout(advanceTimer);
+				advanceTimer = null;
+			}
+			return;
+		} else if (drillType === 'form_production') {
 			// Skip nominative for form_production — the answer is just the lemma itself,
 			// which is trivially obvious. Re-pick a non-nominative case.
 			let fpCase = case_;
@@ -1297,6 +1381,7 @@
 			}
 		}
 
+		multiStepQuestion = null;
 		lastResult = null;
 		paradigmNotes = null;
 		submitted = false;
@@ -1567,6 +1652,53 @@
 		autoPlayAnswer(question);
 	}
 
+	function handleMultiStepComplete(result: MultiStepResult): void {
+		if (!hasInteracted) {
+			posthog.capture('practice_started', { level: currentLevel, drillType: 'multi_step' });
+		}
+		hasInteracted = true;
+
+		sessionCount++;
+		recordMultiStepResult(result);
+		scheduleSyncToSupabase();
+
+		// Count as correct only if all steps are correct
+		const allCorrect =
+			result.paradigmCorrect &&
+			(result.caseCorrect === null || result.caseCorrect) &&
+			result.formCorrect;
+
+		if (allCorrect) {
+			sessionCorrect++;
+			streak++;
+			if (streak > bestStreak) bestStreak = streak;
+			if (autoplayAudio) {
+				if (streak >= 3) {
+					playStreakSound(streak);
+				} else {
+					playCorrectSound();
+				}
+			}
+		} else {
+			sessionWrong++;
+			streak = 0;
+		}
+
+		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
+		recordSessionActivity(allCorrect);
+		posthog.capture('question_answered', {
+			correct: allCorrect,
+			drillType: 'multi_step',
+			case: result.question.case,
+			level: currentLevel,
+			paradigmCorrect: result.paradigmCorrect,
+			caseCorrect: result.caseCorrect,
+			formCorrect: result.formCorrect
+		});
+
+		generateNextQuestion();
+	}
+
 	function handleLevelChange(level: Difficulty): void {
 		setLevel(level);
 		scheduleSyncToSupabase();
@@ -1755,7 +1887,7 @@
 			{#if chapterBook === null}
 				<!-- Case selection pill bar (Free Practice mode) -->
 				<div class="mb-4">
-					{#if wordsLoading || question === null}
+					{#if wordsLoading || (question === null && multiStepQuestion === null)}
 						<CasePillBarSkeleton />
 					{:else}
 						<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
@@ -1883,14 +2015,14 @@
 									<div class="flex flex-wrap items-center justify-center gap-1">
 										{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
 											<span
-												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
+												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 											>
 												All cases
 											</span>
 										{:else}
 											{#each kzkChapter.unlockedCases as c (c)}
 												<span
-													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
+													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
 													style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
 												>
 													{CASE_SHORT_LABELS[c]}
@@ -1898,7 +2030,7 @@
 											{/each}
 										{/if}
 										<span
-											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-[10px] font-semibold leading-none text-text-subtitle"
+											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 										>
 											{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
 										</span>
@@ -2140,18 +2272,28 @@
 
 			<!-- Drill area -->
 			<div class="mx-auto mt-6 max-w-[867px]">
-				<DrillCard
-					{question}
-					loading={wordsLoading || (question === null && !initialized)}
-					result={lastResult}
-					onSubmit={handleSubmit}
-					onSpeak={ttsAvailable ? handleSpeak : null}
-					selectedCases={ALL_CASES}
-					{paradigmNotes}
-					onWordClick={handleWordClick}
-					{streak}
-					soundEnabled={autoplayAudio}
-				/>
+				{#if multiStepQuestion}
+					<MultiStepCard
+						question={multiStepQuestion}
+						onComplete={handleMultiStepComplete}
+						{paradigmNotes}
+						onSpeak={ttsAvailable ? handleSpeak : null}
+						level={currentLevel}
+					/>
+				{:else}
+					<DrillCard
+						{question}
+						loading={wordsLoading || (question === null && !initialized)}
+						result={lastResult}
+						onSubmit={handleSubmit}
+						onSpeak={ttsAvailable ? handleSpeak : null}
+						selectedCases={ALL_CASES}
+						{paradigmNotes}
+						onWordClick={handleWordClick}
+						{streak}
+						soundEnabled={autoplayAudio}
+					/>
+				{/if}
 			</div>
 
 			<!-- Session stats -->

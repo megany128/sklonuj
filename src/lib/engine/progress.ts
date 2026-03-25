@@ -1,5 +1,12 @@
 import { writable, get } from 'svelte/store';
-import type { Progress, DrillResult, Difficulty, CaseScore, Case } from '../types.ts';
+import type {
+	Progress,
+	DrillResult,
+	MultiStepResult,
+	Difficulty,
+	CaseScore,
+	Case
+} from '../types.ts';
 
 export const STORAGE_KEY = 'sklonuj_progress';
 export const STORAGE_USER_KEY = 'sklonuj_progress_user';
@@ -117,6 +124,61 @@ export function recordResult(result: DrillResult): void {
 			paradigmScores: {
 				...current.paradigmScores,
 				[paradigmKey]: updatedParadigm
+			},
+			lastSession: new Date().toISOString().slice(0, 10)
+		};
+	});
+}
+
+export function recordMultiStepResult(result: MultiStepResult): void {
+	progress.update((current) => {
+		const updates: Record<string, CaseScore> = {};
+
+		// Record paradigm identification accuracy
+		const paradigmIdKey = `paradigm_id_${result.question.correctParadigm}`;
+		const existingParadigmId: CaseScore = current.paradigmScores[paradigmIdKey] ?? {
+			attempts: 0,
+			correct: 0
+		};
+		updates[paradigmIdKey] = {
+			attempts: existingParadigmId.attempts + 1,
+			correct: existingParadigmId.correct + (result.paradigmCorrect ? 1 : 0)
+		};
+
+		// Record case identification accuracy (if step was shown)
+		const caseScoreUpdates: Record<string, CaseScore> = {};
+		if (result.caseCorrect !== null) {
+			const caseKey = `${result.question.case}_${result.question.number}`;
+			const existingCase: CaseScore = current.caseScores[caseKey] ?? {
+				attempts: 0,
+				correct: 0
+			};
+			caseScoreUpdates[caseKey] = {
+				attempts: existingCase.attempts + 1,
+				correct: existingCase.correct + (result.caseCorrect ? 1 : 0)
+			};
+		}
+
+		// Record form production accuracy
+		const paradigmKey = `${result.question.correctParadigm}_${result.question.case}_${result.question.number}`;
+		const existingParadigm: CaseScore = current.paradigmScores[paradigmKey] ?? {
+			attempts: 0,
+			correct: 0
+		};
+		updates[paradigmKey] = {
+			attempts: existingParadigm.attempts + 1,
+			correct: existingParadigm.correct + (result.formCorrect ? 1 : 0)
+		};
+
+		return {
+			...current,
+			caseScores: {
+				...current.caseScores,
+				...caseScoreUpdates
+			},
+			paradigmScores: {
+				...current.paradigmScores,
+				...updates
 			},
 			lastSession: new Date().toISOString().slice(0, 10)
 		};

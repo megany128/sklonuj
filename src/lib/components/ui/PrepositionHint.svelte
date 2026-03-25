@@ -79,7 +79,7 @@
 					>
 						<span class="text-sm font-semibold leading-tight">{entry.czech}</span>
 						<span
-							class="text-[10px] leading-tight {highlighted
+							class="text-xs leading-tight {highlighted
 								? 'text-on-accent/80'
 								: 'text-text-subtitle'}">{entry.english}</span
 						>

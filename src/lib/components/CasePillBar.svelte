@@ -64,9 +64,7 @@
 				<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[c]}</span>
 			</span>
 			{#if accuracyPct !== null && accColor}
-				<span class="text-[10px] font-bold sm:text-xs" style="color: {accColor}"
-					>{accuracyPct}%</span
-				>
+				<span class="text-xs font-bold" style="color: {accColor}">{accuracyPct}%</span>
 			{/if}
 		</button>
 	{/each}

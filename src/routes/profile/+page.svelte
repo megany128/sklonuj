@@ -677,13 +677,13 @@
 						<div class="flex items-start gap-0.5">
 							<!-- Day labels -->
 							<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle"></span>
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle">Mon</span>
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle"></span>
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle">Wed</span>
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle"></span>
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle">Fri</span>
-								<span class="h-[11px] text-xs leading-[11px] text-text-subtitle"></span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
+								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
 							</div>
 							<!-- Weeks -->
 							{#each heatmapWeeks as week, weekIdx (weekIdx)}
@@ -922,7 +922,7 @@
 													<div class="w-5 shrink-0"></div>
 													{#each CASE_META as cm (cm.key)}
 														<div
-															class="shrink-0 text-center text-[10px] text-text-subtitle"
+															class="shrink-0 text-center text-xs text-text-subtitle"
 															style="width: 32px;"
 														>
 															{cm.abbrev}
@@ -939,10 +939,10 @@
 													<div class="flex items-center">
 														<!-- Left label: name + description, spanning both rows -->
 														<div class="w-28 shrink-0 pr-2">
-															<p class="text-[10px] font-medium leading-tight text-text-default">
+															<p class="text-xs font-medium leading-tight text-text-default">
 																{paradigm}
 															</p>
-															<p class="text-[9px] leading-tight text-text-subtitle">
+															<p class="text-xs leading-tight text-text-subtitle">
 																{PARADIGM_DESC[paradigm] ?? ''}
 															</p>
 														</div>
@@ -950,7 +950,7 @@
 														<div class="flex flex-col gap-0.5">
 															<!-- Sg row -->
 															<div class="flex items-center">
-																<div class="w-5 shrink-0 text-right text-[10px] text-text-subtitle">
+																<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
 																	Sg
 																</div>
 																{#each CASE_META as cm (cm.key)}
@@ -988,7 +988,7 @@
 															</div>
 															<!-- Pl row -->
 															<div class="flex items-center">
-																<div class="w-5 shrink-0 text-right text-[10px] text-text-subtitle">
+																<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
 																	Pl
 																</div>
 																{#each CASE_META as cm (cm.key)}
@@ -1033,7 +1033,7 @@
 								{/each}
 
 								<!-- Legend -->
-								<div class="flex items-center justify-center gap-3 text-[10px] text-text-subtitle">
+								<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
 									<div class="flex items-center gap-1">
 										<div
 											class="h-3 w-3 rounded-[2px]"
@@ -1097,7 +1097,7 @@
 												<div class="w-7 shrink-0"></div>
 												{#each CASE_META as cm (cm.key)}
 													<div
-														class="shrink-0 text-center text-[10px] text-text-subtitle"
+														class="shrink-0 text-center text-xs text-text-subtitle"
 														style="width: 32px;"
 													>
 														{cm.abbrev}
@@ -1106,7 +1106,7 @@
 											</div>
 											<!-- Sg row -->
 											<div class="mb-0.5 flex items-center">
-												<div class="w-7 shrink-0 text-right text-[10px] text-text-subtitle">Sg</div>
+												<div class="w-7 shrink-0 text-right text-xs text-text-subtitle">Sg</div>
 												{#each CASE_META as cm (cm.key)}
 													{@const score = getParadigmCaseNumberScore(pronounParadigm, cm.key, 'sg')}
 													{@const pct =
@@ -1138,7 +1138,7 @@
 											</div>
 											<!-- Pl row -->
 											<div class="flex items-center">
-												<div class="w-7 shrink-0 text-right text-[10px] text-text-subtitle">Pl</div>
+												<div class="w-7 shrink-0 text-right text-xs text-text-subtitle">Pl</div>
 												{#each CASE_META as cm (cm.key)}
 													{@const score = getParadigmCaseNumberScore(pronounParadigm, cm.key, 'pl')}
 													{@const pct =
@@ -1173,7 +1173,7 @@
 								{/each}
 
 								<!-- Legend -->
-								<div class="flex items-center justify-center gap-3 text-[10px] text-text-subtitle">
+								<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
 									<div class="flex items-center gap-1">
 										<div
 											class="h-3 w-3 rounded-[2px]"

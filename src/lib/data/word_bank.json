@@ -15607,19 +15607,6 @@
 		}
 	},
 	{
-		"lemma": "vražda",
-		"translation": "murder",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "B1",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["vražda", "vraždy", "vraždě", "vraždu", "vraždo", "vraždě", "vraždou"],
-			"pl": ["vraždy", "vražd", "vraždám", "vraždy", "vraždy", "vraždách", "vraždami"]
-		}
-	},
-	{
 		"lemma": "domek",
 		"translation": "house",
 		"gender": "m",
@@ -15666,19 +15653,6 @@
 		"forms": {
 			"sg": ["hřiště", "hřiště", "hřišti", "hřiště", "hřiště", "hřišti", "hřištěm"],
 			"pl": ["hřiště", "hřišť", "hřištím", "hřiště", "hřiště", "hřištích", "hřišti"]
-		}
-	},
-	{
-		"lemma": "prdel",
-		"translation": "arse",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "A1",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["prdel", "prdele", "prdeli", "prdel", "prdeli", "prdeli", "prdelí"],
-			"pl": ["prdele", "prdelí", "prdelím", "prdele", "prdele", "prdelích", "prdelemi"]
 		}
 	},
 	{
@@ -18702,19 +18676,6 @@
 		}
 	},
 	{
-		"lemma": "blbost",
-		"translation": "crap",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "kost",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["blbost", "blbosti", "blbosti", "blbost", "blbosti", "blbosti", "blbostí"],
-			"pl": ["blbosti", "blbostí", "blbostem", "blbosti", "blbosti", "blbostech", "blbostmi"]
-		}
-	},
-	{
 		"lemma": "důraz",
 		"translation": "stress",
 		"gender": "m",
@@ -18825,24 +18786,6 @@
 		"variantForms": {
 			"pl": {
 				"5": ["taťkách"]
-			}
-		}
-	},
-	{
-		"lemma": "peklo",
-		"translation": "hell",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["peklo", "pekla", "peklu", "peklo", "peklo", "pekle", "peklem"],
-			"pl": ["pekla", "pekel", "peklům", "pekla", "pekla", "peklech", "pekly"]
-		},
-		"variantForms": {
-			"sg": {
-				"5": ["peklu"]
 			}
 		}
 	},
@@ -22615,24 +22558,6 @@
 		}
 	},
 	{
-		"lemma": "zadek",
-		"translation": "butt",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["body"],
-		"forms": {
-			"sg": ["zadek", "zadku", "zadku", "zadek", "zadku", "zadku", "zadkem"],
-			"pl": ["zadky", "zadků", "zadkům", "zadky", "zadky", "zadcích", "zadky"]
-		},
-		"variantForms": {
-			"pl": {
-				"5": ["zadkách"]
-			}
-		}
-	},
-	{
 		"lemma": "běh",
 		"translation": "run",
 		"gender": "m",
@@ -24387,19 +24312,6 @@
 		}
 	},
 	{
-		"lemma": "sex",
-		"translation": "sex",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["sex", "sexu", "sexu", "sex", "sexe", "sexu", "sexem"],
-			"pl": ["sexy", "sexů", "sexům", "sexy", "sexy", "sexech", "sexy"]
-		}
-	},
-	{
 		"lemma": "oddíl",
 		"translation": "section",
 		"gender": "m",
@@ -25016,24 +24928,6 @@
 		}
 	},
 	{
-		"lemma": "hovno",
-		"translation": "shit",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "město",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["hovno", "hovna", "hovnu", "hovno", "hovno", "hovně", "hovnem"],
-			"pl": ["hovna", "hoven", "hovnům", "hovna", "hovna", "hovnech", "hovny"]
-		},
-		"variantForms": {
-			"sg": {
-				"5": ["hovnu"]
-			}
-		}
-	},
-	{
 		"lemma": "metropole",
 		"translation": "capital",
 		"gender": "f",
@@ -25580,29 +25474,6 @@
 				"krabičkách",
 				"krabičkami"
 			]
-		}
-	},
-	{
-		"lemma": "blbec",
-		"translation": "moron",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "muž",
-		"difficulty": "A2",
-		"categories": ["misc", "people"],
-		"forms": {
-			"sg": ["blbec", "blbce", "blbci", "blbce", "blbče", "blbci", "blbcem"],
-			"pl": ["blbci", "blbců", "blbcům", "blbce", "blbci", "blbcích", "blbci"]
-		},
-		"variantForms": {
-			"sg": {
-				"2": ["blbcovi"],
-				"5": ["blbcovi"]
-			},
-			"pl": {
-				"0": ["blbcové"],
-				"4": ["blbcové"]
-			}
 		}
 	},
 	{
@@ -31444,19 +31315,6 @@
 		}
 	},
 	{
-		"lemma": "bordel",
-		"translation": "mess",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["bordel", "bordelu", "bordelu", "bordel", "bordele", "bordelu", "bordelem"],
-			"pl": ["bordely", "bordelů", "bordelům", "bordely", "bordely", "bordelech", "bordely"]
-		}
-	},
-	{
 		"lemma": "jeviště",
 		"translation": "stage",
 		"gender": "n",
@@ -32310,25 +32168,6 @@
 		"forms": {
 			"sg": ["mezera", "mezery", "mezeře", "mezeru", "mezero", "mezeře", "mezerou"],
 			"pl": ["mezery", "mezer", "mezerám", "mezery", "mezery", "mezerách", "mezerami"]
-		}
-	},
-	{
-		"lemma": "debil",
-		"translation": "asshole",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "pán",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["debil", "debila", "debilovi", "debila", "debile", "debilovi", "debilem"],
-			"pl": ["debilové", "debilů", "debilům", "debily", "debilové", "debilech", "debily"]
-		},
-		"variantForms": {
-			"sg": {
-				"2": ["debilu"],
-				"5": ["debilu"]
-			}
 		}
 	},
 	{

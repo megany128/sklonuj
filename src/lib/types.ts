@@ -6,7 +6,11 @@ export type Number_ = 'sg' | 'pl';
 
 export type Difficulty = 'A1' | 'A2' | 'B1' | 'B2';
 
-export type DrillType = 'form_production' | 'case_identification' | 'sentence_fill_in';
+export type DrillType =
+	| 'form_production'
+	| 'case_identification'
+	| 'sentence_fill_in'
+	| 'multi_step';
 
 export const CASE_LABELS: Record<Case, string> = {
 	nom: 'Nominative',
@@ -154,6 +158,29 @@ export interface DrillResult {
 	accidentalCase?: { case: Case; number: Number_ };
 }
 
+export interface MultiStepQuestion {
+	word: WordEntry;
+	template: SentenceTemplate;
+	case: Case;
+	number: Number_;
+	correctParadigm: Paradigm;
+	correctCase: Case;
+	correctForm: string;
+	/** Whether case step should be shown (false when only 1 case enabled) */
+	showCaseStep: boolean;
+}
+
+export interface MultiStepResult {
+	question: MultiStepQuestion;
+	paradigmCorrect: boolean;
+	caseCorrect: boolean | null; // null if step was skipped
+	formCorrect: boolean;
+	formNearMiss: boolean;
+	userParadigm: Paradigm;
+	userCase: Case | null;
+	userForm: string;
+}
+
 export interface DrillSettings {
 	selectedCases: Case[];
 	selectedDrillTypes: DrillType[];
@@ -202,13 +229,15 @@ export function isNumber(value: string): value is Number_ {
 export const ALL_DRILL_TYPES: DrillType[] = [
 	'form_production',
 	'case_identification',
-	'sentence_fill_in'
+	'sentence_fill_in',
+	'multi_step'
 ];
 
 export const DRILL_TYPE_LABELS: Record<DrillType, string> = {
 	form_production: 'Form Production',
 	case_identification: 'Case Identification',
-	sentence_fill_in: 'Sentence Fill-In'
+	sentence_fill_in: 'Sentence Fill-In',
+	multi_step: 'Full Analysis'
 };
 
 export interface KzkPreposition {

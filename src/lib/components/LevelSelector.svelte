@@ -30,7 +30,7 @@
 			>
 				<span class="text-sm font-semibold">{lvl}</span>
 				<span
-					class="text-[10px] leading-tight {lvl === level && !isCustom
+					class="text-xs leading-tight {lvl === level && !isCustom
 						? 'text-emphasis'
 						: 'text-text-subtitle/50'}"
 				>
