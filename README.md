@@ -1,8 +1,8 @@
-# Sklonuj
+# Skloňuj
 
 A web-based drill app for mastering Czech noun declensions — all seven cases, singular and plural, with immediate feedback and adaptive difficulty.
 
-"Sklonuj" is the Czech imperative for "decline (a noun)."
+"Skloňuj" is the Czech imperative for "decline (a noun)." In other words, "decline it!".
 
 ## Features
 
