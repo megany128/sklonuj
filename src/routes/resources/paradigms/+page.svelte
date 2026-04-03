@@ -24,8 +24,6 @@
 		return unsub;
 	});
 
-	const caseLabels = ['Nom', 'Gen', 'Dat', 'Acc', 'Voc', 'Loc', 'Ins'];
-
 	interface Paradigm {
 		id: string;
 		title: string;
@@ -79,11 +77,47 @@
 
 	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
-	/** Currently expanded example word, or null if none. */
-	let expandedExample = $state<string | null>(null);
+	/** Currently selected example word per paradigm, keyed by paradigm id. */
+	let selectedExample = $state<Record<string, string>>({});
 
-	function toggleExample(word: string) {
-		expandedExample = expandedExample === word ? null : word;
+	/** Split a form (possibly with " / " variants) into stem+ending+suffix segments. */
+	function splitFormParts(
+		form: string,
+		stem: string
+	): Array<{ stem: string; ending: string; suffix: string; separator: boolean }> {
+		if (!stem || !form) return [{ stem: form, ending: '', suffix: '', separator: false }];
+		const variants = form.split('/').map((v) => v.trim());
+		const parts: Array<{ stem: string; ending: string; suffix: string; separator: boolean }> = [];
+		for (let i = 0; i < variants.length; i++) {
+			if (i > 0) parts.push({ stem: '', ending: '', suffix: '', separator: true });
+			const v = variants[i];
+			const hasExcl = v.endsWith('!');
+			const clean = hasExcl ? v.slice(0, -1) : v;
+			const suffix = hasExcl ? '!' : '';
+			if (clean.startsWith(stem)) {
+				parts.push({ stem, ending: clean.slice(stem.length), suffix, separator: false });
+			} else {
+				parts.push({ stem: clean, ending: '', suffix, separator: false });
+			}
+		}
+		return parts;
+	}
+
+	/** Compute the longest common prefix (stem) from an array of forms. */
+	function computeStem(forms: string[]): string {
+		const normalized = forms
+			.flatMap((f) => f.replace(/!/g, '').split('/'))
+			.map((f) => f.trim())
+			.filter((f) => f !== '');
+		if (normalized.length === 0) return '';
+		let prefix = normalized[0];
+		for (let i = 1; i < normalized.length; i++) {
+			while (!normalized[i].startsWith(prefix) && prefix.length > 0) {
+				prefix = prefix.slice(0, -1);
+			}
+			if (prefix.length === 0) return '';
+		}
+		return prefix;
 	}
 
 	function lookupExampleForms(lemma: string): { sg: CaseForms; pl: CaseForms } | null {
@@ -133,7 +167,7 @@
 			plural: ['páni / pánové', 'pánů', 'pánům', 'pány', 'páni / pánové!', 'pánech', 'pány'],
 			howToIdentify:
 				'Masculine animate nouns ending in a hard consonant (d, h, k, n, r, t…). The nominative singular has a zero ending (bare stem).',
-			examples: ['student', 'bratr', 'chlapec', 'člověk'],
+			examples: ['student', 'bratr', 'chlapec', 'soused'],
 			notes:
 				'Consonant changes occur before -e in vocative: k→c (žák→žáče), h→z, r→ř, ch→š. Accusative singular always matches genitive for animate nouns.'
 		},
@@ -147,7 +181,7 @@
 			plural: ['muži / mužové', 'mužů', 'mužům', 'muže', 'muži / mužové!', 'mužích', 'muži'],
 			howToIdentify:
 				'Masculine animate nouns ending in a soft consonant (ž, š, č, ř, c, j, ň, ď, ť) or -tel, -ec.',
-			examples: ['přítel', 'lékař', 'rodič', 'otec'],
+			examples: ['učitel', 'lékař', 'rodič', 'otec'],
 			notes:
 				'The soft paradigm uses -e/-i endings instead of -a/-u. Locative plural takes -ích (not -ech like hard stems).'
 		},
@@ -207,7 +241,7 @@
 			],
 			howToIdentify:
 				'Masculine animate nouns ending in -ce or -e that denote male persons. A small but important group.',
-			examples: ['soudce'],
+			examples: ['správce', 'vůdce'],
 			notes:
 				'Nominative, genitive, accusative, and vocative singular are all identical ("soudce"), so context is crucial.'
 		},
@@ -222,7 +256,7 @@
 			plural: ['hrady', 'hradů', 'hradům', 'hrady', 'hrady!', 'hradech', 'hrady'],
 			howToIdentify:
 				'Masculine inanimate nouns ending in a hard consonant. The key difference from "pán": accusative singular equals nominative (not genitive).',
-			examples: ['dům', 'stůl', 'sešit', 'obchod'],
+			examples: ['sešit', 'obchod', 'oběd', 'vlak'],
 			notes:
 				'Locative singular can take -ě or -u — some nouns prefer one or the other. Consonant changes occur before -ě: d→ď, t→ť, n→ň, h→z, k→c, r→ř.'
 		},
@@ -322,7 +356,7 @@
 			plural: ['moře', 'moří', 'mořím', 'moře', 'moře!', 'mořích', 'moři'],
 			howToIdentify:
 				'Neuter nouns ending in -e after a soft consonant. Also includes -ce words (srdce, vejce).',
-			examples: ['moře', 'srdce', 'vejce', 'slunce'],
+			examples: ['srdce', 'vejce', 'slunce', 'pole'],
 			notes:
 				'Nominative, genitive, accusative, and vocative singular all look the same. Very similar to feminine růže in ending patterns.'
 		},
@@ -336,7 +370,7 @@
 			plural: ['kuřata', 'kuřat', 'kuřatům', 'kuřata', 'kuřata!', 'kuřatech', 'kuřaty'],
 			howToIdentify:
 				'Neuter nouns (often young beings) ending in -e/-ě that expand with -et- in oblique cases and -at- in plural.',
-			examples: ['dítě', 'děvče', 'zvíře', 'štěně'],
+			examples: ['děvče', 'zvíře', 'štěně', 'kotě'],
 			notes:
 				'The stem expansion is the key feature: kuře→kuřete (sg), kuřata (pl). This paradigm is used for young animals (kotě, štěně) and some other nouns.'
 		},
@@ -370,6 +404,20 @@
 		{ label: 'Neuter', id: 'neuter', paradigms: paradigms.filter((p) => p.gender === 'neuter') }
 	];
 </script>
+
+{#snippet highlightedForm(form: string, stem: string)}
+	{#each splitFormParts(form, stem) as part, i (i)}
+		{#if part.separator}
+			<span class="text-text-subtitle"> / </span>
+		{:else if part.ending}
+			<span class="text-text-subtitle">{part.stem}</span><span class="font-semibold text-emphasis"
+				>{part.ending}</span
+			>{#if part.suffix}<span class="text-text-subtitle">{part.suffix}</span>{/if}
+		{:else}
+			<span class="text-text-default">{part.stem}{part.suffix}</span>
+		{/if}
+	{/each}
+{/snippet}
 
 <svelte:head>
 	<title>Czech Declension Paradigms — Skloňuj</title>
@@ -568,8 +616,10 @@
 				<li class="flex items-start gap-2">
 					<span class="mt-0.5 shrink-0 text-xs font-bold text-emphasis">1.</span>
 					<span
-						>Determine the <strong class="text-text-default">gender</strong> — masculine, feminine, or
-						neuter. Check a dictionary if unsure.</span
+						>Determine the <strong class="text-text-default">gender</strong>. Quick rules: consonant
+						ending → masculine, <strong class="text-text-default">-a</strong> → feminine,
+						<strong class="text-text-default">-o/-í/-e</strong> → neuter. Exceptions exist (e.g.
+						<em>táta</em> is masculine), so check a dictionary if unsure.</span
 					>
 				</li>
 				<li class="flex items-start gap-2">
@@ -578,8 +628,7 @@
 						>For masculine nouns, check if the noun is <strong class="text-text-default"
 							>animate</strong
 						>
-						(living being) or <strong class="text-text-default">inanimate</strong> (thing/concept). This
-						changes the accusative.</span
+						(living being) or <strong class="text-text-default">inanimate</strong> (thing/concept).</span
 					>
 				</li>
 				<li class="flex items-start gap-2">
@@ -615,6 +664,14 @@
 
 					<div class="space-y-4">
 						{#each group.paradigms as paradigm (paradigm.id)}
+							{@const activeExample = selectedExample[paradigm.id]}
+							{@const exampleForms = activeExample ? lookupExampleForms(activeExample) : null}
+							{@const sgStem = exampleForms
+								? computeStem([...exampleForms.sg])
+								: computeStem([...paradigm.singular])}
+							{@const plStem = exampleForms
+								? computeStem([...exampleForms.pl])
+								: computeStem([...paradigm.plural])}
 							<section
 								id={paradigm.id}
 								class="scroll-mt-20 rounded-2xl border border-card-stroke bg-card-bg p-5"
@@ -634,22 +691,52 @@
 									</p>
 								</div>
 
-								<!-- Examples -->
+								<!-- Word selector -->
 								<div class="mb-4">
 									<h4
 										class="mb-2 text-xs font-semibold uppercase tracking-widest text-text-subtitle"
 									>
-										Common words
-										<span class="ml-1 normal-case tracking-normal font-normal text-text-subtitle/60"
-											>(click to see declension)</span
-										>
+										Show declension for
 									</h4>
 									<div class="flex flex-wrap gap-1.5">
+										<button
+											type="button"
+											onclick={() => {
+												const next = { ...selectedExample };
+												delete next[paradigm.id];
+												selectedExample = next;
+											}}
+											class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors {!activeExample
+												? 'border-emphasis bg-emphasis/10 text-emphasis'
+												: 'border-card-stroke bg-shaded-background text-text-default hover:border-emphasis/50 hover:text-emphasis'}"
+										>
+											{paradigm.model}
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+												class="size-3 shrink-0 opacity-50"
+											>
+												<path
+													fill-rule="evenodd"
+													d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"
+													clip-rule="evenodd"
+												/>
+											</svg>
+										</button>
 										{#each paradigm.examples as example (example)}
 											<button
 												type="button"
-												onclick={() => toggleExample(example)}
-												class="rounded-full border px-2.5 py-1 text-xs font-medium transition-colors {expandedExample ===
+												onclick={() => {
+													if (activeExample === example) {
+														const next = { ...selectedExample };
+														delete next[paradigm.id];
+														selectedExample = next;
+													} else {
+														selectedExample = { ...selectedExample, [paradigm.id]: example };
+													}
+												}}
+												class="rounded-full border px-2.5 py-1 text-xs font-medium transition-colors {activeExample ===
 												example
 													? 'border-emphasis bg-emphasis/10 text-emphasis'
 													: 'border-card-stroke bg-shaded-background text-text-default hover:border-emphasis/50 hover:text-emphasis'}"
@@ -658,78 +745,11 @@
 											</button>
 										{/each}
 									</div>
-
-									<!-- Example declension table -->
-									{#if expandedExample && paradigm.examples.includes(expandedExample)}
-										{@const exampleForms = lookupExampleForms(expandedExample)}
-										{#if exampleForms}
-											<div class="mt-3 overflow-hidden rounded-lg border border-card-stroke">
-												<div
-													class="flex items-center justify-between bg-shaded-background px-3 py-1.5"
-												>
-													<span class="text-xs font-semibold text-text-default">
-														Declension of <em>{expandedExample}</em>
-													</span>
-													<button
-														type="button"
-														onclick={() => (expandedExample = null)}
-														class="text-text-subtitle transition-colors hover:text-text-default"
-														aria-label="Close declension table"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															viewBox="0 0 20 20"
-															fill="currentColor"
-															class="size-4"
-														>
-															<path
-																d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
-															/>
-														</svg>
-													</button>
-												</div>
-												<table class="w-full table-fixed text-xs">
-													<colgroup>
-														<col class="w-[38%]" />
-														<col class="w-[31%]" />
-														<col class="w-[31%]" />
-													</colgroup>
-													<thead>
-														<tr class="bg-shaded-background text-text-subtitle">
-															<th class="px-3 py-1.5 text-left font-semibold">Case</th>
-															<th class="px-3 py-1.5 text-left font-semibold">Singular</th>
-															<th class="px-3 py-1.5 text-left font-semibold">Plural</th>
-														</tr>
-													</thead>
-													<tbody>
-														{#each CASE_ORDER as c (c)}
-															{@const idx = CASE_INDEX[c]}
-															<tr class="border-t border-card-stroke">
-																<td class="px-3 py-1.5 text-left font-medium text-text-subtitle">
-																	{CASE_NUMBER[c]}. {CASE_LABELS[c]}
-																</td>
-																<td class="px-3 py-1.5 text-left text-text-default">
-																	{exampleForms.sg[idx]}
-																</td>
-																<td class="px-3 py-1.5 text-left text-text-default">
-																	{exampleForms.pl[idx]}
-																</td>
-															</tr>
-														{/each}
-													</tbody>
-												</table>
-											</div>
-										{:else}
-											<p class="mt-2 text-xs text-text-subtitle italic">
-												Declension data not available for "{expandedExample}".
-											</p>
-										{/if}
-									{/if}
 								</div>
 
 								<!-- Declension table -->
 								<div class="mb-4 overflow-x-auto">
-									<table class="w-full text-left text-xs">
+									<table class="w-full table-fixed text-left text-xs">
 										<thead>
 											<tr>
 												<th
@@ -750,15 +770,61 @@
 											</tr>
 										</thead>
 										<tbody>
-											{#each caseLabels as label, i (label)}
-												<tr class="border-t border-card-stroke">
-													<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
-														{label}
-													</td>
-													<td class="px-3 py-2 text-text-default">{paradigm.singular[i]}</td>
-													<td class="px-3 py-2 text-text-default">{paradigm.plural[i]}</td>
-												</tr>
-											{/each}
+											{#if activeExample && exampleForms}
+												{#each CASE_ORDER as c, i (c)}
+													{@const idx = CASE_INDEX[c]}
+													<tr
+														class="border-t border-card-stroke {i % 2 === 0
+															? 'bg-shaded-background/50'
+															: ''}"
+													>
+														<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
+															{CASE_NUMBER[c]}. {CASE_LABELS[c]}
+														</td>
+														<td class="px-3 py-2">
+															{@render highlightedForm(exampleForms.sg[idx], sgStem)}
+														</td>
+														<td class="px-3 py-2">
+															{@render highlightedForm(exampleForms.pl[idx], plStem)}
+														</td>
+													</tr>
+												{/each}
+											{:else if activeExample && !exampleForms}
+												{#each CASE_ORDER as c, i (c)}
+													{@const idx = CASE_INDEX[c]}
+													<tr
+														class="border-t border-card-stroke {i % 2 === 0
+															? 'bg-shaded-background/50'
+															: ''}"
+													>
+														<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
+															{CASE_NUMBER[c]}. {CASE_LABELS[c]}
+														</td>
+														<td colspan="2" class="px-3 py-2 text-text-subtitle italic">
+															{#if idx === 0}Data not available for "{activeExample}"{/if}
+														</td>
+													</tr>
+												{/each}
+											{:else}
+												{#each CASE_ORDER as c, i (c)}
+													{@const idx = CASE_INDEX[c]}
+													<tr
+														class="border-t border-card-stroke {i % 2 === 0
+															? 'bg-shaded-background/50'
+															: ''}"
+													>
+														<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
+															{CASE_NUMBER[c]}. {CASE_LABELS[c]}
+														</td>
+														<td class="px-3 py-2">
+															{@render highlightedForm(paradigm.singular[idx], sgStem)}
+														</td>
+														<td class="px-3 py-2">
+															{@render highlightedForm(paradigm.plural[idx], plStem)}
+														</td>
+													</tr>
+												{/each}
+											{/if}
 										</tbody>
 									</table>
 								</div>

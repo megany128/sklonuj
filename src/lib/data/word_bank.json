@@ -50315,19 +50315,6 @@
 		}
 	},
 	{
-		"lemma": "kouření",
-		"translation": "verbal noun of kouřit",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "stavení",
-		"difficulty": "A1",
-		"categories": ["misc", "objects"],
-		"forms": {
-			"sg": ["kouření", "kouření", "kouření", "kouření", "kouření", "kouření", "kouřením"],
-			"pl": ["kouření", "kouření", "kouřením", "kouření", "kouření", "kouřeních", "kouřeními"]
-		}
-	},
-	{
 		"lemma": "punkerka",
 		"translation": "female punk",
 		"gender": "f",

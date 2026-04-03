@@ -568,7 +568,7 @@
 	}
 
 	function openReferenceSidebar() {
-		refSidebarWord = question?.word.lemma ?? '';
+		refSidebarWord = question?.word.lemma ?? multiStepQuestion?.word.lemma ?? '';
 		refSidebarTab = 'cases';
 		refSidebarOpen = true;
 	}
@@ -592,11 +592,16 @@
 
 	// Keep sidebar word in sync with the current question
 	$effect(() => {
-		if (!refSidebarOpen || !question) return;
-		if (question.wordCategory === 'pronoun' && question.pronoun) {
-			refSidebarPronoun = question.pronoun.lemma;
-		} else {
-			const lemma = question.word.lemma;
+		if (!refSidebarOpen) return;
+		if (question) {
+			if (question.wordCategory === 'pronoun' && question.pronoun) {
+				refSidebarPronoun = question.pronoun.lemma;
+			} else {
+				const lemma = question.word.lemma;
+				if (lemma) refSidebarWord = lemma;
+			}
+		} else if (multiStepQuestion) {
+			const lemma = multiStepQuestion.word.lemma;
 			if (lemma) refSidebarWord = lemma;
 		}
 	});

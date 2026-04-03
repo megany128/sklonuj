@@ -2,7 +2,7 @@
 	import { loadWordBank } from '$lib/engine/drill';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import dictionaryData from '$lib/data/dictionary.json';
-	import { CASE_LABELS, CASE_INDEX } from '$lib/types';
+	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER } from '$lib/types';
 	import type { Case, CaseForms, WordEntry } from '$lib/types';
 
 	// Unified display entry for the table
@@ -265,7 +265,14 @@
 	let trimmedQuery = $derived(searchQuery.trim().toLowerCase());
 	let isPivo = $derived(trimmedQuery === 'pivo');
 
-	const defaultEntry = wordBankToEntry(wordBank.find((w) => w.lemma === 'žena') ?? wordBank[0]);
+	const fallbackEntry = wordBankToEntry(wordBank.find((w) => w.lemma === 'žena') ?? wordBank[0]);
+	const defaultEntry: DeclensionEntry = $derived.by(() => {
+		if (initialWord && initialWord.trim() !== '') {
+			const entry = lookupWord(initialWord.trim());
+			if (entry) return entry;
+		}
+		return fallbackEntry;
+	});
 
 	let suggestions: Suggestion[] = $derived.by(() => {
 		if (trimmedQuery.length < MIN_AUTOCOMPLETE_LENGTH) return [];
@@ -274,13 +281,13 @@
 
 	let displayEntry: DeclensionEntry = $derived(selectedEntry ?? defaultEntry);
 
-	function computeStem(sg: CaseForms, pl: CaseForms): string {
-		const forms = [...sg, ...pl].filter((f) => f !== '');
-		if (forms.length === 0) return '';
+	function computeStem(forms: CaseForms): string {
+		const nonEmpty = [...forms].filter((f) => f !== '');
+		if (nonEmpty.length === 0) return '';
 
-		let prefix = forms[0];
-		for (let i = 1; i < forms.length; i++) {
-			while (!forms[i].startsWith(prefix) && prefix.length > 0) {
+		let prefix = nonEmpty[0];
+		for (let i = 1; i < nonEmpty.length; i++) {
+			while (!nonEmpty[i].startsWith(prefix) && prefix.length > 0) {
 				prefix = prefix.slice(0, -1);
 			}
 			if (prefix.length === 0) return '';
@@ -303,7 +310,8 @@
 		return splitForm(form, stemStr).ending;
 	}
 
-	let stem: string = $derived(computeStem(displayEntry.sg, displayEntry.pl));
+	let sgStem: string = $derived(computeStem(displayEntry.sg));
+	let plStem: string = $derived(computeStem(displayEntry.pl));
 
 	let dropdownOpen = $derived(
 		showSuggestions && trimmedQuery.length >= MIN_AUTOCOMPLETE_LENGTH && !selectedEntry
@@ -597,50 +605,53 @@
 
 			<!-- Declension table -->
 			<div class="overflow-x-auto">
-				<table class="w-full table-fixed text-sm">
-					<colgroup>
-						<col class="w-[30%]" />
-						<col class="w-[35%]" />
-						<col class="w-[35%]" />
-					</colgroup>
+				<table class="w-full text-left text-xs">
 					<thead>
-						<tr
-							class="border-b border-card-stroke text-left text-xs font-semibold uppercase tracking-wider text-text-subtitle"
-						>
-							<th class="py-2 pr-3">Case</th>
-							<th class="py-2 pr-3">Singular</th>
-							<th class="py-2">Plural</th>
+						<tr>
+							<th
+								class="rounded-tl-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+							>
+								Case
+							</th>
+							<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
+								Singular
+							</th>
+							<th
+								class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+							>
+								Plural
+							</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each CASE_ORDER as caseKey, i (caseKey)}
 							<tr
-								class="border-b border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
+								class="border-t border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
 							>
-								<td class="py-2 pr-3 text-xs font-normal text-text-subtitle">
-									{CASE_LABELS[caseKey]}
+								<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
+									{CASE_NUMBER[caseKey]}. {CASE_LABELS[caseKey]}
 								</td>
-								<td class="py-2 pr-3">
+								<td class="px-3 py-2">
 									{#if displayEntry.sg[CASE_INDEX[caseKey]] === ''}
 										<span class="text-darker-shaded-background">&mdash;</span>
-									{:else if stem.length > 0}
+									{:else if sgStem.length > 0}
 										<span class="text-text-subtitle"
-											>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], stem)}</span
+											>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
 										><span class="text-emphasis"
-											>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], stem)}</span
+											>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
 										>
 									{:else}
 										<span class="text-text-default">{displayEntry.sg[CASE_INDEX[caseKey]]}</span>
 									{/if}
 								</td>
-								<td class="py-2">
+								<td class="px-3 py-2">
 									{#if displayEntry.pl[CASE_INDEX[caseKey]] === ''}
 										<span class="text-darker-shaded-background">&mdash;</span>
-									{:else if stem.length > 0}
+									{:else if plStem.length > 0}
 										<span class="text-text-subtitle"
-											>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], stem)}</span
+											>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
 										><span class="text-emphasis"
-											>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], stem)}</span
+											>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
 										>
 									{:else}
 										<span class="text-text-default">{displayEntry.pl[CASE_INDEX[caseKey]]}</span>

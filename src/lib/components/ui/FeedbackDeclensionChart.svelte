@@ -53,6 +53,22 @@
 
 	let forms = $derived(lookupForms(lemma));
 	let expanded = $state(false);
+
+	function computeStem(caseForms: CaseForms): string {
+		const all = [...caseForms].filter((f) => f !== '');
+		if (all.length === 0) return '';
+		let prefix = all[0];
+		for (let i = 1; i < all.length; i++) {
+			while (!all[i].startsWith(prefix) && prefix.length > 0) {
+				prefix = prefix.slice(0, -1);
+			}
+			if (prefix.length === 0) return '';
+		}
+		return prefix;
+	}
+
+	let sgStem = $derived(forms ? computeStem(forms.sg) : '');
+	let plStem = $derived(forms ? computeStem(forms.pl) : '');
 </script>
 
 {#if forms}
@@ -94,18 +110,23 @@
 		</button>
 
 		{#if expanded}
-			<div class="mt-2.5 overflow-hidden rounded-lg border border-card-stroke">
-				<table class="w-full table-fixed text-xs">
-					<colgroup>
-						<col class="w-[38%]" />
-						<col class="w-[31%]" />
-						<col class="w-[31%]" />
-					</colgroup>
+			<div class="mt-2.5 overflow-hidden rounded-lg">
+				<table class="w-full text-left text-xs">
 					<thead>
-						<tr class="bg-darker-shaded-background text-text-subtitle">
-							<th class="px-2 py-1.5 text-left font-semibold">Case</th>
-							<th class="px-2 py-1.5 text-left font-semibold">Singular</th>
-							<th class="px-2 py-1.5 text-left font-semibold">Plural</th>
+						<tr>
+							<th
+								class="rounded-tl-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+							>
+								Case
+							</th>
+							<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
+								Singular
+							</th>
+							<th
+								class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+							>
+								Plural
+							</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -114,23 +135,47 @@
 							{@const isCurrentSg = c === case_ && number_ === 'sg'}
 							{@const isCurrentPl = c === case_ && number_ === 'pl'}
 							{@const isCurrentRow = c === case_}
-							<tr class="{isCurrentRow ? 'bg-shaded-background' : ''} border-t border-card-stroke">
-								<td class="px-2 py-1 text-left font-semibold text-text-subtitle">
+							<tr
+								class="border-t border-card-stroke {isCurrentRow ? 'bg-shaded-background/50' : ''}"
+							>
+								<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
 									{CASE_NUMBER[c]}. {CASE_LABELS[c]}
 								</td>
-								<td
-									class="px-2 py-1 text-left {isCurrentSg
-										? `font-bold ${CASE_COLORS[c].text}`
-										: 'text-text-default'}"
-								>
-									{forms.sg[idx]}
+								<td class="px-3 py-2">
+									{#if sgStem && forms.sg[idx].startsWith(sgStem)}
+										<span
+											class={isCurrentSg
+												? `font-bold ${CASE_COLORS[c].text}`
+												: 'text-text-subtitle'}>{sgStem}</span
+										><span
+											class={isCurrentSg
+												? `font-bold ${CASE_COLORS[c].text}`
+												: 'font-semibold text-emphasis'}>{forms.sg[idx].slice(sgStem.length)}</span
+										>
+									{:else}
+										<span
+											class={isCurrentSg ? `font-bold ${CASE_COLORS[c].text}` : 'text-text-default'}
+											>{forms.sg[idx]}</span
+										>
+									{/if}
 								</td>
-								<td
-									class="px-2 py-1 text-left {isCurrentPl
-										? `font-bold ${CASE_COLORS[c].text}`
-										: 'text-text-default'}"
-								>
-									{forms.pl[idx]}
+								<td class="px-3 py-2">
+									{#if plStem && forms.pl[idx].startsWith(plStem)}
+										<span
+											class={isCurrentPl
+												? `font-bold ${CASE_COLORS[c].text}`
+												: 'text-text-subtitle'}>{plStem}</span
+										><span
+											class={isCurrentPl
+												? `font-bold ${CASE_COLORS[c].text}`
+												: 'font-semibold text-emphasis'}>{forms.pl[idx].slice(plStem.length)}</span
+										>
+									{:else}
+										<span
+											class={isCurrentPl ? `font-bold ${CASE_COLORS[c].text}` : 'text-text-default'}
+											>{forms.pl[idx]}</span
+										>
+									{/if}
 								</td>
 							</tr>
 						{/each}
