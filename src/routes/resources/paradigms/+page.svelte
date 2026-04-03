@@ -4,6 +4,10 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import { loadWordBank } from '$lib/engine/drill';
+	import dictionaryData from '$lib/data/dictionary.json';
+	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER } from '$lib/types';
+	import type { Case, CaseForms } from '$lib/types';
 
 	let user = $derived($page.data.user);
 
@@ -72,6 +76,50 @@
 		feminine: { bg: 'bg-case-loc', text: 'text-case-loc' },
 		neuter: { bg: 'bg-case-dat', text: 'text-case-dat' }
 	};
+
+	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+
+	/** Currently expanded example word, or null if none. */
+	let expandedExample = $state<string | null>(null);
+
+	function toggleExample(word: string) {
+		expandedExample = expandedExample === word ? null : word;
+	}
+
+	function lookupExampleForms(lemma: string): { sg: CaseForms; pl: CaseForms } | null {
+		const wordBank = loadWordBank();
+		const wb = wordBank.find((w) => w.lemma.toLowerCase() === lemma.toLowerCase());
+		if (wb) return { sg: wb.forms.sg, pl: wb.forms.pl };
+
+		for (const raw of dictionaryData) {
+			if (String(raw[0]).toLowerCase() === lemma.toLowerCase()) {
+				const sgRaw = raw[2];
+				const plRaw = raw[3];
+				if (!Array.isArray(sgRaw) || !Array.isArray(plRaw)) continue;
+				return {
+					sg: [
+						String(sgRaw[0]),
+						String(sgRaw[1]),
+						String(sgRaw[2]),
+						String(sgRaw[3]),
+						String(sgRaw[4]),
+						String(sgRaw[5]),
+						String(sgRaw[6])
+					] satisfies CaseForms,
+					pl: [
+						String(plRaw[0]),
+						String(plRaw[1]),
+						String(plRaw[2]),
+						String(plRaw[3]),
+						String(plRaw[4]),
+						String(plRaw[5]),
+						String(plRaw[6])
+					] satisfies CaseForms
+				};
+			}
+		}
+		return null;
+	}
 
 	const paradigms: Paradigm[] = [
 		// MASCULINE ANIMATE
@@ -592,16 +640,91 @@
 										class="mb-2 text-xs font-semibold uppercase tracking-widest text-text-subtitle"
 									>
 										Common words
+										<span class="ml-1 normal-case tracking-normal font-normal text-text-subtitle/60"
+											>(click to see declension)</span
+										>
 									</h4>
 									<div class="flex flex-wrap gap-1.5">
 										{#each paradigm.examples as example (example)}
-											<span
-												class="rounded-full border border-card-stroke bg-shaded-background px-2.5 py-1 text-xs font-medium text-text-default"
+											<button
+												type="button"
+												onclick={() => toggleExample(example)}
+												class="rounded-full border px-2.5 py-1 text-xs font-medium transition-colors {expandedExample ===
+												example
+													? 'border-emphasis bg-emphasis/10 text-emphasis'
+													: 'border-card-stroke bg-shaded-background text-text-default hover:border-emphasis/50 hover:text-emphasis'}"
 											>
 												{example}
-											</span>
+											</button>
 										{/each}
 									</div>
+
+									<!-- Example declension table -->
+									{#if expandedExample && paradigm.examples.includes(expandedExample)}
+										{@const exampleForms = lookupExampleForms(expandedExample)}
+										{#if exampleForms}
+											<div class="mt-3 overflow-hidden rounded-lg border border-card-stroke">
+												<div
+													class="flex items-center justify-between bg-shaded-background px-3 py-1.5"
+												>
+													<span class="text-xs font-semibold text-text-default">
+														Declension of <em>{expandedExample}</em>
+													</span>
+													<button
+														type="button"
+														onclick={() => (expandedExample = null)}
+														class="text-text-subtitle transition-colors hover:text-text-default"
+														aria-label="Close declension table"
+													>
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															viewBox="0 0 20 20"
+															fill="currentColor"
+															class="size-4"
+														>
+															<path
+																d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
+															/>
+														</svg>
+													</button>
+												</div>
+												<table class="w-full table-fixed text-xs">
+													<colgroup>
+														<col class="w-[38%]" />
+														<col class="w-[31%]" />
+														<col class="w-[31%]" />
+													</colgroup>
+													<thead>
+														<tr class="bg-shaded-background text-text-subtitle">
+															<th class="px-3 py-1.5 text-left font-semibold">Case</th>
+															<th class="px-3 py-1.5 text-left font-semibold">Singular</th>
+															<th class="px-3 py-1.5 text-left font-semibold">Plural</th>
+														</tr>
+													</thead>
+													<tbody>
+														{#each CASE_ORDER as c (c)}
+															{@const idx = CASE_INDEX[c]}
+															<tr class="border-t border-card-stroke">
+																<td class="px-3 py-1.5 text-left font-medium text-text-subtitle">
+																	{CASE_NUMBER[c]}. {CASE_LABELS[c]}
+																</td>
+																<td class="px-3 py-1.5 text-left text-text-default">
+																	{exampleForms.sg[idx]}
+																</td>
+																<td class="px-3 py-1.5 text-left text-text-default">
+																	{exampleForms.pl[idx]}
+																</td>
+															</tr>
+														{/each}
+													</tbody>
+												</table>
+											</div>
+										{:else}
+											<p class="mt-2 text-xs text-text-subtitle italic">
+												Declension data not available for "{expandedExample}".
+											</p>
+										{/if}
+									{/if}
 								</div>
 
 								<!-- Declension table -->

@@ -39529,7 +39529,7 @@
 	},
 	{
 		"lemma": "vlk",
-		"translation": "wolf (sea-wolf",
+		"translation": "wolf",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -39699,7 +39699,7 @@
 	},
 	{
 		"lemma": "koníček",
-		"translation": "hobby (lit",
+		"translation": "hobby (lit. small horse)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -48302,7 +48302,7 @@
 	},
 	{
 		"lemma": "dieta",
-		"translation": "diet (a controlled regimen of food and drink",
+		"translation": "diet",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -50258,7 +50258,7 @@
 	},
 	{
 		"lemma": "blůza",
-		"translation": "blouse (an outer garment",
+		"translation": "blouse",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",

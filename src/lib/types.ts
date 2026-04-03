@@ -79,6 +79,29 @@ export type Paradigm =
 	| 'stavení'
 	| 'soudce';
 
+export const ALL_PARADIGMS: Paradigm[] = [
+	'hrad',
+	'stroj',
+	'pán',
+	'muž',
+	'předseda',
+	'žena',
+	'růže',
+	'píseň',
+	'kost',
+	'město',
+	'moře',
+	'kuře',
+	'stavení',
+	'soudce'
+];
+
+const PARADIGM_SET: ReadonlySet<string> = new Set<string>(ALL_PARADIGMS);
+
+export function isParadigm(value: string): value is Paradigm {
+	return PARADIGM_SET.has(value);
+}
+
 export type CaseForms = [string, string, string, string, string, string, string];
 
 export type CaseIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;

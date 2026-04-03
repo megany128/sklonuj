@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Case, MultiStepQuestion, MultiStepResult, Paradigm } from '$lib/types';
-	import { ALL_CASES, CASE_LABELS, CASE_COLORS, CASE_NUMBER } from '$lib/types';
+	import type { Case, MultiStepQuestion, MultiStepResult } from '$lib/types';
+	import { ALL_CASES, CASE_LABELS, CASE_COLORS, CASE_NUMBER, isParadigm } from '$lib/types';
 	import { applyPrepositionVoicing, checkMultiStepForm } from '$lib/engine/drill';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
@@ -18,7 +18,14 @@
 		whyNotes: Record<string, string>;
 	}
 
-	const paradigms: ParadigmEntry[] = paradigmsData;
+	const paradigms: ParadigmEntry[] = paradigmsData.map((p) => ({
+		id: String(p.id),
+		name: String(p.name),
+		gender: String(p.gender),
+		animate: Boolean(p.animate),
+		exampleLemma: String(p.exampleLemma),
+		whyNotes: p.whyNotes
+	}));
 
 	const SOFT_CONSONANTS = new Set(['ž', 'š', 'č', 'ř', 'ď', 'ť', 'ň', 'j', 'c']);
 	const HARD_CONSONANTS = new Set([
@@ -109,7 +116,8 @@
 	type Step = 'paradigm' | 'case' | 'form' | 'summary';
 
 	let currentStep: Step = $state('paradigm');
-	let selectedParadigm: Paradigm | '' = $state('');
+	let selectedGender: 'm' | 'f' | 'n' | '' = $state('');
+	let selectedParadigm = $state('');
 	let paradigmSubmitted = $state(false);
 	let paradigmCorrect = $state(false);
 
@@ -147,6 +155,7 @@
 	$effect(() => {
 		if (question) {
 			currentStep = 'paradigm';
+			selectedGender = '';
 			selectedParadigm = '';
 			paradigmSubmitted = false;
 			paradigmCorrect = false;
@@ -175,13 +184,26 @@
 		window.addEventListener('keyup', onKeyUp, { once: true });
 	}
 
-	// Paradigm dropdown options
-	let paradigmOptions = $derived(
-		paradigms.map((p) => ({
-			value: p.id,
-			label: `${p.exampleLemma} (${p.name})`
-		}))
+	const GENDER_OPTIONS: { value: 'm' | 'f' | 'n'; label: string }[] = [
+		{ value: 'm', label: 'Masculine' },
+		{ value: 'f', label: 'Feminine' },
+		{ value: 'n', label: 'Neuter' }
+	];
+
+	// Paradigms filtered by selected gender
+	let filteredParadigms = $derived(
+		selectedGender ? paradigms.filter((p) => p.gender === selectedGender) : []
 	);
+
+	/** Strip redundant gender prefix from paradigm name (e.g. "Feminine (-a)" → "(-a)") */
+	function shortParadigmName(name: string): string {
+		return name
+			.replace(/^Hard Masc\.\s*/i, 'Hard ')
+			.replace(/^Soft Masc\.\s*/i, 'Soft ')
+			.replace(/^Masc\.\s*/i, '')
+			.replace(/^Feminine\s*/i, '')
+			.replace(/^Neuter\s*/i, '');
+	}
 
 	// Sentence parts for display
 	let sentenceParts = $derived.by(() => {
@@ -256,7 +278,7 @@
 			caseCorrect: question.showCaseStep ? caseCorrect : null,
 			formCorrect,
 			formNearMiss,
-			userParadigm: (selectedParadigm || question.correctParadigm) as Paradigm,
+			userParadigm: isParadigm(selectedParadigm) ? selectedParadigm : question.correctParadigm,
 			userCase: question.showCaseStep ? selectedCase : null,
 			userForm: formInput
 		});
@@ -394,30 +416,93 @@
 						What paradigm does this word follow?
 					</p>
 
-					<select
-						bind:value={selectedParadigm}
-						disabled={paradigmSubmitted}
-						class="w-full max-w-sm rounded-xl border-2 border-card-stroke bg-card-bg px-4 py-3 text-sm text-text-default transition-colors focus:border-emphasis focus:outline-none disabled:opacity-60"
-					>
-						<option value="" disabled>Select a paradigm...</option>
-						{#each paradigmOptions as opt (opt.value)}
-							<option value={opt.value}>{opt.label}</option>
-						{/each}
-					</select>
-
 					{#if !paradigmSubmitted}
-						<button
-							type="button"
-							onclick={handleParadigmSubmit}
-							disabled={!selectedParadigm}
-							class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-						>
-							Check
-						</button>
+						<!-- Phase 1: Gender selection -->
+						<div class="flex flex-col items-center gap-2">
+							<p class="text-xs font-medium text-text-subtitle">Choose gender</p>
+							<div role="group" aria-label="Select gender" class="flex gap-2 sm:gap-3">
+								{#each GENDER_OPTIONS as g (g.value)}
+									<button
+										type="button"
+										onclick={() => {
+											selectedGender = g.value;
+											selectedParadigm = '';
+										}}
+										class="rounded-xl border-2 px-5 py-2.5 text-sm font-medium transition-colors {selectedGender ===
+										g.value
+											? 'border-emphasis bg-emphasis text-text-inverted'
+											: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/50'}"
+									>
+										{g.label}
+									</button>
+								{/each}
+							</div>
+						</div>
+
+						<!-- Phase 2: Paradigm selection (shown after gender is picked) -->
+						{#if selectedGender}
+							<div class="flex w-full max-w-sm flex-col items-center gap-2">
+								<p class="text-xs font-medium text-text-subtitle">Choose paradigm</p>
+								<div role="group" aria-label="Select paradigm" class="flex w-full flex-col gap-2">
+									{#each filteredParadigms as p (p.id)}
+										<button
+											type="button"
+											onclick={() => {
+												if (isParadigm(p.id)) {
+													selectedParadigm = p.id;
+													handleParadigmSubmit();
+												}
+											}}
+											class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold transition-colors {selectedParadigm ===
+											p.id
+												? 'border-emphasis bg-emphasis text-text-inverted'
+												: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/50'}"
+										>
+											{p.exampleLemma}
+											<span
+												class="font-normal {selectedParadigm === p.id
+													? 'text-text-inverted/70'
+													: 'text-text-subtitle'}">{shortParadigmName(p.name)}</span
+											>
+										</button>
+									{/each}
+								</div>
+							</div>
+						{/if}
 					{:else}
+						<!-- Show selected answer (disabled buttons) -->
+						<div class="flex gap-2 sm:gap-3">
+							{#each GENDER_OPTIONS as g (g.value)}
+								<div
+									class="rounded-xl border-2 px-5 py-2.5 text-sm font-medium {selectedGender ===
+									g.value
+										? 'border-emphasis bg-emphasis text-text-inverted'
+										: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
+								>
+									{g.label}
+								</div>
+							{/each}
+						</div>
+
+						<div class="flex w-full max-w-sm flex-col gap-2">
+							{#each filteredParadigms as p (p.id)}
+								<div
+									class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold {selectedParadigm ===
+									p.id
+										? paradigmCorrect
+											? 'border-positive-stroke bg-positive-background text-positive-stroke'
+											: 'border-negative-stroke bg-negative-background text-negative-stroke'
+										: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
+								>
+									{p.exampleLemma}
+									<span class="font-normal">{shortParadigmName(p.name)}</span>
+								</div>
+							{/each}
+						</div>
+
 						<!-- Paradigm feedback -->
 						<div
-							class="w-full max-w-sm rounded-xl border-2 p-4 text-center {paradigmCorrect
+							class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {paradigmCorrect
 								? 'border-positive-stroke bg-positive-background'
 								: 'border-negative-stroke bg-negative-background'}"
 						>
@@ -492,7 +577,7 @@
 
 					{#if caseSubmitted}
 						<div
-							class="w-full max-w-sm rounded-xl border-2 p-4 text-center {caseCorrect
+							class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {caseCorrect
 								? 'border-positive-stroke bg-positive-background'
 								: 'border-negative-stroke bg-negative-background'}"
 						>
@@ -551,7 +636,7 @@
 					<p class="text-sm text-text-subtitle">{question.word.translation}</p>
 
 					<!-- Text input -->
-					<div class="flex w-full max-w-sm flex-col gap-3">
+					<div class="flex w-full max-w-md flex-col gap-3">
 						<input
 							bind:this={formInputEl}
 							bind:value={formInput}
@@ -562,7 +647,7 @@
 							autocapitalize="none"
 							spellcheck="false"
 							placeholder="Type the correct form..."
-							class="w-full rounded-xl border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
+							class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
 							!formCorrect
 								? 'border-negative-stroke bg-negative-background text-negative-stroke'
 								: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
@@ -578,7 +663,7 @@
 							type="button"
 							onclick={handleFormSubmit}
 							disabled={formInput.trim() === ''}
-							class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
 						>
 							Check
 						</button>
@@ -586,7 +671,7 @@
 						<!-- Form feedback -->
 						{#if formCorrect}
 							<div
-								class="w-full max-w-sm rounded-xl border-2 border-positive-stroke bg-positive-background p-4 text-center"
+								class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
 							>
 								<p class="text-sm font-semibold text-positive-stroke">
 									{formNearMiss ? 'Correct! (watch the diacritics)' : 'Correct!'}
@@ -649,7 +734,7 @@
 						<button
 							type="button"
 							onclick={advanceFromForm}
-							class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
+							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
 						>
 							See Summary &rarr;
 						</button>
@@ -673,51 +758,166 @@
 					<div class="flex w-full max-w-sm flex-col gap-2">
 						<!-- Paradigm -->
 						<div
-							class="flex items-center gap-3 rounded-xl border px-4 py-3 {paradigmCorrect
+							class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {paradigmCorrect
 								? 'border-positive-stroke/30 bg-positive-background/50'
 								: 'border-negative-stroke/30 bg-negative-background/50'}"
 						>
-							<span class="text-lg">{paradigmCorrect ? '✅' : '❌'}</span>
+							{#if paradigmCorrect}
+								<svg
+									width="20"
+									height="20"
+									viewBox="0 0 20 20"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle cx="10" cy="10" r="10" fill="#22c55e" />
+									<path
+										d="M6 10.5l2.5 2.5L14 7.5"
+										stroke="white"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							{:else}
+								<svg
+									width="20"
+									height="20"
+									viewBox="0 0 20 20"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle cx="10" cy="10" r="10" fill="#ef4444" />
+									<path
+										d="M7 7l6 6M13 7l-6 6"
+										stroke="white"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							{/if}
 							<div class="flex-1">
 								<p class="text-xs font-semibold text-text-subtitle">Paradigm</p>
 								<p class="text-sm text-text-default">
 									{correctParadigmEntry?.exampleLemma} ({correctParadigmEntry?.name})
 								</p>
+								{#if !paradigmCorrect && selectedParadigm}
+									{@const userEntry = paradigms.find((p) => p.id === selectedParadigm)}
+									<p class="text-xs text-negative-stroke">
+										You chose: {userEntry?.exampleLemma} ({userEntry?.name})
+									</p>
+								{/if}
 							</div>
 						</div>
 
 						<!-- Case (if shown) -->
 						{#if question.showCaseStep}
 							<div
-								class="flex items-center gap-3 rounded-xl border px-4 py-3 {caseCorrect
+								class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {caseCorrect
 									? 'border-positive-stroke/30 bg-positive-background/50'
 									: 'border-negative-stroke/30 bg-negative-background/50'}"
 							>
-								<span class="text-lg">{caseCorrect ? '✅' : '❌'}</span>
+								{#if caseCorrect}
+									<svg
+										width="20"
+										height="20"
+										viewBox="0 0 20 20"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<circle cx="10" cy="10" r="10" fill="#22c55e" />
+										<path
+											d="M6 10.5l2.5 2.5L14 7.5"
+											stroke="white"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										/>
+									</svg>
+								{:else}
+									<svg
+										width="20"
+										height="20"
+										viewBox="0 0 20 20"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<circle cx="10" cy="10" r="10" fill="#ef4444" />
+										<path
+											d="M7 7l6 6M13 7l-6 6"
+											stroke="white"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										/>
+									</svg>
+								{/if}
 								<div class="flex-1">
 									<p class="text-xs font-semibold text-text-subtitle">Case</p>
 									<p class="text-sm text-text-default">
 										{CASE_NUMBER[question.correctCase]}. {CASE_LABELS[question.correctCase]}
 									</p>
+									{#if !caseCorrect && selectedCase}
+										<p class="text-xs text-negative-stroke">
+											You chose: {CASE_NUMBER[selectedCase]}. {CASE_LABELS[selectedCase]}
+										</p>
+									{/if}
 								</div>
 							</div>
 						{/if}
 
 						<!-- Form -->
 						<div
-							class="flex items-center gap-3 rounded-xl border px-4 py-3 {formCorrect
+							class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {formCorrect
 								? 'border-positive-stroke/30 bg-positive-background/50'
 								: 'border-negative-stroke/30 bg-negative-background/50'}"
 						>
-							<span class="text-lg">{formCorrect ? '✅' : '❌'}</span>
+							{#if formCorrect}
+								<svg
+									width="20"
+									height="20"
+									viewBox="0 0 20 20"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle cx="10" cy="10" r="10" fill="#22c55e" />
+									<path
+										d="M6 10.5l2.5 2.5L14 7.5"
+										stroke="white"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							{:else}
+								<svg
+									width="20"
+									height="20"
+									viewBox="0 0 20 20"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle cx="10" cy="10" r="10" fill="#ef4444" />
+									<path
+										d="M7 7l6 6M13 7l-6 6"
+										stroke="white"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							{/if}
 							<div class="flex-1">
 								<p class="text-xs font-semibold text-text-subtitle">Declined Form</p>
 								<p class="text-sm text-text-default">
 									{question.correctForm}
-									{#if !formCorrect && formInput}
-										<span class="text-negative-stroke">(you typed: {formInput})</span>
-									{/if}
 								</p>
+								{#if !formCorrect && formInput}
+									<p class="text-xs text-negative-stroke">
+										You typed: {formInput}
+									</p>
+								{/if}
 							</div>
 						</div>
 					</div>

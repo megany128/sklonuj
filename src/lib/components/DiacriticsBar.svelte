@@ -70,7 +70,7 @@
 </script>
 
 <div
-	class="flex flex-wrap justify-center gap-2 sm:gap-4"
+	class="flex w-full flex-wrap justify-center gap-1 py-1.5 sm:gap-1.5"
 	role="toolbar"
 	aria-label="Czech diacritics helper"
 >
@@ -79,7 +79,7 @@
 		<button
 			type="button"
 			onclick={() => insertChar(d.char)}
-			class="inline-flex size-11 cursor-pointer items-center justify-center rounded-full border text-base font-normal transition-all duration-150 active:scale-95 sm:size-[53px] sm:text-lg {isHighlighted
+			class="inline-flex size-9 cursor-pointer items-center justify-center rounded-full border text-sm font-normal transition-all duration-150 active:scale-95 sm:size-10 sm:text-base {isHighlighted
 				? 'border-card-stroke text-text-subtitle hover:bg-shaded-background hover:text-text-default'
 				: 'border-transparent text-text-subtitle/30'}"
 			aria-label="Insert {d.char}"
