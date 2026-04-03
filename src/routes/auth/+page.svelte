@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
+	import posthog from '$lib/posthog';
 
 	let mode = $state<'login' | 'signup'>('login');
 	let email = $state('');
@@ -61,8 +62,10 @@
 			if (err) {
 				error = err.message;
 			} else if (data.session) {
+				posthog.capture('signed_up', { method: 'email' });
 				goto(resolve('/'));
 			} else {
+				posthog.capture('signed_up', { method: 'email' });
 				confirmationSent = true;
 			}
 		} else {

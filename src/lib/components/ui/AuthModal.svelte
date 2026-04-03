@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
+	import posthog from '$lib/posthog';
 
 	let { open = false, onClose }: { open: boolean; onClose: () => void } = $props();
 
@@ -104,9 +105,11 @@
 			if (err) {
 				error = err.message;
 			} else if (data.session) {
+				posthog.capture('signed_up', { method: 'email' });
 				handleClose();
 				goto(resolve('/'));
 			} else {
+				posthog.capture('signed_up', { method: 'email' });
 				confirmationSent = true;
 			}
 		} else {

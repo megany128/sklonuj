@@ -33,7 +33,7 @@
 		class="flex cursor-pointer items-center justify-center gap-1.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-all duration-200 sm:px-2 sm:py-2
 			{selectedCase === 'all'
 			? 'border-emphasis bg-emphasis text-text-inverted'
-			: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/40'}"
+			: 'border-card-stroke bg-transparent text-text-default hover:border-emphasis/40'}"
 		onclick={() => onSelect('all')}
 	>
 		All

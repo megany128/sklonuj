@@ -1771,6 +1771,9 @@
 			case: result.question.case,
 			level: currentLevel
 		});
+		if (sessionCount === 10) {
+			posthog.capture('ten_questions_completed', { level: currentLevel });
+		}
 
 		if (result.correct) {
 			streak++;
@@ -1841,12 +1844,17 @@
 			caseCorrect: result.caseCorrect,
 			formCorrect: result.formCorrect
 		});
+		if (sessionCount === 10) {
+			posthog.capture('ten_questions_completed', { level: currentLevel });
+		}
 
 		generateNextQuestion();
 	}
 
 	function handleLevelChange(level: Difficulty): void {
+		const previousLevel = currentLevel;
 		setLevel(level);
+		posthog.capture('level_changed', { from: previousLevel, to: level });
 		scheduleSyncToSupabase();
 		generateNextQuestion();
 	}
@@ -1894,8 +1902,12 @@
 		// Base path is already resolved; dynamic query string is appended.
 		const basePath = resolve('/');
 		const newUrl = basePath + (params.toString() ? '?' + params.toString() : '');
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- basePath uses resolve('/')
-		replaceState(newUrl, {});
+		try {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- basePath uses resolve('/')
+			replaceState(newUrl, {});
+		} catch {
+			// Router not yet initialized during initial $effect flush; safe to ignore.
+		}
 	}
 
 	function toggleEnabledCase(c: Case): void {

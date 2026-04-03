@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
@@ -63,6 +64,32 @@
 
 	onMount(() => {
 		initPostHog();
+
+		const pageData = $page.data;
+		if (pageData.user && pageData.savedProgress) {
+			const sp = pageData.savedProgress;
+			const serverProgress: Progress = {
+				level: sp.level as Difficulty,
+				caseScores: sp.case_scores,
+				paradigmScores: sp.paradigm_scores,
+				lastSession: sp.last_session
+			};
+			const localProgress = loadProgressFromLocalStorage();
+			const storedUserId = localStorage.getItem(STORAGE_USER_KEY);
+			const isOrphanedFromOtherUser =
+				storedUserId !== null && storedUserId !== '' && storedUserId !== pageData.user.id;
+
+			if (localProgress && hasAnyProgress(localProgress) && !isOrphanedFromOtherUser) {
+				// Merge local guest progress with server progress
+				progress.set(mergeProgress(localProgress, serverProgress));
+			} else {
+				progress.set(serverProgress);
+			}
+			localStorage.setItem(STORAGE_USER_KEY, pageData.user.id);
+			lastMergedUserId = pageData.user.id;
+			posthog.identify(pageData.user.id);
+		}
+
 		const supabase = getSupabaseBrowserClient();
 
 		const {
@@ -71,8 +98,11 @@
 			async (_event: string, session: { user?: { id: string } } | null) => {
 				const isSignIn =
 					_event === 'SIGNED_IN' || (_event === 'INITIAL_SESSION' && !!session?.user);
+				// Don't treat INITIAL_SESSION without a browser session as sign-out
+				// when we already hydrated from server data (lastMergedUserId is set).
 				const isSignOut =
-					_event === 'SIGNED_OUT' || (_event === 'INITIAL_SESSION' && !session?.user);
+					_event === 'SIGNED_OUT' ||
+					(_event === 'INITIAL_SESSION' && !session?.user && !lastMergedUserId);
 
 				if (isSignIn) {
 					const userId = session?.user?.id ?? '';
@@ -173,8 +203,13 @@
 					posthog.reset();
 				}
 
-				// Refresh server data (user session)
-				invalidateAll();
+				// Refresh server data (user session) — guard against router not
+				// being ready during INITIAL_SESSION which fires in onMount.
+				try {
+					invalidateAll();
+				} catch {
+					// Router not yet initialized; safe to ignore.
+				}
 			}
 		);
 
