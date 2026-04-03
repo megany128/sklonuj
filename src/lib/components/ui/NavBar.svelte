@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
+
+	let isResourcesPage = $derived($page.url.pathname.startsWith('/resources'));
 
 	let {
 		activePage,
@@ -7,7 +10,8 @@
 		darkMode = false,
 		onToggleDarkMode,
 		user = null,
-		onSignIn
+		onSignIn,
+		isHomePage = false
 	}: {
 		activePage?: 'exercises' | 'lookup' | undefined;
 		onNavigate?: (page: 'exercises' | 'lookup') => void;
@@ -15,6 +19,7 @@
 		onToggleDarkMode?: () => void;
 		user?: { id: string; email?: string } | null;
 		onSignIn?: () => void;
+		isHomePage?: boolean;
 	} = $props();
 
 	const AVATAR_COLORS = [
@@ -129,9 +134,15 @@
 		class="flex shrink-0 cursor-pointer items-baseline gap-1.5 sm:gap-2"
 		onclick={() => onNavigate?.('exercises')}
 	>
-		<span class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg"
-			>Skloňuj</span
-		>
+		{#if isHomePage}
+			<h1 class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg">
+				Skloňuj
+			</h1>
+		{:else}
+			<span class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg"
+				>Skloňuj</span
+			>
+		{/if}
 		<span class="hidden text-sm text-text-subtitle sm:inline">decline it!</span>
 	</button>
 	<div class="flex items-center gap-2 sm:gap-4">
@@ -158,6 +169,15 @@
 				Lookup
 			</button>
 		{/if}
+		<a
+			href={resolve('/resources')}
+			class="nav-tab text-xs transition-colors sm:text-sm {isResourcesPage
+				? 'font-semibold text-text-default'
+				: 'text-text-subtitle hover:text-text-default'}"
+			data-label="Resources"
+		>
+			Resources
+		</a>
 		{#if user}
 			<div class="relative">
 				<button

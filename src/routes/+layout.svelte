@@ -69,7 +69,8 @@
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(
 			async (_event: string, session: { user?: { id: string } } | null) => {
-				const isSignIn = _event === 'SIGNED_IN';
+				const isSignIn =
+					_event === 'SIGNED_IN' || (_event === 'INITIAL_SESSION' && !!session?.user);
 				const isSignOut =
 					_event === 'SIGNED_OUT' || (_event === 'INITIAL_SESSION' && !session?.user);
 

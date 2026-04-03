@@ -6,7 +6,7 @@
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
 	import CaseBadge from '$lib/components/ui/CaseBadge.svelte';
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
-	import PrepositionHint from '$lib/components/ui/PrepositionHint.svelte';
+	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import paradigmsData from '$lib/data/paradigms.json';
 
 	interface ParadigmEntry {
@@ -593,7 +593,7 @@
 								</p>
 							</div>
 						{:else}
-							<div class="flex w-full max-w-sm flex-col gap-3">
+							<div class="flex w-full max-w-md flex-col gap-3">
 								<CorrectAnswerPanel
 									correctAnswer={question.correctForm}
 									nominative={question.word.lemma}
@@ -602,16 +602,16 @@
 									drillType="sentence_fill_in"
 									nearMiss={formNearMiss}
 									questionNumber={question.number}
+									number_={question.number}
 									{templateWhy}
 									{whyNote}
-									trigger={question.template.trigger}
 									onSpeak={onSpeak ?? undefined}
 								/>
 							</div>
 						{/if}
 
 						{#if formCorrect && whyNote}
-							<div class="w-full max-w-sm border-t border-darker-subtitle/30 pt-3">
+							<div class="w-full max-w-md border-t border-darker-subtitle/30 pt-3">
 								<div class="mb-2 flex items-center justify-center gap-1.5">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -639,7 +639,11 @@
 								</p>
 							</div>
 
-							<PrepositionHint case_={question.correctCase} trigger={question.template.trigger} />
+							<FeedbackDeclensionChart
+								lemma={question.word.lemma}
+								case_={question.correctCase}
+								number_={question.number}
+							/>
 						{/if}
 
 						<button

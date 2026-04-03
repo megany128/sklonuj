@@ -2,7 +2,7 @@
 	import type { Case, DrillType, Number_ } from '$lib/types';
 	import { CASE_COLORS, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import DottedUnderline from './DottedUnderline.svelte';
-	import PrepositionHint from './PrepositionHint.svelte';
+	import FeedbackDeclensionChart from './FeedbackDeclensionChart.svelte';
 
 	let {
 		correctAnswer,
@@ -14,9 +14,9 @@
 		nearMiss = false,
 		accidentalCase = undefined,
 		questionNumber = undefined,
+		number_ = undefined,
 		templateWhy,
 		whyNote,
-		trigger = undefined,
 		onSpeak,
 		onWordClick
 	}: {
@@ -29,17 +29,12 @@
 		nearMiss?: boolean;
 		accidentalCase?: { case: Case; number: Number_ };
 		questionNumber?: Number_;
+		number_?: Number_;
 		templateWhy?: string | null;
 		whyNote?: string | null;
-		trigger?: string;
 		onSpeak?: (text: string) => void;
 		onWordClick?: (lemma: string) => void;
 	} = $props();
-
-	/** Cases that commonly use prepositions */
-	const PREPOSITION_CASES: Case[] = ['gen', 'dat', 'acc', 'loc', 'ins'];
-
-	let showPrepositionHint = $derived(!!trigger || PREPOSITION_CASES.includes(case_));
 
 	let hasWhy = $derived(!!templateWhy?.trim() || !!whyNote?.trim());
 </script>
@@ -189,7 +184,7 @@
 		</div>
 	{/if}
 
-	{#if showPrepositionHint}
-		<PrepositionHint {case_} {trigger} />
+	{#if nominative && number_}
+		<FeedbackDeclensionChart lemma={nominative} {case_} {number_} />
 	{/if}
 </div>

@@ -53,6 +53,8 @@
 	/>
 	<meta name="author" content="Megan Yap" />
 	<link rel="canonical" href="https://sklonuj.com/contact" />
+	<link rel="alternate" hreflang="en" href="https://sklonuj.com/contact" />
+	<link rel="alternate" hreflang="x-default" href="https://sklonuj.com/contact" />
 	<meta property="og:title" content="Contact — Skloňuj Czech Declension Trainer" />
 	<meta
 		property="og:description"
@@ -87,9 +89,9 @@
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Feedback & Contact</h1>
 			<p class="mt-1 text-sm text-darker-subtitle">
-				My name is Megan and I'm learning Czech because of my boyfriend! Declensions have been the
-				bane of my existence, and so I created Skloňuj to make studying them easier. If you have
-				ideas to make this better, I'd love to hear them.
+				Hey, I'm Megan and I've been learning Czech for a while now! Declensions have been the bane
+				of my existence, and so I created Skloňuj to make studying them easier. If you have ideas to
+				make this better, I'd love to hear them.
 			</p>
 		</div>
 

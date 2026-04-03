@@ -29,6 +29,8 @@
 	/>
 	<meta name="author" content="Megan Yap" />
 	<link rel="canonical" href="https://sklonuj.com/privacy" />
+	<link rel="alternate" hreflang="en" href="https://sklonuj.com/privacy" />
+	<link rel="alternate" hreflang="x-default" href="https://sklonuj.com/privacy" />
 	<meta property="og:title" content="Privacy Policy — Skloňuj Czech Declension Trainer" />
 	<meta
 		property="og:description"

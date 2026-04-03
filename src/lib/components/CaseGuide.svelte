@@ -10,15 +10,6 @@
 	} = $props();
 
 	let expanded = $state(false);
-	let prepExpanded: Record<Case, boolean> = $state({
-		nom: false,
-		gen: false,
-		dat: false,
-		acc: false,
-		voc: false,
-		loc: false,
-		ins: false
-	});
 
 	interface CaseInfo {
 		key: Case;
@@ -168,39 +159,22 @@
 						</p>
 
 						{#if prepsByCase.has(c.key)}
-							<button
-								type="button"
-								onclick={() => (prepExpanded[c.key] = !prepExpanded[c.key])}
-								class="flex w-full items-center gap-1.5 text-xs font-semibold text-text-subtitle transition-colors hover:text-text-default"
-								aria-expanded={prepExpanded[c.key]}
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-3.5 w-3.5 transition-transform duration-200 {prepExpanded[c.key]
-										? 'rotate-180'
-										: ''}"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-								Prepositions
-							</button>
-
-							{#if prepExpanded[c.key]}
-								<div class="flex flex-wrap gap-x-4 gap-y-1 pl-5">
+							<div>
+								<p class="mb-1.5 text-xs font-semibold text-text-subtitle">Prepositions</p>
+								<div class="flex flex-wrap gap-1.5">
 									{#each prepsByCase.get(c.key) ?? [] as prep (prep.czech)}
-										<span class="text-sm">
-											<span class="text-emphasis">{prep.czech}</span>
-											<span class="text-text-subtitle"> {prep.english}</span>
+										<span
+											class="inline-flex items-baseline gap-1 rounded-md px-2 py-0.5 text-xs"
+											style="background-color: color-mix(in srgb, var(--color-case-{c.key}) 15%, transparent)"
+										>
+											<span class="font-medium" style="color: var(--color-case-{c.key})"
+												>{prep.czech}</span
+											>
+											<span class="text-text-subtitle">{prep.english}</span>
 										</span>
 									{/each}
 								</div>
-							{/if}
+							</div>
 						{/if}
 					</div>
 				</div>

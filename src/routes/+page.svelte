@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
+	import { replaceState } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import type {
 		Case,
@@ -36,6 +38,7 @@
 	} from '$lib/engine/drill';
 	import {
 		progress,
+		STORAGE_USER_KEY,
 		recordResult,
 		recordMultiStepResult,
 		setLevel,
@@ -43,6 +46,7 @@
 		getCombinedCaseStrength,
 		pickWeightedCase
 	} from '$lib/engine/progress';
+	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import {
 		loadPronounBank,
 		loadPronounTemplates,
@@ -77,6 +81,7 @@
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import MilestoneToast from '$lib/components/ui/MilestoneToast.svelte';
 	import AuthModal from '$lib/components/ui/AuthModal.svelte';
+	import GuidedTour from '$lib/components/ui/GuidedTour.svelte';
 
 	const kzkChapters: KzkChaptersConfig = kzkChaptersData as KzkChaptersConfig;
 
@@ -254,6 +259,7 @@
 	let sessionCount = $state(0);
 	let signupPromptDismissed = $state(false);
 	let authModalOpen = $state(false);
+	let showOnboarding = $state(true);
 
 	// Session stats
 	let sessionCorrect = $state(0);
@@ -302,6 +308,18 @@
 	let chapterSelection = $state<string | null>(null);
 	const CHAPTER_STORAGE_KEY = 'sklonuj_chapter';
 	const CHAPTER_SCORES_KEY = 'sklonuj_chapter_scores';
+
+	/** Multi-step questions are available in KZK 2 (any chapter), KZK 1 chapter 6+, or free practice. */
+	function isMultiStepUnlocked(): boolean {
+		if (chapterBook === null) return true; // free practice
+		if (chapterBook === 'kzk2') return true; // all KZK 2 chapters
+		// KZK 1: only chapter 6 (index 5) and later
+		if (chapterBook === 'kzk1' && chapterSelection) {
+			const chIdx = kzkChapters.kzk1.chapters.findIndex((ch) => ch.id === chapterSelection);
+			return chIdx >= 5; // chapter 6 = index 5
+		}
+		return false;
+	}
 	let chapterScores = $state<Record<string, { attempts: number; correct: number }>>({});
 
 	function loadChapterScores(): void {
@@ -563,6 +581,15 @@
 		}
 	}
 
+	function dismissOnboarding() {
+		showOnboarding = false;
+		try {
+			localStorage.setItem('sklonuj_onboarded', '1');
+		} catch {
+			// ignore
+		}
+	}
+
 	// Keep sidebar word in sync with the current question
 	$effect(() => {
 		if (!refSidebarOpen || !question) return;
@@ -592,6 +619,17 @@
 		return unsubscribe;
 	});
 
+	// Keep URL in sync with filter state so the link is always shareable
+	$effect(() => {
+		// Read reactive dependencies to track them
+		void selectedCase;
+		void enabledCases;
+
+		if (initialized) {
+			syncStateToUrl();
+		}
+	});
+
 	// Initialize on mount and clean up timer on destroy
 	$effect(() => {
 		if (initialized) return;
@@ -604,6 +642,9 @@
 		const storedAutoplay = localStorage.getItem('sklonuj_autoplay');
 		if (storedAutoplay !== null) {
 			autoplayAudio = storedAutoplay !== 'false';
+		}
+		if (localStorage.getItem('sklonuj_onboarded') === '1') {
+			showOnboarding = false;
 		}
 		const savedSettings = loadSettingsFromStorage();
 		drillSettings = savedSettings;
@@ -630,12 +671,66 @@
 			}
 		}
 
+		// Apply URL query params for shareable filter links
+		const params = get(page).url.searchParams;
+
+		// ?selectCase= auto-selects a single case pill (e.g. from resources/czech-cases)
+		const selectCaseParam = params.get('selectCase');
+		if (selectCaseParam) {
+			const matchedCase = ALL_CASES.find((c) => c === selectCaseParam);
+			if (matchedCase) {
+				selectedCase = matchedCase;
+				enabledCases = [...ALL_CASES];
+				chapterBook = null;
+				chapterSelection = null;
+				saveChapterToStorage();
+			}
+		}
+
+		// ?cases= comma-separated enabled cases (e.g. cases=gen,dat,acc)
+		const casesParam = params.get('cases');
+		if (casesParam) {
+			const parsed = casesParam
+				.split(',')
+				.filter((c): c is Case => ALL_CASES.includes(c as Case)) as Case[];
+			if (parsed.length > 0) {
+				enabledCases = parsed;
+				chapterBook = null;
+				chapterSelection = null;
+				saveChapterToStorage();
+			}
+		}
+
+		// Hydrate progress from server-loaded Supabase data (available before mount)
+		// Use get(page) to avoid creating a reactive dependency on $page.data
+		const savedProgress = get(page).data.savedProgress;
+		if (savedProgress) {
+			const VALID_LEVELS: ReadonlySet<string> = new Set(['A1', 'A2', 'B1', 'B2']);
+			if (VALID_LEVELS.has(savedProgress.level)) {
+				const serverProgress: Progress = {
+					level: savedProgress.level as Difficulty,
+					caseScores: savedProgress.case_scores,
+					paradigmScores: savedProgress.paradigm_scores,
+					lastSession: savedProgress.last_session ?? ''
+				};
+				const localProgress = loadProgressFromLocalStorage();
+				if (localProgress && Object.keys(localProgress.caseScores).length > 0) {
+					progress.set(mergeProgress(localProgress, serverProgress));
+				} else {
+					progress.set(serverProgress);
+				}
+				if (user) {
+					localStorage.setItem(STORAGE_USER_KEY, user.id);
+				}
+			}
+		}
+
 		// Load today's session stats if logged in
 		if (user) {
 			loadTodaySession();
 		}
 
-		// Generate first question using local progress (layout handles Supabase sync on auth changes)
+		// Generate first question using hydrated progress
 		generateNextQuestion();
 		wordsLoading = false;
 
@@ -706,6 +801,10 @@
 		const nonNomCases = effectiveEnabledCases.filter((c) => c !== 'nom');
 		if (nonNomCases.length === 0) {
 			allowed = allowed.filter((dt) => dt !== 'form_production');
+		}
+		// multi_step is gated: KZK 2 any chapter, KZK 1 chapter 6+, or free practice
+		if (!isMultiStepUnlocked()) {
+			allowed = allowed.filter((dt) => dt !== 'multi_step');
 		}
 		// multi_step requires templates (like sentence_fill_in), filter it the same way
 		if (allowed.length === 0) allowed = ['sentence_fill_in'];
@@ -1004,7 +1103,56 @@
 		}
 	}
 
+	function generateFallbackQuestion(): DrillQuestion | null {
+		const wordBank = loadWordBank();
+		const prog = get(progress);
+		const levelConfig = curriculum[prog.level];
+		const eligibleWords = wordBank.filter((w) =>
+			levelConfig.unlocked_difficulty.includes(w.difficulty)
+		);
+		const fallbackCases: Case[] = ['gen', 'acc', 'dat', 'loc', 'ins', 'voc'];
+		for (const fc of fallbackCases) {
+			const validWords = eligibleWords.filter((w) => hasValidForm(w, fc, 'sg'));
+			if (validWords.length > 0) {
+				const word = validWords[Math.floor(Math.random() * validWords.length)];
+				const q = generateFormProduction(word, fc, 'sg');
+				if (q) return q;
+			}
+		}
+		return null;
+	}
+
 	function generateNextQuestion(): void {
+		try {
+			generateNextQuestionInner();
+		} catch (err) {
+			console.error('generateNextQuestion error, attempting fallback:', err);
+			question = null;
+			multiStepQuestion = null;
+		}
+
+		// If question generation failed (null question and no multi-step), try a
+		// simple form_production fallback so the user never sees "No exercises available"
+		// while there are valid words in the bank.
+		if (!question && !multiStepQuestion) {
+			const fallbackQ = generateFallbackQuestion();
+			if (fallbackQ) {
+				question = fallbackQ;
+				multiStepQuestion = null;
+				lastResult = null;
+				paradigmNotes = null;
+				submitted = false;
+				lastTemplateId = fallbackQ.template.id;
+				if (advanceTimer !== null) {
+					clearTimeout(advanceTimer);
+					advanceTimer = null;
+				}
+				autoPlayPrompt(fallbackQ);
+			}
+		}
+	}
+
+	function generateNextQuestionInner(): void {
 		// Practice mistakes mode: only serve from mistakes list
 		if (practicingMistakes) {
 			if (mistakes.length === 0) {
@@ -1043,6 +1191,7 @@
 			const pronounQ = generatePronounQuestion();
 			if (pronounQ) {
 				question = pronounQ;
+				multiStepQuestion = null;
 				lastResult = null;
 				paradigmNotes = pronounQ.pronoun?.notes ?? null;
 				submitted = false;
@@ -1094,62 +1243,55 @@
 					matchesNumberMode(t.number) &&
 					unlockedDifficulties.includes(t.difficulty)
 			);
-			if (msEligibleTemplates.length === 0) {
-				// Fallback to form_production
-				question = null;
-				multiStepQuestion = null;
-				return;
-			}
-			const template = pickTemplate(msEligibleTemplates);
-			let candidates: WordEntry[];
-			if (isChapterMode) {
-				const diffFiltered = getCandidates(template, prog).filter((w) =>
-					hasValidForm(w, template.requiredCase, template.number)
-				);
-				const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
-				const chapterLemmasLower = new Set([
-					...curL.map((l) => l.toLowerCase()),
-					...prevL.map((l) => l.toLowerCase())
-				]);
-				const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
-				const chapterExtras = loadWordBank().filter(
-					(w) =>
-						chapterLemmasLower.has(w.lemma.toLowerCase()) &&
-						!diffLemmas.has(w.lemma) &&
-						w.categories.includes(template.lemmaCategory) &&
+			if (msEligibleTemplates.length > 0) {
+				const template = pickTemplate(msEligibleTemplates);
+				let candidates: WordEntry[];
+				if (isChapterMode) {
+					const diffFiltered = getCandidates(template, prog).filter((w) =>
 						hasValidForm(w, template.requiredCase, template.number)
-				);
-				candidates = [...diffFiltered, ...chapterExtras];
-			} else {
-				candidates = getCandidates(template, prog).filter((w) =>
-					hasValidForm(w, template.requiredCase, template.number)
-				);
+					);
+					const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
+					const chapterLemmasLower = new Set([
+						...curL.map((l) => l.toLowerCase()),
+						...prevL.map((l) => l.toLowerCase())
+					]);
+					const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
+					const chapterExtras = loadWordBank().filter(
+						(w) =>
+							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
+							!diffLemmas.has(w.lemma) &&
+							w.categories.includes(template.lemmaCategory) &&
+							hasValidForm(w, template.requiredCase, template.number)
+					);
+					candidates = [...diffFiltered, ...chapterExtras];
+				} else {
+					candidates = getCandidates(template, prog).filter((w) =>
+						hasValidForm(w, template.requiredCase, template.number)
+					);
+				}
+				if (candidates.length > 0) {
+					const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
+					const showCaseStep = effectiveEnabledCases.length > 1;
+					const msq = generateMultiStepQuestion(word, template, showCaseStep);
+					if (msq) {
+						multiStepQuestion = msq;
+						question = null;
+						lastResult = null;
+						paradigmNotes = lookupParadigmNotes(word.paradigm, word);
+						submitted = false;
+						lastTemplateId = template.id;
+						if (advanceTimer !== null) {
+							clearTimeout(advanceTimer);
+							advanceTimer = null;
+						}
+						return;
+					}
+				}
 			}
-			if (candidates.length === 0) {
-				question = null;
-				multiStepQuestion = null;
-				return;
-			}
-			const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
-			const showCaseStep = effectiveEnabledCases.length > 1;
-			const msq = generateMultiStepQuestion(word, template, showCaseStep);
-			if (!msq) {
-				question = null;
-				multiStepQuestion = null;
-				return;
-			}
-			multiStepQuestion = msq;
-			question = null;
-			lastResult = null;
-			paradigmNotes = lookupParadigmNotes(word.paradigm, word);
-			submitted = false;
-			lastTemplateId = template.id;
-			if (advanceTimer !== null) {
-				clearTimeout(advanceTimer);
-				advanceTimer = null;
-			}
-			return;
-		} else if (drillType === 'form_production') {
+			// Fall through to form_production if multi-step generation failed
+		}
+
+		if (drillType === 'form_production' || drillType === 'multi_step') {
 			// Skip nominative for form_production — the answer is just the lemma itself,
 			// which is trivially obvious. Re-pick a non-nominative case.
 			let fpCase = case_;
@@ -1161,6 +1303,7 @@
 					// Only nominative is enabled — no meaningful declension drills possible.
 					// Show nothing rather than trivial nom→nom exercises.
 					question = null;
+					multiStepQuestion = null;
 					return;
 				}
 			}
@@ -1173,10 +1316,13 @@
 			}
 			if (!word) {
 				question = null;
+				multiStepQuestion = null;
 				return;
 			}
+			multiStepQuestion = null;
 			question = generateFormProduction(word, fpCase, number_);
 		} else {
+			multiStepQuestion = null;
 			const templates = loadTemplates();
 			const eligibleTemplates = templates.filter(
 				(t) =>
@@ -1720,6 +1866,38 @@
 		generateNextQuestion();
 	}
 
+	function syncStateToUrl(): void {
+		if (typeof window === 'undefined') return;
+
+		const url = new URL(window.location.href);
+		const params = url.searchParams;
+
+		// Clear filter-related params first, then set only non-default ones
+		params.delete('selectCase');
+		params.delete('cases');
+
+		if (selectedCase !== 'all') {
+			params.set('selectCase', selectedCase);
+		}
+
+		const sortedEnabled = [...enabledCases].sort(
+			(a, b) => ALL_CASES.indexOf(a) - ALL_CASES.indexOf(b)
+		);
+		if (
+			enabledCases.length !== ALL_CASES.length ||
+			!ALL_CASES.every((c) => enabledCases.includes(c))
+		) {
+			params.set('cases', sortedEnabled.join(','));
+		}
+
+		// Replace URL without triggering navigation or adding history entries.
+		// Base path is already resolved; dynamic query string is appended.
+		const basePath = resolve('/');
+		const newUrl = basePath + (params.toString() ? '?' + params.toString() : '');
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- basePath uses resolve('/')
+		replaceState(newUrl, {});
+	}
+
 	function toggleEnabledCase(c: Case): void {
 		const isEnabled = enabledCases.includes(c);
 		if (isEnabled && enabledCases.length <= 1) return;
@@ -1809,6 +1987,8 @@
 		content="Czech declension practice, Czech noun cases, Czech grammar trainer, learn Czech cases, Czech declension drill, skloňování, Czech language exercises, pádové koncovky"
 	/>
 	<link rel="canonical" href="https://sklonuj.com" />
+	<link rel="alternate" hreflang="en" href="https://sklonuj.com" />
+	<link rel="alternate" hreflang="x-default" href="https://sklonuj.com" />
 	<meta property="og:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		property="og:description"
@@ -1855,12 +2035,13 @@
 		onToggleDarkMode={toggleDarkMode}
 		{user}
 		onSignIn={() => (authModalOpen = true)}
+		isHomePage={true}
 	/>
 
 	{#if activeView === 'exercise'}
 		<main class="mx-auto w-full max-w-[867px] flex-1 px-3 py-4 sm:px-4 sm:py-8">
 			<!-- Mode selector + Level (level only in Free Practice) -->
-			<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3">
+			<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3" data-tour="mode-selector">
 				<ChapterSelector selectedBook={chapterBook} onModeChange={handleModeChange} />
 				{#if chapterBook === null}
 					<div class="flex items-center gap-2">
@@ -1886,8 +2067,8 @@
 
 			{#if chapterBook === null}
 				<!-- Case selection pill bar (Free Practice mode) -->
-				<div class="mb-4">
-					{#if wordsLoading || (question === null && multiStepQuestion === null)}
+				<div class="mb-4" data-tour="case-pills">
+					{#if wordsLoading}
 						<CasePillBarSkeleton />
 					{:else}
 						<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
@@ -2060,7 +2241,10 @@
 					{/if}
 					{#if chapterBook === null && selectedCase === 'all'}
 						<button
-							onclick={() => (caseFilterExpanded = !caseFilterExpanded)}
+							onclick={() => {
+								caseFilterExpanded = !caseFilterExpanded;
+								if (caseFilterExpanded) settingsExpanded = false;
+							}}
 							class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
 						>
 							Filter cases
@@ -2149,9 +2333,13 @@
 					{/if}
 					<button
 						type="button"
-						onclick={() => (settingsExpanded = !settingsExpanded)}
+						onclick={() => {
+							settingsExpanded = !settingsExpanded;
+							if (settingsExpanded) caseFilterExpanded = false;
+						}}
 						class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 						aria-label="Exercise settings"
+						data-tour="settings"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -2172,11 +2360,11 @@
 				</div>
 			</div>
 
-			<!-- Expandable case filter (Free Practice, below toolbar) -->
+			<!-- Expandable case filter (inline, pushes content down) -->
 			{#if chapterBook === null && caseFilterExpanded}
 				<div
-					transition:slide={{ duration: 150 }}
-					class="mb-6 flex flex-wrap justify-center gap-1.5"
+					transition:slide={{ duration: 200 }}
+					class="flex flex-wrap justify-center gap-1.5 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3"
 				>
 					{#each ALL_CASES as c (c)}
 						{@const enabled = enabledCases.includes(c)}
@@ -2206,11 +2394,11 @@
 				</div>
 			{/if}
 
-			<!-- Settings panel -->
+			<!-- Expandable settings (inline, pushes content down) -->
 			{#if settingsExpanded}
 				<div
 					transition:slide={{ duration: 200 }}
-					class="mb-5 flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
+					class="flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
 				>
 					<DrillSettings_
 						selectedDrillTypes={drillSettings.selectedDrillTypes}
@@ -2218,9 +2406,16 @@
 						contentMode={drillSettings.contentMode ?? 'nouns'}
 						{pronounsUnlocked}
 						onSettingsChange={handleSettingsChange}
-						hiddenDrillTypes={selectedCase !== 'all' || effectiveEnabledCases.length < 2
-							? ['case_identification']
-							: []}
+						hiddenDrillTypes={(() => {
+							const hidden: DrillType[] = [];
+							if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
+								hidden.push('case_identification');
+							}
+							if (!isMultiStepUnlocked()) {
+								hidden.push('multi_step');
+							}
+							return hidden;
+						})()}
 						hideNumberMode={chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked}
 					/>
 				</div>
@@ -2311,6 +2506,14 @@
 					onDismiss={() => removeToast(toast.id)}
 				/>
 			{/each}
+
+			<!-- SEO description (always server-rendered for indexing) -->
+			<p class="mx-auto mt-10 max-w-lg text-center text-xs leading-relaxed text-text-subtitle/70">
+				Practice Czech noun declension across all 7 cases. Skloňuj offers interactive drills that
+				adapt to your level, from A1 beginner to B2 intermediate, with smart tracking that focuses
+				on the paradigms and patterns you get wrong most. Follow along with Krok za krokem textbook
+				chapters or practice freely.
+			</p>
 		</main>
 	{:else}
 		<!-- Declension/Lookup view -->
@@ -2341,6 +2544,7 @@
 				onclick={toggleReferenceSidebar}
 				class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2.5 py-5 text-text-inverted shadow-lg transition-opacity hover:opacity-90 sm:px-3.5 sm:py-6"
 				aria-label="Toggle reference sidebar"
+				data-tour="ref-sidebar"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -2373,5 +2577,9 @@
 		</div>
 	{/if}
 </div>
+
+{#if showOnboarding}
+	<GuidedTour onComplete={dismissOnboarding} />
+{/if}
 
 <AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />

@@ -56,6 +56,10 @@
 	--color-heatmap-4: #216e39;
 }
 
+html {
+	scrollbar-gutter: stable;
+}
+
 @layer base {
 	.dark {
 		--color-page-background: #1d1b19;

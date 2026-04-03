@@ -14,6 +14,12 @@ declare global {
 		}
 		interface PageData {
 			user: PublicUser | null;
+			savedProgress: {
+				level: string;
+				case_scores: Record<string, { attempts: number; correct: number }>;
+				paradigm_scores: Record<string, { attempts: number; correct: number }>;
+				last_session: string;
+			} | null;
 		}
 	}
 }

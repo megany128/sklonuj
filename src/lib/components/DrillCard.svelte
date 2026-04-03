@@ -802,7 +802,7 @@
 								nearMiss={result.nearMiss}
 								accidentalCase={result.accidentalCase}
 								questionNumber={question.number}
-								trigger={question.template.trigger || undefined}
+								number_={question.number}
 								{templateWhy}
 								{whyNote}
 								onSpeak={onSpeak ? (text: string) => onSpeak(text) : undefined}
