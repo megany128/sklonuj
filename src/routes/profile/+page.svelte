@@ -8,6 +8,7 @@
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import type { Case } from '$lib/types';
 	import { CASE_LABELS } from '$lib/types';
+	import { streak as streakStore, getStreakMessage } from '$lib/engine/streak';
 
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -726,6 +727,53 @@
 					<p class="text-xs text-text-subtitle">Day streak</p>
 				</div>
 			</section>
+
+			<!-- Streak card -->
+			{#if $streakStore.currentStreak > 0 || $streakStore.longestStreak > 0}
+				<section class="mb-6">
+					<div class="rounded-xl border border-card-stroke bg-card-bg p-4 sm:p-5">
+						<div class="flex items-center gap-3">
+							<div
+								class="flex size-10 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-950"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									class="size-5 text-orange-500"
+									aria-hidden="true"
+								>
+									<path
+										d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.524 2.039-5.079a.75.75 0 0 1 1.212.004c.66.84 1.4 1.529 2.084 2.023.226-.909.26-1.903.06-2.976-.219-1.174-.72-2.365-1.479-3.473a.75.75 0 0 1 .853-1.12c1.57.482 3.07 1.382 4.233 2.66C15.15 10.352 15.75 11.9 15.75 13.5c0 .412-.053.816-.154 1.206a2.81 2.81 0 0 0 1.154-2.268c0-.478-.088-.948-.255-1.395a.75.75 0 0 1 .916-.951c1.476.578 2.839 1.91 3.339 3.908.148.59.25 1.235.25 1.5 0 3.314-3.134 6-7 6-.333 0-.667-.017-1-.05z"
+									/>
+								</svg>
+							</div>
+							<div class="flex-1">
+								<div class="flex items-baseline gap-2">
+									<span class="text-2xl font-bold text-text-default"
+										>{$streakStore.currentStreak}</span
+									>
+									<span class="text-sm text-text-subtitle">day streak</span>
+								</div>
+								{#if getStreakMessage($streakStore.currentStreak)}
+									<p class="text-sm font-medium text-orange-600 dark:text-orange-400">
+										{getStreakMessage($streakStore.currentStreak)}
+									</p>
+								{/if}
+							</div>
+						</div>
+						{#if $streakStore.longestStreak > $streakStore.currentStreak}
+							<div class="mt-3 border-t border-card-stroke pt-3">
+								<p class="text-xs text-text-subtitle">
+									Longest streak: <span class="font-semibold text-text-default"
+										>{$streakStore.longestStreak} days</span
+									>
+								</p>
+							</div>
+						{/if}
+					</div>
+				</section>
+			{/if}
 
 			<!-- Weakest area callout -->
 			{#if weakestArea}
