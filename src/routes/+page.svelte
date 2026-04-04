@@ -64,6 +64,7 @@
 		playStreakSound,
 		prepareSentenceForTTS
 	} from '$lib/audio';
+	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
@@ -703,6 +704,53 @@
 				chapterBook = null;
 				chapterSelection = null;
 				saveChapterToStorage();
+			}
+		}
+
+		// ?mode=review — auto-activate review mistakes mode if there are stored mistakes
+		const modeParam = params.get('mode');
+		if (modeParam === 'review') {
+			const uniqueKeys = getUniqueMistakeKeys();
+			if (uniqueKeys.length > 0) {
+				const wordBank = loadWordBank();
+				const pronounBank = loadPronounBank();
+				const generatedMistakes: DrillResult[] = [];
+				for (const mk of uniqueKeys) {
+					// Try to find the word in word bank first, then pronoun bank
+					const word = wordBank.find((w) => w.lemma === mk.lemma);
+					if (word) {
+						const q = generateFormProduction(word, mk.targetCase, mk.targetNumber);
+						if (q) {
+							generatedMistakes.push({
+								question: q,
+								userAnswer: '',
+								correct: false,
+								nearMiss: false
+							});
+						}
+					} else {
+						// Check pronoun bank
+						const pronoun = pronounBank.find((p) => p.lemma === mk.lemma);
+						if (pronoun) {
+							const q = generatePronounFormProduction(pronoun, mk.targetCase, mk.targetNumber);
+							if (q) {
+								generatedMistakes.push({
+									question: q,
+									userAnswer: '',
+									correct: false,
+									nearMiss: false
+								});
+							}
+						}
+					}
+				}
+				if (generatedMistakes.length > 0) {
+					mistakes = generatedMistakes;
+					practicingMistakes = true;
+					chapterBook = null;
+					chapterSelection = null;
+					saveChapterToStorage();
+				}
 			}
 		}
 
@@ -1609,6 +1657,25 @@
 			if (!isReserved) {
 				mistakes = [...mistakes, result];
 			}
+
+			// Persist mistake to localStorage for review later
+			const lemma =
+				result.question.wordCategory === 'pronoun' && result.question.pronoun
+					? result.question.pronoun.lemma
+					: result.question.word.lemma;
+			const translation =
+				result.question.wordCategory === 'pronoun' && result.question.pronoun
+					? result.question.pronoun.translation
+					: result.question.word.translation;
+			addMistake({
+				lemma,
+				translation,
+				targetCase: result.question.case,
+				targetNumber: result.question.number,
+				userAnswer: result.userAnswer,
+				correctAnswer: result.question.correctAnswer,
+				drillType: result.question.drillType
+			});
 		}
 	}
 
@@ -1836,6 +1903,16 @@
 		} else {
 			sessionWrong++;
 			streak = 0;
+			// Persist multi-step mistake for review later
+			addMistake({
+				lemma: result.question.word.lemma,
+				translation: result.question.word.translation,
+				targetCase: result.question.case,
+				targetNumber: result.question.number,
+				userAnswer: result.userForm,
+				correctAnswer: result.question.correctForm,
+				drillType: 'multi_step'
+			});
 		}
 
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
@@ -1888,6 +1965,7 @@
 		// Clear filter-related params first, then set only non-default ones
 		params.delete('selectCase');
 		params.delete('cases');
+		params.delete('mode');
 
 		if (selectedCase !== 'all') {
 			params.set('selectCase', selectedCase);

@@ -5,6 +5,9 @@
 	import { enhance } from '$app/forms';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
+	import type { Case } from '$lib/types';
+	import { CASE_LABELS } from '$lib/types';
 
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -503,6 +506,86 @@
 			attempts: score.attempts
 		};
 	});
+
+	// Mistakes review
+	let storedMistakes = $derived($mistakeRecords);
+	let mistakeFilterCase = $state<Case | 'all'>('all');
+	let confirmingClearMistakes = $state(false);
+
+	let filteredMistakes = $derived(
+		mistakeFilterCase === 'all'
+			? storedMistakes
+			: storedMistakes.filter((m) => m.targetCase === mistakeFilterCase)
+	);
+
+	interface MistakeGroup {
+		caseKey: Case;
+		label: string;
+		mistakes: MistakeRecord[];
+	}
+
+	let groupedMistakes = $derived.by<MistakeGroup[]>(() => {
+		const groupRecord: Partial<Record<Case, MistakeRecord[]>> = {};
+		for (const m of filteredMistakes) {
+			const existing = groupRecord[m.targetCase];
+			if (existing) {
+				existing.push(m);
+			} else {
+				groupRecord[m.targetCase] = [m];
+			}
+		}
+		const result: MistakeGroup[] = [];
+		for (const caseKey of Object.keys(groupRecord)) {
+			const c = caseKey as Case;
+			const groupMistakes = groupRecord[c];
+			if (groupMistakes) {
+				result.push({
+					caseKey: c,
+					label: CASE_LABELS[c],
+					mistakes: groupMistakes
+				});
+			}
+		}
+		// Sort by case order
+		const caseOrder: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+		result.sort((a, b) => caseOrder.indexOf(a.caseKey) - caseOrder.indexOf(b.caseKey));
+		return result;
+	});
+
+	function formatRelativeTime(isoTimestamp: string): string {
+		const now = Date.now();
+		const then = new Date(isoTimestamp).getTime();
+		const diffMs = now - then;
+		const diffMin = Math.floor(diffMs / 60000);
+		const diffHr = Math.floor(diffMs / 3600000);
+		const diffDay = Math.floor(diffMs / 86400000);
+
+		if (diffMin < 1) return 'just now';
+		if (diffMin < 60) return `${diffMin}m ago`;
+		if (diffHr < 24) return `${diffHr}h ago`;
+		if (diffDay < 7) return `${diffDay}d ago`;
+		if (diffDay < 30) return `${Math.floor(diffDay / 7)}w ago`;
+		return `${Math.floor(diffDay / 30)}mo ago`;
+	}
+
+	let mistakeCaseCounts = $derived.by<Array<{ key: Case | 'all'; label: string; count: number }>>(
+		() => {
+			const counts: Record<string, number> = {};
+			for (const m of storedMistakes) {
+				counts[m.targetCase] = (counts[m.targetCase] ?? 0) + 1;
+			}
+			const result: Array<{ key: Case | 'all'; label: string; count: number }> = [
+				{ key: 'all', label: 'All', count: storedMistakes.length }
+			];
+			const caseOrder: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+			for (const c of caseOrder) {
+				if (counts[c]) {
+					result.push({ key: c, label: CASE_LABELS[c], count: counts[c] });
+				}
+			}
+			return result;
+		}
+	);
 </script>
 
 <svelte:head>
@@ -1215,7 +1298,173 @@
 					{/if}
 				</div>
 			</section>
-			<!-- 5. Danger zone -->
+			<!-- 5. Review Mistakes -->
+			{#if storedMistakes.length > 0}
+				<section class="mb-8">
+					<div class="mb-4 flex items-center justify-between">
+						<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+							Recent Mistakes ({storedMistakes.length})
+						</h2>
+						<div class="flex items-center gap-2">
+							<a
+								href="{resolve('/')}?mode=review"
+								class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:bg-brand-600"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="size-3.5"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.312.311a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm-10.9-4.59a.75.75 0 0 0 1.45.388A5.5 5.5 0 0 1 15.088 9.58l.312.311h-2.433a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V7.008a.75.75 0 0 0-1.5 0v2.033l-.312-.31A7 7 0 0 0 3.962 11.86a.75.75 0 0 0 .45-1.027Z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+								Practice Mistakes
+							</a>
+							<button
+								type="button"
+								onclick={() => (confirmingClearMistakes = true)}
+								class="rounded-lg px-2 py-1.5 text-xs text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+							>
+								Clear all
+							</button>
+						</div>
+					</div>
+
+					<!-- Case filter pills -->
+					{#if mistakeCaseCounts.length > 2}
+						<div class="mb-3 flex flex-wrap gap-1.5">
+							{#each mistakeCaseCounts as { key, label, count } (key)}
+								<button
+									type="button"
+									onclick={() => (mistakeFilterCase = key)}
+									class="rounded-full px-2.5 py-1 text-xs font-medium transition-colors
+									{mistakeFilterCase === key
+										? 'bg-emphasis text-on-accent'
+										: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
+								>
+									{label}
+									<span class="ml-0.5 opacity-70">{count}</span>
+								</button>
+							{/each}
+						</div>
+					{/if}
+
+					<!-- Grouped mistakes list -->
+					<div class="space-y-4">
+						{#each groupedMistakes as group (group.caseKey)}
+							<div>
+								<div class="mb-2 flex items-center gap-2">
+									<span
+										class="inline-block size-2.5 rounded-full"
+										style="background-color: {CASE_META.find((c) => c.key === group.caseKey)?.hex ??
+											'#888'}"
+									></span>
+									<h3 class="text-xs font-semibold text-text-default">
+										{group.label}
+									</h3>
+									<span class="text-xs text-text-subtitle">({group.mistakes.length})</span>
+								</div>
+								<div class="overflow-hidden rounded-xl border border-card-stroke bg-card-bg">
+									<table class="w-full text-left text-xs">
+										<thead>
+											<tr class="border-b border-card-stroke bg-shaded-background/50">
+												<th class="px-3 py-2 font-medium text-text-subtitle">Word</th>
+												<th class="px-3 py-2 font-medium text-text-subtitle">Number</th>
+												<th class="px-3 py-2 font-medium text-text-subtitle">Your answer</th>
+												<th class="px-3 py-2 font-medium text-text-subtitle">Correct</th>
+												<th class="hidden px-3 py-2 font-medium text-text-subtitle sm:table-cell"
+													>When</th
+												>
+											</tr>
+										</thead>
+										<tbody>
+											{#each group.mistakes as mistake, i (mistake.timestamp + mistake.lemma)}
+												<tr
+													class={i < group.mistakes.length - 1 ? 'border-b border-card-stroke' : ''}
+												>
+													<td class="px-3 py-2">
+														<span class="font-medium text-text-default">{mistake.lemma}</span>
+														<span class="ml-1 text-text-subtitle">{mistake.translation}</span>
+													</td>
+													<td class="px-3 py-2 text-text-subtitle">
+														{mistake.targetNumber === 'sg' ? 'singular' : 'plural'}
+													</td>
+													<td class="px-3 py-2">
+														{#if mistake.userAnswer}
+															<span class="text-negative-stroke">{mistake.userAnswer}</span>
+														{:else}
+															<span class="italic text-text-subtitle">skipped</span>
+														{/if}
+													</td>
+													<td class="px-3 py-2">
+														<span class="font-medium text-positive-stroke"
+															>{mistake.correctAnswer}</span
+														>
+													</td>
+													<td class="hidden px-3 py-2 text-text-subtitle sm:table-cell">
+														{formatRelativeTime(mistake.timestamp)}
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</section>
+			{/if}
+
+			<!-- Clear mistakes confirmation modal -->
+			{#if confirmingClearMistakes}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+					onclick={(e) => {
+						if (e.target === e.currentTarget) confirmingClearMistakes = false;
+					}}
+					onkeydown={(e) => {
+						if (e.key === 'Escape') confirmingClearMistakes = false;
+					}}
+				>
+					<div
+						role="dialog"
+						aria-modal="true"
+						aria-label="Confirm clear mistakes"
+						class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
+					>
+						<h2 class="mb-2 text-base font-semibold text-text-default">Clear all mistakes?</h2>
+						<p class="mb-4 text-sm text-text-subtitle">
+							This will remove all {storedMistakes.length} stored mistake records. This cannot be undone.
+						</p>
+						<div class="flex justify-end gap-2">
+							<button
+								type="button"
+								onclick={() => (confirmingClearMistakes = false)}
+								class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								onclick={() => {
+									clearMistakes();
+									confirmingClearMistakes = false;
+								}}
+								class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-red-700"
+							>
+								Clear mistakes
+							</button>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			<!-- 6. Danger zone -->
 			<section class="mb-8">
 				<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
 					Danger zone
