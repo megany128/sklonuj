@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
+	import { getAllBadges, type BadgeWithStatus } from '$lib/engine/achievements';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import type { Case } from '$lib/types';
@@ -624,6 +625,24 @@
 			return result;
 		}
 	);
+
+	// Achievement badges
+	let badges = $state<BadgeWithStatus[]>([]);
+	let earnedBadgeCount = $derived(badges.filter((b) => b.earned).length);
+
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			badges = getAllBadges();
+		}
+	});
+
+	function formatBadgeDate(iso: string): string {
+		return new Date(iso).toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		});
+	}
 </script>
 
 <svelte:head>
@@ -1597,6 +1616,45 @@
 					</div>
 				</div>
 			{/if}
+
+			<!-- 6. Achievements -->
+			<section class="mb-8">
+				<div class="mb-4 flex items-center justify-between">
+					<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+						Achievements
+					</h2>
+					<span class="text-xs font-medium text-text-subtitle">
+						{earnedBadgeCount}/{badges.length} earned
+					</span>
+				</div>
+
+				<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+					{#each badges as badge (badge.id)}
+						<div
+							class="rounded-xl border border-card-stroke p-3 transition-colors {badge.earned
+								? 'bg-card-bg'
+								: 'bg-shaded-background opacity-50'}"
+						>
+							<div class="mb-1 text-2xl">{badge.icon}</div>
+							<p
+								class="text-sm font-semibold {badge.earned
+									? 'text-text-default'
+									: 'text-text-subtitle'}"
+							>
+								{badge.name}
+							</p>
+							<p class="mt-0.5 text-xs text-text-subtitle">{badge.description}</p>
+							{#if badge.earned && badge.earnedAt}
+								<p class="mt-1.5 text-[10px] font-medium text-positive-stroke">
+									Earned {formatBadgeDate(badge.earnedAt)}
+								</p>
+							{:else}
+								<p class="mt-1.5 text-[10px] text-text-subtitle">{badge.condition}</p>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</section>
 
 			<!-- 6. Danger zone -->
 			<section class="mb-8">
