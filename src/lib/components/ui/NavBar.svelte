@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
+	import { streak } from '$lib/engine/streak';
 
 	let isResourcesPage = $derived($page.url.pathname.startsWith('/resources'));
 
@@ -178,6 +179,25 @@
 		>
 			Resources
 		</a>
+		{#if $streak.currentStreak > 0}
+			<span
+				class="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-600 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-400"
+				title="Daily practice streak"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					class="size-3.5"
+					aria-hidden="true"
+				>
+					<path
+						d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.524 2.039-5.079a.75.75 0 0 1 1.212.004c.66.84 1.4 1.529 2.084 2.023.226-.909.26-1.903.06-2.976-.219-1.174-.72-2.365-1.479-3.473a.75.75 0 0 1 .853-1.12c1.57.482 3.07 1.382 4.233 2.66C15.15 10.352 15.75 11.9 15.75 13.5c0 .412-.053.816-.154 1.206a2.81 2.81 0 0 0 1.154-2.268c0-.478-.088-.948-.255-1.395a.75.75 0 0 1 .916-.951c1.476.578 2.839 1.91 3.339 3.908.148.59.25 1.235.25 1.5 0 3.314-3.134 6-7 6-.333 0-.667-.017-1-.05z"
+					/>
+				</svg>
+				{$streak.currentStreak}
+			</span>
+		{/if}
 		{#if user}
 			<div class="relative">
 				<button

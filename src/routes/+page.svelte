@@ -47,6 +47,7 @@
 		pickWeightedCase
 	} from '$lib/engine/progress';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
+	import { recordPractice } from '$lib/engine/streak';
 	import {
 		loadPronounBank,
 		loadPronounTemplates,
@@ -1707,6 +1708,7 @@
 			};
 			lastResult = result;
 			recordResult(result);
+			recordPractice();
 			if (chapterSelection) recordChapterResult(chapterSelection, false);
 			scheduleSyncToSupabase();
 			trackSessionStats(result);
@@ -1766,6 +1768,7 @@
 
 		lastResult = result;
 		recordResult(result);
+		recordPractice();
 		if (chapterSelection) recordChapterResult(chapterSelection, result.correct);
 		scheduleSyncToSupabase();
 		trackSessionStats(result);
@@ -1814,6 +1817,7 @@
 
 		sessionCount++;
 		recordMultiStepResult(result);
+		recordPractice();
 		scheduleSyncToSupabase();
 
 		// Count as correct only if all steps are correct
