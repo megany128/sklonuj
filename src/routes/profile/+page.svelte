@@ -352,6 +352,54 @@
 
 	let userDisplayLabel = $derived(displayName || user?.email?.split('@')[0] || 'User');
 
+	// Weak areas: cases with accuracy below 60%, sorted from weakest to strongest
+	interface WeakArea {
+		caseKey: string;
+		number: string;
+		label: string;
+		accuracy: number;
+		attempts: number;
+		status: string;
+	}
+
+	let weakAreas = $derived.by<WeakArea[]>(() => {
+		const areas: WeakArea[] = [];
+		for (const [key, score] of Object.entries(caseScores)) {
+			if (score.attempts < 3) continue;
+			const pct = Math.round((score.correct / score.attempts) * 100);
+			if (pct >= 60) continue;
+
+			const parts = key.split('_');
+			if (parts.length !== 2) continue;
+			const caseKey = parts[0];
+			const num = parts[1];
+
+			const caseMeta = CASE_META.find((c) => c.key === caseKey);
+			if (!caseMeta) continue;
+
+			areas.push({
+				caseKey,
+				number: num,
+				label: `${caseMeta.label} ${num === 'sg' ? 'singular' : 'plural'}`,
+				accuracy: pct,
+				attempts: score.attempts,
+				status: pct < 40 ? 'needs work' : 'improving'
+			});
+		}
+		areas.sort((a, b) => a.accuracy - b.accuracy);
+		return areas;
+	});
+
+	let weakCaseKeys = $derived.by<string[]>(() => {
+		const keys: string[] = [];
+		for (const area of weakAreas) {
+			if (!keys.includes(area.caseKey)) {
+				keys.push(area.caseKey);
+			}
+		}
+		return keys;
+	});
+
 	// Combine sg+pl for each case
 	function getCaseTotals(caseKey: string): { attempts: number; correct: number } {
 		const sg = caseScores[`${caseKey}_sg`] ?? { attempts: 0, correct: 0 };
@@ -650,6 +698,64 @@
 								({weakestArea.accuracy}% accuracy, {attemptLabel(weakestArea.attempts)})
 							</p>
 						</div>
+					</div>
+				</section>
+			{/if}
+
+			<!-- Weak areas section -->
+			{#if weakAreas.length > 0}
+				<section class="mb-6">
+					<h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+						Your Weak Areas
+					</h2>
+					<div class="space-y-2">
+						{#each weakAreas as area (area.caseKey + '_' + area.number)}
+							{@const caseMeta = CASE_META.find((c) => c.key === area.caseKey)}
+							<div
+								class="flex items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
+							>
+								<div class="flex items-center gap-3">
+									<div
+										class="size-2.5 shrink-0 rounded-full"
+										style="background-color: {caseMeta?.hex ?? 'var(--color-text-subtitle)'}"
+									></div>
+									<div>
+										<p class="text-sm font-medium text-text-default">{area.label}</p>
+										<p class="text-xs text-text-subtitle">
+											{area.accuracy}% accuracy ({attemptLabel(area.attempts)})
+										</p>
+									</div>
+								</div>
+								<span
+									class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {area.status ===
+									'needs work'
+										? 'bg-negative-background text-negative-stroke'
+										: 'bg-warning-background text-warning-text'}"
+								>
+									{area.status}
+								</span>
+							</div>
+						{/each}
+					</div>
+					<div class="mt-3">
+						<a
+							href="{resolve('/')}?cases={weakCaseKeys.join(',')}"
+							class="inline-flex items-center gap-1.5 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="size-4"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M2 10a.75.75 0 0 1 .75-.75h12.59l-2.1-1.95a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.1-1.95H2.75A.75.75 0 0 1 2 10Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+							Practice Weak Areas
+						</a>
 					</div>
 				</section>
 			{/if}

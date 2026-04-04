@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 
 	let isResourcesPage = $derived($page.url.pathname.startsWith('/resources'));
+	let isClassesPage = $derived($page.url.pathname.startsWith('/classes'));
 
 	let {
 		activePage,
@@ -178,6 +179,15 @@
 		>
 			Resources
 		</a>
+		<a
+			href={resolve('/classes')}
+			class="nav-tab text-xs transition-colors sm:text-sm {isClassesPage
+				? 'font-semibold text-text-default'
+				: 'text-text-subtitle hover:text-text-default'}"
+			data-label="Classes"
+		>
+			Classes
+		</a>
 		{#if user}
 			<div class="relative">
 				<button
@@ -190,7 +200,7 @@
 							toggleMenu();
 						}
 					}}
-					class="flex size-8 cursor-pointer items-center justify-center rounded-full text-xs font-semibold text-white transition-opacity hover:opacity-80"
+					class="flex size-11 cursor-pointer items-center justify-center rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-80"
 					style="background-color: {avatarColor}"
 					aria-label="Profile menu"
 					aria-expanded={menuOpen}

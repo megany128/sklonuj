@@ -15,10 +15,21 @@
 
 	const supabase = getSupabaseBrowserClient();
 
-	// Redirect already-authenticated users to home
+	// Redirect already-authenticated users to the intended destination or home
+	let redirectPath = $derived($page.url.searchParams.get('redirect') ?? '');
+
+	function getRedirectUrl(): string {
+		// If a redirect path is specified, use it (relative to origin)
+		if (redirectPath) {
+			return redirectPath;
+		}
+		return resolve('/');
+	}
+
 	$effect(() => {
 		if ($page.data.user) {
-			goto(resolve('/'));
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- redirect path is user-provided
+			goto(getRedirectUrl());
 		}
 	});
 
@@ -63,7 +74,8 @@
 				error = err.message;
 			} else if (data.session) {
 				posthog.capture('signed_up', { method: 'email' });
-				goto(resolve('/'));
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- redirect path is user-provided
+				goto(getRedirectUrl());
 			} else {
 				posthog.capture('signed_up', { method: 'email' });
 				confirmationSent = true;
@@ -73,7 +85,8 @@
 			if (err) {
 				error = err.message;
 			} else {
-				goto(resolve('/'));
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- redirect path is user-provided
+				goto(getRedirectUrl());
 			}
 		}
 
