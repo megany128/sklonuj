@@ -82,6 +82,11 @@
 	import MilestoneToast from '$lib/components/ui/MilestoneToast.svelte';
 	import AuthModal from '$lib/components/ui/AuthModal.svelte';
 	import GuidedTour from '$lib/components/ui/GuidedTour.svelte';
+	import {
+		checkAndAwardBadges,
+		recordPracticeDay,
+		type BadgeCheckContext
+	} from '$lib/engine/achievements';
 
 	const kzkChapters: KzkChaptersConfig = kzkChaptersData as KzkChaptersConfig;
 
@@ -1687,6 +1692,23 @@
 			candidates.sort((a, b) => b.priority - a.priority);
 			addToast(candidates[0].message, candidates[0].emoji);
 		}
+
+		// Check achievement badges
+		checkAchievementBadges(result.correct);
+	}
+
+	function checkAchievementBadges(wasCorrect: boolean): void {
+		recordPracticeDay();
+		const badgeContext: BadgeCheckContext = {
+			wasCorrect,
+			streak,
+			sessionQuestionCount: sessionCorrect + sessionWrong,
+			now: new Date()
+		};
+		const newBadges = checkAndAwardBadges(badgeContext);
+		for (const badge of newBadges) {
+			addToast(`${badge.name} — Achievement unlocked!`, badge.icon);
+		}
 	}
 
 	function handleSubmit(answer: string): void {
@@ -1852,6 +1874,8 @@
 		if (sessionCount === 10) {
 			posthog.capture('ten_questions_completed', { level: currentLevel });
 		}
+
+		checkAchievementBadges(allCorrect);
 
 		generateNextQuestion();
 	}
