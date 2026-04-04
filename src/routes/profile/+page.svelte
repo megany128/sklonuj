@@ -195,17 +195,6 @@
 
 	const PRONOUN_ORDER = ['já', 'ty', 'on', 'ona', 'ono', 'my', 'vy', 'oni', 'se'];
 
-	// Dark mode (shared module)
-	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
-	let darkMode = $state(false);
-	$effect(() => {
-		initDarkMode();
-		const unsub = darkModeStore.subscribe((v) => {
-			darkMode = v;
-		});
-		return unsub;
-	});
-
 	// Display name editing
 	let editingName = $state(false);
 	let nameInput = $state('');
@@ -511,16 +500,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-page-background">
-	<NavBar
-		{darkMode}
-		onToggleDarkMode={toggleDarkMode}
-		{user}
-		onSignIn={() => goto(resolve('/'))}
-		onNavigate={(page) => {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- appending query param to resolved route
-			goto(page === 'lookup' ? `${resolve('/')}?view=lookup` : resolve('/'));
-		}}
-	/>
+	<NavBar {user} onSignIn={() => goto(resolve('/'))} />
 
 	<main class="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
 		{#if !user}
