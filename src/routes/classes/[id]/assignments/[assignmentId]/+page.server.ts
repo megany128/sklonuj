@@ -27,12 +27,29 @@ interface AssignmentDetail {
 	createdAt: string;
 }
 
+interface CaseAccuracy {
+	case: string;
+	attempts: number;
+	correct: number;
+	accuracy: number;
+}
+
+interface ScoreEntry {
+	attempts: number;
+	correct: number;
+}
+
+function isScoreEntry(v: unknown): v is ScoreEntry {
+	return isRecord(v) && typeof v.attempts === 'number' && typeof v.correct === 'number';
+}
+
 interface StudentProgress {
 	studentId: string;
 	displayName: string | null;
 	questionsAttempted: number;
 	questionsCorrect: number;
 	completedAt: string | null;
+	caseScores: CaseAccuracy[];
 }
 
 export const load: PageServerLoad = async ({ locals, params, parent }) => {
@@ -111,6 +128,45 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			}
 		}
 
+		// Fetch case_scores for students (using admin client for RLS bypass)
+		const studentCaseScoresMap = new Map<string, CaseAccuracy[]>();
+		if (adminClient && studentIds.length > 0) {
+			const { data: userProgressData } = await adminClient
+				.from('user_progress')
+				.select('user_id, case_scores')
+				.in('user_id', studentIds);
+
+			if (Array.isArray(userProgressData)) {
+				for (const up of userProgressData) {
+					if (isRecord(up) && typeof up.user_id === 'string') {
+						const caseScoresRaw = up.case_scores;
+						const perCaseScores: CaseAccuracy[] = [];
+						if (isRecord(caseScoresRaw)) {
+							for (const key of Object.keys(caseScoresRaw)) {
+								// Only include cases relevant to this assignment
+								if (
+									assignment.selectedCases.length > 0 &&
+									!assignment.selectedCases.includes(key)
+								) {
+									continue;
+								}
+								const entry = caseScoresRaw[key];
+								if (isScoreEntry(entry)) {
+									perCaseScores.push({
+										case: key,
+										attempts: entry.attempts,
+										correct: entry.correct,
+										accuracy: entry.attempts > 0 ? (entry.correct / entry.attempts) * 100 : 0
+									});
+								}
+							}
+						}
+						studentCaseScoresMap.set(up.user_id, perCaseScores);
+					}
+				}
+			}
+		}
+
 		// Fetch assignment progress
 		const progressMap = new Map<
 			string,
@@ -144,7 +200,8 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 				displayName: profileMap.get(sid) ?? null,
 				questionsAttempted: prog?.questionsAttempted ?? 0,
 				questionsCorrect: prog?.questionsCorrect ?? 0,
-				completedAt: prog?.completedAt ?? null
+				completedAt: prog?.completedAt ?? null,
+				caseScores: studentCaseScoresMap.get(sid) ?? []
 			});
 		}
 	} else {
@@ -169,7 +226,8 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 					questionsCorrect:
 						typeof ownProgress.questions_correct === 'number' ? ownProgress.questions_correct : 0,
 					completedAt:
-						typeof ownProgress.completed_at === 'string' ? ownProgress.completed_at : null
+						typeof ownProgress.completed_at === 'string' ? ownProgress.completed_at : null,
+					caseScores: []
 				});
 			}
 		}

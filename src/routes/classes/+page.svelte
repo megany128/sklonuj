@@ -253,244 +253,256 @@
 				Sign in to get started
 			</a>
 		</div>
-	{:else if isTeacher}
-		<!-- Teacher view -->
+	{:else}
+		<!-- Action buttons always visible for logged-in users -->
 		<div class="mb-6 flex items-center justify-between">
-			<h1 class="text-xl font-semibold text-text-default">Your Classes</h1>
-			<a
-				href={resolve('/classes/new')}
-				class="rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
-			>
-				Create Class
-			</a>
-		</div>
-
-		{#if teacherClasses.length === 0}
-			<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
-				<p class="mb-2 text-sm text-text-subtitle">Create your first class to get started.</p>
+			<h1 class="text-xl font-semibold text-text-default">Classes</h1>
+			<div class="flex items-center gap-2">
+				<a
+					href={resolve('/classes/join')}
+					class="rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+				>
+					Join Class
+				</a>
 				<a
 					href={resolve('/classes/new')}
-					class="inline-block rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
+					class="rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
 				>
 					Create Class
 				</a>
 			</div>
-		{:else}
-			<div class="space-y-3">
-				{#each teacherClasses as cls (cls.id)}
-					<a
-						href={resolve(`/classes/${cls.id}`)}
-						class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
-					>
-						<div class="flex items-start justify-between">
-							<div class="min-w-0 flex-1">
-								<h2 class="font-semibold text-text-default">{cls.name}</h2>
-								<p class="mt-1 text-sm text-text-subtitle">
-									Level {cls.level} &middot; {cls.studentCount}
-									{cls.studentCount === 1 ? 'student' : 'students'}
-								</p>
-								{#if cls.assignmentCount > 0}
-									<p class="mt-1 text-xs text-text-subtitle">
-										{cls.assignmentCount}
-										{cls.assignmentCount === 1 ? 'assignment' : 'assignments'}
-									</p>
-								{/if}
-							</div>
-							<button
-								type="button"
-								class="ml-3 shrink-0 cursor-pointer rounded-full border border-card-stroke px-2 py-0.5 font-mono text-xs text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
-								onclick={(e) => {
-									e.preventDefault();
-									e.stopPropagation();
-									copyClassCode(cls.class_code, cls.id);
-								}}
-								title="Copy class code"
-							>
-								{copiedClassId === cls.id ? 'Copied!' : cls.class_code}
-							</button>
-						</div>
-					</a>
-				{/each}
-			</div>
-		{/if}
+		</div>
 
-		{#if archivedClasses.length > 0}
-			<div class="mt-8">
-				<button
-					type="button"
-					class="flex w-full cursor-pointer items-center gap-2 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
-					onclick={() => (archivedExpanded = !archivedExpanded)}
-				>
-					<span class="inline-block transition-transform {archivedExpanded ? 'rotate-90' : ''}">
-						&#9654;
-					</span>
-					Archived Classes ({archivedClasses.length})
-				</button>
-				{#if archivedExpanded}
-					<div class="mt-3 space-y-3">
-						{#each archivedClasses as cls (cls.id)}
+		{#if isTeacher}
+			<!-- Teacher classes section -->
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold text-text-default">Your Classes</h2>
+
+				{#if teacherClasses.length === 0}
+					<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+						<p class="mb-2 text-sm text-text-subtitle">Create your first class to get started.</p>
+						<a
+							href={resolve('/classes/new')}
+							class="inline-block rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
+						>
+							Create Class
+						</a>
+					</div>
+				{:else}
+					<div class="space-y-3">
+						{#each teacherClasses as cls (cls.id)}
 							<a
 								href={resolve(`/classes/${cls.id}`)}
-								class="block rounded-2xl border border-card-stroke bg-card-bg p-4 opacity-70 transition-colors hover:border-emphasis hover:opacity-100"
+								class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
 							>
-								<div class="min-w-0 flex-1">
-									<h2 class="font-semibold text-text-default">{cls.name}</h2>
+								<div class="flex items-start justify-between">
+									<div class="min-w-0 flex-1">
+										<h2 class="font-semibold text-text-default">{cls.name}</h2>
+										<p class="mt-1 text-sm text-text-subtitle">
+											Level {cls.level} &middot; {cls.studentCount}
+											{cls.studentCount === 1 ? 'student' : 'students'}
+										</p>
+										{#if cls.assignmentCount > 0}
+											<p class="mt-1 text-xs text-text-subtitle">
+												{cls.assignmentCount}
+												{cls.assignmentCount === 1 ? 'assignment' : 'assignments'}
+											</p>
+										{/if}
+									</div>
+									<button
+										type="button"
+										class="ml-3 shrink-0 cursor-pointer rounded-full border border-card-stroke px-2 py-0.5 font-mono text-xs text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+										onclick={(e) => {
+											e.preventDefault();
+											e.stopPropagation();
+											copyClassCode(cls.class_code, cls.id);
+										}}
+										title="Copy class code"
+									>
+										{copiedClassId === cls.id ? 'Copied!' : cls.class_code}
+									</button>
+								</div>
+							</a>
+						{/each}
+					</div>
+				{/if}
+
+				{#if archivedClasses.length > 0}
+					<div class="mt-6">
+						<button
+							type="button"
+							class="flex w-full cursor-pointer items-center gap-2 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+							onclick={() => (archivedExpanded = !archivedExpanded)}
+						>
+							<span class="inline-block transition-transform {archivedExpanded ? 'rotate-90' : ''}">
+								&#9654;
+							</span>
+							Archived Classes ({archivedClasses.length})
+						</button>
+						{#if archivedExpanded}
+							<div class="mt-3 space-y-3">
+								{#each archivedClasses as cls (cls.id)}
+									<a
+										href={resolve(`/classes/${cls.id}`)}
+										class="block rounded-2xl border border-card-stroke bg-card-bg p-4 opacity-70 transition-colors hover:border-emphasis hover:opacity-100"
+									>
+										<div class="min-w-0 flex-1">
+											<h2 class="font-semibold text-text-default">{cls.name}</h2>
+											<p class="mt-1 text-sm text-text-subtitle">
+												Level {cls.level} &middot; Archived
+											</p>
+										</div>
+									</a>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
+			</section>
+		{/if}
+
+		{#if isStudent}
+			<!-- Student enrolled classes section -->
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold text-text-default">Enrolled Classes</h2>
+
+				{#if singleClass && !isTeacher}
+					<!-- Single class without teacher role: show assignments inline -->
+					<div class="mb-4">
+						<p class="text-sm text-text-subtitle">
+							{singleClass.classInfo.name} &middot; Level {singleClass.classInfo.level}
+						</p>
+					</div>
+
+					{#if studentAssignments.length === 0}
+						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+							<p class="text-sm text-text-subtitle">
+								No assignments yet — your teacher will add them soon.
+							</p>
+						</div>
+					{:else}
+						<div class="space-y-3">
+							{#each studentAssignments as assignment (assignment.id)}
+								{@const progress = progressMap.get(assignment.id)}
+								{@const status = getAssignmentStatus(assignment, progress)}
+								{@const attempted = progress?.questionsAttempted ?? 0}
+								{@const target = assignment.targetQuestions}
+								{@const progressPct = Math.min(100, Math.round((attempted / target) * 100))}
+								{@const dueDateColor = getDueDateColor(assignment.dueDate)}
+
+								<div class="rounded-2xl border border-card-stroke bg-card-bg p-4">
+									<div class="flex items-start justify-between gap-3">
+										<div class="min-w-0 flex-1">
+											<div class="flex items-center gap-2">
+												<h3 class="font-semibold text-text-default">{assignment.title}</h3>
+												<span
+													class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {status ===
+													'completed'
+														? 'bg-green-100 text-green-700'
+														: status === 'in-progress'
+															? 'bg-yellow-100 text-yellow-700'
+															: 'bg-shaded-background text-text-subtitle'}"
+												>
+													{getStatusLabel(status)}
+												</span>
+											</div>
+											{#if assignment.description}
+												<p class="mt-1 line-clamp-2 text-sm text-text-subtitle">
+													{assignment.description}
+												</p>
+											{/if}
+											{#if assignment.dueDate}
+												<p
+													class="mt-1.5 text-xs font-medium {dueDateColor === 'red'
+														? 'text-red-600'
+														: dueDateColor === 'yellow'
+															? 'text-yellow-600'
+															: dueDateColor === 'green'
+																? 'text-green-600'
+																: 'text-text-subtitle'}"
+												>
+													{formatDueDate(assignment.dueDate)}
+												</p>
+											{/if}
+										</div>
+										<a
+											href={resolve(`/classes/${singleClass.classId}/assignments/${assignment.id}`)}
+											class="shrink-0 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
+										>
+											{#if status === 'not-started'}
+												Start Practice
+											{:else if status === 'in-progress'}
+												Continue
+											{:else}
+												Review
+											{/if}
+										</a>
+									</div>
+
+									<!-- Progress bar -->
+									<div class="mt-3">
+										<div class="mb-1 flex items-center justify-between text-xs text-text-subtitle">
+											<span>{Math.min(attempted, target)} / {target} questions</span>
+											<span>{progressPct}%</span>
+										</div>
+										<div class="h-2 w-full overflow-hidden rounded-full bg-shaded-background">
+											<div
+												class="h-full rounded-full bg-positive-stroke transition-all"
+												style="width: {progressPct}%"
+											></div>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				{:else}
+					<!-- Multiple enrolled classes, or also a teacher -->
+					<div class="space-y-3">
+						{#each studentClasses as enrollment (enrollment.classId)}
+							<a
+								href={resolve(`/classes/${enrollment.classInfo.id}`)}
+								class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
+							>
+								<div>
+									<h3 class="font-semibold text-text-default">
+										{enrollment.classInfo.name}
+									</h3>
 									<p class="mt-1 text-sm text-text-subtitle">
-										Level {cls.level} &middot; Archived
+										Level {enrollment.classInfo.level} &middot; Joined {new Date(
+											enrollment.joinedAt
+										).toLocaleDateString()}
 									</p>
 								</div>
 							</a>
 						{/each}
 					</div>
 				{/if}
-			</div>
+			</section>
 		{/if}
-	{:else if isStudent}
-		<!-- Student view -->
-		{#if singleClass}
-			<!-- Single class: show assignments inline -->
-			<div class="mb-6">
-				<h1 class="text-xl font-semibold text-text-default">{singleClass.classInfo.name}</h1>
-				<p class="mt-1 text-sm text-text-subtitle">Level {singleClass.classInfo.level}</p>
-			</div>
 
-			{#if studentAssignments.length === 0}
-				<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
-					<p class="text-sm text-text-subtitle">
-						No assignments yet — your teacher will add them soon.
-					</p>
-				</div>
-			{:else}
-				<div class="space-y-3">
-					{#each studentAssignments as assignment (assignment.id)}
-						{@const progress = progressMap.get(assignment.id)}
-						{@const status = getAssignmentStatus(assignment, progress)}
-						{@const attempted = progress?.questionsAttempted ?? 0}
-						{@const target = assignment.targetQuestions}
-						{@const progressPct = Math.min(100, Math.round((attempted / target) * 100))}
-						{@const dueDateColor = getDueDateColor(assignment.dueDate)}
-
-						<div class="rounded-2xl border border-card-stroke bg-card-bg p-4">
-							<div class="flex items-start justify-between gap-3">
-								<div class="min-w-0 flex-1">
-									<div class="flex items-center gap-2">
-										<h2 class="font-semibold text-text-default">{assignment.title}</h2>
-										<span
-											class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {status ===
-											'completed'
-												? 'bg-green-100 text-green-700'
-												: status === 'in-progress'
-													? 'bg-yellow-100 text-yellow-700'
-													: 'bg-shaded-background text-text-subtitle'}"
-										>
-											{getStatusLabel(status)}
-										</span>
-									</div>
-									{#if assignment.description}
-										<p class="mt-1 line-clamp-2 text-sm text-text-subtitle">
-											{assignment.description}
-										</p>
-									{/if}
-									{#if assignment.dueDate}
-										<p
-											class="mt-1.5 text-xs font-medium {dueDateColor === 'red'
-												? 'text-red-600'
-												: dueDateColor === 'yellow'
-													? 'text-yellow-600'
-													: dueDateColor === 'green'
-														? 'text-green-600'
-														: 'text-text-subtitle'}"
-										>
-											{formatDueDate(assignment.dueDate)}
-										</p>
-									{/if}
-								</div>
-								<a
-									href={resolve(`/classes/${singleClass.classId}/assignments/${assignment.id}`)}
-									class="shrink-0 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
-								>
-									{#if status === 'not-started'}
-										Start Practice
-									{:else if status === 'in-progress'}
-										Continue
-									{:else}
-										Review
-									{/if}
-								</a>
-							</div>
-
-							<!-- Progress bar -->
-							<div class="mt-3">
-								<div class="mb-1 flex items-center justify-between text-xs text-text-subtitle">
-									<span>{Math.min(attempted, target)} / {target} questions</span>
-									<span>{progressPct}%</span>
-								</div>
-								<div class="h-2 w-full overflow-hidden rounded-full bg-shaded-background">
-									<div
-										class="h-full rounded-full bg-positive-stroke transition-all"
-										style="width: {progressPct}%"
-									></div>
-								</div>
-							</div>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		{:else}
-			<!-- Multiple enrolled classes -->
-			<div class="mb-6">
-				<h1 class="text-xl font-semibold text-text-default">Your Classes</h1>
-			</div>
-			<div class="space-y-3">
-				{#each studentClasses as enrollment (enrollment.classId)}
+		{#if !isTeacher && !isStudent}
+			<!-- No classes at all: onboarding view -->
+			<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+				<p class="mb-4 text-sm text-text-subtitle">
+					Get started by joining a class with a code from your teacher, or create your own.
+				</p>
+				<div class="flex items-center justify-center gap-3">
 					<a
-						href={resolve(`/classes/${enrollment.classInfo.id}`)}
-						class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
+						href={resolve('/classes/join')}
+						class="rounded-xl bg-emphasis px-5 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
 					>
-						<div>
-							<h2 class="font-semibold text-text-default">{enrollment.classInfo.name}</h2>
-							<p class="mt-1 text-sm text-text-subtitle">
-								Level {enrollment.classInfo.level} &middot; Joined {new Date(
-									enrollment.joinedAt
-								).toLocaleDateString()}
-							</p>
-						</div>
+						Join a Class
 					</a>
-				{/each}
+					<a
+						href={resolve('/classes/new')}
+						class="rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+					>
+						Create Class
+					</a>
+				</div>
 			</div>
 		{/if}
-		<div class="mt-8 text-center">
-			<p class="text-xs text-text-subtitle">
-				Are you a teacher? <a
-					href={resolve('/classes/new')}
-					class="underline hover:text-text-default">Create your own class</a
-				>
-			</p>
-		</div>
-	{:else}
-		<!-- No classes at all: onboarding view -->
-		<div class="mb-6">
-			<h1 class="text-xl font-semibold text-text-default">Classes</h1>
-		</div>
-		<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
-			<p class="mb-4 text-sm text-text-subtitle">
-				Get started by joining a class with a code from your teacher, or create your own.
-			</p>
-			<div class="flex items-center justify-center gap-3">
-				<a
-					href={resolve('/classes/join')}
-					class="rounded-xl bg-emphasis px-5 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
-				>
-					Join a Class
-				</a>
-				<a
-					href={resolve('/classes/new')}
-					class="rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
-				>
-					Create Class
-				</a>
-			</div>
-		</div>
 	{/if}
 </div>
 

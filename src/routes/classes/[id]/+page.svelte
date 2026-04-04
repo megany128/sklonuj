@@ -3,9 +3,10 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import Breadcrumbs from '$lib/components/ui/Breadcrumbs.svelte';
 	import { CASE_LABELS, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
+
+	const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -30,6 +31,13 @@
 		completed: boolean;
 	}
 
+	interface CaseAccuracy {
+		case: string;
+		attempts: number;
+		correct: number;
+		accuracy: number;
+	}
+
 	interface StudentRow {
 		studentId: string;
 		displayName: string | null;
@@ -38,6 +46,7 @@
 		overallAccuracy: number | null;
 		totalAttempts: number;
 		assignmentStatuses: AssignmentStatus[];
+		caseScores: CaseAccuracy[];
 	}
 
 	interface AssignmentRow {
@@ -72,6 +81,16 @@
 		);
 	}
 
+	function isCaseAccuracy(v: unknown): v is CaseAccuracy {
+		if (!isRecord(v)) return false;
+		return (
+			typeof v.case === 'string' &&
+			typeof v.attempts === 'number' &&
+			typeof v.correct === 'number' &&
+			typeof v.accuracy === 'number'
+		);
+	}
+
 	function isStudentArray(v: unknown): v is StudentRow[] {
 		if (!Array.isArray(v)) return false;
 		return v.every(
@@ -82,7 +101,9 @@
 				(item.overallAccuracy === null || typeof item.overallAccuracy === 'number') &&
 				typeof item.totalAttempts === 'number' &&
 				Array.isArray(item.assignmentStatuses) &&
-				item.assignmentStatuses.every((s: unknown) => isAssignmentStatus(s))
+				item.assignmentStatuses.every((s: unknown) => isAssignmentStatus(s)) &&
+				Array.isArray(item.caseScores) &&
+				item.caseScores.every((c: unknown) => isCaseAccuracy(c))
 		);
 	}
 
@@ -90,25 +111,6 @@
 		if (!Array.isArray(v)) return false;
 		return v.every(
 			(item) => isRecord(item) && typeof item.id === 'string' && typeof item.title === 'string'
-		);
-	}
-
-	interface LeaderboardEntry {
-		studentId: string;
-		displayName: string | null;
-		accuracy: number | null;
-		totalAttempts: number;
-		rank: number;
-	}
-
-	function isLeaderboardArray(v: unknown): v is LeaderboardEntry[] {
-		if (!Array.isArray(v)) return false;
-		return v.every(
-			(item) =>
-				isRecord(item) &&
-				typeof item.studentId === 'string' &&
-				typeof item.rank === 'number' &&
-				typeof item.totalAttempts === 'number'
 		);
 	}
 
@@ -139,14 +141,6 @@
 		const val: unknown = $page.data.assignments;
 		return isAssignmentArray(val) ? val : [];
 	});
-
-	let leaderboard = $derived.by(() => {
-		const val: unknown = $page.data.leaderboard;
-		return isLeaderboardArray(val) ? val : [];
-	});
-
-	let currentUserId = $derived($page.data.user?.id ?? '');
-	let leaderboardExpanded = $state(false);
 
 	// Class-level stats
 	let avgClassAccuracy = $derived.by(() => {
@@ -209,6 +203,89 @@
 		if (accuracy === null) return 'No data';
 		return `${Math.round(accuracy)}%`;
 	}
+
+	/** Get accuracy color class based on percentage */
+	function caseAccuracyColor(accuracy: number): string {
+		if (accuracy > 70) return 'bg-green-100 text-green-700';
+		if (accuracy >= 40) return 'bg-yellow-100 text-yellow-700';
+		return 'bg-red-100 text-red-700';
+	}
+
+	/** Look up a case score from array */
+	function findCaseScore(scores: CaseAccuracy[], caseKey: string): CaseAccuracy | undefined {
+		return scores.find((s) => s.case === caseKey);
+	}
+
+	/** CSV export */
+	function exportCsv() {
+		if (!classData) return;
+
+		const headers = [
+			'Student Name',
+			'Email',
+			'Assignment Title',
+			'Questions Attempted',
+			'Questions Correct',
+			'Accuracy %',
+			'Status',
+			'Due Date'
+		];
+
+		const rows: string[][] = [];
+		for (const student of students) {
+			const name = studentDisplayName(student);
+			const email = student.email ?? '';
+			if (student.assignmentStatuses.length === 0) {
+				rows.push([name, email, '', '0', '0', '', 'No assignments', '']);
+			} else {
+				for (const status of student.assignmentStatuses) {
+					const accuracyPct =
+						status.attempted > 0
+							? Math.round((status.correct / status.attempted) * 100).toString()
+							: '';
+					const statusLabel = status.completed
+						? 'Completed'
+						: status.attempted > 0
+							? 'In Progress'
+							: 'Not Started';
+					// Find matching assignment for due date
+					const matchingAssignment = assignments.find((a) => a.id === status.assignmentId);
+					const dueDate = matchingAssignment?.dueDate
+						? new Date(matchingAssignment.dueDate).toLocaleDateString()
+						: '';
+					rows.push([
+						name,
+						email,
+						status.assignmentTitle,
+						status.attempted.toString(),
+						status.correct.toString(),
+						accuracyPct,
+						statusLabel,
+						dueDate
+					]);
+				}
+			}
+		}
+
+		const escapeCsvField = (field: string): string => {
+			if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+				return `"${field.replace(/"/g, '""')}"`;
+			}
+			return field;
+		};
+
+		const csvContent = [headers, ...rows]
+			.map((row) => row.map(escapeCsvField).join(','))
+			.join('\n');
+
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `${classData.name.replace(/[^a-zA-Z0-9]/g, '_')}_progress.csv`;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
 </script>
 
 <svelte:head>
@@ -219,12 +296,12 @@
 
 {#if classData}
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<Breadcrumbs
-			items={[
-				{ label: 'Classes', href: resolve('/classes') },
-				{ label: classData.name, href: resolve(`/classes/${classData.id}`) }
-			]}
-		/>
+		<a
+			href={resolve('/classes')}
+			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+		>
+			&larr; Back to Classes
+		</a>
 
 		{#if classData.archived && role === 'teacher'}
 			<div
@@ -244,12 +321,29 @@
 
 		<div class="mb-6 rounded-2xl border border-card-stroke bg-card-bg p-6">
 			<div class="flex items-start justify-between">
-				<div>
+				<div class="flex items-center gap-2">
 					<h1 class="text-xl font-semibold text-text-default">{classData.name}</h1>
-					<p class="mt-1 text-sm text-text-subtitle">
-						Level {classData.level} &middot; {students.length}
-						{students.length === 1 ? 'student' : 'students'}
-					</p>
+					{#if role === 'teacher' && !classData.archived}
+						<a
+							href={resolve(`/classes/${classData.id}/edit`)}
+							class="inline-flex items-center justify-center rounded-full p-1.5 text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+							title="Edit class"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+								class="h-4 w-4"
+							>
+								<path
+									d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"
+								/>
+								<path
+									d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"
+								/>
+							</svg>
+						</a>
+					{/if}
 				</div>
 				<div class="flex items-center gap-2">
 					<button
@@ -261,6 +355,10 @@
 					</button>
 				</div>
 			</div>
+			<p class="mt-1 text-sm text-text-subtitle">
+				Level {classData.level} &middot; {students.length}
+				{students.length === 1 ? 'student' : 'students'}
+			</p>
 
 			{#if role === 'teacher' && !classData.archived}
 				<div class="mt-4 flex flex-wrap items-center gap-2">
@@ -276,6 +374,13 @@
 					>
 						Create Assignment
 					</a>
+					<button
+						type="button"
+						onclick={exportCsv}
+						class="cursor-pointer rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+					>
+						Export Progress
+					</button>
 					{#if confirmingArchive}
 						<span class="text-xs text-text-subtitle">Archive this class?</span>
 						<form method="POST" action="?/archive" use:enhance>
@@ -466,59 +571,93 @@
 											colspan={role === 'teacher' ? (classData.archived ? 5 : 6) : 2}
 											class="bg-shaded-background px-4 py-4"
 										>
-											<div class="space-y-3">
-												<h4
-													class="text-xs font-semibold uppercase tracking-wide text-text-subtitle"
-												>
-													Assignment Progress
-												</h4>
-												{#if student.assignmentStatuses.length === 0}
-													<p class="text-sm text-text-subtitle">No assignments yet.</p>
-												{:else}
-													<div class="space-y-2">
-														{#each student.assignmentStatuses as status (status.assignmentId)}
-															<div class="rounded-lg bg-card-bg p-3">
-																<div class="flex items-center justify-between">
-																	<span class="text-sm font-medium text-text-default">
-																		{status.assignmentTitle}
-																	</span>
-																	<span
-																		class="rounded-full px-2 py-0.5 text-xs font-medium {status.completed
-																			? 'bg-positive-stroke/20 text-positive-stroke'
-																			: 'bg-shaded-background text-text-subtitle'}"
-																	>
-																		{status.completed ? 'Completed' : 'In Progress'}
-																	</span>
-																</div>
-																<div
-																	class="mt-2 flex items-center gap-3 text-xs text-text-subtitle"
-																>
-																	<span>
-																		{status.attempted}/{status.target} questions
-																	</span>
-																	<span>
-																		{status.attempted > 0
-																			? `${Math.round((status.correct / status.attempted) * 100)}% correct`
-																			: 'Not started'}
-																	</span>
-																</div>
-																<div
-																	class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-shaded-background"
-																>
-																	<div
-																		class="h-full rounded-full {status.completed
-																			? 'bg-positive-stroke'
-																			: 'bg-emphasis'}"
-																		style="width: {Math.min(
-																			100,
-																			(status.attempted / Math.max(1, status.target)) * 100
-																		)}%"
-																	></div>
-																</div>
+											<div class="space-y-4">
+												<!-- Per-case accuracy breakdown -->
+												<div>
+													<h4
+														class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+													>
+														Case Accuracy
+													</h4>
+													<div class="grid grid-cols-7 gap-1.5">
+														{#each ALL_CASES as c (c)}
+															{@const score = findCaseScore(student.caseScores, c)}
+															<div
+																class="rounded-lg p-2 text-center {score
+																	? caseAccuracyColor(score.accuracy)
+																	: 'bg-shaded-background text-text-subtitle'}"
+															>
+																<p class="text-[10px] font-medium uppercase">
+																	{CASE_LABELS[c].slice(0, 3)}
+																</p>
+																<p class="text-sm font-bold">
+																	{score ? `${Math.round(score.accuracy)}%` : '--'}
+																</p>
+																{#if score}
+																	<p class="text-[9px] opacity-70">
+																		{score.correct}/{score.attempts}
+																	</p>
+																{/if}
 															</div>
 														{/each}
 													</div>
-												{/if}
+												</div>
+
+												<!-- Assignment progress -->
+												<div>
+													<h4
+														class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+													>
+														Assignment Progress
+													</h4>
+													{#if student.assignmentStatuses.length === 0}
+														<p class="text-sm text-text-subtitle">No assignments yet.</p>
+													{:else}
+														<div class="space-y-2">
+															{#each student.assignmentStatuses as status (status.assignmentId)}
+																<div class="rounded-lg bg-card-bg p-3">
+																	<div class="flex items-center justify-between">
+																		<span class="text-sm font-medium text-text-default">
+																			{status.assignmentTitle}
+																		</span>
+																		<span
+																			class="rounded-full px-2 py-0.5 text-xs font-medium {status.completed
+																				? 'bg-positive-stroke/20 text-positive-stroke'
+																				: 'bg-shaded-background text-text-subtitle'}"
+																		>
+																			{status.completed ? 'Completed' : 'In Progress'}
+																		</span>
+																	</div>
+																	<div
+																		class="mt-2 flex items-center gap-3 text-xs text-text-subtitle"
+																	>
+																		<span>
+																			{status.attempted}/{status.target} questions
+																		</span>
+																		<span>
+																			{status.attempted > 0
+																				? `${Math.round((status.correct / status.attempted) * 100)}% correct`
+																				: 'Not started'}
+																		</span>
+																	</div>
+																	<div
+																		class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-shaded-background"
+																	>
+																		<div
+																			class="h-full rounded-full {status.completed
+																				? 'bg-positive-stroke'
+																				: 'bg-emphasis'}"
+																			style="width: {Math.min(
+																				100,
+																				(status.attempted / Math.max(1, status.target)) * 100
+																			)}%"
+																		></div>
+																	</div>
+																</div>
+															{/each}
+														</div>
+													{/if}
+												</div>
 											</div>
 										</td>
 									</tr>
@@ -529,84 +668,6 @@
 				</div>
 			{/if}
 		</div>
-
-		<!-- Leaderboard -->
-		{#if leaderboard.length > 0}
-			<div class="mb-6">
-				<button
-					type="button"
-					class="mb-3 flex w-full cursor-pointer items-center gap-2 text-lg font-semibold text-text-default"
-					onclick={() => (leaderboardExpanded = !leaderboardExpanded)}
-				>
-					<span
-						class="inline-block text-sm transition-transform {leaderboardExpanded
-							? 'rotate-90'
-							: ''}"
-					>
-						&#9654;
-					</span>
-					Leaderboard
-				</button>
-
-				{#if leaderboardExpanded}
-					<div class="overflow-hidden rounded-2xl border border-card-stroke bg-card-bg">
-						<table class="w-full text-sm">
-							<thead>
-								<tr class="border-b border-card-stroke bg-shaded-background">
-									<th class="w-12 px-3 py-3 text-center font-medium text-text-subtitle">#</th>
-									<th class="px-4 py-3 text-left font-medium text-text-subtitle">Student</th>
-									<th class="px-4 py-3 text-right font-medium text-text-subtitle">Accuracy</th>
-									<th class="px-4 py-3 text-right font-medium text-text-subtitle">Questions</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each leaderboard as entry (entry.studentId)}
-									{@const isCurrentUser = entry.studentId === currentUserId}
-									<tr
-										class="border-b border-card-stroke last:border-b-0 {isCurrentUser
-											? 'bg-brand-50/50'
-											: ''}"
-									>
-										<td class="px-3 py-3 text-center font-medium text-text-subtitle">
-											{#if entry.rank <= 3 && entry.accuracy !== null}
-												<span
-													class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold {entry.rank ===
-													1
-														? 'bg-yellow-100 text-yellow-700'
-														: entry.rank === 2
-															? 'bg-gray-100 text-gray-600'
-															: 'bg-orange-100 text-orange-600'}"
-												>
-													{entry.rank}
-												</span>
-											{:else}
-												{entry.rank}
-											{/if}
-										</td>
-										<td class="px-4 py-3">
-											<span
-												class="font-medium {isCurrentUser ? 'text-emphasis' : 'text-text-default'}"
-											>
-												{entry.displayName ?? 'Anonymous'}
-												{#if isCurrentUser}
-													<span class="text-xs text-text-subtitle">(you)</span>
-												{/if}
-											</span>
-										</td>
-										<td class="px-4 py-3 text-right text-text-subtitle">
-											{entry.accuracy !== null ? `${Math.round(entry.accuracy)}%` : '--'}
-										</td>
-										<td class="px-4 py-3 text-right text-text-subtitle">
-											{entry.totalAttempts}
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-				{/if}
-			</div>
-		{/if}
 
 		<!-- Assignments -->
 		<div>

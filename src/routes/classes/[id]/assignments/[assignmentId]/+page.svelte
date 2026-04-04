@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import Breadcrumbs from '$lib/components/ui/Breadcrumbs.svelte';
 	import { CASE_LABELS, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
 
@@ -24,17 +23,35 @@
 		createdAt: string;
 	}
 
+	interface CaseAccuracy {
+		case: string;
+		attempts: number;
+		correct: number;
+		accuracy: number;
+	}
+
 	interface StudentProgress {
 		studentId: string;
 		displayName: string | null;
 		questionsAttempted: number;
 		questionsCorrect: number;
 		completedAt: string | null;
+		caseScores: CaseAccuracy[];
 	}
 
 	function isAssignment(v: unknown): v is AssignmentDetail {
 		if (!isRecord(v)) return false;
 		return typeof v.id === 'string' && typeof v.title === 'string';
+	}
+
+	function isCaseAccuracy(v: unknown): v is CaseAccuracy {
+		if (!isRecord(v)) return false;
+		return (
+			typeof v.case === 'string' &&
+			typeof v.attempts === 'number' &&
+			typeof v.correct === 'number' &&
+			typeof v.accuracy === 'number'
+		);
 	}
 
 	function isProgressArray(v: unknown): v is StudentProgress[] {
@@ -43,7 +60,9 @@
 			(item) =>
 				isRecord(item) &&
 				typeof item.studentId === 'string' &&
-				typeof item.questionsAttempted === 'number'
+				typeof item.questionsAttempted === 'number' &&
+				Array.isArray(item.caseScores) &&
+				item.caseScores.every((c: unknown) => isCaseAccuracy(c))
 		);
 	}
 
@@ -78,6 +97,13 @@
 		return isProgressArray(val) ? val : [];
 	});
 
+	/** The cases relevant to this assignment */
+	let assignmentCases = $derived.by((): Case[] => {
+		if (!assignment) return [];
+		const cases = assignment.selectedCases.filter((c): c is Case => isCaseKey(c));
+		return cases.length > 0 ? cases : (['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'] as Case[]);
+	});
+
 	function numberModeLabel(mode: string): string {
 		if (mode === 'sg') return 'Singular';
 		if (mode === 'pl') return 'Plural';
@@ -96,6 +122,16 @@
 		if (attempted === 0) return '-';
 		return `${Math.round((correct / attempted) * 100)}%`;
 	}
+
+	function caseAccuracyColor(pct: number): string {
+		if (pct > 70) return 'bg-green-100 text-green-700';
+		if (pct >= 40) return 'bg-yellow-100 text-yellow-700';
+		return 'bg-red-100 text-red-700';
+	}
+
+	function findCaseScore(scores: CaseAccuracy[], caseKey: string): CaseAccuracy | undefined {
+		return scores.find((s) => s.case === caseKey);
+	}
 </script>
 
 <svelte:head>
@@ -106,16 +142,12 @@
 
 {#if classData && assignment}
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<Breadcrumbs
-			items={[
-				{ label: 'Classes', href: resolve('/classes') },
-				{ label: classData.name, href: resolve(`/classes/${classData.id}`) },
-				{
-					label: assignment.title,
-					href: resolve(`/classes/${classData.id}/assignments/${assignment.id}`)
-				}
-			]}
-		/>
+		<a
+			href={resolve(`/classes/${classData.id}`)}
+			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+		>
+			&larr; Back to {classData.name}
+		</a>
 
 		<!-- Assignment info -->
 		<div class="mb-6 rounded-2xl border border-card-stroke bg-card-bg p-6">
@@ -206,7 +238,7 @@
 				{/if}
 			</div>
 
-			<!-- Teacher: student progress table -->
+			<!-- Teacher: student progress table with per-case breakdown -->
 			<div>
 				<h2 class="mb-3 text-lg font-semibold text-text-default">
 					Student Progress ({studentProgress.length})
@@ -260,6 +292,26 @@
 											{/if}
 										</td>
 									</tr>
+									<!-- Per-case breakdown row for this student -->
+									{#if sp.caseScores.length > 0}
+										<tr class="border-b border-card-stroke last:border-b-0">
+											<td colspan="4" class="px-4 pb-3 pt-0">
+												<div class="flex flex-wrap gap-1.5">
+													{#each assignmentCases as c (c)}
+														{@const score = findCaseScore(sp.caseScores, c)}
+														<div
+															class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs {score
+																? caseAccuracyColor(score.accuracy)
+																: 'bg-shaded-background text-text-subtitle'}"
+														>
+															<span class="font-medium">{CASE_LABELS[c].slice(0, 3)}</span>
+															<span>{score ? `${Math.round(score.accuracy)}%` : '--'}</span>
+														</div>
+													{/each}
+												</div>
+											</td>
+										</tr>
+									{/if}
 								{/each}
 							</tbody>
 						</table>
@@ -314,12 +366,12 @@
 	</div>
 {:else if classData}
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<Breadcrumbs
-			items={[
-				{ label: 'Classes', href: resolve('/classes') },
-				{ label: classData.name, href: resolve(`/classes/${classData.id}`) }
-			]}
-		/>
+		<a
+			href={resolve(`/classes/${classData.id}`)}
+			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+		>
+			&larr; Back to {classData.name}
+		</a>
 		<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
 			<p class="text-sm text-text-subtitle">Assignment not found.</p>
 		</div>

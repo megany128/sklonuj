@@ -32,6 +32,13 @@ interface AssignmentStatus {
 	completed: boolean;
 }
 
+interface CaseAccuracy {
+	case: string;
+	attempts: number;
+	correct: number;
+	accuracy: number;
+}
+
 interface StudentRow {
 	studentId: string;
 	displayName: string | null;
@@ -40,6 +47,7 @@ interface StudentRow {
 	overallAccuracy: number | null;
 	totalAttempts: number;
 	assignmentStatuses: AssignmentStatus[];
+	caseScores: CaseAccuracy[];
 }
 
 interface AssignmentRow {
@@ -192,7 +200,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	// (RLS prevents teacher from reading other users' progress)
 	const userProgressMap = new Map<
 		string,
-		{ overallAccuracy: number | null; totalAttempts: number }
+		{ overallAccuracy: number | null; totalAttempts: number; caseScores: CaseAccuracy[] }
 	>();
 	if (adminClient && studentIds.length > 0) {
 		const { data: userProgressData } = await adminClient
@@ -206,18 +214,26 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					const caseScores = up.case_scores;
 					let totalAttempts = 0;
 					let totalCorrect = 0;
+					const perCaseScores: CaseAccuracy[] = [];
 					if (isRecord(caseScores)) {
 						for (const key of Object.keys(caseScores)) {
 							const entry = caseScores[key];
 							if (isScoreEntry(entry)) {
 								totalAttempts += entry.attempts;
 								totalCorrect += entry.correct;
+								perCaseScores.push({
+									case: key,
+									attempts: entry.attempts,
+									correct: entry.correct,
+									accuracy: entry.attempts > 0 ? (entry.correct / entry.attempts) * 100 : 0
+								});
 							}
 						}
 					}
 					userProgressMap.set(up.user_id, {
 						overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null,
-						totalAttempts
+						totalAttempts,
+						caseScores: perCaseScores
 					});
 				}
 			}
@@ -258,7 +274,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					joinedAt: m.joined_at,
 					overallAccuracy: progress?.overallAccuracy ?? null,
 					totalAttempts: progress?.totalAttempts ?? 0,
-					assignmentStatuses
+					assignmentStatuses,
+					caseScores: progress?.caseScores ?? []
 				});
 			}
 		}
@@ -297,38 +314,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Build leaderboard: ranked by accuracy (min 5 attempts to qualify), then by total attempts
-	interface LeaderboardEntry {
-		studentId: string;
-		displayName: string | null;
-		accuracy: number | null;
-		totalAttempts: number;
-		rank: number;
-	}
-
-	const leaderboard: LeaderboardEntry[] = students
-		.map((s) => ({
-			studentId: s.studentId,
-			displayName: s.displayName,
-			accuracy: s.overallAccuracy,
-			totalAttempts: s.totalAttempts,
-			rank: 0
-		}))
-		.sort((a, b) => {
-			// Students with data rank higher than those without
-			if (a.accuracy !== null && b.accuracy === null) return -1;
-			if (a.accuracy === null && b.accuracy !== null) return 1;
-			if (a.accuracy !== null && b.accuracy !== null) {
-				if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy;
-			}
-			return b.totalAttempts - a.totalAttempts;
-		});
-
-	for (let i = 0; i < leaderboard.length; i++) {
-		leaderboard[i].rank = i + 1;
-	}
-
-	return { students, assignments, role, leaderboard };
+	return { students, assignments, role };
 };
 
 export const actions: Actions = {

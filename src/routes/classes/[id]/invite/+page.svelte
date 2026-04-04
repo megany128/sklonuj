@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import Breadcrumbs from '$lib/components/ui/Breadcrumbs.svelte';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -94,13 +93,12 @@
 
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">
-		<Breadcrumbs
-			items={[
-				{ label: 'Classes', href: resolve('/classes') },
-				{ label: classData.name, href: resolve(`/classes/${classData.id}`) },
-				{ label: 'Invite Students', href: resolve(`/classes/${classData.id}/invite`) }
-			]}
-		/>
+		<a
+			href={resolve(`/classes/${classData.id}`)}
+			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+		>
+			&larr; Back to {classData.name}
+		</a>
 
 		<div class="mb-6 rounded-2xl border border-card-stroke bg-card-bg p-6">
 			<h1 class="mb-4 text-xl font-semibold text-text-default">Invite Students</h1>

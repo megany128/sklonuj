@@ -1,9 +1,10 @@
 import posthog from 'posthog-js';
-import { PUBLIC_POSTHOG_KEY } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 
 export function initPostHog(): void {
-	if (typeof window === 'undefined' || !PUBLIC_POSTHOG_KEY) return;
-	posthog.init(PUBLIC_POSTHOG_KEY, {
+	const key = env.PUBLIC_POSTHOG_KEY;
+	if (typeof window === 'undefined' || !key) return;
+	posthog.init(key, {
 		api_host: 'https://us.i.posthog.com',
 		person_profiles: 'identified_only',
 		capture_pageview: true,

@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import Breadcrumbs from '$lib/components/ui/Breadcrumbs.svelte';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
@@ -32,26 +31,6 @@
 	});
 
 	let submitting = $state(false);
-	let validationError = $state<string | null>(null);
-
-	function validateForm(event: SubmitEvent) {
-		const form = event.target;
-		if (!(form instanceof HTMLFormElement)) return;
-		const formData = new FormData(form);
-		const cases = formData.getAll('selected_cases');
-		const drillTypes = formData.getAll('selected_drill_types');
-		if (cases.length === 0) {
-			validationError = 'Please select at least one case.';
-			event.preventDefault();
-			return;
-		}
-		if (drillTypes.length === 0) {
-			validationError = 'Please select at least one drill type.';
-			event.preventDefault();
-			return;
-		}
-		validationError = null;
-	}
 </script>
 
 <svelte:head>
@@ -62,16 +41,12 @@
 
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">
-		<Breadcrumbs
-			items={[
-				{ label: 'Classes', href: resolve('/classes') },
-				{ label: classData.name, href: resolve(`/classes/${classData.id}`) },
-				{
-					label: 'New Assignment',
-					href: resolve(`/classes/${classData.id}/assignments/new`)
-				}
-			]}
-		/>
+		<a
+			href={resolve(`/classes/${classData.id}`)}
+			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+		>
+			&larr; Back to {classData.name}
+		</a>
 
 		{#if role !== 'teacher'}
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
@@ -81,17 +56,16 @@
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
 				<h1 class="mb-6 text-xl font-semibold text-text-default">Create Assignment</h1>
 
-				{#if errorMessage || validationError}
+				{#if errorMessage}
 					<div
 						class="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
 					>
-						{validationError ?? errorMessage}
+						{errorMessage}
 					</div>
 				{/if}
 
 				<form
 					method="POST"
-					onsubmit={validateForm}
 					use:enhance={() => {
 						submitting = true;
 						return async ({ update }) => {

@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import Breadcrumbs from '$lib/components/ui/Breadcrumbs.svelte';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
@@ -65,20 +64,12 @@
 
 {#if classData && assignment}
 	<div class="mx-auto max-w-lg px-4 py-8">
-		<Breadcrumbs
-			items={[
-				{ label: 'Classes', href: resolve('/classes') },
-				{ label: classData.name, href: resolve(`/classes/${classData.id}`) },
-				{
-					label: assignment.title,
-					href: resolve(`/classes/${classData.id}/assignments/${assignment.id}`)
-				},
-				{
-					label: 'Edit',
-					href: resolve(`/classes/${classData.id}/assignments/${assignment.id}/edit`)
-				}
-			]}
-		/>
+		<a
+			href={resolve(`/classes/${classData.id}/assignments/${assignment.id}`)}
+			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+		>
+			&larr; Back to {assignment.title}
+		</a>
 
 		<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
 			<h1 class="mb-6 text-xl font-semibold text-text-default">Edit Assignment</h1>
