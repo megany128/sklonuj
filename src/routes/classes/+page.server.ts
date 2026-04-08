@@ -1,4 +1,8 @@
-import type { PageServerLoad } from './$types';
+import { fail } from '@sveltejs/kit';
+import { createClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/public';
+import { env as privateEnv } from '$env/dynamic/private';
+import type { Actions, PageServerLoad } from './$types';
 
 interface ClassRow {
 	id: string;
@@ -17,6 +21,7 @@ interface MembershipRow {
 
 interface AssignmentRow {
 	id: string;
+	classId: string;
 	title: string;
 	description: string | null;
 	selectedCases: string[];
@@ -33,6 +38,11 @@ interface AssignmentProgressRow {
 	questionsAttempted: number;
 	questionsCorrect: number;
 	completedAt: string | null;
+}
+
+interface ScoreEntry {
+	attempts: number;
+	correct: number;
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -54,6 +64,10 @@ function isClassRow(v: unknown): v is ClassRow {
 function isMembershipRow(v: unknown): v is MembershipRow {
 	if (!isRecord(v)) return false;
 	return typeof v.class_id === 'string' && typeof v.joined_at === 'string' && isClassRow(v.classes);
+}
+
+function isScoreEntry(v: unknown): v is ScoreEntry {
+	return isRecord(v) && typeof v.attempts === 'number' && typeof v.correct === 'number';
 }
 
 function toStringArray(v: unknown): string[] {
@@ -96,22 +110,36 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	}
 
-	// For teacher classes, fetch student counts and assignment counts
+	// For teacher classes, fetch student counts, assignment counts, and accuracy stats
 	const teacherClassesWithCounts: Array<
-		ClassRow & { studentCount: number; assignmentCount: number }
+		ClassRow & {
+			studentCount: number;
+			assignmentCount: number;
+			avgAccuracy: number | null;
+			studentsBelowThreshold: number;
+		}
 	> = [];
 	if (teacherClasses.length > 0) {
 		const classIds = teacherClasses.map((c) => c.id);
 		const [{ data: countData }, { data: assignmentCountData }] = await Promise.all([
-			supabase.from('class_memberships').select('class_id').in('class_id', classIds),
+			supabase.from('class_memberships').select('class_id, student_id').in('class_id', classIds),
 			supabase.from('assignments').select('id, class_id').in('class_id', classIds)
 		]);
 
+		// Build a map of class_id -> student_id[] and count students per class
 		const studentCountMap = new Map<string, number>();
+		const classStudentMap = new Map<string, string[]>();
 		if (Array.isArray(countData)) {
 			for (const row of countData) {
-				if (isRecord(row) && typeof row.class_id === 'string') {
+				if (
+					isRecord(row) &&
+					typeof row.class_id === 'string' &&
+					typeof row.student_id === 'string'
+				) {
 					studentCountMap.set(row.class_id, (studentCountMap.get(row.class_id) ?? 0) + 1);
+					const existing = classStudentMap.get(row.class_id) ?? [];
+					existing.push(row.student_id);
+					classStudentMap.set(row.class_id, existing);
 				}
 			}
 		}
@@ -125,11 +153,75 @@ export const load: PageServerLoad = async ({ locals }) => {
 			}
 		}
 
+		// Collect all unique student IDs across all teacher classes
+		const allStudentIds = new Set<string>();
+		for (const [, ids] of classStudentMap) {
+			for (const id of ids) {
+				allStudentIds.add(id);
+			}
+		}
+
+		// Fetch user_progress for all students using admin client (RLS prevents teacher from reading)
+		const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+		const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
+		const adminClient =
+			supabaseUrl && serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null;
+
+		// Map of student_id -> overall accuracy (0-100) or null
+		const studentAccuracyMap = new Map<string, number | null>();
+		if (adminClient && allStudentIds.size > 0) {
+			const { data: userProgressData } = await adminClient
+				.from('user_progress')
+				.select('user_id, case_scores')
+				.in('user_id', Array.from(allStudentIds));
+
+			if (Array.isArray(userProgressData)) {
+				for (const up of userProgressData) {
+					if (isRecord(up) && typeof up.user_id === 'string') {
+						const caseScores = up.case_scores;
+						let totalAttempts = 0;
+						let totalCorrect = 0;
+						if (isRecord(caseScores)) {
+							for (const key of Object.keys(caseScores)) {
+								const entry = caseScores[key];
+								if (isScoreEntry(entry)) {
+									totalAttempts += entry.attempts;
+									totalCorrect += entry.correct;
+								}
+							}
+						}
+						studentAccuracyMap.set(
+							up.user_id,
+							totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null
+						);
+					}
+				}
+			}
+		}
+
 		for (const cls of teacherClasses) {
+			const classStudents = classStudentMap.get(cls.id) ?? [];
+			let accuracySum = 0;
+			let accuracyCount = 0;
+			let belowThreshold = 0;
+
+			for (const sid of classStudents) {
+				const accuracy = studentAccuracyMap.get(sid);
+				if (accuracy !== undefined && accuracy !== null) {
+					accuracySum += accuracy;
+					accuracyCount++;
+					if (accuracy < 50) {
+						belowThreshold++;
+					}
+				}
+			}
+
 			teacherClassesWithCounts.push({
 				...cls,
 				studentCount: studentCountMap.get(cls.id) ?? 0,
-				assignmentCount: assignmentCountMap.get(cls.id) ?? 0
+				assignmentCount: assignmentCountMap.get(cls.id) ?? 0,
+				avgAccuracy: accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : null,
+				studentsBelowThreshold: belowThreshold
 			});
 		}
 	}
@@ -167,6 +259,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 				if (isRecord(a) && typeof a.id === 'string' && typeof a.title === 'string') {
 					studentAssignments.push({
 						id: a.id,
+						classId: typeof a.class_id === 'string' ? a.class_id : '',
 						title: a.title,
 						description: typeof a.description === 'string' ? a.description : null,
 						selectedCases: toStringArray(a.selected_cases),
@@ -206,22 +299,59 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	}
 
-	// Fetch archived classes for teachers
+	// Fetch archived classes for teachers (always check, even if no active classes)
 	const archivedClasses: ClassRow[] = [];
-	if (teacherClasses.length > 0) {
-		const { data: archivedData } = await supabase
-			.from('classes')
-			.select('id, name, class_code, level, archived, created_at')
-			.eq('teacher_id', user.id)
-			.eq('archived', true)
-			.order('created_at', { ascending: false });
+	const { data: archivedData } = await supabase
+		.from('classes')
+		.select('id, name, class_code, level, archived, created_at')
+		.eq('teacher_id', user.id)
+		.eq('archived', true)
+		.order('created_at', { ascending: false });
 
-		if (Array.isArray(archivedData)) {
-			for (const row of archivedData) {
-				if (isClassRow(row)) {
-					archivedClasses.push(row);
+	if (Array.isArray(archivedData)) {
+		for (const row of archivedData) {
+			if (isClassRow(row)) {
+				archivedClasses.push(row);
+			}
+		}
+	}
+
+	// For multi-class students, compute assignment summary per class
+	const studentClassSummaryList: Array<{
+		classId: string;
+		pendingCount: number;
+		overdueCount: number;
+		nextDueDate: string | null;
+	}> = [];
+	if (studentClasses.length > 0) {
+		const now = new Date();
+		for (const sc of studentClasses) {
+			const classAssignments = studentAssignments.filter((a) => a.classId === sc.classId);
+			let pendingCount = 0;
+			let overdueCount = 0;
+			let nextDueDate: string | null = null;
+
+			for (const a of classAssignments) {
+				const prog = studentProgressList.find((p) => p.assignmentId === a.id);
+				if (prog?.completedAt) continue;
+
+				pendingCount++;
+				if (a.dueDate) {
+					const due = new Date(a.dueDate);
+					if (due < now) {
+						overdueCount++;
+					}
+					if (!nextDueDate || due < new Date(nextDueDate)) {
+						nextDueDate = a.dueDate;
+					}
 				}
 			}
+			studentClassSummaryList.push({
+				classId: sc.classId,
+				pendingCount,
+				overdueCount,
+				nextDueDate
+			});
 		}
 	}
 
@@ -230,6 +360,32 @@ export const load: PageServerLoad = async ({ locals }) => {
 		archivedClasses,
 		studentClasses,
 		studentAssignments,
-		studentProgress: studentProgressList
+		studentProgress: studentProgressList,
+		studentClassSummaries: studentClassSummaryList
 	};
+};
+
+export const actions: Actions = {
+	saveName: async ({ request, locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const formData = await request.formData();
+		const raw = formData.get('display_name');
+		const name = typeof raw === 'string' ? raw.trim().slice(0, 50) : '';
+
+		if (name.length === 0) {
+			return fail(400, { message: 'Please enter a name.' });
+		}
+
+		// Upsert (rather than update) so this still works if the profile row is missing
+		// for any reason — e.g. the auth.handle_new_user trigger didn't fire.
+		const { error } = await locals.supabase
+			.from('profiles')
+			.upsert({ id: user.id, display_name: name }, { onConflict: 'id' });
+
+		if (error) return fail(500, { message: 'Failed to save name.' });
+
+		return { nameSuccess: true };
+	}
 };

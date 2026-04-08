@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { CASE_LABELS, DRILL_TYPE_LABELS } from '$lib/types';
@@ -19,6 +19,7 @@
 		numberMode: string;
 		contentMode: string;
 		targetQuestions: number;
+		minAccuracy: number | null;
 		dueDate: string | null;
 		createdAt: string;
 	}
@@ -30,6 +31,14 @@
 		accuracy: number;
 	}
 
+	interface MistakeEntry {
+		word: string;
+		expectedForm: string;
+		givenAnswer: string;
+		case: string;
+		number: string;
+	}
+
 	interface StudentProgress {
 		studentId: string;
 		displayName: string | null;
@@ -37,6 +46,7 @@
 		questionsCorrect: number;
 		completedAt: string | null;
 		caseScores: CaseAccuracy[];
+		mistakes: MistakeEntry[];
 	}
 
 	function isAssignment(v: unknown): v is AssignmentDetail {
@@ -54,6 +64,17 @@
 		);
 	}
 
+	function isMistakeEntry(v: unknown): v is MistakeEntry {
+		if (!isRecord(v)) return false;
+		return (
+			typeof v.word === 'string' &&
+			typeof v.expectedForm === 'string' &&
+			typeof v.givenAnswer === 'string' &&
+			typeof v.case === 'string' &&
+			typeof v.number === 'string'
+		);
+	}
+
 	function isProgressArray(v: unknown): v is StudentProgress[] {
 		if (!Array.isArray(v)) return false;
 		return v.every(
@@ -62,7 +83,9 @@
 				typeof item.studentId === 'string' &&
 				typeof item.questionsAttempted === 'number' &&
 				Array.isArray(item.caseScores) &&
-				item.caseScores.every((c: unknown) => isCaseAccuracy(c))
+				item.caseScores.every((c: unknown) => isCaseAccuracy(c)) &&
+				Array.isArray(item.mistakes) &&
+				item.mistakes.every((m: unknown) => isMistakeEntry(m))
 		);
 	}
 
@@ -75,7 +98,7 @@
 	}
 
 	let classData = $derived.by(() => {
-		const val: unknown = $page.data.classData;
+		const val: unknown = page.data.classData;
 		if (isRecord(val) && typeof val.id === 'string') {
 			return { id: val.id, name: typeof val.name === 'string' ? val.name : '' };
 		}
@@ -83,17 +106,17 @@
 	});
 
 	let role = $derived.by(() => {
-		const val: unknown = $page.data.role;
+		const val: unknown = page.data.role;
 		return val === 'teacher' || val === 'student' ? val : 'student';
 	});
 
 	let assignment = $derived.by(() => {
-		const val: unknown = $page.data.assignment;
+		const val: unknown = page.data.assignment;
 		return isAssignment(val) ? val : null;
 	});
 
 	let studentProgress = $derived.by(() => {
-		const val: unknown = $page.data.studentProgress;
+		const val: unknown = page.data.studentProgress;
 		return isProgressArray(val) ? val : [];
 	});
 
@@ -101,7 +124,9 @@
 	let assignmentCases = $derived.by((): Case[] => {
 		if (!assignment) return [];
 		const cases = assignment.selectedCases.filter((c): c is Case => isCaseKey(c));
-		return cases.length > 0 ? cases : (['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'] as Case[]);
+		if (cases.length > 0) return cases;
+		const defaults: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+		return defaults;
 	});
 
 	function numberModeLabel(mode: string): string {
@@ -117,6 +142,25 @@
 	}
 
 	let confirmingDelete = $state(false);
+	let duplicating = $state(false);
+	let retrying = $state(false);
+	let showMistakes = $state(false);
+
+	function caseLabelFromKey(key: string): string {
+		if (isCaseKey(key)) return CASE_LABELS[key];
+		return key;
+	}
+
+	function numberLabel(n: string): string {
+		if (n === 'sg') return 'Singular';
+		if (n === 'pl') return 'Plural';
+		return n;
+	}
+
+	function cappedAttempted(attempted: number): number {
+		if (!assignment) return attempted;
+		return Math.min(attempted, assignment.targetQuestions);
+	}
 
 	function accuracy(attempted: number, correct: number): string {
 		if (attempted === 0) return '-';
@@ -124,9 +168,9 @@
 	}
 
 	function caseAccuracyColor(pct: number): string {
-		if (pct > 70) return 'bg-green-100 text-green-700';
-		if (pct >= 40) return 'bg-yellow-100 text-yellow-700';
-		return 'bg-red-100 text-red-700';
+		if (pct > 70) return 'bg-positive-background text-positive-stroke';
+		if (pct >= 40) return 'bg-warning-background text-warning-text';
+		return 'bg-negative-background text-negative-stroke';
 	}
 
 	function findCaseScore(scores: CaseAccuracy[], caseKey: string): CaseAccuracy | undefined {
@@ -135,10 +179,10 @@
 </script>
 
 <svelte:head>
-	<title>{assignment?.title ?? 'Assignment'} - Skloňuj</title>
+	<title>{assignment?.title ?? 'Assignment'} - Sklonuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 {#if classData && assignment}
 	<div class="mx-auto max-w-4xl px-4 py-8">
@@ -161,6 +205,12 @@
 					<span class="font-medium text-text-default">Target:</span>
 					{assignment.targetQuestions} questions
 				</div>
+				{#if assignment.minAccuracy !== null}
+					<div>
+						<span class="font-medium text-text-default">Min Accuracy:</span>
+						{assignment.minAccuracy}%
+					</div>
+				{/if}
 				<div>
 					<span class="font-medium text-text-default">Number:</span>
 					{numberModeLabel(assignment.numberMode)}
@@ -172,13 +222,14 @@
 				{#if assignment.dueDate}
 					<div>
 						<span class="font-medium text-text-default">Due:</span>
-						{new Date(assignment.dueDate).toLocaleDateString(undefined, {
+						{new Date(assignment.dueDate).toLocaleDateString('en-US', {
+							timeZone: 'UTC',
 							month: 'short',
 							day: 'numeric',
 							year: 'numeric',
 							hour: '2-digit',
 							minute: '2-digit'
-						})}
+						})} UTC
 					</div>
 				{/if}
 			</div>
@@ -203,19 +254,38 @@
 
 		{#if role === 'teacher'}
 			<!-- Teacher actions -->
-			<div class="mb-6 flex items-center gap-2">
+			<div class="mb-6 flex flex-wrap items-center gap-2">
 				<a
 					href={resolve(`/classes/${classData.id}/assignments/${assignment.id}/edit`)}
-					class="rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+					class="rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 				>
 					Edit Assignment
 				</a>
+				<form
+					method="POST"
+					action="?/duplicate"
+					use:enhance={() => {
+						duplicating = true;
+						return async ({ update }) => {
+							duplicating = false;
+							await update();
+						};
+					}}
+				>
+					<button
+						type="submit"
+						disabled={duplicating}
+						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default disabled:opacity-50"
+					>
+						{duplicating ? 'Duplicating...' : 'Duplicate'}
+					</button>
+				</form>
 				{#if confirmingDelete}
-					<span class="text-xs text-text-subtitle">Are you sure?</span>
+					<span class="text-sm text-text-subtitle">Are you sure?</span>
 					<form method="POST" action="?/delete" use:enhance>
 						<button
 							type="submit"
-							class="cursor-pointer rounded-full border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+							class="cursor-pointer rounded-xl border border-negative-stroke px-4 py-2 text-sm font-medium text-negative-stroke transition-colors hover:bg-negative-background"
 						>
 							Yes, Delete
 						</button>
@@ -223,7 +293,7 @@
 					<button
 						type="button"
 						onclick={() => (confirmingDelete = false)}
-						class="cursor-pointer rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
+						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 					>
 						Cancel
 					</button>
@@ -231,7 +301,7 @@
 					<button
 						type="button"
 						onclick={() => (confirmingDelete = true)}
-						class="cursor-pointer rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:border-red-300 hover:text-red-600"
+						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-negative-stroke transition-colors hover:border-negative-stroke hover:bg-negative-background"
 					>
 						Delete Assignment
 					</button>
@@ -265,7 +335,7 @@
 											{sp.displayName ?? 'Anonymous'}
 										</td>
 										<td class="px-4 py-3 text-text-subtitle">
-											{sp.questionsAttempted}/{assignment.targetQuestions}
+											{cappedAttempted(sp.questionsAttempted)}/{assignment.targetQuestions}
 										</td>
 										<td class="px-4 py-3 text-text-subtitle">
 											{accuracy(sp.questionsAttempted, sp.questionsCorrect)}
@@ -273,13 +343,13 @@
 										<td class="px-4 py-3">
 											{#if sp.completedAt}
 												<span
-													class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700"
+													class="rounded-full bg-positive-background px-2 py-0.5 text-xs font-medium text-positive-stroke"
 												>
 													Completed
 												</span>
 											{:else if sp.questionsAttempted > 0}
 												<span
-													class="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700"
+													class="rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
 												>
 													In Progress
 												</span>
@@ -324,8 +394,8 @@
 				<h2 class="mb-4 text-lg font-semibold text-text-default">Your Progress</h2>
 				{#if studentProgress.length > 0}
 					{@const myProgress = studentProgress[0]}
-					<div class="mb-4 grid grid-cols-3 gap-4">
-						<div class="text-center">
+					<div class="mb-4 grid grid-cols-3 gap-3">
+						<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
 							<p class="text-2xl font-bold text-text-default">
 								{myProgress.questionsAttempted}
 							</p>
@@ -333,34 +403,128 @@
 								of {assignment.targetQuestions} attempted
 							</p>
 						</div>
-						<div class="text-center">
+						<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
 							<p class="text-2xl font-bold text-text-default">
 								{accuracy(myProgress.questionsAttempted, myProgress.questionsCorrect)}
 							</p>
 							<p class="text-xs text-text-subtitle">accuracy</p>
 						</div>
-						<div class="text-center">
+						<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
 							{#if myProgress.completedAt}
-								<p class="text-2xl font-bold text-green-600">Done</p>
+								<p class="text-2xl font-bold text-positive-stroke">Done</p>
 								<p class="text-xs text-text-subtitle">completed</p>
 							{:else}
-								<p class="text-2xl font-bold text-yellow-600">In Progress</p>
+								<p class="text-2xl font-bold text-warning-text">In Progress</p>
 								<p class="text-xs text-text-subtitle">keep going!</p>
 							{/if}
 						</div>
 					</div>
+
+					<!-- Student case scores -->
+					{#if myProgress.caseScores.length > 0}
+						<div class="mb-4">
+							<h3 class="mb-2 text-sm font-medium text-text-default">Case Accuracy</h3>
+							<div class="flex flex-wrap gap-1.5">
+								{#each assignmentCases as c (c)}
+									{@const score = findCaseScore(myProgress.caseScores, c)}
+									<div
+										class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs {score
+											? caseAccuracyColor(score.accuracy)
+											: 'bg-shaded-background text-text-subtitle'}"
+									>
+										<span class="font-medium">{CASE_LABELS[c].slice(0, 3)}</span>
+										<span>{score ? `${Math.round(score.accuracy)}%` : '--'}</span>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+					<!-- Review Mistakes section -->
+					{#if myProgress.mistakes.length > 0}
+						<div class="mb-4">
+							<button
+								type="button"
+								onclick={() => (showMistakes = !showMistakes)}
+								class="mb-2 cursor-pointer text-sm font-medium text-emphasis transition-opacity hover:opacity-80"
+							>
+								{showMistakes ? 'Hide Mistakes' : `Review Mistakes (${myProgress.mistakes.length})`}
+							</button>
+							{#if showMistakes}
+								<div class="overflow-hidden rounded-xl border border-card-stroke">
+									<table class="w-full text-sm">
+										<thead>
+											<tr class="border-b border-card-stroke bg-shaded-background">
+												<th class="px-3 py-2 text-left font-medium text-text-subtitle">Word</th>
+												<th class="px-3 py-2 text-left font-medium text-text-subtitle">Expected</th>
+												<th class="px-3 py-2 text-left font-medium text-text-subtitle"
+													>Your Answer</th
+												>
+												<th class="px-3 py-2 text-left font-medium text-text-subtitle">Case</th>
+											</tr>
+										</thead>
+										<tbody>
+											{#each myProgress.mistakes as mistake, i (i)}
+												<tr class="border-b border-card-stroke last:border-b-0">
+													<td class="px-3 py-2 text-text-default">{mistake.word}</td>
+													<td class="px-3 py-2 font-medium text-positive-stroke"
+														>{mistake.expectedForm}</td
+													>
+													<td class="px-3 py-2 text-negative-stroke">{mistake.givenAnswer}</td>
+													<td class="px-3 py-2 text-text-subtitle">
+														{caseLabelFromKey(mistake.case)}
+														<span class="text-xs">({numberLabel(mistake.number)})</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							{/if}
+						</div>
+					{/if}
 				{:else}
 					<p class="mb-4 text-sm text-text-subtitle">You haven't started this assignment yet.</p>
 				{/if}
 
-				<a
-					href="{resolve('/')}?assignment={assignment.id}"
-					class="inline-block rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted"
-				>
-					{studentProgress.length > 0 && !studentProgress[0].completedAt
-						? 'Continue Practice'
-						: 'Start Practice'}
-				</a>
+				<div class="flex flex-wrap items-center gap-2">
+					<a
+						href="{resolve('/')}?assignment={assignment.id}"
+						class="inline-block rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+					>
+						{studentProgress.length > 0 && !studentProgress[0].completedAt
+							? 'Continue Practice'
+							: 'Start Practice'}
+					</a>
+
+					{#if studentProgress.length > 0 && studentProgress[0].completedAt}
+						<form
+							method="POST"
+							action="?/retry"
+							use:enhance={() => {
+								retrying = true;
+								return async ({ update }) => {
+									retrying = false;
+									await update();
+								};
+							}}
+						>
+							<button
+								type="submit"
+								disabled={retrying}
+								onclick={(e: MouseEvent) => {
+									if (
+										!confirm('This will reset your progress for this assignment. Are you sure?')
+									) {
+										e.preventDefault();
+									}
+								}}
+								class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default disabled:opacity-50"
+							>
+								{retrying ? 'Resetting...' : 'Retry Assignment'}
+							</button>
+						</form>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</div>

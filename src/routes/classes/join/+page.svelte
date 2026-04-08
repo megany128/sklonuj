@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
@@ -8,7 +8,7 @@
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
 	}
 
-	let formResult = $derived($page.form);
+	let formResult = $derived(page.form);
 	let errorMessage = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.message === 'string') {
 			return formResult.message;
@@ -17,7 +17,7 @@
 	});
 
 	let prefillCode = $derived.by(() => {
-		const val: unknown = $page.data.code;
+		const val: unknown = page.data.code;
 		return typeof val === 'string' ? val : '';
 	});
 
@@ -35,7 +35,7 @@
 	<title>Join Class - Skloňuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 <div class="mx-auto max-w-lg px-4 py-8">
 	<a
@@ -52,7 +52,9 @@
 		</p>
 
 		{#if errorMessage}
-			<div class="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+			<div
+				class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+			>
 				{errorMessage}
 			</div>
 		{/if}
@@ -87,7 +89,7 @@
 			<button
 				type="submit"
 				disabled={submitting}
-				class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity disabled:opacity-50"
+				class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 			>
 				{submitting ? 'Joining...' : 'Join Class'}
 			</button>

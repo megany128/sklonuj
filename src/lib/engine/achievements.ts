@@ -1,4 +1,5 @@
 import { get } from 'svelte/store';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { progress, getAllCaseStrengths } from './progress';
 import { ALL_CASES } from '../types';
 
@@ -247,8 +248,12 @@ function saveEarnedBadges(badges: Record<string, EarnedBadge>): void {
 /**
  * Check all unearned badges and award any that pass their check.
  * Returns an array of newly earned badge definitions.
+ * If a Supabase client is provided, newly earned badges are also inserted remotely.
  */
-export function checkAndAwardBadges(context: BadgeCheckContext): BadgeDefinition[] {
+export function checkAndAwardBadges(
+	context: BadgeCheckContext,
+	supabase?: SupabaseClient
+): BadgeDefinition[] {
 	const earned = loadEarnedBadges();
 	const newlyEarned: BadgeDefinition[] = [];
 
@@ -262,6 +267,26 @@ export function checkAndAwardBadges(context: BadgeCheckContext): BadgeDefinition
 
 	if (newlyEarned.length > 0) {
 		saveEarnedBadges(earned);
+
+		// Fire-and-forget remote insert for newly earned badges
+		if (supabase) {
+			supabase.auth.getUser().then(({ data: userData }) => {
+				const userId = userData?.user?.id;
+				if (!userId) return;
+
+				const rows = newlyEarned.map((b) => ({
+					user_id: userId,
+					badge_id: b.id,
+					earned_at: earned[b.id].earnedAt
+				}));
+				supabase
+					.from('user_badges')
+					.upsert(rows, { onConflict: 'user_id,badge_id' })
+					.then(({ error }) => {
+						if (error) console.error('Failed to sync new badges to Supabase:', error);
+					});
+			});
+		}
 	}
 
 	return newlyEarned;
@@ -283,4 +308,91 @@ export function getAllBadges(): BadgeWithStatus[] {
 			earnedAt: entry?.earnedAt ?? null
 		};
 	});
+}
+
+/**
+ * Upsert all localStorage badges to the remote `user_badges` table.
+ */
+export async function syncBadgesToSupabase(supabase: SupabaseClient): Promise<void> {
+	const earned = loadEarnedBadges();
+	const ids = Object.keys(earned);
+	if (ids.length === 0) return;
+
+	const { data: userData } = await supabase.auth.getUser();
+	const userId = userData?.user?.id;
+	if (!userId) return;
+
+	const rows = ids.map((badgeId) => ({
+		user_id: userId,
+		badge_id: badgeId,
+		earned_at: earned[badgeId].earnedAt
+	}));
+
+	const { error } = await supabase
+		.from('user_badges')
+		.upsert(rows, { onConflict: 'user_id,badge_id' });
+
+	if (error) {
+		console.error('Failed to upsert badges to Supabase:', error);
+	}
+}
+
+/**
+ * Fetch badges from `user_badges` and merge with localStorage (union of both).
+ * The earliest earnedAt is kept when both sides have the same badge.
+ */
+export async function loadBadgesFromSupabase(supabase: SupabaseClient): Promise<void> {
+	const { data: userData } = await supabase.auth.getUser();
+	const userId = userData?.user?.id;
+	if (!userId) return;
+
+	const { data, error } = await supabase
+		.from('user_badges')
+		.select('badge_id, earned_at')
+		.eq('user_id', userId);
+
+	if (error) {
+		console.error('Failed to load badges from Supabase:', error);
+		return;
+	}
+
+	const local = loadEarnedBadges();
+
+	interface BadgeRow {
+		badge_id: string;
+		earned_at: string;
+	}
+
+	function isRecord(value: unknown): value is Record<string, unknown> {
+		return typeof value === 'object' && value !== null && !Array.isArray(value);
+	}
+
+	function toBadgeRows(value: unknown): BadgeRow[] {
+		if (!Array.isArray(value)) return [];
+		const result: BadgeRow[] = [];
+		for (const entry of value) {
+			if (!isRecord(entry)) continue;
+			const badgeId = entry['badge_id'];
+			const earnedAt = entry['earned_at'];
+			if (typeof badgeId === 'string' && typeof earnedAt === 'string') {
+				result.push({ badge_id: badgeId, earned_at: earnedAt });
+			}
+		}
+		return result;
+	}
+
+	const rows = toBadgeRows(data);
+	for (const row of rows) {
+		const existing = local[row.badge_id];
+		if (!existing) {
+			local[row.badge_id] = { earnedAt: row.earned_at };
+		} else {
+			// Keep the earlier date
+			if (row.earned_at < existing.earnedAt) {
+				local[row.badge_id] = { earnedAt: row.earned_at };
+			}
+		}
+	}
+
+	saveEarnedBadges(local);
 }

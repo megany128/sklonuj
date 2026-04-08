@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
+	import { syncBadgesToSupabase, loadBadgesFromSupabase } from '$lib/engine/achievements';
+	import { syncStreakToSupabase, loadStreakFromSupabase } from '$lib/engine/streak';
 	import type { Progress, CaseScore, Difficulty } from '$lib/types';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
@@ -16,18 +18,58 @@
 
 	/** Track the last merged user ID to prevent duplicate merge operations on repeated SIGNED_IN events. */
 	let lastMergedUserId: string | null = null;
+	/** Track the last user ID whose badges/streaks were synced, to dedupe across onMount and SIGNED_IN. */
+	let badgeStreakSyncedUserId: string | null = null;
+	/** In-flight badge/streak sync promise, so concurrent callers await the same work. */
+	let badgeStreakSyncInFlight: Promise<void> | null = null;
+
+	async function syncBadgesAndStreaks(
+		client: ReturnType<typeof getSupabaseBrowserClient>,
+		userId: string
+	): Promise<void> {
+		if (badgeStreakSyncedUserId === userId) return;
+		if (badgeStreakSyncInFlight) {
+			await badgeStreakSyncInFlight;
+			if (badgeStreakSyncedUserId === userId) return;
+		}
+		badgeStreakSyncInFlight = (async () => {
+			try {
+				await loadBadgesFromSupabase(client);
+				await syncBadgesToSupabase(client);
+				await loadStreakFromSupabase(client);
+				await syncStreakToSupabase(client);
+				badgeStreakSyncedUserId = userId;
+			} catch (err) {
+				console.error('Error syncing badges/streaks:', err);
+			} finally {
+				badgeStreakSyncInFlight = null;
+			}
+		})();
+		await badgeStreakSyncInFlight;
+	}
+
+	/** Offline detection */
+	let isOffline = $state(false);
+
+	function isRecord(v: unknown): v is Record<string, unknown> {
+		return typeof v === 'object' && v !== null && !Array.isArray(v);
+	}
+
+	const DIFFICULTY_SET: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2']);
+	function isDifficulty(value: unknown): value is Difficulty {
+		return typeof value === 'string' && DIFFICULTY_SET.has(value);
+	}
 
 	/** Validate that an unknown value is a Record<string, CaseScore>. */
 	function isValidScoresRecord(value: unknown): value is Record<string, CaseScore> {
-		if (typeof value !== 'object' || value === null) return false;
-		for (const v of Object.values(value as Record<string, unknown>)) {
+		if (!isRecord(value)) return false;
+		for (const v of Object.values(value)) {
 			if (
-				typeof v !== 'object' ||
-				v === null ||
+				!isRecord(v) ||
 				!('attempts' in v) ||
 				!('correct' in v) ||
-				typeof (v as Record<string, unknown>).attempts !== 'number' ||
-				typeof (v as Record<string, unknown>).correct !== 'number'
+				typeof v.attempts !== 'number' ||
+				typeof v.correct !== 'number'
 			) {
 				return false;
 			}
@@ -35,12 +77,10 @@
 		return true;
 	}
 
-	const VALID_LEVELS: ReadonlySet<string> = new Set(['A1', 'A2', 'B1', 'B2']);
-
 	/** Safely parse remote Supabase row into a Progress object, returning null on invalid data. */
 	function parseRemoteProgress(row: Record<string, unknown>): Progress | null {
 		const level = row.level;
-		if (typeof level !== 'string' || !VALID_LEVELS.has(level)) return null;
+		if (!isDifficulty(level)) return null;
 
 		const caseScores = row.case_scores ?? {};
 		const paradigmScores = row.paradigm_scores ?? {};
@@ -51,7 +91,7 @@
 		if (typeof row.user_id !== 'string') return null;
 
 		return {
-			level: level as Difficulty,
+			level,
 			caseScores,
 			paradigmScores,
 			lastSession: typeof lastSession === 'string' ? lastSession : ''
@@ -65,29 +105,74 @@
 	onMount(() => {
 		initPostHog();
 
-		const pageData = $page.data;
-		if (pageData.user && pageData.savedProgress) {
-			const sp = pageData.savedProgress;
+		// Offline detection
+		isOffline = !navigator.onLine;
+		const goOffline = () => (isOffline = true);
+		const goOnline = () => (isOffline = false);
+		window.addEventListener('offline', goOffline);
+		window.addEventListener('online', goOnline);
+
+		const pageData = page.data;
+		const spRaw = pageData.savedProgress;
+		const spLevel = spRaw?.level;
+		if (pageData.user && spRaw && isDifficulty(spLevel)) {
 			const serverProgress: Progress = {
-				level: sp.level as Difficulty,
-				caseScores: sp.case_scores,
-				paradigmScores: sp.paradigm_scores,
-				lastSession: sp.last_session
+				level: spLevel,
+				caseScores: spRaw.case_scores,
+				paradigmScores: spRaw.paradigm_scores,
+				lastSession: spRaw.last_session
 			};
 			const localProgress = loadProgressFromLocalStorage();
 			const storedUserId = localStorage.getItem(STORAGE_USER_KEY);
 			const isOrphanedFromOtherUser =
 				storedUserId !== null && storedUserId !== '' && storedUserId !== pageData.user.id;
 
+			const initSupabase = getSupabaseBrowserClient();
+
+			const mergedUserId = pageData.user.id;
+
 			if (localProgress && hasAnyProgress(localProgress) && !isOrphanedFromOtherUser) {
 				// Merge local guest progress with server progress
-				progress.set(mergeProgress(localProgress, serverProgress));
+				const merged = mergeProgress(localProgress, serverProgress);
+				progress.set(merged);
+				// Persist the merged result back to Supabase so the guest-accumulated
+				// case/paradigm scores are not lost on the next sign-in from another
+				// device. The SIGNED_IN auth handler below is short-circuited by
+				// lastMergedUserId, so this onMount branch must push the merge itself.
+				// If the update fails, retry via upsert on the next drill result by
+				// leaving the in-memory store dirty — the progress store's own
+				// debounced sync will pick it up.
+				void (async () => {
+					const { error: mergeUpdateError } = await initSupabase
+						.from('user_progress')
+						.update({
+							level: merged.level,
+							case_scores: merged.caseScores,
+							paradigm_scores: merged.paradigmScores,
+							last_session: merged.lastSession,
+							updated_at: new Date().toISOString()
+						})
+						.eq('user_id', mergedUserId);
+					if (mergeUpdateError) {
+						console.error(
+							'Failed to persist merged guest progress; will retry on next sync:',
+							mergeUpdateError
+						);
+						// Nudge the store so its debounced syncToSupabase re-flushes with the merge.
+						progress.set(merged);
+					}
+				})();
 			} else {
 				progress.set(serverProgress);
 			}
 			localStorage.setItem(STORAGE_USER_KEY, pageData.user.id);
 			lastMergedUserId = pageData.user.id;
 			posthog.identify(pageData.user.id);
+
+			// Sync badges and streaks on initial page load for logged-in users.
+			// Guarded by badgeStreakSyncedUserId so the SIGNED_IN auth handler
+			// below doesn't race this path on a fresh sign-in.
+			void syncBadgesAndStreaks(initSupabase, pageData.user.id);
 		}
 
 		const supabase = getSupabaseBrowserClient();
@@ -98,11 +183,10 @@
 			async (_event: string, session: { user?: { id: string } } | null) => {
 				const isSignIn =
 					_event === 'SIGNED_IN' || (_event === 'INITIAL_SESSION' && !!session?.user);
-				// Don't treat INITIAL_SESSION without a browser session as sign-out
-				// when we already hydrated from server data (lastMergedUserId is set).
-				const isSignOut =
-					_event === 'SIGNED_OUT' ||
-					(_event === 'INITIAL_SESSION' && !session?.user && !lastMergedUserId);
+				// Only treat an explicit SIGNED_OUT as sign-out. INITIAL_SESSION
+				// without a user fires on every guest page load and must NOT
+				// clobber guest-mode localStorage progress.
+				const isSignOut = _event === 'SIGNED_OUT';
 
 				if (isSignIn) {
 					const userId = session?.user?.id ?? '';
@@ -131,7 +215,7 @@
 							console.error('Failed to fetch remote progress:', selectError);
 						} else if (usableLocalProgress && remoteData) {
 							// Both local and remote exist — merge them
-							const remoteProgress = parseRemoteProgress(remoteData as Record<string, unknown>);
+							const remoteProgress = isRecord(remoteData) ? parseRemoteProgress(remoteData) : null;
 
 							if (remoteProgress) {
 								const merged = mergeProgress(usableLocalProgress, remoteProgress);
@@ -176,7 +260,7 @@
 							progress.set(usableLocalProgress);
 						} else if (remoteData) {
 							// No usable local progress — load from Supabase
-							const parsed = parseRemoteProgress(remoteData as Record<string, unknown>);
+							const parsed = isRecord(remoteData) ? parseRemoteProgress(remoteData) : null;
 							if (parsed) {
 								progress.set(parsed);
 							} else {
@@ -191,6 +275,10 @@
 						localStorage.setItem(STORAGE_USER_KEY, userId);
 						lastMergedUserId = userId;
 						posthog.identify(userId);
+
+						// Sync badges and streaks with Supabase (merge local + remote).
+						// Deduped against onMount's initial sync via badgeStreakSyncedUserId.
+						await syncBadgesAndStreaks(supabase, userId);
 					} catch (err) {
 						console.error('Error during SIGNED_IN progress sync:', err);
 					}
@@ -198,6 +286,7 @@
 
 				if (isSignOut) {
 					lastMergedUserId = null;
+					badgeStreakSyncedUserId = null;
 					localStorage.removeItem(STORAGE_USER_KEY);
 					clearProgress();
 					posthog.reset();
@@ -215,6 +304,8 @@
 
 		return () => {
 			subscription.unsubscribe();
+			window.removeEventListener('offline', goOffline);
+			window.removeEventListener('online', goOnline);
 		};
 	});
 
@@ -231,6 +322,11 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
+	{#if isOffline}
+		<div class="bg-warning-background px-4 py-2 text-center text-xs font-medium text-warning-text">
+			You're offline — practice still works, but progress won't sync or count toward assignments
+		</div>
+	{/if}
 	<div class="flex-1">{@render children()}</div>
 
 	<footer class="py-6 text-center text-xs text-text-subtitle">

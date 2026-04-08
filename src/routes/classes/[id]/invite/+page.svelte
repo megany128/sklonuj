@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
@@ -24,7 +24,7 @@
 	}
 
 	let classData = $derived.by(() => {
-		const val: unknown = $page.data.classData;
+		const val: unknown = page.data.classData;
 		if (isRecord(val) && typeof val.id === 'string' && typeof val.class_code === 'string') {
 			return {
 				id: val.id,
@@ -35,12 +35,24 @@
 		return null;
 	});
 
+	// Local override so the displayed code updates immediately after a
+	// successful regenerate, without waiting for a full page reload.
+	let overriddenClassCode = $state<string | null>(null);
+	let displayedClassCode = $derived(overriddenClassCode ?? classData?.class_code ?? '');
+
+	$effect(() => {
+		const serverCode = classData?.class_code;
+		if (overriddenClassCode !== null && serverCode === overriddenClassCode) {
+			overriddenClassCode = null;
+		}
+	});
+
 	let invitations = $derived.by(() => {
-		const val: unknown = $page.data.invitations;
+		const val: unknown = page.data.invitations;
 		return isInvitationArray(val) ? val : [];
 	});
 
-	let formResult = $derived($page.form);
+	let formResult = $derived(page.form);
 	let errorMessage = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.message === 'string' && !formResult.success) {
 			return formResult.message;
@@ -60,10 +72,12 @@
 
 	let codeCopied = $state(false);
 	let submitting = $state(false);
+	let confirmingRegenerate = $state(false);
+	let regenerateSuccess = $state(false);
 
 	function copyCode() {
-		if (!classData) return;
-		navigator.clipboard.writeText(classData.class_code);
+		if (!displayedClassCode) return;
+		navigator.clipboard.writeText(displayedClassCode);
 		codeCopied = true;
 		setTimeout(() => {
 			codeCopied = false;
@@ -78,8 +92,8 @@
 	}
 
 	function statusColor(status: string): string {
-		if (status === 'pending') return 'text-yellow-600';
-		if (status === 'accepted') return 'text-green-600';
+		if (status === 'pending') return 'text-warning-text';
+		if (status === 'accepted') return 'text-positive-stroke';
 		if (status === 'expired') return 'text-text-subtitle';
 		return 'text-text-subtitle';
 	}
@@ -89,7 +103,7 @@
 	<title>Invite Students - Skloňuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">
@@ -108,15 +122,86 @@
 				<p class="mb-2 text-sm text-text-subtitle">Share this class code with students:</p>
 				<div class="flex items-center gap-2">
 					<span class="font-mono text-2xl font-bold tracking-widest text-text-default">
-						{classData.class_code}
+						{displayedClassCode}
 					</span>
 					<button
 						type="button"
 						onclick={copyCode}
-						class="cursor-pointer rounded-full border border-card-stroke px-3 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+						class="cursor-pointer rounded-xl border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 					>
 						{codeCopied ? 'Copied!' : 'Copy'}
 					</button>
+					{#if confirmingRegenerate}
+						<form
+							method="POST"
+							action={resolve(`/classes/${classData.id}?/regenerateCode`)}
+							use:enhance={() => {
+								return async ({ result, update }) => {
+									confirmingRegenerate = false;
+									if (result.type === 'success') {
+										regenerateSuccess = true;
+										if (isRecord(result.data) && typeof result.data.classCode === 'string') {
+											overriddenClassCode = result.data.classCode;
+										}
+										setTimeout(() => {
+											regenerateSuccess = false;
+										}, 2000);
+									}
+									await update();
+								};
+							}}
+						>
+							<button
+								type="submit"
+								class="cursor-pointer rounded-xl border border-negative-stroke px-2.5 py-1 text-xs font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+							>
+								Confirm
+							</button>
+						</form>
+						<button
+							type="button"
+							onclick={() => (confirmingRegenerate = false)}
+							class="cursor-pointer rounded-xl border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+						>
+							Cancel
+						</button>
+					{:else}
+						<button
+							type="button"
+							title="Regenerate class code"
+							aria-label="Regenerate class code"
+							onclick={() => (confirmingRegenerate = true)}
+							class="inline-flex cursor-pointer items-center justify-center rounded-full p-1.5 text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+						>
+							{#if regenerateSuccess}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-4 w-4 text-positive-stroke"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							{:else}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-4 w-4"
+								>
+									<path
+										fill-rule="evenodd"
+										d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.364.363a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.112-.231Zm-1.097-7.228a.75.75 0 0 0-.024-1.06 7 7 0 0 0-11.712 3.138.75.75 0 0 0 1.112.231 5.5 5.5 0 0 1 9.201-2.466l.312.311H10.67a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V1.66a.75.75 0 0 0-1.5 0v2.033l-.364-.363a7.012 7.012 0 0 0 .025-.134Z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							{/if}
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -124,14 +209,16 @@
 			<h2 class="mb-2 text-sm font-semibold text-text-default">Or invite by email</h2>
 
 			{#if errorMessage}
-				<div class="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+				<div
+					class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+				>
 					{errorMessage}
 				</div>
 			{/if}
 
 			{#if successMessage}
 				<div
-					class="mb-4 rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-700"
+					class="mb-4 rounded-xl border border-positive-stroke/30 bg-positive-background px-4 py-3 text-sm text-positive-stroke"
 				>
 					{successMessage}
 				</div>
@@ -161,7 +248,7 @@
 					<button
 						type="submit"
 						disabled={submitting}
-						class="self-end rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity disabled:opacity-50"
+						class="self-end rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 					>
 						{submitting ? 'Sending...' : 'Send Invites'}
 					</button>
@@ -181,9 +268,22 @@
 							class="flex items-center justify-between rounded-xl bg-shaded-background px-3 py-2"
 						>
 							<span class="text-sm text-text-default">{inv.email}</span>
-							<span class="text-xs font-medium {statusColor(inv.status)}">
-								{statusLabel(inv.status)}
-							</span>
+							<div class="flex items-center gap-2">
+								<span class="text-xs font-medium {statusColor(inv.status)}">
+									{statusLabel(inv.status)}
+								</span>
+								{#if inv.status === 'expired'}
+									<form method="POST" use:enhance>
+										<input type="hidden" name="emails" value={inv.email} />
+										<button
+											type="submit"
+											class="cursor-pointer rounded-lg border border-card-stroke px-2 py-0.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+										>
+											Re-send
+										</button>
+									</form>
+								{/if}
+							</div>
 						</div>
 					{/each}
 				</div>

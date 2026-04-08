@@ -1,28 +1,37 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { streak } from '$lib/engine/streak';
+	import {
+		darkMode as darkModeStore,
+		initDarkMode,
+		toggleDarkMode as toggleDarkModeFn
+	} from '$lib/darkmode';
+	import { onMount } from 'svelte';
 
-	let isResourcesPage = $derived($page.url.pathname.startsWith('/resources'));
-	let isClassesPage = $derived($page.url.pathname.startsWith('/classes'));
+	let isPracticePage = $derived(page.url.pathname === '/');
+	let isResourcesPage = $derived(page.url.pathname.startsWith('/resources'));
+	let isClassesPage = $derived(page.url.pathname.startsWith('/classes'));
+
+	let pendingAssignmentCount = $derived(
+		typeof page.data.pendingAssignmentCount === 'number' ? page.data.pendingAssignmentCount : 0
+	);
 
 	let {
-		activePage,
-		onNavigate,
-		darkMode = false,
-		onToggleDarkMode,
 		user = null,
 		onSignIn,
 		isHomePage = false
 	}: {
-		activePage?: 'exercises' | 'lookup' | undefined;
-		onNavigate?: (page: 'exercises' | 'lookup') => void;
-		darkMode?: boolean;
-		onToggleDarkMode?: () => void;
 		user?: { id: string; email?: string } | null;
 		onSignIn?: () => void;
 		isHomePage?: boolean;
 	} = $props();
+
+	onMount(() => {
+		initDarkMode();
+	});
+
+	let darkMode = $derived($darkModeStore);
 
 	const AVATAR_COLORS = [
 		'var(--color-case-gen)',
@@ -131,11 +140,7 @@
 <nav
 	class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-card-stroke bg-card-bg px-3 sm:h-16 sm:px-6"
 >
-	<button
-		type="button"
-		class="flex shrink-0 cursor-pointer items-baseline gap-1.5 sm:gap-2"
-		onclick={() => onNavigate?.('exercises')}
-	>
+	<a href={resolve('/')} class="flex shrink-0 items-baseline gap-1.5 sm:gap-2">
 		{#if isHomePage}
 			<h1 class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg">
 				Skloňuj
@@ -146,31 +151,17 @@
 			>
 		{/if}
 		<span class="hidden text-sm text-text-subtitle sm:inline">decline it!</span>
-	</button>
+	</a>
 	<div class="flex items-center gap-2 sm:gap-4">
-		{#if onNavigate}
-			<button
-				type="button"
-				onclick={() => onNavigate?.('exercises')}
-				class="nav-tab cursor-pointer text-xs transition-colors sm:text-sm {activePage ===
-				'exercises'
-					? 'font-semibold text-text-default'
-					: 'text-text-subtitle hover:text-text-default'}"
-				data-label="Exercises"
-			>
-				Exercises
-			</button>
-			<button
-				type="button"
-				onclick={() => onNavigate?.('lookup')}
-				class="nav-tab cursor-pointer text-xs transition-colors sm:text-sm {activePage === 'lookup'
-					? 'font-semibold text-text-default'
-					: 'text-text-subtitle hover:text-text-default'}"
-				data-label="Lookup"
-			>
-				Lookup
-			</button>
-		{/if}
+		<a
+			href={resolve('/')}
+			class="nav-tab text-xs transition-colors sm:text-sm {isPracticePage
+				? 'font-semibold text-text-default'
+				: 'text-text-subtitle hover:text-text-default'}"
+			data-label="Practice"
+		>
+			Practice
+		</a>
 		<a
 			href={resolve('/resources')}
 			class="nav-tab text-xs transition-colors sm:text-sm {isResourcesPage
@@ -182,12 +173,23 @@
 		</a>
 		<a
 			href={resolve('/classes')}
-			class="nav-tab text-xs transition-colors sm:text-sm {isClassesPage
+			class="nav-tab relative text-xs transition-colors sm:text-sm {isClassesPage
 				? 'font-semibold text-text-default'
 				: 'text-text-subtitle hover:text-text-default'}"
 			data-label="Classes"
+			data-tour="classes-link"
 		>
 			Classes
+			{#if pendingAssignmentCount > 0}
+				<span
+					class="absolute -right-3.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold leading-none text-white sm:-right-4 sm:-top-2 sm:size-[18px] sm:text-[11px]"
+					aria-label="{pendingAssignmentCount} pending assignment{pendingAssignmentCount === 1
+						? ''
+						: 's'}"
+				>
+					{pendingAssignmentCount > 9 ? '9+' : pendingAssignmentCount}
+				</span>
+			{/if}
 		</a>
 		{#if $streak.currentStreak > 0}
 			<span
@@ -202,7 +204,9 @@
 					aria-hidden="true"
 				>
 					<path
-						d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.524 2.039-5.079a.75.75 0 0 1 1.212.004c.66.84 1.4 1.529 2.084 2.023.226-.909.26-1.903.06-2.976-.219-1.174-.72-2.365-1.479-3.473a.75.75 0 0 1 .853-1.12c1.57.482 3.07 1.382 4.233 2.66C15.15 10.352 15.75 11.9 15.75 13.5c0 .412-.053.816-.154 1.206a2.81 2.81 0 0 0 1.154-2.268c0-.478-.088-.948-.255-1.395a.75.75 0 0 1 .916-.951c1.476.578 2.839 1.91 3.339 3.908.148.59.25 1.235.25 1.5 0 3.314-3.134 6-7 6-.333 0-.667-.017-1-.05z"
+						fill-rule="evenodd"
+						clip-rule="evenodd"
+						d="M12.9633 2.28579C12.8416 2.12249 12.6586 2.01575 12.4565 1.9901C12.2545 1.96446 12.0506 2.02211 11.8919 2.14981C10.0218 3.65463 8.7174 5.83776 8.35322 8.32637C7.69665 7.85041 7.11999 7.27052 6.6476 6.61081C6.51764 6.42933 6.3136 6.31516 6.09095 6.29934C5.8683 6.28353 5.65017 6.36771 5.49587 6.529C3.95047 8.14442 3 10.3368 3 12.7497C3 17.7202 7.02944 21.7497 12 21.7497C16.9706 21.7497 21 17.7202 21 12.7497C21 9.08876 18.8143 5.93999 15.6798 4.53406C14.5706 3.99256 13.6547 3.21284 12.9633 2.28579ZM15.75 14.25C15.75 16.3211 14.0711 18 12 18C9.92893 18 8.25 16.3211 8.25 14.25C8.25 13.8407 8.31559 13.4467 8.43682 13.0779C9.06529 13.5425 9.78769 13.8874 10.5703 14.0787C10.7862 12.6779 11.4866 11.437 12.4949 10.5324C14.3321 10.7746 15.75 12.3467 15.75 14.25Z"
 					/>
 				</svg>
 				{$streak.currentStreak}
@@ -220,7 +224,7 @@
 							toggleMenu();
 						}
 					}}
-					class="flex size-11 cursor-pointer items-center justify-center rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-80"
+					class="flex size-9 cursor-pointer items-center justify-center rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-80 sm:size-10"
 					style="background-color: {avatarColor}"
 					aria-label="Profile menu"
 					aria-expanded={menuOpen}
@@ -268,57 +272,55 @@
 				Sign in
 			</button>
 		{/if}
-		{#if onToggleDarkMode}
-			<button
-				type="button"
-				onclick={() => {
-					onToggleDarkMode?.();
-					themeBounce = true;
-					if (themeBounceTimer !== null) clearTimeout(themeBounceTimer);
-					themeBounceTimer = setTimeout(() => {
-						themeBounce = false;
-						themeBounceTimer = null;
-					}, 600);
-				}}
-				class="flex size-9 cursor-pointer items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default sm:size-10"
-				aria-label="Toggle dark mode"
+		<button
+			type="button"
+			onclick={() => {
+				toggleDarkModeFn();
+				themeBounce = true;
+				if (themeBounceTimer !== null) clearTimeout(themeBounceTimer);
+				themeBounceTimer = setTimeout(() => {
+					themeBounce = false;
+					themeBounceTimer = null;
+				}, 600);
+			}}
+			class="flex size-9 cursor-pointer items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default sm:size-10"
+			aria-label="Toggle dark mode"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 32 32"
+				class="sun-moon-svg size-5 {themeBounce ? 'theme-bounce' : ''}"
+				style:--crescent-x={darkMode ? '-18px' : '0px'}
+				style:--rays-scale={darkMode ? '0.5' : '1'}
+				style:--center-scale={darkMode ? '1.1' : '1'}
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 32 32"
-					class="sun-moon-svg size-5 {themeBounce ? 'theme-bounce' : ''}"
-					style:--crescent-x={darkMode ? '-18px' : '0px'}
-					style:--rays-scale={darkMode ? '0.5' : '1'}
-					style:--center-scale={darkMode ? '1.1' : '1'}
-				>
-					<defs>
-						<mask id="{maskId}-center">
-							<rect x="0" y="0" width="32" height="32" fill="white" />
-							<circle class="mask-crescent" cx="40" cy="16" r="8" fill="black" />
-						</mask>
-						<mask id="{maskId}-rays">
-							<circle class="mask-rays-circle" cx="16" cy="16" r="16" fill="white" />
-						</mask>
-					</defs>
-					<circle
-						class="sun-center"
-						mask="url(#{maskId}-center)"
-						r="8"
-						cx="16"
-						cy="16"
-						fill="currentColor"
-					/>
-					<path
-						class="sun-rays"
-						mask="url(#{maskId}-rays)"
-						d="M4,16l-4,0 M7.515,7.515l-2.828,-2.828 M16,4l0,-4 M24.485,7.515l2.828,-2.828 M28,16l4,0 M24.485,24.485l2.828,2.828 M16,28l0,4 M7.515,24.485l-2.828,2.828"
-						stroke="currentColor"
-						stroke-width="2.5"
-						stroke-linecap="round"
-					/>
-				</svg>
-			</button>
-		{/if}
+				<defs>
+					<mask id="{maskId}-center">
+						<rect x="0" y="0" width="32" height="32" fill="white" />
+						<circle class="mask-crescent" cx="40" cy="16" r="8" fill="black" />
+					</mask>
+					<mask id="{maskId}-rays">
+						<circle class="mask-rays-circle" cx="16" cy="16" r="16" fill="white" />
+					</mask>
+				</defs>
+				<circle
+					class="sun-center"
+					mask="url(#{maskId}-center)"
+					r="8"
+					cx="16"
+					cy="16"
+					fill="currentColor"
+				/>
+				<path
+					class="sun-rays"
+					mask="url(#{maskId}-rays)"
+					d="M4,16l-4,0 M7.515,7.515l-2.828,-2.828 M16,4l0,-4 M24.485,7.515l2.828,-2.828 M28,16l4,0 M24.485,24.485l2.828,2.828 M16,28l0,4 M7.515,24.485l-2.828,2.828"
+					stroke="currentColor"
+					stroke-width="2.5"
+					stroke-linecap="round"
+				/>
+			</svg>
+		</button>
 	</div>
 </nav>
 

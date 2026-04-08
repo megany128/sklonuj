@@ -1,5 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
+import { Resend } from 'resend';
+import { createClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/public';
+import { env as privateEnv } from '$env/dynamic/private';
 import type { Actions, PageServerLoad } from './$types';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -30,6 +34,7 @@ interface AssignmentData {
 	numberMode: string;
 	contentMode: string;
 	targetQuestions: number;
+	minAccuracy: number | null;
 	dueDate: string | null;
 }
 
@@ -37,7 +42,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	const { classData, role } = await parent();
 
 	if (role !== 'teacher') {
-		return { assignment: null };
+		return { assignment: null, hasProgress: false };
 	}
 
 	const supabase = locals.supabase;
@@ -46,14 +51,14 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, due_date'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, min_accuracy, due_date'
 		)
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
 		.maybeSingle();
 
 	if (assignmentError || !isRecord(assignmentData) || typeof assignmentData.id !== 'string') {
-		return { assignment: null };
+		return { assignment: null, hasProgress: false };
 	}
 
 	const assignment: AssignmentData = {
@@ -68,10 +73,22 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 20,
+		minAccuracy:
+			typeof assignmentData.min_accuracy === 'number' ? assignmentData.min_accuracy : null,
 		dueDate: typeof assignmentData.due_date === 'string' ? assignmentData.due_date : null
 	};
 
-	return { assignment };
+	// Check if any students have started this assignment
+	const { data: progressData } = await supabase
+		.from('assignment_progress')
+		.select('student_id')
+		.eq('assignment_id', assignmentId)
+		.gt('questions_attempted', 0)
+		.limit(1);
+
+	const hasProgress = Array.isArray(progressData) && progressData.length > 0;
+
+	return { assignment, hasProgress };
 };
 
 export const actions: Actions = {
@@ -87,6 +104,7 @@ export const actions: Actions = {
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
 		const targetQuestionsRaw = (formData.get('target_questions') ?? '20').toString();
+		const minAccuracyRaw = (formData.get('min_accuracy') ?? '').toString().trim();
 		const dueDateRaw = (formData.get('due_date') ?? '').toString();
 
 		if (title.length === 0 || title.length > 200) {
@@ -117,6 +135,21 @@ export const actions: Actions = {
 			}
 		}
 
+		// Form Production cannot drill nominative -> nominative (the answer would
+		// be the lemma itself). If the only drill type is form_production and the
+		// only selected case is nominative, no questions can be generated.
+		if (
+			selectedDrillTypes.length === 1 &&
+			selectedDrillTypes[0] === 'form_production' &&
+			selectedCases.length === 1 &&
+			selectedCases[0] === 'nom'
+		) {
+			return fail(400, {
+				message:
+					"Form Production drills can't be created with only Nominative selected — Form Production needs at least one other case (e.g. Accusative, Genitive)."
+			});
+		}
+
 		if (!VALID_NUMBER_MODES.has(numberMode)) {
 			return fail(400, { message: 'Invalid number mode.' });
 		}
@@ -130,9 +163,21 @@ export const actions: Actions = {
 			return fail(400, { message: 'Target questions must be between 1 and 200.' });
 		}
 
+		let minAccuracy: number | null = null;
+		if (minAccuracyRaw.length > 0) {
+			const parsed = parseInt(minAccuracyRaw, 10);
+			if (isNaN(parsed) || parsed < 0 || parsed > 100) {
+				return fail(400, { message: 'Minimum accuracy must be between 0 and 100.' });
+			}
+			minAccuracy = parsed;
+		}
+
 		let dueDate: string | null = null;
 		if (dueDateRaw) {
-			const parsed = new Date(dueDateRaw);
+			// datetime-local gives "YYYY-MM-DDTHH:MM" with no timezone info.
+			// Append 'Z' to treat it as UTC consistently across all edge locations.
+			const utcString = dueDateRaw.endsWith('Z') ? dueDateRaw : dueDateRaw + 'Z';
+			const parsed = new Date(utcString);
 			if (isNaN(parsed.getTime())) {
 				return fail(400, { message: 'Invalid due date.' });
 			}
@@ -142,6 +187,34 @@ export const actions: Actions = {
 		const supabase = locals.supabase;
 		const classId = params.id;
 		const assignmentId = params.assignmentId;
+
+		// Verify teacher ownership
+		const { data: classOwner } = await supabase
+			.from('classes')
+			.select('teacher_id')
+			.eq('id', classId)
+			.single();
+
+		if (
+			!isRecord(classOwner) ||
+			typeof classOwner.teacher_id !== 'string' ||
+			classOwner.teacher_id !== user.id
+		) {
+			return fail(403, { message: 'Only the teacher can edit assignments.' });
+		}
+
+		// Fetch old assignment to detect due date changes for notification
+		const { data: oldAssignment } = await supabase
+			.from('assignments')
+			.select('due_date')
+			.eq('id', assignmentId)
+			.eq('class_id', classId)
+			.single();
+
+		const oldDueDate =
+			isRecord(oldAssignment) && typeof oldAssignment.due_date === 'string'
+				? oldAssignment.due_date
+				: null;
 
 		const { error: updateError } = await supabase
 			.from('assignments')
@@ -153,13 +226,106 @@ export const actions: Actions = {
 				number_mode: numberMode,
 				content_mode: contentMode,
 				target_questions: targetQuestions,
-				due_date: dueDate
+				min_accuracy: minAccuracy,
+				due_date: dueDate,
+				updated_at: new Date().toISOString()
 			})
 			.eq('id', assignmentId)
 			.eq('class_id', classId);
 
 		if (updateError) {
 			return fail(500, { message: 'Failed to update assignment. Please try again.' });
+		}
+
+		const notifyStudents = formData.get('notify_students') === 'on';
+
+		// Fire-and-forget: send email notifications to enrolled students
+		if (notifyStudents) {
+			const apiKey = privateEnv.RESEND_API_KEY;
+			const supabaseUrl = env.PUBLIC_SUPABASE_URL;
+			const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
+			if (apiKey && supabaseUrl && serviceRoleKey) {
+				const adminClient = createClient(supabaseUrl, serviceRoleKey);
+				const sendEmails = async () => {
+					try {
+						const { data: memberships } = await supabase
+							.from('class_memberships')
+							.select('student_id')
+							.eq('class_id', classId);
+
+						if (!Array.isArray(memberships) || memberships.length === 0) return;
+
+						const studentIds: string[] = [];
+						for (const m of memberships) {
+							if (isRecord(m) && typeof m.student_id === 'string') {
+								studentIds.push(m.student_id);
+							}
+						}
+						if (studentIds.length === 0) return;
+
+						const emails: string[] = [];
+						const userResults = await Promise.all(
+							studentIds.map((id) => adminClient.auth.admin.getUserById(id))
+						);
+						for (const result of userResults) {
+							if (result.data?.user && typeof result.data.user.email === 'string') {
+								emails.push(result.data.user.email);
+							}
+						}
+						if (emails.length === 0) return;
+
+						const { data: classInfo } = await supabase
+							.from('classes')
+							.select('name')
+							.eq('id', classId)
+							.single();
+						const className =
+							isRecord(classInfo) && typeof classInfo.name === 'string'
+								? classInfo.name
+								: 'your class';
+
+						const resend = new Resend(apiKey);
+						const fromAddress = privateEnv.RESEND_FROM_EMAIL ?? 'Sklonuj <noreply@sklonuj.com>';
+						const assignmentLink = `${request.url.split('/classes/')[0]}/classes/${classId}/assignments/${assignmentId}`;
+
+						const dueDateChanged = oldDueDate !== dueDate;
+						const dueDateHtml = dueDate
+							? `<p><strong>${dueDateChanged ? 'New Due Date' : 'Due'}:</strong> ${new Date(dueDate).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })} UTC</p>`
+							: '';
+						const descriptionHtml = description ? `<p>${description}</p>` : '';
+
+						for (const email of emails) {
+							await resend.emails.send({
+								from: fromAddress,
+								to: [email],
+								subject: `Assignment Updated: ${title} - ${className}`,
+								html: `
+								<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+									<h2>Assignment Updated: ${title}</h2>
+									<p>An assignment has been updated in <strong>${className}</strong>.</p>
+									${descriptionHtml}
+									${dueDateHtml}
+									<p>
+										<a href="${assignmentLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">
+											View Assignment
+										</a>
+									</p>
+									<p style="color: #6b7280; font-size: 14px;">Or copy and paste this link into your browser:</p>
+									<p style="color: #6b7280; font-size: 14px;">${assignmentLink}</p>
+									<p style="margin-top: 24px; font-size: 12px; color: #666;">
+										<a href="${request.url.split('/classes/')[0]}/profile" style="color: #666;">Manage email preferences</a> &middot;
+										You're receiving this because you're enrolled in ${className}
+									</p>
+								</div>
+							`
+							});
+						}
+					} catch {
+						// Fire-and-forget: silently ignore email errors
+					}
+				};
+				sendEmails();
+			}
 		}
 
 		redirect(303, resolve(`/classes/${classId}/assignments/${assignmentId}`));

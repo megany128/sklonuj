@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
-	import { replaceState } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import type {
 		Case,
 		ContentMode,
@@ -20,7 +20,16 @@
 		WordEntry,
 		SentenceTemplate
 	} from '$lib/types';
-	import { ALL_CASES, CASE_LABELS, CASE_SHORT_LABELS, CASE_HEX, CASE_INDEX } from '$lib/types';
+	import {
+		ALL_CASES,
+		ALL_DRILL_TYPES,
+		CASE_LABELS,
+		CASE_SHORT_LABELS,
+		CASE_COLORS,
+		CASE_HEX,
+		CASE_INDEX,
+		isCase
+	} from '$lib/types';
 
 	import {
 		loadWordBank,
@@ -79,7 +88,7 @@
 	import DrillCard from '$lib/components/DrillCard.svelte';
 	import MultiStepCard from '$lib/components/MultiStepCard.svelte';
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
-	import DeclensionTable from '$lib/components/DeclensionTable.svelte';
+
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import MilestoneToast from '$lib/components/ui/MilestoneToast.svelte';
 	import AuthModal from '$lib/components/ui/AuthModal.svelte';
@@ -89,6 +98,7 @@
 		recordPracticeDay,
 		type BadgeCheckContext
 	} from '$lib/engine/achievements';
+	import LeaderboardBanner from '$lib/components/ui/LeaderboardBanner.svelte';
 
 	const kzkChapters: KzkChaptersConfig = kzkChaptersData as KzkChaptersConfig;
 
@@ -96,7 +106,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import posthog from '$lib/posthog';
 
-	let user = $derived($page.data.user);
+	let user = $derived(page.data.user);
 
 	// Debounced sync to Supabase via server API (browser client auth is unreliable)
 	let syncTimer: ReturnType<typeof setTimeout> | null = null;
@@ -219,8 +229,8 @@
 	}
 
 	function isValidDrillSettings(value: unknown): value is DrillSettings {
-		if (typeof value !== 'object' || value === null) return false;
-		const obj = value as Record<string, unknown>;
+		if (!isRecord(value)) return false;
+		const obj = value;
 		if (!Array.isArray(obj.selectedCases) || obj.selectedCases.length === 0) return false;
 		if (!Array.isArray(obj.selectedDrillTypes) || obj.selectedDrillTypes.length === 0) return false;
 		if (obj.numberMode !== 'sg' && obj.numberMode !== 'pl' && obj.numberMode !== 'both')
@@ -232,11 +242,8 @@
 			obj.contentMode !== 'both'
 		)
 			return false;
-		const validCases = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
-		const validTypes = ['form_production', 'case_identification', 'sentence_fill_in', 'multi_step'];
-		if (!obj.selectedCases.every((c: unknown) => validCases.includes(c as string))) return false;
-		if (!obj.selectedDrillTypes.every((dt: unknown) => validTypes.includes(dt as string)))
-			return false;
+		if (!obj.selectedCases.every((c: unknown) => isCaseValue(c))) return false;
+		if (!obj.selectedDrillTypes.every((dt: unknown) => isDrillType(dt))) return false;
 		return true;
 	}
 
@@ -267,6 +274,553 @@
 	let signupPromptDismissed = $state(false);
 	let authModalOpen = $state(false);
 	let showOnboarding = $state(true);
+
+	const practiceOnboardingSteps = [
+		{
+			target: null,
+			title: 'Welcome to Skloňuj!',
+			text: 'Master Czech noun declension with interactive drills across all 7 cases. Let\u2019s take a quick look around.'
+		},
+		{
+			target: 'case-pills',
+			text: 'Pick a case to focus on, or let Skloňuj choose your weakest one.'
+		},
+		{
+			target: 'mode-selector',
+			text: 'Follow Krok za krokem chapters or practice freely.'
+		},
+		{
+			target: 'ref-sidebar',
+			text: 'Tap here anytime to look up declension tables and case rules.'
+		},
+		{
+			target: 'settings',
+			text: 'Configure drill types, number, and content.'
+		},
+		{
+			target: 'classes-link',
+			text: 'If you\u2019re part of a class, find your assignments and track your progress here.'
+		}
+	];
+
+	// Assignment mode
+	let assignmentId = $state<string | null>(null);
+	interface AssignmentInfo {
+		title: string;
+		classId: string;
+		selectedCases: string[];
+		selectedDrillTypes: string[];
+		numberMode: 'sg' | 'pl' | 'both';
+		contentMode: string;
+		targetQuestions: number;
+		attempted: number;
+		correct: number;
+		completedAt: string | null;
+	}
+	let assignmentInfo = $state<AssignmentInfo | null>(null);
+	let assignmentLoading = $state(false);
+	let showCompletionModal = $state(false);
+	let mistakesExpanded = $state(false);
+	let assignmentError = $state<string | null>(null);
+	let assignmentErrorTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// Collect recent mistakes during assignment practice (max 20)
+	interface AssignmentMistake {
+		word: string;
+		expectedForm: string;
+		givenAnswer: string;
+		case: string;
+		number: string;
+	}
+	let assignmentMistakes = $state<AssignmentMistake[]>([]);
+
+	function clearAssignmentErrorAfterDelay(): void {
+		if (assignmentErrorTimer) clearTimeout(assignmentErrorTimer);
+		assignmentErrorTimer = setTimeout(() => {
+			assignmentError = null;
+		}, 5000);
+	}
+
+	function isRecord(v: unknown): v is Record<string, unknown> {
+		return typeof v === 'object' && v !== null && !Array.isArray(v);
+	}
+
+	const DRILL_TYPE_SET: ReadonlySet<string> = new Set<string>(ALL_DRILL_TYPES);
+	function isDrillType(value: unknown): value is DrillType {
+		return typeof value === 'string' && DRILL_TYPE_SET.has(value);
+	}
+
+	const DIFFICULTY_SET: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2']);
+	function isDifficulty(value: unknown): value is Difficulty {
+		return typeof value === 'string' && DIFFICULTY_SET.has(value);
+	}
+
+	function isCaseValue(value: unknown): value is Case {
+		return typeof value === 'string' && isCase(value);
+	}
+
+	// Student assignments panel
+	interface StudentAssignment {
+		id: string;
+		classId: string;
+		className: string;
+		title: string;
+		description: string | null;
+		selectedCases: string[];
+		selectedDrillTypes: string[];
+		numberMode: string;
+		contentMode: string;
+		targetQuestions: number;
+		dueDate: string | null;
+		attempted: number;
+		correct: number;
+		completedAt: string | null;
+	}
+	let studentAssignments = $state<StudentAssignment[]>([]);
+	let assignmentsPanelExpanded = $state(true);
+	let matchingAssignmentId = $state<string | null>(null);
+
+	function loadStudentAssignments(): void {
+		if (!user) return;
+		fetch('/api/student-assignments')
+			.then((res) => {
+				if (!res.ok) throw new Error('Failed to load');
+				return res.json();
+			})
+			.then((data: unknown) => {
+				if (isRecord(data) && Array.isArray(data.assignments)) {
+					const validated: StudentAssignment[] = [];
+					for (const item of data.assignments) {
+						if (
+							isRecord(item) &&
+							typeof item.id === 'string' &&
+							typeof item.classId === 'string' &&
+							typeof item.className === 'string' &&
+							typeof item.title === 'string' &&
+							typeof item.targetQuestions === 'number' &&
+							Array.isArray(item.selectedCases) &&
+							Array.isArray(item.selectedDrillTypes)
+						) {
+							validated.push({
+								id: item.id,
+								classId: item.classId,
+								className: item.className,
+								title: item.title,
+								description: typeof item.description === 'string' ? item.description : null,
+								selectedCases: item.selectedCases.filter(
+									(v: unknown): v is string => typeof v === 'string'
+								),
+								selectedDrillTypes: item.selectedDrillTypes.filter(
+									(v: unknown): v is string => typeof v === 'string'
+								),
+								numberMode: typeof item.numberMode === 'string' ? item.numberMode : 'both',
+								contentMode: typeof item.contentMode === 'string' ? item.contentMode : 'both',
+								targetQuestions: item.targetQuestions,
+								dueDate: typeof item.dueDate === 'string' ? item.dueDate : null,
+								attempted: typeof item.attempted === 'number' ? item.attempted : 0,
+								correct: typeof item.correct === 'number' ? item.correct : 0,
+								completedAt: typeof item.completedAt === 'string' ? item.completedAt : null
+							});
+						}
+					}
+					studentAssignments = validated;
+				}
+				// Load leaderboard after assignments are available
+				loadLeaderboard();
+			})
+			.catch(() => {
+				assignmentError = 'Could not load assignments.';
+				clearAssignmentErrorAfterDelay();
+			});
+	}
+
+	function doesPracticeMatchAssignment(
+		settings: DrillSettings,
+		assignment: {
+			selectedCases: string[];
+			selectedDrillTypes: string[];
+			numberMode: string;
+			contentMode: string;
+		}
+	): boolean {
+		const casesMatch =
+			assignment.selectedCases.every((c) => isCaseValue(c) && settings.selectedCases.includes(c)) &&
+			settings.selectedCases.every((c) => assignment.selectedCases.includes(c));
+		const typesMatch =
+			assignment.selectedDrillTypes.every(
+				(dt) => isDrillType(dt) && settings.selectedDrillTypes.includes(dt)
+			) && settings.selectedDrillTypes.every((dt) => assignment.selectedDrillTypes.includes(dt));
+		const numberMatch = settings.numberMode === assignment.numberMode;
+		const contentMatch = (settings.contentMode ?? 'both') === assignment.contentMode;
+		return casesMatch && typesMatch && numberMatch && contentMatch;
+	}
+
+	function findMatchingAssignment(): StudentAssignment | null {
+		const incomplete = studentAssignments.filter((a) => a.completedAt === null);
+		const matching = incomplete.filter((a) => doesPracticeMatchAssignment(drillSettings, a));
+		if (matching.length === 0) return null;
+		// Pick the one with the earliest due date that isn't completed
+		const withDue = matching.filter((a) => a.dueDate !== null);
+		if (withDue.length > 0) {
+			withDue.sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime());
+			return withDue[0];
+		}
+		return matching[0];
+	}
+
+	function updateMatchingAssignment(): void {
+		if (assignmentId) {
+			// Already in explicit assignment mode, don't auto-detect
+			matchingAssignmentId = null;
+			return;
+		}
+		const match = findMatchingAssignment();
+		matchingAssignmentId = match ? match.id : null;
+	}
+
+	function recordAutoDetectedAssignmentProgress(correct: boolean): void {
+		if (assignmentId) return; // Already in explicit assignment mode
+		if (!matchingAssignmentId) return;
+		const matchId = matchingAssignmentId;
+		fetch('/api/assignment-progress', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				assignmentId: matchId,
+				correct,
+				recentMistakes: assignmentMistakes.length > 0 ? assignmentMistakes : undefined
+			})
+		})
+			.then((res) => res.json())
+			.then((data: unknown) => {
+				if (isRecord(data) && typeof data.questions_attempted === 'number') {
+					const newCompletedAt = typeof data.completed_at === 'string' ? data.completed_at : null;
+					const matchedAssignment = studentAssignments.find((a) => a.id === matchId);
+					const wasCompleted =
+						matchedAssignment?.completedAt !== null && matchedAssignment?.completedAt !== undefined;
+					studentAssignments = studentAssignments.map((a) => {
+						if (a.id !== matchId) return a;
+						return {
+							...a,
+							attempted:
+								typeof data.questions_attempted === 'number'
+									? data.questions_attempted
+									: a.attempted,
+							correct:
+								typeof data.questions_correct === 'number' ? data.questions_correct : a.correct,
+							completedAt: newCompletedAt
+						};
+					});
+					// Show completion modal when assignment just became completed
+					if (!wasCompleted && newCompletedAt !== null && matchedAssignment) {
+						const updatedAssignment = studentAssignments.find((a) => a.id === matchId);
+						if (updatedAssignment) {
+							assignmentId = matchId;
+							assignmentInfo = {
+								title: updatedAssignment.title,
+								classId: updatedAssignment.classId,
+								selectedCases: updatedAssignment.selectedCases,
+								selectedDrillTypes: updatedAssignment.selectedDrillTypes,
+								numberMode:
+									updatedAssignment.numberMode === 'sg' || updatedAssignment.numberMode === 'pl'
+										? updatedAssignment.numberMode
+										: 'both',
+								contentMode: updatedAssignment.contentMode,
+								targetQuestions: updatedAssignment.targetQuestions,
+								attempted: updatedAssignment.attempted,
+								correct: updatedAssignment.correct,
+								completedAt: updatedAssignment.completedAt
+							};
+							showCompletionModal = true;
+						}
+					}
+					// Re-evaluate matching after progress update
+					updateMatchingAssignment();
+				}
+			})
+			.catch(() => {
+				assignmentError = 'Failed to save assignment progress. Your work may not be recorded.';
+				clearAssignmentErrorAfterDelay();
+			});
+	}
+
+	function startAssignment(assignment: StudentAssignment): void {
+		// Set assignment mode without page reload
+		assignmentId = assignment.id;
+		assignmentInfo = {
+			title: assignment.title,
+			classId: assignment.classId,
+			selectedCases: assignment.selectedCases,
+			selectedDrillTypes: assignment.selectedDrillTypes,
+			numberMode:
+				assignment.numberMode === 'sg' || assignment.numberMode === 'pl'
+					? assignment.numberMode
+					: 'both',
+			contentMode: assignment.contentMode,
+			targetQuestions: assignment.targetQuestions,
+			attempted: assignment.attempted,
+			correct: assignment.correct,
+			completedAt: assignment.completedAt
+		};
+		const assignmentCases = assignment.selectedCases.filter(isCaseValue);
+		drillSettings = {
+			selectedCases: assignmentCases,
+			selectedDrillTypes: assignment.selectedDrillTypes.filter(isDrillType),
+			numberMode:
+				assignment.numberMode === 'sg' || assignment.numberMode === 'pl'
+					? assignment.numberMode
+					: 'both',
+			contentMode:
+				assignment.contentMode === 'nouns' ||
+				assignment.contentMode === 'pronouns' ||
+				assignment.contentMode === 'both'
+					? assignment.contentMode
+					: 'both'
+		};
+		// Sync the question-generation case set to the assignment's cases. The
+		// question generator picks from `effectiveEnabledCases`, which derives
+		// from `enabledCases` (NOT `drillSettings.selectedCases`), so we must
+		// update both. Also clear any active chapter so chapter case constraints
+		// don't override the assignment.
+		enabledCases = assignmentCases.length > 0 ? [...assignmentCases] : [...ALL_CASES];
+		selectedCase = 'all';
+		chapterBook = null;
+		chapterSelection = null;
+		// Update URL to reflect assignment mode
+		const url = new URL(window.location.href);
+		url.searchParams.set('assignment', assignment.id);
+		try {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- using URL object directly
+			replaceState(url.pathname + url.search, {});
+		} catch {
+			// ignore
+		}
+		matchingAssignmentId = null;
+		assignmentMistakes = [];
+		generateNextQuestion();
+	}
+
+	function getDueDateUrgency(
+		dueDate: string | null,
+		completedAt: string | null
+	): { label: string; color: string } {
+		if (completedAt !== null) return { label: 'Done', color: 'var(--color-positive-stroke)' };
+		if (dueDate === null) return { label: 'No due date', color: 'var(--color-text-subtitle)' };
+
+		const now = new Date();
+		const due = new Date(dueDate);
+		const diffMs = due.getTime() - now.getTime();
+		const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+		if (diffDays < 0) return { label: `${Math.abs(diffDays)}d overdue`, color: '#d73e3e' };
+		if (diffDays === 0) return { label: 'Due today', color: '#d73e3e' };
+		if (diffDays === 1) return { label: 'Due tomorrow', color: '#e5a000' };
+		if (diffDays <= 3) return { label: `Due in ${diffDays}d`, color: '#e5a000' };
+		return { label: `Due in ${diffDays}d`, color: '#40c607' };
+	}
+
+	let pendingAssignments = $derived(studentAssignments.filter((a) => a.completedAt === null));
+	let showAssignmentsPanel = $derived(
+		user !== null && studentAssignments.length > 0 && !assignmentId && !assignmentLoading
+	);
+
+	function collectAssignmentMistake(
+		word: string,
+		expectedForm: string,
+		givenAnswer: string,
+		caseKey: string,
+		numberKey: string
+	): void {
+		const mistake: AssignmentMistake = {
+			word,
+			expectedForm,
+			givenAnswer,
+			case: caseKey,
+			number: numberKey
+		};
+		// Keep only the last 20 mistakes
+		assignmentMistakes = [...assignmentMistakes, mistake].slice(-20);
+	}
+
+	function recordAssignmentProgress(correct: boolean): void {
+		if (!assignmentId) return;
+		fetch('/api/assignment-progress', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				assignmentId,
+				correct,
+				recentMistakes: assignmentMistakes.length > 0 ? assignmentMistakes : undefined
+			})
+		})
+			.then((res) => res.json())
+			.then((data: unknown) => {
+				if (assignmentInfo && isRecord(data) && typeof data.questions_attempted === 'number') {
+					const wasCompleted = assignmentInfo.completedAt !== null;
+					assignmentInfo = {
+						...assignmentInfo,
+						attempted: data.questions_attempted,
+						correct:
+							typeof data.questions_correct === 'number'
+								? data.questions_correct
+								: assignmentInfo.correct,
+						completedAt: typeof data.completed_at === 'string' ? data.completed_at : null
+					};
+					// Show completion modal when assignment just became completed
+					if (!wasCompleted && assignmentInfo.completedAt !== null) {
+						showCompletionModal = true;
+					}
+					// Also update the student assignments panel if it's showing
+					const currentAssignmentId = assignmentId;
+					if (currentAssignmentId) {
+						studentAssignments = studentAssignments.map((a) => {
+							if (a.id !== currentAssignmentId) return a;
+							return {
+								...a,
+								attempted: assignmentInfo!.attempted,
+								correct: assignmentInfo!.correct,
+								completedAt: assignmentInfo!.completedAt
+							};
+						});
+					}
+				}
+			})
+			.catch(() => {
+				assignmentError = 'Failed to save progress. Your work may not be recorded.';
+				clearAssignmentErrorAfterDelay();
+			});
+	}
+
+	// Leaderboard
+	interface LeaderboardEntry {
+		rank: number;
+		userId: string;
+		displayName: string;
+		firstName: string;
+		score: number;
+		questionsAnswered: number;
+		correctAnswers: number;
+	}
+	interface UnreadReaction {
+		id: string;
+		fromUserId: string;
+		fromName: string;
+		emoji: string;
+	}
+	let leaderboardData = $state<LeaderboardEntry[]>([]);
+	let leaderboardSentToday = $state<string[]>([]);
+	let leaderboardClassId = $state<string | null>(null);
+	let leaderboardRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
+	function loadLeaderboard(): void {
+		if (!user) return;
+
+		// Determine which class to use
+		let targetClassId: string | null = null;
+
+		// If practicing an assignment, use that assignment's class
+		if (assignmentInfo) {
+			targetClassId = assignmentInfo.classId;
+		} else if (studentAssignments.length > 0) {
+			// Use the first class from assignments (these are classes the user is in)
+			const classIds = [...new Set(studentAssignments.map((a) => a.classId))];
+			if (classIds.length === 1) {
+				targetClassId = classIds[0];
+			} else if (classIds.length > 1) {
+				// Use the first active (has pending assignments) class, or just the first
+				const pending = studentAssignments.filter((a) => a.completedAt === null);
+				if (pending.length > 0) {
+					targetClassId = pending[0].classId;
+				} else {
+					targetClassId = classIds[0];
+				}
+			}
+		}
+
+		if (!targetClassId) return;
+
+		leaderboardClassId = targetClassId;
+		fetchLeaderboardData(targetClassId);
+	}
+
+	function fetchLeaderboardData(classId: string): void {
+		fetch(`/api/leaderboard?classId=${classId}`)
+			.then((res) => {
+				if (!res.ok) return null;
+				return res.json();
+			})
+			.then((data: unknown) => {
+				if (!isRecord(data)) return;
+				if (Array.isArray(data.leaderboard)) {
+					const entries: LeaderboardEntry[] = [];
+					for (const item of data.leaderboard) {
+						if (
+							isRecord(item) &&
+							typeof item.rank === 'number' &&
+							typeof item.userId === 'string' &&
+							typeof item.displayName === 'string' &&
+							typeof item.firstName === 'string' &&
+							typeof item.score === 'number' &&
+							typeof item.questionsAnswered === 'number' &&
+							typeof item.correctAnswers === 'number'
+						) {
+							entries.push({
+								rank: item.rank,
+								userId: item.userId,
+								displayName: item.displayName,
+								firstName: item.firstName,
+								score: item.score,
+								questionsAnswered: item.questionsAnswered,
+								correctAnswers: item.correctAnswers
+							});
+						}
+					}
+					leaderboardData = entries;
+				}
+				if (Array.isArray(data.sentToday)) {
+					leaderboardSentToday = data.sentToday.filter(
+						(v: unknown): v is string => typeof v === 'string'
+					);
+				}
+				if (Array.isArray(data.unreadReactions)) {
+					const reactions: UnreadReaction[] = [];
+					for (const r of data.unreadReactions) {
+						if (
+							isRecord(r) &&
+							typeof r.id === 'string' &&
+							typeof r.fromUserId === 'string' &&
+							typeof r.fromName === 'string' &&
+							typeof r.emoji === 'string'
+						) {
+							reactions.push({
+								id: r.id,
+								fromUserId: r.fromUserId,
+								fromName: r.fromName,
+								emoji: r.emoji
+							});
+						}
+					}
+					if (reactions.length > 0) {
+						showReactionToasts(reactions);
+					}
+				}
+			})
+			.catch(() => {});
+	}
+
+	function showReactionToasts(reactions: UnreadReaction[]): void {
+		for (const reaction of reactions) {
+			addToast(`${reaction.fromName} sent you ${reaction.emoji}`, reaction.emoji);
+		}
+	}
+
+	function handleLeaderboardReactionSent(toUserId: string): void {
+		leaderboardSentToday = [...leaderboardSentToday, toUserId];
+	}
+
+	let showLeaderboard = $derived(
+		user !== null && leaderboardData.length > 1 && leaderboardClassId !== null
+	);
 
 	// Session stats
 	let sessionCorrect = $state(0);
@@ -335,9 +889,9 @@
 			const raw = localStorage.getItem(CHAPTER_SCORES_KEY);
 			if (raw === null) return;
 			const parsed: unknown = JSON.parse(raw);
-			if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+			if (isRecord(parsed)) {
 				const valid: Record<string, { attempts: number; correct: number }> = {};
-				for (const [key, val] of Object.entries(parsed as Record<string, unknown>)) {
+				for (const [key, val] of Object.entries(parsed)) {
 					if (
 						typeof val === 'object' &&
 						val !== null &&
@@ -380,13 +934,8 @@
 			const raw = localStorage.getItem(CHAPTER_STORAGE_KEY);
 			if (raw === null) return;
 			const parsed: unknown = JSON.parse(raw);
-			if (
-				typeof parsed === 'object' &&
-				parsed !== null &&
-				'book' in parsed &&
-				'chapter' in parsed
-			) {
-				const obj = parsed as Record<string, unknown>;
+			if (isRecord(parsed) && 'book' in parsed && 'chapter' in parsed) {
+				const obj = parsed;
 				if (
 					(obj.book === 'kzk1' || obj.book === 'kzk2' || obj.book === null) &&
 					(typeof obj.chapter === 'string' || obj.chapter === null)
@@ -527,11 +1076,6 @@
 		return drillSettings.numberMode;
 	});
 
-	// Top-level view — derived from SvelteKit page store to avoid SSR/client mismatch
-	let activeView = $state<'exercise' | 'declension'>(
-		get(page).url.searchParams.get('view') === 'lookup' ? 'declension' : 'exercise'
-	);
-
 	// Settings expanded state
 	let settingsExpanded = $state(false);
 	let caseFilterExpanded = $state(false);
@@ -613,15 +1157,7 @@
 		}
 	});
 
-	// Dark mode (shared module)
-	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
-	let darkMode = $state(false);
-	$effect(() => {
-		const unsub = darkModeStore.subscribe((v) => {
-			darkMode = v;
-		});
-		return unsub;
-	});
+	import { initDarkMode } from '$lib/darkmode';
 
 	// Subscribe to progress store to keep local rune state in sync
 	$effect(() => {
@@ -641,6 +1177,141 @@
 			syncStateToUrl();
 		}
 	});
+
+	// Assignment mode: load assignment data from URL param
+	function isAssignmentResponse(v: unknown): v is AssignmentInfo {
+		if (!isRecord(v)) return false;
+		return (
+			typeof v.title === 'string' &&
+			typeof v.classId === 'string' &&
+			Array.isArray(v.selectedCases) &&
+			typeof v.targetQuestions === 'number'
+		);
+	}
+
+	$effect(() => {
+		const paramId = page.url.searchParams.get('assignment');
+		if (paramId && paramId !== assignmentId) {
+			assignmentId = paramId;
+			assignmentLoading = true;
+			fetch(`/api/assignment-progress?assignmentId=${paramId}`)
+				.then((res) => {
+					if (res.status === 401) {
+						// Unauthenticated: redirect to sign-in and come back to this assignment.
+						const returnTo = `/?assignment=${paramId}`;
+						// eslint-disable-next-line svelte/no-navigation-without-resolve -- constructed auth URL with encoded returnTo
+						goto(`/auth?returnTo=${encodeURIComponent(returnTo)}`);
+						return null;
+					}
+					if (!res.ok) throw new Error('Failed to load assignment');
+					return res.json();
+				})
+				.then((data: unknown) => {
+					if (data === null) return;
+					if (isAssignmentResponse(data)) {
+						const assignmentCases = data.selectedCases.filter(isCaseValue);
+						if (assignmentCases.length === 0) {
+							assignmentId = null;
+							assignmentInfo = null;
+							assignmentError =
+								'Assignment is malformed — no cases selected. Contact your teacher.';
+							clearAssignmentErrorAfterDelay();
+							if (!question) {
+								generateNextQuestion();
+							}
+							return;
+						}
+						assignmentInfo = data;
+						drillSettings = {
+							selectedCases: assignmentCases,
+							selectedDrillTypes: data.selectedDrillTypes.filter(isDrillType),
+							numberMode: data.numberMode,
+							contentMode:
+								data.contentMode === 'nouns' ||
+								data.contentMode === 'pronouns' ||
+								data.contentMode === 'both'
+									? data.contentMode
+									: 'both'
+						};
+						// Sync the question-generation case set to the assignment's
+						// cases. The generator picks from `effectiveEnabledCases`,
+						// which derives from `enabledCases` (NOT
+						// `drillSettings.selectedCases`), so we must update both.
+						// Also clear any active chapter so chapter constraints
+						// don't override the assignment.
+						enabledCases = [...assignmentCases];
+						selectedCase = 'all';
+						chapterBook = null;
+						chapterSelection = null;
+						generateNextQuestion();
+					}
+				})
+				.catch(() => {
+					assignmentId = null;
+					assignmentInfo = null;
+					// If the assignment fetch failed on a cold load where we
+					// skipped the initial question generation, fall back to a
+					// Free Practice question so the user isn't stuck on a
+					// blank card.
+					if (!question) {
+						generateNextQuestion();
+					}
+				})
+				.finally(() => {
+					assignmentLoading = false;
+				});
+		}
+		if (!paramId && assignmentId) {
+			assignmentId = null;
+			assignmentInfo = null;
+		}
+	});
+
+	// Activate stored-mistake review mode (reused by ?mode=review and the review button)
+	function activateStoredMistakeReview(): boolean {
+		const uniqueKeys = getUniqueMistakeKeys();
+		if (uniqueKeys.length === 0) return false;
+		const wordBank = loadWordBank();
+		const pronounBank = loadPronounBank();
+		const generatedMistakes: DrillResult[] = [];
+		for (const mk of uniqueKeys) {
+			const word = wordBank.find((w) => w.lemma === mk.lemma);
+			if (word) {
+				const q = generateFormProduction(word, mk.targetCase, mk.targetNumber);
+				if (q) {
+					generatedMistakes.push({
+						question: q,
+						userAnswer: '',
+						correct: false,
+						nearMiss: false
+					});
+				}
+			} else {
+				const pronoun = pronounBank.find((p) => p.lemma === mk.lemma);
+				if (pronoun) {
+					const q = generatePronounFormProduction(pronoun, mk.targetCase, mk.targetNumber);
+					if (q) {
+						generatedMistakes.push({
+							question: q,
+							userAnswer: '',
+							correct: false,
+							nearMiss: false
+						});
+					}
+				}
+			}
+		}
+		if (generatedMistakes.length > 0) {
+			mistakes = generatedMistakes;
+			practicingMistakes = true;
+			lastMistakeIndex = -1;
+			chapterBook = null;
+			chapterSelection = null;
+			saveChapterToStorage();
+			return true;
+		}
+		return false;
+	}
 
 	// Initialize on mount and clean up timer on destroy
 	$effect(() => {
@@ -684,7 +1355,7 @@
 		}
 
 		// Apply URL query params for shareable filter links
-		const params = get(page).url.searchParams;
+		const params = page.url.searchParams;
 
 		// ?selectCase= auto-selects a single case pill (e.g. from resources/czech-cases)
 		const selectCaseParam = params.get('selectCase');
@@ -702,9 +1373,7 @@
 		// ?cases= comma-separated enabled cases (e.g. cases=gen,dat,acc)
 		const casesParam = params.get('cases');
 		if (casesParam) {
-			const parsed = casesParam
-				.split(',')
-				.filter((c): c is Case => ALL_CASES.includes(c as Case)) as Case[];
+			const parsed: Case[] = casesParam.split(',').filter(isCaseValue);
 			if (parsed.length > 0) {
 				enabledCases = parsed;
 				chapterBook = null;
@@ -716,58 +1385,16 @@
 		// ?mode=review — auto-activate review mistakes mode if there are stored mistakes
 		const modeParam = params.get('mode');
 		if (modeParam === 'review') {
-			const uniqueKeys = getUniqueMistakeKeys();
-			if (uniqueKeys.length > 0) {
-				const wordBank = loadWordBank();
-				const pronounBank = loadPronounBank();
-				const generatedMistakes: DrillResult[] = [];
-				for (const mk of uniqueKeys) {
-					// Try to find the word in word bank first, then pronoun bank
-					const word = wordBank.find((w) => w.lemma === mk.lemma);
-					if (word) {
-						const q = generateFormProduction(word, mk.targetCase, mk.targetNumber);
-						if (q) {
-							generatedMistakes.push({
-								question: q,
-								userAnswer: '',
-								correct: false,
-								nearMiss: false
-							});
-						}
-					} else {
-						// Check pronoun bank
-						const pronoun = pronounBank.find((p) => p.lemma === mk.lemma);
-						if (pronoun) {
-							const q = generatePronounFormProduction(pronoun, mk.targetCase, mk.targetNumber);
-							if (q) {
-								generatedMistakes.push({
-									question: q,
-									userAnswer: '',
-									correct: false,
-									nearMiss: false
-								});
-							}
-						}
-					}
-				}
-				if (generatedMistakes.length > 0) {
-					mistakes = generatedMistakes;
-					practicingMistakes = true;
-					chapterBook = null;
-					chapterSelection = null;
-					saveChapterToStorage();
-				}
-			}
+			activateStoredMistakeReview();
 		}
 
 		// Hydrate progress from server-loaded Supabase data (available before mount)
-		// Use get(page) to avoid creating a reactive dependency on $page.data
-		const savedProgress = get(page).data.savedProgress;
+		// Read once at init time; we don't want a reactive dependency on page.data here.
+		const savedProgress = page.data.savedProgress;
 		if (savedProgress) {
-			const VALID_LEVELS: ReadonlySet<string> = new Set(['A1', 'A2', 'B1', 'B2']);
-			if (VALID_LEVELS.has(savedProgress.level)) {
+			if (isDifficulty(savedProgress.level)) {
 				const serverProgress: Progress = {
-					level: savedProgress.level as Difficulty,
+					level: savedProgress.level,
 					caseScores: savedProgress.case_scores,
 					paradigmScores: savedProgress.paradigm_scores,
 					lastSession: savedProgress.last_session ?? ''
@@ -784,13 +1411,29 @@
 			}
 		}
 
-		// Load today's session stats if logged in
+		// Load today's session stats and student assignments if logged in
 		if (user) {
 			loadTodaySession();
+			loadStudentAssignments(); // This also triggers loadLeaderboard() on completion
+			// Refresh leaderboard every 5 minutes
+			leaderboardRefreshTimer = setInterval(() => {
+				if (leaderboardClassId) {
+					fetchLeaderboardData(leaderboardClassId);
+				}
+			}, 300_000);
 		}
 
-		// Generate first question using hydrated progress
-		generateNextQuestion();
+		// Generate first question using hydrated progress.
+		// If we're loading into assignment mode (?assignment=<id>) the effect
+		// below will fetch the assignment config and generate the first
+		// question with assignment-scoped settings. Skipping the initial
+		// generation here prevents a Free-Practice-settings question from
+		// flashing before the assignment fetch resolves (would leak the wrong
+		// drill type or case set on cold navigation).
+		const hasAssignmentParam = !!params.get('assignment');
+		if (!hasAssignmentParam) {
+			generateNextQuestion();
+		}
 		wordsLoading = false;
 
 		// Flush pending syncs on page unload to avoid data loss
@@ -847,7 +1490,20 @@
 			if (sessionSyncTimer) {
 				clearTimeout(sessionSyncTimer);
 			}
+			if (leaderboardRefreshTimer) {
+				clearInterval(leaderboardRefreshTimer);
+			}
 		};
+	});
+
+	// Re-evaluate matching assignment when settings or assignments change
+	$effect(() => {
+		void drillSettings;
+		void studentAssignments;
+		void assignmentId;
+		if (initialized) {
+			updateMatchingAssignment();
+		}
 	});
 
 	function pickDrillType(): DrillType {
@@ -1802,6 +2458,8 @@
 			scheduleSyncToSupabase();
 			trackSessionStats(result);
 			recordSessionActivity(false);
+			recordAssignmentProgress(false);
+			recordAutoDetectedAssignmentProgress(false);
 			streak = 0;
 			if (question.wordCategory === 'pronoun' && question.pronoun) {
 				paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
@@ -1862,6 +2520,21 @@
 		scheduleSyncToSupabase();
 		trackSessionStats(result);
 		recordSessionActivity(result.correct);
+		if (!result.correct && (assignmentId || matchingAssignmentId)) {
+			const lemma =
+				result.question.wordCategory === 'pronoun' && result.question.pronoun
+					? result.question.pronoun.lemma
+					: result.question.word.lemma;
+			collectAssignmentMistake(
+				lemma,
+				result.question.correctAnswer,
+				result.userAnswer,
+				result.question.case,
+				result.question.number
+			);
+		}
+		recordAssignmentProgress(result.correct);
+		recordAutoDetectedAssignmentProgress(result.correct);
 		posthog.capture('question_answered', {
 			correct: result.correct,
 			drillType: result.question.drillType,
@@ -1943,6 +2616,17 @@
 
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
 		recordSessionActivity(allCorrect);
+		if (!allCorrect && (assignmentId || matchingAssignmentId)) {
+			collectAssignmentMistake(
+				result.question.word.lemma,
+				result.question.correctForm,
+				result.userForm,
+				result.question.case,
+				result.question.number
+			);
+		}
+		recordAssignmentProgress(allCorrect);
+		recordAutoDetectedAssignmentProgress(allCorrect);
 		posthog.capture('question_answered', {
 			correct: allCorrect,
 			drillType: 'multi_step',
@@ -2091,8 +2775,11 @@
 	}}
 	onclick={(e) => {
 		if (chapterPickerOpen) {
-			const target = e.target as HTMLElement;
-			if (!target.closest('[aria-haspopup="listbox"], [role="listbox"]')) {
+			const target = e.target;
+			if (
+				target instanceof HTMLElement &&
+				!target.closest('[aria-haspopup="listbox"], [role="listbox"]')
+			) {
 				chapterPickerOpen = false;
 			}
 		}
@@ -2148,561 +2835,934 @@
 </svelte:head>
 
 <div class="flex flex-col">
-	<NavBar
-		activePage={activeView === 'exercise' ? 'exercises' : 'lookup'}
-		onNavigate={(page) => {
-			activeView = page === 'exercises' ? 'exercise' : 'declension';
-			if (activeView === 'declension') refSidebarOpen = false;
-		}}
-		{darkMode}
-		onToggleDarkMode={toggleDarkMode}
-		{user}
-		onSignIn={() => (authModalOpen = true)}
-		isHomePage={true}
-	/>
+	<NavBar {user} onSignIn={() => (authModalOpen = true)} isHomePage={true} />
 
-	{#if activeView === 'exercise'}
-		<main class="mx-auto w-full max-w-[867px] flex-1 px-3 py-4 sm:px-4 sm:py-8">
-			<!-- Mode selector + Level (level only in Free Practice) -->
-			<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3" data-tour="mode-selector">
-				<ChapterSelector selectedBook={chapterBook} onModeChange={handleModeChange} />
-				{#if chapterBook === null}
+	<main class="mx-auto w-full max-w-[867px] flex-1 px-3 py-4 sm:px-4 sm:py-8">
+		<!-- Assignment error banner -->
+		{#if assignmentError}
+			<div
+				class="mb-4 flex items-center justify-between rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+			>
+				<span>{assignmentError}</span>
+				<button
+					type="button"
+					onclick={() => (assignmentError = null)}
+					class="ml-2 cursor-pointer text-red-500 hover:text-red-700"
+				>
+					&times;
+				</button>
+			</div>
+		{/if}
+
+		<!-- Student assignments panel -->
+		{#if showAssignmentsPanel}
+			<div class="mb-4 rounded-2xl border border-card-stroke bg-card-bg">
+				<button
+					type="button"
+					onclick={() => (assignmentsPanelExpanded = !assignmentsPanelExpanded)}
+					class="flex w-full items-center justify-between px-4 py-3"
+				>
 					<div class="flex items-center gap-2">
-						<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
-							>Level</span
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="size-4 text-emphasis"
 						>
-						<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
-							{#each ['A1', 'A2', 'B1', 'B2'] as const as lvl (lvl)}
-								<button
-									onclick={() => handleLevelChange(lvl)}
-									class="flex flex-col items-center justify-center rounded-[12px] px-3 py-2.5 transition-all
-										{currentLevel === lvl
-										? 'bg-shaded-background text-text-default'
-										: 'text-text-subtitle hover:text-text-default'}"
-								>
-									<span class="text-xs font-normal">{lvl}</span>
-								</button>
-							{/each}
-						</div>
+							<path
+								fill-rule="evenodd"
+								d="M6 4.75A.75.75 0 016.75 4h10.5a.75.75 0 010 1.5H6.75A.75.75 0 016 4.75zM6 10a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H6.75A.75.75 0 016 10zm0 5.25a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H6.75a.75.75 0 01-.75-.75zM1.99 4.75a1 1 0 011-1h.01a1 1 0 010 2h-.01a1 1 0 01-1-1zM2.99 9a1 1 0 100 2h.01a1 1 0 100-2h-.01zM1.99 15.25a1 1 0 011-1h.01a1 1 0 010 2h-.01a1 1 0 01-1-1z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+						<span class="text-sm font-semibold text-text-default">Your Assignments</span>
+						{#if pendingAssignments.length > 0}
+							<span
+								class="rounded-full bg-emphasis px-1.5 py-0.5 text-xs font-bold leading-none text-text-inverted"
+							>
+								{pendingAssignments.length}
+							</span>
+						{/if}
+					</div>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						class="size-4 text-text-subtitle transition-transform duration-200 {assignmentsPanelExpanded
+							? 'rotate-180'
+							: ''}"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+				</button>
+				{#if assignmentsPanelExpanded}
+					<div transition:slide={{ duration: 200 }} class="flex flex-col gap-2 px-4 pb-3">
+						{#each studentAssignments as assignment (assignment.id)}
+							{@const urgency = getDueDateUrgency(assignment.dueDate, assignment.completedAt)}
+							{@const progressPct =
+								assignment.targetQuestions > 0
+									? Math.min(
+											100,
+											Math.round((assignment.attempted / assignment.targetQuestions) * 100)
+										)
+									: 0}
+							{@const isCompleted = assignment.completedAt !== null}
+							{@const isMatching = matchingAssignmentId === assignment.id}
+							<div
+								class="rounded-xl border px-3 py-2.5 transition-colors {isMatching
+									? 'border-emphasis/40 bg-emphasis/5'
+									: 'border-card-stroke bg-shaded-background/50'}"
+							>
+								<div class="flex items-start justify-between gap-2">
+									<div class="min-w-0 flex-1">
+										<div class="flex items-center gap-1.5">
+											<span class="truncate text-sm font-medium text-text-default">
+												{assignment.title}
+											</span>
+										</div>
+										<div class="mt-0.5 flex items-center gap-2 text-xs text-text-subtitle">
+											<span class="truncate">{assignment.className}</span>
+											<span style="color: {urgency.color}" class="shrink-0 font-medium">
+												{urgency.label}
+											</span>
+											{#if isMatching}
+												<span
+													class="shrink-0 rounded-full bg-emphasis/10 px-1.5 py-0.5 text-xs font-medium text-emphasis"
+												>
+													Counts toward this!
+												</span>
+											{/if}
+										</div>
+									</div>
+									<div class="shrink-0">
+										{#if isCompleted}
+											<span
+												class="inline-flex items-center gap-1 rounded-lg bg-positive-background px-2.5 py-1.5 text-xs font-medium text-positive-stroke"
+											>
+												Completed
+											</span>
+										{:else if assignment.attempted > 0}
+											<button
+												type="button"
+												onclick={() => startAssignment(assignment)}
+												class="rounded-lg bg-emphasis px-2.5 py-1.5 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90"
+											>
+												Continue
+											</button>
+										{:else}
+											<button
+												type="button"
+												onclick={() => startAssignment(assignment)}
+												class="rounded-lg bg-emphasis px-2.5 py-1.5 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90"
+											>
+												Start
+											</button>
+										{/if}
+									</div>
+								</div>
+								{#if !isCompleted}
+									<div class="mt-2 flex items-center gap-2">
+										<div class="h-1.5 flex-1 overflow-hidden rounded-full bg-card-bg">
+											<div
+												class="h-full rounded-full bg-emphasis transition-all"
+												style="width: {progressPct}%"
+											></div>
+										</div>
+										<span class="text-xs tabular-nums text-text-subtitle">
+											{Math.min(
+												assignment.attempted,
+												assignment.targetQuestions
+											)}/{assignment.targetQuestions}
+										</span>
+									</div>
+								{/if}
+							</div>
+						{/each}
 					</div>
 				{/if}
 			</div>
+		{/if}
 
+		<!-- Mode selector + Level (level only in Free Practice) -->
+		<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3" data-tour="mode-selector">
+			<ChapterSelector selectedBook={chapterBook} onModeChange={handleModeChange} />
 			{#if chapterBook === null}
-				<!-- Case selection pill bar (Free Practice mode) -->
-				<div class="mb-4" data-tour="case-pills">
-					{#if wordsLoading}
-						<CasePillBarSkeleton />
-					{:else}
-						<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
-					{/if}
+				<div class="flex items-center gap-2">
+					<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
+						>Level</span
+					>
+					<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
+						{#each ['A1', 'A2', 'B1', 'B2'] as const as lvl (lvl)}
+							<button
+								onclick={() => handleLevelChange(lvl)}
+								class="flex flex-col items-center justify-center rounded-[12px] px-3 py-2.5 transition-all
+										{currentLevel === lvl
+									? 'bg-shaded-background text-text-default'
+									: 'text-text-subtitle hover:text-text-default'}"
+							>
+								<span class="text-xs font-normal">{lvl}</span>
+							</button>
+						{/each}
+					</div>
 				</div>
 			{/if}
+		</div>
 
-			<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings -->
-			<div class="relative z-30 mb-2 grid grid-cols-[1fr_auto_1fr] items-center">
-				<div></div>
-				<div class="flex min-w-0 justify-center">
-					{#if chapterBook !== null}
-						{@const kzkChapter = getSelectedKzkChapter()}
-						{#if kzkChapter}
-							{@const chScore = chapterScores[kzkChapter.id]}
-							{@const chapterAccPct =
-								chScore && chScore.attempts > 0
-									? Math.round((chScore.correct / chScore.attempts) * 100)
-									: null}
-							{@const chapterAccColor =
-								chScore && chScore.attempts > 0
-									? chapterAccuracyColor(chScore.correct / chScore.attempts)
-									: null}
-							<div class="flex min-w-0 items-center gap-2.5">
-								<button
-									onclick={() => handleChapterStep('prev')}
-									class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-									aria-label="Previous chapter"
+		{#if chapterBook === null}
+			<!-- Case selection pill bar (Free Practice mode) -->
+			<div class="mb-4" data-tour="case-pills">
+				{#if wordsLoading}
+					<CasePillBarSkeleton />
+				{:else}
+					<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Leaderboard banner -->
+		{#if showLeaderboard && leaderboardClassId}
+			<div class="mb-3">
+				<LeaderboardBanner
+					leaderboard={leaderboardData}
+					currentUserId={user?.id ?? ''}
+					classId={leaderboardClassId}
+					sentToday={leaderboardSentToday}
+					onReactionSent={handleLeaderboardReactionSent}
+				/>
+			</div>
+		{/if}
+
+		<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings -->
+		<div class="relative z-30 mb-2 grid grid-cols-[1fr_auto_1fr] items-center">
+			<div></div>
+			<div class="flex min-w-0 justify-center">
+				{#if chapterBook !== null}
+					{@const kzkChapter = getSelectedKzkChapter()}
+					{#if kzkChapter}
+						{@const chScore = chapterScores[kzkChapter.id]}
+						{@const chapterAccPct =
+							chScore && chScore.attempts > 0
+								? Math.round((chScore.correct / chScore.attempts) * 100)
+								: null}
+						{@const chapterAccColor =
+							chScore && chScore.attempts > 0
+								? chapterAccuracyColor(chScore.correct / chScore.attempts)
+								: null}
+						<div class="flex min-w-0 items-center gap-2.5">
+							<button
+								onclick={() => handleChapterStep('prev')}
+								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+								aria-label="Previous chapter"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-4 w-4"
 								>
+									<path
+										fill-rule="evenodd"
+										d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</button>
+							<div class="relative flex min-w-0 flex-col items-center gap-0.5">
+								<button
+									type="button"
+									onclick={() => (chapterPickerOpen = !chapterPickerOpen)}
+									class="flex items-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
+									aria-expanded={chapterPickerOpen}
+									aria-haspopup="listbox"
+								>
+									<span class="truncate text-base font-semibold leading-tight text-text-default">
+										{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
+									</span>
+									{#if chapterAccPct !== null && chapterAccColor}
+										<span class="text-xs font-bold" style="color: {chapterAccColor}"
+											>{chapterAccPct}%</span
+										>
+									{/if}
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										viewBox="0 0 20 20"
 										fill="currentColor"
-										class="h-4 w-4"
+										class="h-3.5 w-3.5 shrink-0 text-text-subtitle transition-transform duration-200 {chapterPickerOpen
+											? 'rotate-180'
+											: ''}"
 									>
 										<path
 											fill-rule="evenodd"
-											d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+											d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
 											clip-rule="evenodd"
 										/>
 									</svg>
 								</button>
-								<div class="relative flex min-w-0 flex-col items-center gap-0.5">
-									<button
-										type="button"
-										onclick={() => (chapterPickerOpen = !chapterPickerOpen)}
-										class="flex items-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
-										aria-expanded={chapterPickerOpen}
-										aria-haspopup="listbox"
+								{#if chapterPickerOpen}
+									<div
+										class="fixed left-2 right-2 z-50 max-h-72 overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-1.5 shadow-lg sm:absolute sm:left-1/2 sm:right-auto sm:top-full sm:mt-1 sm:w-80 sm:-translate-x-1/2"
+										role="listbox"
+										tabindex="-1"
+										aria-label="Select chapter"
+										onkeydown={(e) => {
+											if (e.key === 'Escape') chapterPickerOpen = false;
+										}}
 									>
-										<span class="truncate text-base font-semibold leading-tight text-text-default">
-											{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
-										</span>
-										{#if chapterAccPct !== null && chapterAccColor}
-											<span class="text-xs font-bold" style="color: {chapterAccColor}"
-												>{chapterAccPct}%</span
+										{#each kzkChapters[chapterBook].chapters as ch (ch.id)}
+											{@const chSc = chapterScores[ch.id]}
+											{@const accPct =
+												chSc && chSc.attempts > 0
+													? Math.round((chSc.correct / chSc.attempts) * 100)
+													: null}
+											{@const accClr =
+												chSc && chSc.attempts > 0
+													? chapterAccuracyColor(chSc.correct / chSc.attempts)
+													: null}
+											<button
+												type="button"
+												role="option"
+												aria-selected={ch.id === chapterSelection}
+												onclick={() => {
+													handleChapterChange(chapterBook, ch.id);
+													chapterPickerOpen = false;
+												}}
+												class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors {ch.id ===
+												chapterSelection
+													? 'font-semibold text-text-default'
+													: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
+												style={accClr
+													? `background-color: ${accClr}${ch.id === chapterSelection ? '20' : '10'}`
+													: ch.id === chapterSelection
+														? 'background-color: var(--color-shaded-background)'
+														: ''}
 											>
-										{/if}
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-											class="h-3.5 w-3.5 shrink-0 text-text-subtitle transition-transform duration-200 {chapterPickerOpen
-												? 'rotate-180'
-												: ''}"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-												clip-rule="evenodd"
-											/>
-										</svg>
-									</button>
-									{#if chapterPickerOpen}
-										<div
-											class="fixed left-2 right-2 z-50 max-h-72 overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-1.5 shadow-lg sm:absolute sm:left-1/2 sm:right-auto sm:top-full sm:mt-1 sm:w-80 sm:-translate-x-1/2"
-											role="listbox"
-											tabindex="-1"
-											aria-label="Select chapter"
-											onkeydown={(e) => {
-												if (e.key === 'Escape') chapterPickerOpen = false;
-											}}
-										>
-											{#each kzkChapters[chapterBook].chapters as ch (ch.id)}
-												{@const chSc = chapterScores[ch.id]}
-												{@const accPct =
-													chSc && chSc.attempts > 0
-														? Math.round((chSc.correct / chSc.attempts) * 100)
-														: null}
-												{@const accClr =
-													chSc && chSc.attempts > 0
-														? chapterAccuracyColor(chSc.correct / chSc.attempts)
-														: null}
-												<button
-													type="button"
-													role="option"
-													aria-selected={ch.id === chapterSelection}
-													onclick={() => {
-														handleChapterChange(chapterBook, ch.id);
-														chapterPickerOpen = false;
-													}}
-													class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors {ch.id ===
-													chapterSelection
-														? 'font-semibold text-text-default'
-														: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
-													style={accClr
-														? `background-color: ${accClr}${ch.id === chapterSelection ? '20' : '10'}`
-														: ch.id === chapterSelection
-															? 'background-color: var(--color-shaded-background)'
-															: ''}
-												>
-													<span class="shrink-0 font-semibold">{ch.label}</span>
-													{#if ch.subtitle}
-														<span class="truncate text-xs text-text-subtitle">{ch.subtitle}</span>
-													{/if}
-													{#if accPct !== null && accClr}
-														<span class="ml-auto shrink-0 text-xs font-bold" style="color: {accClr}"
-															>{accPct}%</span
-														>
-													{/if}
-												</button>
-											{/each}
-										</div>
-									{/if}
-									<div class="flex flex-wrap items-center justify-center gap-1">
-										{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
-											<span
-												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
-											>
-												All cases
-											</span>
-										{:else}
-											{#each kzkChapter.unlockedCases as c (c)}
-												<span
-													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
-													style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
-												>
-													{CASE_SHORT_LABELS[c]}
-												</span>
-											{/each}
-										{/if}
+												<span class="shrink-0 font-semibold">{ch.label}</span>
+												{#if ch.subtitle}
+													<span class="truncate text-xs text-text-subtitle">{ch.subtitle}</span>
+												{/if}
+												{#if accPct !== null && accClr}
+													<span class="ml-auto shrink-0 text-xs font-bold" style="color: {accClr}"
+														>{accPct}%</span
+													>
+												{/if}
+											</button>
+										{/each}
+									</div>
+								{/if}
+								<div class="flex flex-wrap items-center justify-center gap-1">
+									{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
 										<span
 											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 										>
-											{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
+											All cases
 										</span>
-									</div>
-								</div>
-
-								<button
-									onclick={() => handleChapterStep('next')}
-									class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-									aria-label="Next chapter"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										fill="currentColor"
-										class="h-4 w-4"
+									{:else}
+										{#each kzkChapter.unlockedCases as c (c)}
+											<span
+												class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+												style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
+											>
+												{CASE_SHORT_LABELS[c]}
+											</span>
+										{/each}
+									{/if}
+									<span
+										class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 									>
-										<path
-											fill-rule="evenodd"
-											d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-											clip-rule="evenodd"
-										/>
-									</svg>
-								</button>
+										{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
+									</span>
+								</div>
 							</div>
-						{/if}
-					{/if}
-					{#if chapterBook === null && selectedCase === 'all'}
-						<button
-							onclick={() => {
-								caseFilterExpanded = !caseFilterExpanded;
-								if (caseFilterExpanded) settingsExpanded = false;
-							}}
-							class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
-						>
-							Filter cases
-							{#if enabledCases.length < ALL_CASES.length}
-								<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
-							{/if}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
-									? 'rotate-180'
-									: ''}"
+
+							<button
+								onclick={() => handleChapterStep('next')}
+								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+								aria-label="Next chapter"
 							>
-								<path
-									fill-rule="evenodd"
-									d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</button>
-					{/if}
-				</div>
-				<div class="flex items-center justify-end gap-2">
-					{#if relevantMistakeCount > 0}
-						<button
-							type="button"
-							onclick={() => {
-								practicingMistakes = !practicingMistakes;
-								lastMistakeIndex = -1;
-								generateNextQuestion();
-							}}
-							class="flex min-h-[44px] items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-all duration-150
-							{practicingMistakes
-								? 'border-negative-stroke bg-negative-background text-negative-stroke'
-								: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-negative-stroke/40 hover:text-negative-stroke'}"
-						>
-							{#if practicingMistakes}
-								Reviewing {relevantMistakeCount}
-								{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
-							{:else}
-								Review {relevantMistakeCount}
-								{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
-							{/if}
-						</button>
-					{/if}
-					{#if ttsAvailable}
-						<button
-							type="button"
-							onclick={toggleAutoplay}
-							class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-							aria-label="Toggle audio autoplay"
-						>
-							{#if autoplayAudio}
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="size-4"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="h-4 w-4"
 								>
-									<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-									<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-									<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+									<path
+										fill-rule="evenodd"
+										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+										clip-rule="evenodd"
+									/>
 								</svg>
-							{:else}
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="size-4"
-								>
-									<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-									<line x1="23" y1="9" x2="17" y2="15" />
-									<line x1="17" y1="9" x2="23" y2="15" />
-								</svg>
-							{/if}
-						</button>
+							</button>
+						</div>
 					{/if}
+				{/if}
+				{#if chapterBook === null && selectedCase === 'all'}
+					<button
+						onclick={() => {
+							caseFilterExpanded = !caseFilterExpanded;
+							if (caseFilterExpanded) settingsExpanded = false;
+						}}
+						class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
+					>
+						Filter cases
+						{#if enabledCases.length < ALL_CASES.length}
+							<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
+						{/if}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
+								? 'rotate-180'
+								: ''}"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					</button>
+				{/if}
+			</div>
+			<div class="flex items-center justify-end gap-2">
+				{#if relevantMistakeCount > 0}
 					<button
 						type="button"
 						onclick={() => {
-							settingsExpanded = !settingsExpanded;
-							if (settingsExpanded) caseFilterExpanded = false;
+							practicingMistakes = !practicingMistakes;
+							lastMistakeIndex = -1;
+							generateNextQuestion();
 						}}
-						class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-						aria-label="Exercise settings"
-						data-tour="settings"
+						class="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+							{practicingMistakes
+							? 'border-negative-stroke bg-negative-background text-negative-stroke'
+							: 'border-negative-stroke/30 bg-card-bg text-negative-stroke hover:border-negative-stroke hover:bg-negative-background'}"
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="h-4 w-4"
+						>
+							<path
+								d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H4.598a.75.75 0 00-.75.75v3.634a.75.75 0 001.5 0v-2.033a7 7 0 0011.713-3.13.75.75 0 00-1.449-.391l-.3.015zM4.688 8.576a5.5 5.5 0 019.201-2.466l.312.311h-2.433a.75.75 0 000 1.5h3.634a.75.75 0 00.75-.75V3.537a.75.75 0 00-1.5 0v2.033A7 7 0 003.239 8.89a.75.75 0 001.449.391v-.705z"
+							/>
+						</svg>
+						{#if practicingMistakes}
+							Reviewing {relevantMistakeCount}
+							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+						{:else}
+							Review {relevantMistakeCount}
+							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+						{/if}
+					</button>
+				{/if}
+				{#if ttsAvailable}
+					<button
+						type="button"
+						onclick={toggleAutoplay}
+						class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+						aria-label="Toggle audio autoplay"
+					>
+						{#if autoplayAudio}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="size-4"
+							>
+								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+								<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+								<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+							</svg>
+						{:else}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="size-4"
+							>
+								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+								<line x1="23" y1="9" x2="17" y2="15" />
+								<line x1="17" y1="9" x2="23" y2="15" />
+							</svg>
+						{/if}
+					</button>
+				{/if}
+				<button
+					type="button"
+					onclick={() => {
+						settingsExpanded = !settingsExpanded;
+						if (settingsExpanded) caseFilterExpanded = false;
+					}}
+					class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+					aria-label="Exercise settings"
+					data-tour="settings"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="size-4"
+					>
+						<circle cx="12" cy="12" r="3" />
+						<path
+							d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+						/>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<!-- Expandable case filter (inline, pushes content down) -->
+		{#if chapterBook === null && caseFilterExpanded && !assignmentInfo}
+			<div
+				transition:slide={{ duration: 200 }}
+				class="flex flex-wrap justify-center gap-1.5 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3"
+			>
+				{#each ALL_CASES as c (c)}
+					{@const enabled = enabledCases.includes(c)}
+					<button
+						onclick={() => toggleEnabledCase(c)}
+						class="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150"
+						class:opacity-35={!enabled}
+						style="background-color: {CASE_HEX[c]}12; color: {CASE_HEX[
+							c
+						]}; border: 1px solid {enabled ? CASE_HEX[c] + '40' : 'transparent'}"
+						aria-pressed={enabled}
+					>
+						{CASE_LABELS[c]}
+					</button>
+				{/each}
+				{#if enabledCases.length < ALL_CASES.length}
+					<button
+						onclick={() => {
+							enabledCases = [...ALL_CASES];
+							generateNextQuestion();
+						}}
+						class="text-xs font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
+					>
+						Reset
+					</button>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Expandable settings (inline, pushes content down) -->
+		{#if settingsExpanded && !assignmentInfo}
+			<div
+				transition:slide={{ duration: 200 }}
+				class="flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
+			>
+				<DrillSettings_
+					selectedDrillTypes={drillSettings.selectedDrillTypes}
+					numberMode={effectiveNumberMode}
+					contentMode={drillSettings.contentMode ?? 'nouns'}
+					{pronounsUnlocked}
+					onSettingsChange={handleSettingsChange}
+					hiddenDrillTypes={(() => {
+						const hidden: DrillType[] = [];
+						if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
+							hidden.push('case_identification');
+						}
+						if (!isMultiStepUnlocked()) {
+							hidden.push('multi_step');
+						}
+						return hidden;
+					})()}
+					hideNumberMode={chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked}
+				/>
+			</div>
+		{/if}
+
+		<!-- Sign-up prompt for guests after 10 questions -->
+		{#if !user && sessionCount >= 10 && !signupPromptDismissed}
+			<div
+				transition:slide={{ duration: 200 }}
+				class="mx-auto mb-3 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg px-4 py-3 sm:px-5 sm:py-3.5"
+			>
+				<div class="flex items-center gap-4">
+					<div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+						<p class="shrink-0 text-sm font-semibold text-text-default">
+							You're on a roll — don't lose it!
+						</p>
+						<p class="text-xs text-text-subtitle">
+							Save progress across devices &middot; smart weak-spot drilling &middot; track accuracy
+						</p>
+					</div>
+					<button
+						type="button"
+						onclick={() => (authModalOpen = true)}
+						class="shrink-0 rounded-xl bg-emphasis px-4 py-2 text-xs font-semibold text-text-inverted transition-opacity hover:opacity-90"
+					>
+						Sign up free
+					</button>
+					<button
+						type="button"
+						onclick={() => (signupPromptDismissed = true)}
+						class="shrink-0 p-1 text-text-subtitle transition-colors hover:text-text-default"
+						aria-label="Dismiss"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
 							class="size-4"
 						>
-							<circle cx="12" cy="12" r="3" />
 							<path
-								d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+								d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
 							/>
 						</svg>
 					</button>
 				</div>
 			</div>
+		{/if}
 
-			<!-- Expandable case filter (inline, pushes content down) -->
-			{#if chapterBook === null && caseFilterExpanded}
-				<div
-					transition:slide={{ duration: 200 }}
-					class="flex flex-wrap justify-center gap-1.5 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3"
-				>
-					{#each ALL_CASES as c (c)}
-						{@const enabled = enabledCases.includes(c)}
-						<button
-							onclick={() => toggleEnabledCase(c)}
-							class="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150"
-							class:opacity-35={!enabled}
-							style="background-color: {CASE_HEX[c]}12; color: {CASE_HEX[
-								c
-							]}; border: 1px solid {enabled ? CASE_HEX[c] + '40' : 'transparent'}"
-							aria-pressed={enabled}
-						>
-							{CASE_LABELS[c]}
-						</button>
-					{/each}
-					{#if enabledCases.length < ALL_CASES.length}
-						<button
-							onclick={() => {
-								enabledCases = [...ALL_CASES];
-								generateNextQuestion();
-							}}
-							class="text-xs font-medium text-text-subtitle underline decoration-dotted underline-offset-2 transition-colors hover:text-text-default"
-						>
-							Reset
-						</button>
-					{/if}
+		<!-- Assignment progress banner -->
+		{#if assignmentLoading}
+			<div
+				class="mx-auto mb-4 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg p-4 text-center"
+			>
+				<span class="text-sm text-text-subtitle">Loading assignment...</span>
+			</div>
+		{:else if assignmentInfo}
+			<div
+				class="mx-auto mb-4 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg p-4"
+			>
+				<div class="mb-2 flex items-center justify-between">
+					<span class="text-sm font-semibold text-emphasis">{assignmentInfo.title}</span>
+					<a
+						href={resolve(`/classes/${assignmentInfo.classId}/assignments/${assignmentId}`)}
+						class="text-xs text-text-subtitle hover:text-text-default"
+					>
+						Back to Assignment
+					</a>
 				</div>
-			{/if}
-
-			<!-- Expandable settings (inline, pushes content down) -->
-			{#if settingsExpanded}
-				<div
-					transition:slide={{ duration: 200 }}
-					class="flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
-				>
-					<DrillSettings_
-						selectedDrillTypes={drillSettings.selectedDrillTypes}
-						numberMode={effectiveNumberMode}
-						contentMode={drillSettings.contentMode ?? 'nouns'}
-						{pronounsUnlocked}
-						onSettingsChange={handleSettingsChange}
-						hiddenDrillTypes={(() => {
-							const hidden: DrillType[] = [];
-							if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
-								hidden.push('case_identification');
-							}
-							if (!isMultiStepUnlocked()) {
-								hidden.push('multi_step');
-							}
-							return hidden;
-						})()}
-						hideNumberMode={chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked}
-					/>
-				</div>
-			{/if}
-
-			<!-- Sign-up prompt for guests after 10 questions -->
-			{#if !user && sessionCount >= 10 && !signupPromptDismissed}
-				<div
-					transition:slide={{ duration: 200 }}
-					class="mx-auto mb-3 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg px-4 py-3 sm:px-5 sm:py-3.5"
-				>
-					<div class="flex items-center gap-4">
-						<div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-							<p class="shrink-0 text-sm font-semibold text-text-default">
-								You're on a roll — don't lose it!
-							</p>
-							<p class="text-xs text-text-subtitle">
-								Save progress across devices &middot; smart weak-spot drilling &middot; track
-								accuracy
-							</p>
-						</div>
-						<button
-							type="button"
-							onclick={() => (authModalOpen = true)}
-							class="shrink-0 rounded-xl bg-emphasis px-4 py-2 text-xs font-semibold text-text-inverted transition-opacity hover:opacity-90"
-						>
-							Sign up free
-						</button>
-						<button
-							type="button"
-							onclick={() => (signupPromptDismissed = true)}
-							class="shrink-0 p-1 text-text-subtitle transition-colors hover:text-text-default"
-							aria-label="Dismiss"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								class="size-4"
-							>
-								<path
-									d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-								/>
-							</svg>
-						</button>
+				{#if assignmentInfo.selectedCases.length > 0}
+					<div class="mb-2 flex flex-wrap gap-1">
+						{#each assignmentInfo.selectedCases as c (c)}
+							{#if isCase(c)}
+								<span
+									class="rounded-full px-2 py-0.5 text-[10px] font-medium {CASE_COLORS[c]
+										.bg}/20 {CASE_COLORS[c].text}"
+								>
+									{CASE_SHORT_LABELS[c]}
+								</span>
+							{/if}
+						{/each}
 					</div>
+				{/if}
+				<div class="flex items-center gap-3">
+					<div class="h-2 flex-1 overflow-hidden rounded-full bg-shaded-background">
+						<div
+							class="h-full rounded-full bg-positive-stroke transition-all"
+							style="width: {Math.min(
+								100,
+								(assignmentInfo.attempted / assignmentInfo.targetQuestions) * 100
+							)}%"
+						></div>
+					</div>
+					<span class="text-xs font-medium text-text-subtitle">
+						{Math.min(
+							assignmentInfo.attempted,
+							assignmentInfo.targetQuestions
+						)}/{assignmentInfo.targetQuestions}
+					</span>
 				</div>
-			{/if}
-
-			<!-- Drill area -->
-			<div class="mx-auto mt-6 max-w-[867px]">
-				{#if multiStepQuestion}
-					<MultiStepCard
-						question={multiStepQuestion}
-						onComplete={handleMultiStepComplete}
-						{paradigmNotes}
-						onSpeak={ttsAvailable ? handleSpeak : null}
-						level={currentLevel}
-					/>
-				{:else}
-					<DrillCard
-						{question}
-						loading={wordsLoading || (question === null && !initialized)}
-						result={lastResult}
-						onSubmit={handleSubmit}
-						onSpeak={ttsAvailable ? handleSpeak : null}
-						selectedCases={ALL_CASES}
-						{paradigmNotes}
-						onWordClick={handleWordClick}
-						{streak}
-						soundEnabled={autoplayAudio}
-					/>
+				{#if assignmentInfo.completedAt}
+					<p class="mt-2 text-xs font-medium text-positive-stroke">Assignment completed!</p>
 				{/if}
 			</div>
+		{/if}
 
-			<!-- Session stats -->
-			{#if sessionCount > 0}
-				<div class="mt-6 text-center text-xs text-text-subtitle">
-					{Math.round($displayTotal)} completed &middot; {Math.round($displayPct)}% accuracy
-				</div>
-			{/if}
-
-			<!-- Milestone toasts -->
-			{#each toasts as toast (toast.id)}
-				<MilestoneToast
-					message={toast.message}
-					emoji={toast.emoji}
-					onDismiss={() => removeToast(toast.id)}
+		<!-- Drill area -->
+		<div class="mx-auto mt-6 max-w-[867px]">
+			{#if multiStepQuestion}
+				<MultiStepCard
+					question={multiStepQuestion}
+					onComplete={handleMultiStepComplete}
+					{paradigmNotes}
+					onSpeak={ttsAvailable ? handleSpeak : null}
+					level={currentLevel}
 				/>
-			{/each}
+			{:else}
+				<DrillCard
+					{question}
+					loading={wordsLoading || (question === null && !initialized)}
+					result={lastResult}
+					onSubmit={handleSubmit}
+					onSpeak={ttsAvailable ? handleSpeak : null}
+					selectedCases={ALL_CASES}
+					{paradigmNotes}
+					onWordClick={handleWordClick}
+					{streak}
+					soundEnabled={autoplayAudio}
+				/>
+			{/if}
+		</div>
 
-			<!-- SEO description (always server-rendered for indexing) -->
-			<p class="mx-auto mt-10 max-w-lg text-center text-xs leading-relaxed text-text-subtitle/70">
-				Practice Czech noun declension across all 7 cases. Skloňuj offers interactive drills that
-				adapt to your level, from A1 beginner to B2 intermediate, with smart tracking that focuses
-				on the paradigms and patterns you get wrong most. Follow along with Krok za krokem textbook
-				chapters or practice freely.
-			</p>
-		</main>
-	{:else}
-		<!-- Declension/Lookup view -->
-		<main class="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-			<DeclensionTable alwaysExpanded={true} />
-		</main>
-	{/if}
+		<!-- Session stats -->
+		{#if sessionCount > 0}
+			<div class="mt-6 text-center text-xs text-text-subtitle">
+				{Math.round($displayTotal)} completed &middot; {Math.round($displayPct)}% accuracy
+			</div>
+		{/if}
+
+		<!-- Milestone toasts -->
+		{#each toasts as toast (toast.id)}
+			<MilestoneToast
+				message={toast.message}
+				emoji={toast.emoji}
+				onDismiss={() => removeToast(toast.id)}
+			/>
+		{/each}
+
+		<!-- SEO description (always server-rendered for indexing) -->
+		<p class="mx-auto mt-10 max-w-lg text-center text-xs leading-relaxed text-text-subtitle/70">
+			Practice Czech noun declension across all 7 cases. Skloňuj offers interactive drills that
+			adapt to your level, from A1 beginner to B2 intermediate, with smart tracking that focuses on
+			the paradigms and patterns you get wrong most. Follow along with Krok za krokem textbook
+			chapters or practice freely.
+		</p>
+	</main>
 
 	<!-- Reference sidebar with attached handle -->
-	{#if activeView === 'exercise'}
-		<!-- Backdrop -->
+	<!-- Backdrop -->
+	<button
+		type="button"
+		class="fixed inset-0 z-30 transition-opacity duration-300
+				{refSidebarOpen ? 'bg-black/20 opacity-100' : 'pointer-events-none opacity-0'}"
+		onclick={() => (refSidebarOpen = false)}
+		aria-label="Close sidebar"
+		tabindex="-1"
+	></button>
+
+	<!-- Sidebar + handle -->
+	<div
+		class="fixed top-14 right-0 z-40 flex h-[calc(100%-3.5rem)] transition-transform duration-300 ease-in-out sm:top-16 sm:h-[calc(100%-4rem)]"
+		style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 44px)'})"
+	>
 		<button
 			type="button"
-			class="fixed inset-0 z-30 transition-opacity duration-300
-				{refSidebarOpen ? 'bg-black/20 opacity-100' : 'pointer-events-none opacity-0'}"
-			onclick={() => (refSidebarOpen = false)}
-			aria-label="Close sidebar"
-			tabindex="-1"
-		></button>
-
-		<!-- Sidebar + handle -->
-		<div
-			class="fixed top-14 right-0 z-40 flex h-[calc(100%-3.5rem)] transition-transform duration-300 ease-in-out sm:top-16 sm:h-[calc(100%-4rem)]"
-			style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 44px)'})"
+			onclick={toggleReferenceSidebar}
+			class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2.5 py-5 text-text-inverted shadow-lg transition-opacity hover:opacity-90 sm:px-3.5 sm:py-6"
+			aria-label="Toggle reference sidebar"
+			data-tour="ref-sidebar"
 		>
-			<button
-				type="button"
-				onclick={toggleReferenceSidebar}
-				class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2.5 py-5 text-text-inverted shadow-lg transition-opacity hover:opacity-90 sm:px-3.5 sm:py-6"
-				aria-label="Toggle reference sidebar"
-				data-tour="ref-sidebar"
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="h-5 w-5"
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="h-5 w-5"
-				>
-					<path d="M2 6h4" />
-					<path d="M2 10h4" />
-					<path d="M2 14h4" />
-					<path d="M2 18h4" />
-					<rect width="16" height="20" x="4" y="2" rx="2" />
-					<path d="M9.5 8h5" />
-					<path d="M9.5 12H16" />
-					<path d="M9.5 16H14" />
-				</svg>
-			</button>
-			<aside class="h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md">
-				<ReferenceSidebar
-					initialWord={refSidebarWord}
-					initialPronoun={refSidebarPronoun}
-					initialTab={refSidebarTab}
-					onClose={() => (refSidebarOpen = false)}
-				/>
-			</aside>
-		</div>
-	{/if}
+				<path d="M2 6h4" />
+				<path d="M2 10h4" />
+				<path d="M2 14h4" />
+				<path d="M2 18h4" />
+				<rect width="16" height="20" x="4" y="2" rx="2" />
+				<path d="M9.5 8h5" />
+				<path d="M9.5 12H16" />
+				<path d="M9.5 16H14" />
+			</svg>
+		</button>
+		<aside class="h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md">
+			<ReferenceSidebar
+				initialWord={refSidebarWord}
+				initialPronoun={refSidebarPronoun}
+				initialTab={refSidebarTab}
+				onClose={() => (refSidebarOpen = false)}
+			/>
+		</aside>
+	</div>
 </div>
 
 {#if showOnboarding}
-	<GuidedTour onComplete={dismissOnboarding} />
+	<GuidedTour steps={practiceOnboardingSteps} onComplete={dismissOnboarding} />
 {/if}
 
 <AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />
+
+{#if showCompletionModal && assignmentInfo}
+	{@const accuracyPct =
+		assignmentInfo.attempted > 0
+			? Math.round((assignmentInfo.correct / assignmentInfo.attempted) * 100)
+			: 0}
+
+	<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50">
+		<div
+			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+		>
+			<div class="mb-4 text-center">
+				<div
+					class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full {accuracyPct >=
+					70
+						? 'bg-positive-background'
+						: 'bg-warning-background'}"
+				>
+					{#if accuracyPct >= 90}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="size-7 text-positive-stroke"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					{:else if accuracyPct >= 70}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="size-7 text-positive-stroke"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					{:else}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="size-7 text-warning-text"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					{/if}
+				</div>
+				<h2 class="text-lg font-semibold text-text-default">
+					{accuracyPct >= 90 ? 'Excellent Work!' : 'Assignment Complete!'}
+				</h2>
+				<p class="mt-2 text-sm text-text-subtitle">
+					You finished <span class="font-medium text-text-default">{assignmentInfo.title}</span>
+				</p>
+				<p class="mt-1 text-xs text-text-subtitle">
+					{accuracyPct >= 90
+						? 'Outstanding accuracy — keep it up!'
+						: accuracyPct >= 70
+							? 'Great job — solid performance!'
+							: 'Good effort — review your weak cases to improve!'}
+				</p>
+			</div>
+			<div class="mb-4 grid grid-cols-2 gap-3">
+				<div class="rounded-xl bg-shaded-background p-3 text-center">
+					<p class="text-2xl font-bold text-emphasis">{accuracyPct}%</p>
+					<p class="text-xs text-text-subtitle">Accuracy</p>
+				</div>
+				<div class="rounded-xl bg-shaded-background p-3 text-center">
+					<p class="text-2xl font-bold text-text-default">
+						{assignmentInfo.correct}/{assignmentInfo.targetQuestions}
+					</p>
+					<p class="text-xs text-text-subtitle">Correct</p>
+				</div>
+			</div>
+			{#if assignmentMistakes.length > 0}
+				{@const displayMistakes = assignmentMistakes.slice(0, 5)}
+				{@const hasMore = assignmentMistakes.length > 5}
+				<div class="mb-4">
+					<button
+						type="button"
+						class="flex w-full items-center justify-between rounded-lg bg-shaded-background px-3 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background/80"
+						onclick={() => (mistakesExpanded = !mistakesExpanded)}
+					>
+						<span>You missed {assignmentMistakes.length}</span>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="size-4 transition-transform {mistakesExpanded ? 'rotate-180' : ''}"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					</button>
+					{#if mistakesExpanded}
+						<div class="mt-2 space-y-1.5">
+							{#each displayMistakes as mistake (mistake.word + mistake.expectedForm + mistake.case)}
+								<div
+									class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-1.5 text-xs"
+								>
+									<div class="flex items-baseline justify-between gap-2">
+										<span class="font-medium text-text-default"
+											>{mistake.word} &rarr; {mistake.expectedForm}</span
+										>
+										<span class="shrink-0 text-text-subtitle">{mistake.case} {mistake.number}</span>
+									</div>
+									<p class="mt-0.5 text-text-subtitle">
+										your answer: <span class="text-negative-stroke">{mistake.givenAnswer}</span>
+									</p>
+								</div>
+							{/each}
+							{#if hasMore}
+								<a
+									href={resolve(`/classes/${assignmentInfo.classId}/assignments/${assignmentId}`)}
+									class="block pt-1 text-center text-xs text-emphasis hover:underline"
+								>
+									See all {assignmentMistakes.length} on assignment page
+								</a>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			{/if}
+			<a
+				href={resolve(`/classes/${assignmentInfo.classId}/assignments/${assignmentId}`)}
+				class="block w-full cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-center text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+			>
+				Back to Assignment
+			</a>
+			<button
+				type="button"
+				onclick={() => {
+					showCompletionModal = false;
+					mistakesExpanded = false;
+					assignmentId = null;
+					assignmentInfo = null;
+					// Clean URL
+					const cleanUrl = new URL(page.url);
+					cleanUrl.searchParams.delete('assignment');
+					// eslint-disable-next-line svelte/no-navigation-without-resolve -- using constructed URL path
+					replaceState(cleanUrl.pathname + cleanUrl.search, {});
+					// Restore settings from localStorage
+					drillSettings = loadSettingsFromStorage();
+				}}
+				class="mt-2 block w-full cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-center text-sm text-text-subtitle transition-colors hover:text-text-default"
+			>
+				Continue Practicing
+			</button>
+		</div>
+	</div>
+{/if}

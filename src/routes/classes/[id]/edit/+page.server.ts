@@ -43,27 +43,57 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const name = (formData.get('name') ?? '').toString().trim();
+		const description = (formData.get('description') ?? '').toString().trim() || null;
 		const level = (formData.get('level') ?? '').toString();
 
 		if (name.length === 0 || name.length > 100) {
 			return fail(400, {
 				message: 'Class name must be between 1 and 100 characters.',
 				name,
+				description: description ?? '',
+				level
+			});
+		}
+
+		if (description !== null && description.length > 500) {
+			return fail(400, {
+				message: 'Description must be 500 characters or fewer.',
+				name,
+				description,
 				level
 			});
 		}
 
 		if (!VALID_LEVELS.has(level)) {
-			return fail(400, { message: 'Please select a valid level.', name, level });
+			return fail(400, {
+				message: 'Please select a valid level.',
+				name,
+				description: description ?? '',
+				level
+			});
 		}
+
+		const leaderboardEnabledRaw = formData.get('leaderboard_enabled');
+		const leaderboardEnabled = leaderboardEnabledRaw === 'on';
 
 		const { error: updateError } = await supabase
 			.from('classes')
-			.update({ name, level, updated_at: new Date().toISOString() })
+			.update({
+				name,
+				description,
+				level,
+				leaderboard_enabled: leaderboardEnabled,
+				updated_at: new Date().toISOString()
+			})
 			.eq('id', classId);
 
 		if (updateError) {
-			return fail(500, { message: 'Failed to update class. Please try again.', name, level });
+			return fail(500, {
+				message: 'Failed to update class. Please try again.',
+				name,
+				description: description ?? '',
+				level
+			});
 		}
 
 		redirect(303, resolve(`/classes/${classId}`));

@@ -30,6 +30,10 @@ src/lib/data/KzK2/
 # Internal docs
 ROADMAP.md
 
+# QA artifacts (screenshots/videos from dogfood runs)
+dogfood-output/screenshots*/
+dogfood-output/videos/
+
 # AI
 .claude/
 CLAUDE.md

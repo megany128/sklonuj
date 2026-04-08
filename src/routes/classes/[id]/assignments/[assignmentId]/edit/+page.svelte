@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
@@ -18,6 +18,7 @@
 		numberMode: string;
 		contentMode: string;
 		targetQuestions: number;
+		minAccuracy: number | null;
 		dueDate: string | null;
 	}
 
@@ -27,7 +28,7 @@
 	}
 
 	let classData = $derived.by(() => {
-		const val: unknown = $page.data.classData;
+		const val: unknown = page.data.classData;
 		if (isRecord(val) && typeof val.id === 'string') {
 			return { id: val.id, name: typeof val.name === 'string' ? val.name : '' };
 		}
@@ -35,11 +36,16 @@
 	});
 
 	let assignment = $derived.by(() => {
-		const val: unknown = $page.data.assignment;
+		const val: unknown = page.data.assignment;
 		return isAssignmentData(val) ? val : null;
 	});
 
-	let formResult = $derived($page.form);
+	let hasProgress = $derived.by(() => {
+		const val: unknown = page.data.hasProgress;
+		return val === true;
+	});
+
+	let formResult = $derived(page.form);
 	let errorMessage = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.message === 'string') {
 			return formResult.message;
@@ -52,15 +58,36 @@
 	function formatDateForInput(isoDate: string): string {
 		const d = new Date(isoDate);
 		const pad = (n: number) => String(n).padStart(2, '0');
-		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+		// Use UTC methods so the pre-filled value matches what was stored as UTC
+		return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+	}
+
+	function toggleAllCheckboxes(e: MouseEvent, name: string): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const form = target.closest('form');
+		if (!form) return;
+		const boxes = form.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`);
+		const allChecked = Array.from(boxes).every((b) => b.checked);
+		boxes.forEach((b) => (b.checked = !allChecked));
+	}
+
+	function allCasesSelected(): boolean {
+		if (!assignment) return false;
+		return ALL_CASES.every((c) => assignment.selectedCases.includes(c));
+	}
+
+	function allDrillTypesSelected(): boolean {
+		if (!assignment) return false;
+		return ALL_DRILL_TYPES.every((dt) => assignment.selectedDrillTypes.includes(dt));
 	}
 </script>
 
 <svelte:head>
-	<title>Edit Assignment - Skloňuj</title>
+	<title>Edit Assignment - Sklonuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 {#if classData && assignment}
 	<div class="mx-auto max-w-lg px-4 py-8">
@@ -74,14 +101,36 @@
 		<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
 			<h1 class="mb-6 text-xl font-semibold text-text-default">Edit Assignment</h1>
 
+			{#if hasProgress}
+				<div
+					class="mb-4 rounded-xl border border-warning-text/30 bg-warning-background px-4 py-3 text-sm text-warning-text"
+				>
+					Students have already started this assignment. Changes may affect their progress.
+				</div>
+			{/if}
+
 			{#if errorMessage}
-				<div class="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+				<div
+					class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+				>
 					{errorMessage}
 				</div>
 			{/if}
 
 			<form
 				method="POST"
+				onsubmit={(e: SubmitEvent) => {
+					if (hasProgress) {
+						if (
+							!confirm(
+								'Students have already started this assignment. Are you sure you want to save changes?'
+							)
+						) {
+							e.preventDefault();
+							return;
+						}
+					}
+				}}
 				use:enhance={() => {
 					submitting = true;
 					return async ({ update }) => {
@@ -123,7 +172,20 @@
 
 				<!-- Cases -->
 				<div class="mb-4">
-					<p class="mb-2 text-sm font-medium text-text-default">Cases</p>
+					<div class="mb-2 flex items-center justify-between">
+						<p class="text-sm font-medium text-text-default">Cases</p>
+						<button
+							type="button"
+							onclick={(e: MouseEvent) => toggleAllCheckboxes(e, 'selected_cases')}
+							class="text-xs font-medium text-emphasis hover:underline"
+						>
+							{#if allCasesSelected()}
+								Deselect All
+							{:else}
+								Select All
+							{/if}
+						</button>
+					</div>
 					<div class="flex flex-wrap gap-2">
 						{#each ALL_CASES as c (c)}
 							<label
@@ -144,7 +206,20 @@
 
 				<!-- Drill Types -->
 				<div class="mb-4">
-					<p class="mb-2 text-sm font-medium text-text-default">Drill Types</p>
+					<div class="mb-2 flex items-center justify-between">
+						<p class="text-sm font-medium text-text-default">Drill Types</p>
+						<button
+							type="button"
+							onclick={(e: MouseEvent) => toggleAllCheckboxes(e, 'selected_drill_types')}
+							class="text-xs font-medium text-emphasis hover:underline"
+						>
+							{#if allDrillTypesSelected()}
+								Deselect All
+							{:else}
+								Select All
+							{/if}
+						</button>
+					</div>
 					<div class="flex flex-wrap gap-2">
 						{#each ALL_DRILL_TYPES as dt (dt)}
 							<label
@@ -221,6 +296,27 @@
 					/>
 				</div>
 
+				<!-- Minimum Accuracy -->
+				<div class="mb-4">
+					<label for="min_accuracy" class="mb-1 block text-sm font-medium text-text-default">
+						Minimum Accuracy to Complete (%)
+						<span class="text-text-subtitle">(optional)</span>
+					</label>
+					<input
+						type="number"
+						id="min_accuracy"
+						name="min_accuracy"
+						min={0}
+						max={100}
+						value={assignment.minAccuracy ?? ''}
+						placeholder="e.g. 70"
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					/>
+					<p class="mt-1 text-xs text-text-subtitle">
+						If set, students must also reach this accuracy to complete the assignment.
+					</p>
+				</div>
+
 				<!-- Due Date -->
 				<div class="mb-6">
 					<label for="due_date" class="mb-1 block text-sm font-medium text-text-default">
@@ -235,10 +331,23 @@
 					/>
 				</div>
 
+				<!-- Notify Students -->
+				<div class="mb-6">
+					<label class="flex cursor-pointer items-center gap-2 text-sm text-text-default">
+						<input
+							type="checkbox"
+							name="notify_students"
+							checked
+							class="h-4 w-4 rounded border-card-stroke accent-emphasis"
+						/>
+						Notify students of this change
+					</label>
+				</div>
+
 				<button
 					type="submit"
 					disabled={submitting}
-					class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity disabled:opacity-50"
+					class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 				>
 					{submitting ? 'Saving...' : 'Save Changes'}
 				</button>

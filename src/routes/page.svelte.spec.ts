@@ -1,19 +1,26 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { readable } from 'svelte/store';
 
-vi.mock('$app/stores', () => ({
-	page: readable({
+vi.mock('$app/state', () => ({
+	page: {
 		url: new URL('http://localhost:5173/'),
 		params: {},
 		route: { id: '/' },
 		status: 200,
 		error: null,
 		data: { user: null },
-		form: null
-	}),
-	navigating: readable(null),
-	updated: readable(false)
+		form: null,
+		state: {}
+	},
+	navigating: {
+		from: null,
+		to: null,
+		type: null,
+		willUnload: false,
+		delta: 0,
+		complete: Promise.resolve()
+	},
+	updated: { current: false, check: () => Promise.resolve(false) }
 }));
 
 vi.mock('$app/paths', () => ({

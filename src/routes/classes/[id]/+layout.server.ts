@@ -10,18 +10,23 @@ interface ClassData {
 	id: string;
 	teacher_id: string;
 	name: string;
+	description: string | null;
 	class_code: string;
 	level: string;
 	archived: boolean;
+	leaderboard_enabled: boolean;
 	created_at: string;
 }
 
-function isClassData(v: unknown): v is ClassData {
+function isClassDataShape(v: unknown): v is Omit<ClassData, 'leaderboard_enabled'> & {
+	leaderboard_enabled?: unknown;
+} {
 	if (!isRecord(v)) return false;
 	return (
 		typeof v.id === 'string' &&
 		typeof v.teacher_id === 'string' &&
 		typeof v.name === 'string' &&
+		(v.description === null || typeof v.description === 'string') &&
 		typeof v.class_code === 'string' &&
 		typeof v.level === 'string' &&
 		typeof v.archived === 'boolean' &&
@@ -40,16 +45,32 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 
 	const { data: classData, error: classError } = await supabase
 		.from('classes')
-		.select('id, teacher_id, name, class_code, level, archived, created_at')
+		.select(
+			'id, teacher_id, name, description, class_code, level, archived, leaderboard_enabled, created_at'
+		)
 		.eq('id', classId)
 		.maybeSingle();
 
-	if (classError || !isClassData(classData)) {
+	if (classError || !isClassDataShape(classData)) {
 		error(404, 'Class not found');
 	}
 
+	// Default leaderboard_enabled if not present (migration may not have run yet)
+	const normalizedClassData: ClassData = {
+		id: classData.id,
+		teacher_id: classData.teacher_id,
+		name: classData.name,
+		description: classData.description,
+		class_code: classData.class_code,
+		level: classData.level,
+		archived: classData.archived,
+		created_at: classData.created_at,
+		leaderboard_enabled:
+			typeof classData.leaderboard_enabled === 'boolean' ? classData.leaderboard_enabled : true
+	};
+
 	let role: 'teacher' | 'student';
-	if (classData.teacher_id === user.id) {
+	if (normalizedClassData.teacher_id === user.id) {
 		role = 'teacher';
 	} else {
 		// Verify student membership
@@ -67,12 +88,12 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 	}
 
 	// Block students from accessing archived classes
-	if (classData.archived && role === 'student') {
+	if (normalizedClassData.archived && role === 'student') {
 		error(403, 'This class has been archived');
 	}
 
 	return {
-		classData,
+		classData: normalizedClassData,
 		role
 	};
 };

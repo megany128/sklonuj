@@ -1,23 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
-	let user = $derived($page.data.user);
-
-	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
-	let darkMode = $state(false);
-	let darkModeInitialized = $state(false);
-	$effect(() => {
-		if (darkModeInitialized) return;
-		darkModeInitialized = true;
-		initDarkMode();
-		const unsub = darkModeStore.subscribe((v) => {
-			darkMode = v;
-		});
-		return unsub;
-	});
+	let user = $derived(page.data.user);
 
 	const tips = [
 		{
@@ -154,16 +141,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
-	<NavBar
-		{darkMode}
-		onToggleDarkMode={toggleDarkMode}
-		{user}
-		onSignIn={() => goto(resolve('/auth'))}
-		onNavigate={(p) => {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- appending query param to resolved route
-			goto(p === 'lookup' ? `${resolve('/')}?view=lookup` : resolve('/'));
-		}}
-	/>
+	<NavBar {user} onSignIn={() => goto(resolve('/auth'))} />
 
 	<main class="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
 		<a

@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto, invalidateAll } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
 	import { getAllBadges, type BadgeWithStatus } from '$lib/engine/achievements';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import type { Case } from '$lib/types';
-	import { CASE_LABELS } from '$lib/types';
+	import { CASE_LABELS, isCase } from '$lib/types';
 	import { streak as streakStore, getStreakMessage } from '$lib/engine/streak';
+	import { progress as progressStore } from '$lib/engine/progress';
 
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -37,66 +38,65 @@
 		questions_correct: number;
 	}
 
-	let user = $derived($page.data.user);
+	let user = $derived(page.data.user);
 	let loadError = $derived.by<string | null>(() => {
-		const val: unknown = $page.data.loadError;
+		const val: unknown = page.data.loadError;
 		return typeof val === 'string' ? val : null;
 	});
 
+	function isRecord(v: unknown): v is Record<string, unknown> {
+		return typeof v === 'object' && v !== null && !Array.isArray(v);
+	}
+
 	function isProfileData(v: unknown): v is ProfileData {
-		if (typeof v !== 'object' || v === null) return false;
-		const obj = v as Record<string, unknown>;
+		if (!isRecord(v)) return false;
 		return (
-			(typeof obj.display_name === 'string' || obj.display_name === null) &&
-			typeof obj.created_at === 'string'
+			(typeof v.display_name === 'string' || v.display_name === null) &&
+			typeof v.created_at === 'string'
 		);
 	}
 
 	function isProgressData(v: unknown): v is ProgressData {
-		if (typeof v !== 'object' || v === null) return false;
-		const obj = v as Record<string, unknown>;
-		return (
-			typeof obj.level === 'string' &&
-			typeof obj.case_scores === 'object' &&
-			obj.case_scores !== null &&
-			typeof obj.paradigm_scores === 'object' &&
-			obj.paradigm_scores !== null
-		);
+		if (!isRecord(v)) return false;
+		return typeof v.level === 'string' && isRecord(v.case_scores) && isRecord(v.paradigm_scores);
 	}
 
 	function isSessionArray(v: unknown): v is SessionData[] {
 		if (!Array.isArray(v)) return false;
 		return v.every(
 			(item) =>
-				typeof item === 'object' &&
-				item !== null &&
-				typeof (item as Record<string, unknown>).session_date === 'string' &&
-				typeof (item as Record<string, unknown>).questions_attempted === 'number' &&
-				typeof (item as Record<string, unknown>).questions_correct === 'number'
+				isRecord(item) &&
+				typeof item.session_date === 'string' &&
+				typeof item.questions_attempted === 'number' &&
+				typeof item.questions_correct === 'number'
 		);
 	}
 
 	let serverProfile = $derived.by<ProfileData | null>(() => {
-		const raw: unknown = $page.data.profile ?? null;
+		const raw: unknown = page.data.profile ?? null;
 		return isProfileData(raw) ? raw : null;
 	});
 	let serverProgress = $derived.by<ProgressData | null>(() => {
-		const raw: unknown = $page.data.progress ?? null;
+		const raw: unknown = page.data.progress ?? null;
 		return isProgressData(raw) ? raw : null;
 	});
 	let serverSessions = $derived.by<SessionData[]>(() => {
-		const raw: unknown = $page.data.sessions ?? [];
+		const raw: unknown = page.data.sessions ?? [];
 		return isSessionArray(raw) ? raw : [];
 	});
 
 	// Server load data is always available on first render. A new user may have no profile
 	// row and no error — both null — but that is still a valid loaded state. We check that
 	// the server load has populated the page data by looking for the 'profile' key.
-	let loaded = $derived('profile' in $page.data);
+	let loaded = $derived('profile' in page.data);
 
 	const emptyScores: Record<string, ScoreEntry> = {};
-	let caseScores = $derived(serverProgress?.case_scores ?? emptyScores);
-	let paradigmScores = $derived(serverProgress?.paradigm_scores ?? emptyScores);
+	let caseScores = $derived(
+		serverProgress?.case_scores ?? (user ? emptyScores : $progressStore.caseScores)
+	);
+	let paradigmScores = $derived(
+		serverProgress?.paradigm_scores ?? (user ? emptyScores : $progressStore.paradigmScores)
+	);
 
 	let expandedCase = $state<string | null>(null);
 	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun'>('case');
@@ -251,9 +251,10 @@
 		totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 	);
 
-	// Current streak: consecutive days practiced ending at today or yesterday
+	// Current streak: consecutive days practiced ending at today or yesterday.
+	// For guest users, fall back to the client-side streak store.
 	let currentStreak = $derived.by(() => {
-		if (serverSessions.length === 0) return 0;
+		if (serverSessions.length === 0) return $streakStore.currentStreak;
 		const sessionDates = new Set(serverSessions.map((s) => s.session_date));
 		const todayStr = formatLocalDate(Date.now());
 
@@ -575,7 +576,8 @@
 		}
 		const result: MistakeGroup[] = [];
 		for (const caseKey of Object.keys(groupRecord)) {
-			const c = caseKey as Case;
+			if (!isCase(caseKey)) continue;
+			const c: Case = caseKey;
 			const groupMistakes = groupRecord[c];
 			if (groupMistakes) {
 				result.push({
@@ -654,17 +656,7 @@
 	<NavBar {user} onSignIn={() => goto(resolve('/'))} />
 
 	<main class="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-		{#if !user}
-			<div class="py-16 text-center">
-				<p class="text-sm text-text-subtitle">Sign in to view your profile.</p>
-				<a
-					href={resolve('/')}
-					class="mt-3 inline-block text-sm text-emphasis underline underline-offset-2"
-				>
-					Go to home
-				</a>
-			</div>
-		{:else if !loaded}
+		{#if user && !loaded}
 			<div class="flex flex-col items-center justify-center py-24">
 				<svg
 					class="mb-3 size-8 animate-spin text-emphasis"
@@ -695,39 +687,52 @@
 
 			<!-- 1. User info -->
 			<section class="mb-8">
-				<div class="flex items-center justify-between gap-2">
-					<div class="flex min-w-0 flex-wrap items-center gap-2">
-						<h1 class="truncate text-lg font-semibold text-text-default sm:text-xl">
-							{userDisplayLabel}
-						</h1>
-						<button
-							type="button"
-							onclick={openNameModal}
-							class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-							aria-label="Edit display name"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 16 16"
-								fill="currentColor"
-								class="size-3.5"
+				{#if user}
+					<div class="flex items-center justify-between gap-2">
+						<div class="flex min-w-0 flex-wrap items-center gap-2">
+							<h1 class="truncate text-lg font-semibold text-text-default sm:text-xl">
+								{userDisplayLabel}
+							</h1>
+							<button
+								type="button"
+								onclick={openNameModal}
+								class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+								aria-label="Edit display name"
 							>
-								<path
-									d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.262a1.75 1.75 0 0 0 0-2.474Z"
-								/>
-								<path
-									d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 14 9v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z"
-								/>
-							</svg>
-						</button>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 16 16"
+									fill="currentColor"
+									class="size-3.5"
+								>
+									<path
+										d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.262a1.75 1.75 0 0 0 0-2.474Z"
+									/>
+									<path
+										d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 14 9v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z"
+									/>
+								</svg>
+							</button>
+						</div>
 					</div>
-				</div>
-				<div class="mt-1">
-					<span class="text-sm text-text-subtitle">Member since {memberSince}</span>
-				</div>
+					<div class="mt-1">
+						<span class="text-sm text-text-subtitle">Member since {memberSince}</span>
+					</div>
+				{:else}
+					<h1 class="text-lg font-semibold text-text-default sm:text-xl">Your Progress</h1>
+					<p class="mt-1 text-sm text-text-subtitle">
+						Your stats are saved locally on this device.
+						<a
+							href={resolve('/auth')}
+							class="font-medium text-emphasis underline underline-offset-2"
+						>
+							Sign in
+						</a> to sync across devices.
+					</p>
+				{/if}
 			</section>
 
-			<!-- 2. Overall stats row (4 columns) -->
+			<!-- 2. Overall stats row -->
 			<section class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
 				<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
 					<p class="text-xl font-semibold text-text-default sm:text-2xl">{totalAttempts}</p>
@@ -737,10 +742,19 @@
 					<p class="text-xl font-semibold text-text-default sm:text-2xl">{overallAccuracy}%</p>
 					<p class="text-xs text-text-subtitle">Accuracy</p>
 				</div>
-				<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-					<p class="text-xl font-semibold text-text-default sm:text-2xl">{daysPracticed}</p>
-					<p class="text-xs text-text-subtitle">Days practiced</p>
-				</div>
+				{#if daysPracticed > 0}
+					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+						<p class="text-xl font-semibold text-text-default sm:text-2xl">{daysPracticed}</p>
+						<p class="text-xs text-text-subtitle">Days practiced</p>
+					</div>
+				{:else}
+					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+						<p class="text-xl font-semibold text-text-default sm:text-2xl">
+							{earnedBadgeCount}/{badges.length}
+						</p>
+						<p class="text-xs text-text-subtitle">Badges earned</p>
+					</div>
+				{/if}
 				<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
 					<p class="text-xl font-semibold text-text-default sm:text-2xl">{currentStreak}</p>
 					<p class="text-xs text-text-subtitle">Day streak</p>
@@ -890,53 +904,55 @@
 				</section>
 			{/if}
 
-			<!-- 3. Activity heatmap -->
-			<section class="mb-8 overflow-hidden">
-				<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-					Activity
-				</h2>
-				<div class="-mx-4 overflow-x-auto px-4">
-					<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-						<!-- Month labels -->
-						<div class="mb-1 flex" style="padding-left: 28px;">
-							{#each heatmapMonthLabels as ml (ml.weekIndex)}
-								<span
-									class="text-xs text-text-subtitle"
-									style="position: relative; left: {ml.weekIndex *
-										14}px; width: 0; white-space: nowrap;"
-								>
-									{ml.label}
-								</span>
-							{/each}
-						</div>
-						<!-- Grid -->
-						<div class="flex items-start gap-0.5">
-							<!-- Day labels -->
-							<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
-								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-								<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
-								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-								<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
-								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-								<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
-								<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+			<!-- 3. Activity heatmap (signed-in users with session data) -->
+			{#if serverSessions.length > 0}
+				<section class="mb-8 overflow-hidden">
+					<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+						Activity
+					</h2>
+					<div class="-mx-4 overflow-x-auto px-4">
+						<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+							<!-- Month labels -->
+							<div class="mb-1 flex" style="padding-left: 28px;">
+								{#each heatmapMonthLabels as ml (ml.weekIndex)}
+									<span
+										class="text-xs text-text-subtitle"
+										style="position: relative; left: {ml.weekIndex *
+											14}px; width: 0; white-space: nowrap;"
+									>
+										{ml.label}
+									</span>
+								{/each}
 							</div>
-							<!-- Weeks -->
-							{#each heatmapWeeks as week, weekIdx (weekIdx)}
-								<div class="flex flex-col gap-0.5">
-									{#each week as day (day.date)}
-										<div
-											class="h-[11px] w-[11px] rounded-[2px]"
-											style="background-color: {heatmapColor(day.count)};"
-											title="{day.date}: {day.count} questions"
-										></div>
-									{/each}
+							<!-- Grid -->
+							<div class="flex items-start gap-0.5">
+								<!-- Day labels -->
+								<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
+									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+									<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
+									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+									<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
+									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+									<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
+									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
 								</div>
-							{/each}
+								<!-- Weeks -->
+								{#each heatmapWeeks as week, weekIdx (weekIdx)}
+									<div class="flex flex-col gap-0.5">
+										{#each week as day (day.date)}
+											<div
+												class="h-[11px] w-[11px] rounded-[2px]"
+												style="background-color: {heatmapColor(day.count)};"
+												title="{day.date}: {day.count} questions"
+											></div>
+										{/each}
+									</div>
+								{/each}
+							</div>
 						</div>
 					</div>
-				</div>
-			</section>
+				</section>
+			{/if}
 
 			<!-- 4. Case & Paradigm breakdown with tabs -->
 			<section class="mb-8">
@@ -1656,47 +1672,49 @@
 				</div>
 			</section>
 
-			<!-- 6. Danger zone -->
-			<section class="mb-8">
-				<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-					Danger zone
-				</h2>
-				<div
-					class="flex flex-col gap-3 rounded-xl border border-red-300 bg-card-bg p-4 dark:border-red-800"
-				>
-					<div class="flex items-center justify-between gap-4">
-						<div>
-							<p class="text-sm font-medium text-text-default">Reset progress</p>
-							<p class="text-xs text-text-subtitle">
-								Clear all your practice history and scores. This cannot be undone.
-							</p>
+			<!-- 6. Danger zone (signed-in users only) -->
+			{#if user}
+				<section class="mb-8">
+					<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+						Danger zone
+					</h2>
+					<div
+						class="flex flex-col gap-3 rounded-xl border border-red-300 bg-card-bg p-4 dark:border-red-800"
+					>
+						<div class="flex items-center justify-between gap-4">
+							<div>
+								<p class="text-sm font-medium text-text-default">Reset progress</p>
+								<p class="text-xs text-text-subtitle">
+									Clear all your practice history and scores. This cannot be undone.
+								</p>
+							</div>
+							<button
+								type="button"
+								onclick={() => (confirmingReset = true)}
+								class="shrink-0 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+							>
+								Reset
+							</button>
 						</div>
-						<button
-							type="button"
-							onclick={() => (confirmingReset = true)}
-							class="shrink-0 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
-						>
-							Reset
-						</button>
-					</div>
-					<div class="border-t border-red-200 dark:border-red-800"></div>
-					<div class="flex items-center justify-between gap-4">
-						<div>
-							<p class="text-sm font-medium text-text-default">Delete account</p>
-							<p class="text-xs text-text-subtitle">
-								Permanently delete your account and all associated data. This cannot be undone.
-							</p>
+						<div class="border-t border-red-200 dark:border-red-800"></div>
+						<div class="flex items-center justify-between gap-4">
+							<div>
+								<p class="text-sm font-medium text-text-default">Delete account</p>
+								<p class="text-xs text-text-subtitle">
+									Permanently delete your account and all associated data. This cannot be undone.
+								</p>
+							</div>
+							<button
+								type="button"
+								onclick={() => (confirmingDelete = true)}
+								class="shrink-0 rounded-lg border border-red-300 bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 dark:border-red-700"
+							>
+								Delete
+							</button>
 						</div>
-						<button
-							type="button"
-							onclick={() => (confirmingDelete = true)}
-							class="shrink-0 rounded-lg border border-red-300 bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 dark:border-red-700"
-						>
-							Delete
-						</button>
 					</div>
-				</div>
-			</section>
+				</section>
+			{/if}
 		{/if}
 	</main>
 </div>
@@ -1718,8 +1736,8 @@
 	</div>
 {/if}
 
-<!-- Edit name modal -->
-{#if editingName}
+<!-- Edit name modal (signed-in only) -->
+{#if editingName && user}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -1799,9 +1817,11 @@
 							await invalidateAll();
 							confirmingReset = false;
 						} else if (result.type === 'failure') {
-							const data = result.data as Record<string, unknown> | undefined;
+							const data = result.data;
 							resetError =
-								typeof data?.message === 'string' ? data.message : 'Failed to reset progress';
+								isRecord(data) && typeof data.message === 'string'
+									? data.message
+									: 'Failed to reset progress';
 						}
 						resettingProgress = false;
 					};

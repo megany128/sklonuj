@@ -72,6 +72,11 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	// Create admin client for fetching emails and cross-user data
 	const supabaseUrl = env.PUBLIC_SUPABASE_URL;
 	const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
+	if (!supabaseUrl || !serviceRoleKey) {
+		console.warn(
+			'/classes/[id]: SUPABASE_SERVICE_ROLE_KEY or PUBLIC_SUPABASE_URL is not configured; student display names and cross-user progress will be unavailable'
+		);
+	}
 	const adminClient =
 		supabaseUrl && serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null;
 
@@ -108,33 +113,18 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Fetch emails for all students via admin auth API in a single batch call
+	// Fetch emails for all students via admin auth API using parallel getUserById calls
+	// This is O(students) instead of O(total_users) since we look up each student directly
 	const emailMap = new Map<string, string | null>();
 	if (adminClient && studentIds.length > 0) {
-		const studentIdSet = new Set(studentIds);
-		// Fetch users in pages of 50 until we have all student emails
-		let page = 1;
-		const perPage = 50;
-		let fetched = 0;
-		while (fetched < studentIds.length) {
-			const { data: listData } = await adminClient.auth.admin.listUsers({
-				page,
-				perPage
-			});
-			if (!listData || !Array.isArray(listData.users) || listData.users.length === 0) {
-				break;
+		const userResults = await Promise.all(
+			studentIds.map((id) => adminClient.auth.admin.getUserById(id))
+		);
+		for (const result of userResults) {
+			if (result.data?.user) {
+				const user = result.data.user;
+				emailMap.set(user.id, typeof user.email === 'string' ? user.email : null);
 			}
-			for (const user of listData.users) {
-				if (isRecord(user) && typeof user.id === 'string' && studentIdSet.has(user.id)) {
-					emailMap.set(user.id, typeof user.email === 'string' ? user.email : null);
-					fetched++;
-				}
-			}
-			// If this page had fewer results than perPage, we've reached the end
-			if (listData.users.length < perPage) {
-				break;
-			}
-			page++;
 		}
 	}
 
@@ -314,7 +304,190 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	return { students, assignments, role };
+	// Fetch student's own stats if role is student
+	let studentStats: {
+		overallAccuracy: number | null;
+		totalAttempts: number;
+		caseScores: CaseAccuracy[];
+		assignmentsCompleted: number;
+		assignmentsTotal: number;
+	} | null = null;
+
+	if (role === 'student' && locals.user) {
+		const userId = locals.user.id;
+
+		// Fetch student's own user_progress (RLS allows reading own data)
+		const { data: ownProgress } = await supabase
+			.from('user_progress')
+			.select('case_scores')
+			.eq('user_id', userId)
+			.maybeSingle();
+
+		let totalAttempts = 0;
+		let totalCorrect = 0;
+		const perCaseScores: CaseAccuracy[] = [];
+
+		if (isRecord(ownProgress) && isRecord(ownProgress.case_scores)) {
+			const caseScores = ownProgress.case_scores;
+			for (const key of Object.keys(caseScores)) {
+				const entry = caseScores[key];
+				if (isScoreEntry(entry)) {
+					totalAttempts += entry.attempts;
+					totalCorrect += entry.correct;
+					perCaseScores.push({
+						case: key,
+						attempts: entry.attempts,
+						correct: entry.correct,
+						accuracy: entry.attempts > 0 ? (entry.correct / entry.attempts) * 100 : 0
+					});
+				}
+			}
+		}
+
+		// Count completed assignments for this student
+		let assignmentsCompleted = 0;
+		const studentAssignmentMap = progressByStudentAssignment.get(userId);
+		if (studentAssignmentMap) {
+			for (const [, status] of studentAssignmentMap) {
+				if (status.completed) {
+					assignmentsCompleted++;
+				}
+			}
+		}
+
+		studentStats = {
+			overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null,
+			totalAttempts,
+			caseScores: perCaseScores,
+			assignmentsCompleted,
+			assignmentsTotal: assignmentIds.length
+		};
+	}
+
+	// Fetch progress snapshots for the class (last 30 days)
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+	const snapshotDateFrom = thirtyDaysAgo.toISOString().slice(0, 10);
+
+	interface ProgressSnapshot {
+		studentId: string;
+		snapshotDate: string;
+		overallAccuracy: number | null;
+		totalQuestions: number;
+		nomAccuracy: number | null;
+		genAccuracy: number | null;
+		datAccuracy: number | null;
+		accAccuracy: number | null;
+		vocAccuracy: number | null;
+		locAccuracy: number | null;
+		insAccuracy: number | null;
+	}
+
+	const progressSnapshots: ProgressSnapshot[] = [];
+
+	if (adminClient) {
+		const { data: snapshotData } = await adminClient
+			.from('class_progress_snapshots')
+			.select(
+				'student_id, snapshot_date, overall_accuracy, total_questions, nom_accuracy, gen_accuracy, dat_accuracy, acc_accuracy, voc_accuracy, loc_accuracy, ins_accuracy'
+			)
+			.eq('class_id', classData.id)
+			.gte('snapshot_date', snapshotDateFrom)
+			.order('snapshot_date', { ascending: true });
+
+		if (Array.isArray(snapshotData)) {
+			for (const s of snapshotData) {
+				if (
+					isRecord(s) &&
+					typeof s.student_id === 'string' &&
+					typeof s.snapshot_date === 'string'
+				) {
+					// For students, only include their own snapshots
+					if (role === 'student' && locals.user && s.student_id !== locals.user.id) {
+						continue;
+					}
+					progressSnapshots.push({
+						studentId: s.student_id,
+						snapshotDate: s.snapshot_date,
+						overallAccuracy: typeof s.overall_accuracy === 'number' ? s.overall_accuracy : null,
+						totalQuestions: typeof s.total_questions === 'number' ? s.total_questions : 0,
+						nomAccuracy: typeof s.nom_accuracy === 'number' ? s.nom_accuracy : null,
+						genAccuracy: typeof s.gen_accuracy === 'number' ? s.gen_accuracy : null,
+						datAccuracy: typeof s.dat_accuracy === 'number' ? s.dat_accuracy : null,
+						accAccuracy: typeof s.acc_accuracy === 'number' ? s.acc_accuracy : null,
+						vocAccuracy: typeof s.voc_accuracy === 'number' ? s.voc_accuracy : null,
+						locAccuracy: typeof s.loc_accuracy === 'number' ? s.loc_accuracy : null,
+						insAccuracy: typeof s.ins_accuracy === 'number' ? s.ins_accuracy : null
+					});
+				}
+			}
+		}
+	}
+
+	// Compute live "today" snapshots from current user_progress data so the chart
+	// shows same-day progress without waiting for the daily cron snapshot.
+	const today = new Date().toISOString().slice(0, 10);
+
+	function caseAccuracyToSnapshot(
+		studentId: string,
+		caseScores: CaseAccuracy[],
+		overallAccuracy: number | null,
+		totalAttempts: number
+	): ProgressSnapshot {
+		const caseMap = new Map<string, number | null>();
+		for (const cs of caseScores) {
+			caseMap.set(cs.case, cs.attempts > 0 ? cs.accuracy : null);
+		}
+		return {
+			studentId,
+			snapshotDate: today,
+			overallAccuracy,
+			totalQuestions: totalAttempts,
+			nomAccuracy: caseMap.get('nom') ?? null,
+			genAccuracy: caseMap.get('gen') ?? null,
+			datAccuracy: caseMap.get('dat') ?? null,
+			accAccuracy: caseMap.get('acc') ?? null,
+			vocAccuracy: caseMap.get('voc') ?? null,
+			locAccuracy: caseMap.get('loc') ?? null,
+			insAccuracy: caseMap.get('ins') ?? null
+		};
+	}
+
+	// Remove any cron snapshot for today (it would be stale compared to live data)
+	const historicalSnapshots = progressSnapshots.filter((s) => s.snapshotDate !== today);
+
+	// Build live today snapshots
+	const todaySnapshots: ProgressSnapshot[] = [];
+
+	if (role === 'teacher') {
+		// Create a today data point for each student from userProgressMap
+		for (const sid of studentIds) {
+			const progress = userProgressMap.get(sid);
+			if (progress && progress.totalAttempts > 0) {
+				todaySnapshots.push(
+					caseAccuracyToSnapshot(
+						sid,
+						progress.caseScores,
+						progress.overallAccuracy,
+						progress.totalAttempts
+					)
+				);
+			}
+		}
+	} else if (role === 'student' && locals.user && studentStats && studentStats.totalAttempts > 0) {
+		todaySnapshots.push(
+			caseAccuracyToSnapshot(
+				locals.user.id,
+				studentStats.caseScores,
+				studentStats.overallAccuracy,
+				studentStats.totalAttempts
+			)
+		);
+	}
+
+	const allSnapshots = [...historicalSnapshots, ...todaySnapshots];
+
+	return { students, assignments, role, studentStats, progressSnapshots: allSnapshots };
 };
 
 export const actions: Actions = {
@@ -415,6 +588,34 @@ export const actions: Actions = {
 			return fail(403, { message: 'Only the teacher can remove students.' });
 		}
 
+		// Collect assignment IDs for this class so we can purge the student's
+		// assignment_progress rows (otherwise ghost rows linger after removal).
+		const { data: classAssignments } = await supabase
+			.from('assignments')
+			.select('id')
+			.eq('class_id', classId);
+
+		const classAssignmentIds: string[] = [];
+		if (Array.isArray(classAssignments)) {
+			for (const row of classAssignments) {
+				if (isRecord(row) && typeof row.id === 'string') {
+					classAssignmentIds.push(row.id);
+				}
+			}
+		}
+
+		if (classAssignmentIds.length > 0) {
+			const { error: progressDeleteError } = await supabase
+				.from('assignment_progress')
+				.delete()
+				.eq('student_id', studentId)
+				.in('assignment_id', classAssignmentIds);
+
+			if (progressDeleteError) {
+				return fail(500, { message: 'Failed to remove student.' });
+			}
+		}
+
 		const { error: removeError } = await supabase
 			.from('class_memberships')
 			.delete()
@@ -426,5 +627,64 @@ export const actions: Actions = {
 		}
 
 		return { success: true, action: 'removed' };
+	},
+
+	leaveClass: async ({ locals, params }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const supabase = locals.supabase;
+		const classId = params.id;
+
+		const { error } = await supabase
+			.from('class_memberships')
+			.delete()
+			.eq('class_id', classId)
+			.eq('student_id', user.id);
+
+		if (error) return fail(500, { message: 'Failed to leave class.' });
+
+		redirect(303, resolve('/classes'));
+	},
+
+	regenerateCode: async ({ locals, params }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const supabase = locals.supabase;
+		const classId = params.id;
+
+		// Verify teacher ownership
+		const { data: classData } = await supabase
+			.from('classes')
+			.select('teacher_id')
+			.eq('id', classId)
+			.single();
+
+		if (
+			!isRecord(classData) ||
+			typeof classData.teacher_id !== 'string' ||
+			classData.teacher_id !== user.id
+		) {
+			return fail(403, { message: 'Only the teacher can regenerate the class code.' });
+		}
+
+		// Postgres function generate_class_code() (migration 005) handles collision internally
+		const { data: generatedCode, error: rpcError } = await supabase.rpc('generate_class_code');
+
+		if (rpcError || typeof generatedCode !== 'string' || generatedCode.length !== 6) {
+			return fail(500, { message: 'Failed to regenerate class code. Please try again.' });
+		}
+
+		const { error: updateError } = await supabase
+			.from('classes')
+			.update({ class_code: generatedCode })
+			.eq('id', classId);
+
+		if (updateError) {
+			return fail(500, { message: 'Failed to regenerate class code. Please try again.' });
+		}
+
+		return { success: true, action: 'codeRegenerated', classCode: generatedCode };
 	}
 };

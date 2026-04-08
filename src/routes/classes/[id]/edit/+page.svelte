@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
@@ -12,9 +12,11 @@
 		id: string;
 		teacher_id: string;
 		name: string;
+		description: string | null;
 		class_code: string;
 		level: string;
 		archived: boolean;
+		leaderboard_enabled: boolean;
 		created_at: string;
 	}
 
@@ -24,11 +26,11 @@
 	}
 
 	let classData = $derived.by(() => {
-		const val: unknown = $page.data.classData;
+		const val: unknown = page.data.classData;
 		return isClassData(val) ? val : null;
 	});
 
-	let formResult = $derived($page.form);
+	let formResult = $derived(page.form);
 	let errorMessage = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.message === 'string') {
 			return formResult.message;
@@ -43,11 +45,25 @@
 		return classData?.name ?? '';
 	});
 
+	let currentDescription = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.description === 'string') {
+			return formResult.description;
+		}
+		return classData?.description ?? '';
+	});
+
 	let currentLevel = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.level === 'string') {
 			return formResult.level;
 		}
 		return classData?.level ?? 'A1';
+	});
+
+	let currentLeaderboardEnabled = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.leaderboardEnabled === 'boolean') {
+			return formResult.leaderboardEnabled;
+		}
+		return classData?.leaderboard_enabled ?? true;
 	});
 
 	let submitting = $state(false);
@@ -57,7 +73,7 @@
 	<title>Edit {classData?.name ?? 'Class'} - Skloňuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">
@@ -103,7 +119,22 @@
 					/>
 				</div>
 
-				<div class="mb-6">
+				<div class="mb-4">
+					<label for="description" class="mb-1 block text-sm font-medium text-text-default">
+						Description <span class="font-normal text-text-subtitle">(optional)</span>
+					</label>
+					<textarea
+						id="description"
+						name="description"
+						value={currentDescription}
+						maxlength={500}
+						rows={2}
+						placeholder="e.g., Monday/Wednesday 10:00, Room 204"
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					></textarea>
+				</div>
+
+				<div class="mb-4">
 					<label for="level" class="mb-1 block text-sm font-medium text-text-default">
 						Level
 					</label>
@@ -118,6 +149,34 @@
 						<option value="B1">B1 - Intermediate</option>
 						<option value="B2">B2 - Upper Intermediate</option>
 					</select>
+				</div>
+
+				<div class="mb-6">
+					<label for="leaderboard_enabled" class="flex cursor-pointer items-center justify-between">
+						<div>
+							<span class="block text-sm font-medium text-text-default"
+								>Enable weekly leaderboard</span
+							>
+							<span class="text-xs text-text-subtitle"
+								>Students can see their rank and cheer each other</span
+							>
+						</div>
+						<div class="relative">
+							<input
+								type="checkbox"
+								id="leaderboard_enabled"
+								name="leaderboard_enabled"
+								checked={currentLeaderboardEnabled}
+								class="peer sr-only"
+							/>
+							<div
+								class="h-6 w-11 rounded-full bg-darker-shaded-background transition-colors peer-checked:bg-emphasis"
+							></div>
+							<div
+								class="absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"
+							></div>
+						</div>
+					</label>
 				</div>
 
 				<button

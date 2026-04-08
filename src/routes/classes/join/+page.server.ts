@@ -22,7 +22,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		const supabaseUrl = env.PUBLIC_SUPABASE_URL;
 		const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
 
-		if (supabaseUrl && serviceRoleKey) {
+		if (!supabaseUrl || !serviceRoleKey) {
+			console.warn(
+				'/classes/join: SUPABASE_SERVICE_ROLE_KEY or PUBLIC_SUPABASE_URL is not configured; auto-join via invite link is disabled'
+			);
+		} else {
 			const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
 			const { data: classData } = await adminClient
@@ -53,17 +57,33 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 						.insert({ class_id: classData.id, student_id: user.id });
 
 					if (!joinError) {
-						// Mark invitation as accepted
+						// Mark invitation as accepted (invites are stored lowercased)
 						if (user.email) {
 							await adminClient
 								.from('class_invitations')
 								.update({ status: 'accepted' })
 								.eq('class_id', classData.id)
-								.eq('email', user.email)
+								.eq('email', user.email.toLowerCase())
 								.eq('status', 'pending');
 						}
 
-						redirect(303, `${resolve('/classes')}?joined=${encodeURIComponent(classData.name)}`);
+						// Check if user has a display_name
+						const { data: profileData } = await adminClient
+							.from('profiles')
+							.select('display_name')
+							.eq('id', user.id)
+							.maybeSingle();
+
+						const hasName =
+							isRecord(profileData) &&
+							typeof profileData.display_name === 'string' &&
+							profileData.display_name.trim().length > 0;
+
+						const redirectUrl = hasName
+							? `${resolve('/classes')}?joined=${encodeURIComponent(classData.name)}`
+							: `${resolve('/classes')}?joined=${encodeURIComponent(classData.name)}&needsName=true`;
+
+						redirect(303, redirectUrl);
 					}
 				}
 			}
@@ -142,20 +162,43 @@ export const actions: Actions = {
 		});
 
 		if (joinError) {
+			// Unique constraint violation = the user joined in another tab/request between
+			// our existence check and this insert. Treat as "already a member" rather than 500.
+			if (joinError.code === '23505') {
+				return fail(400, { message: 'You are already a member of this class.', code });
+			}
 			return fail(500, { message: 'Failed to join class. Please try again.', code });
 		}
 
 		// If there's a pending invitation for this user's email, mark it accepted
+		// (invitations are stored lowercased)
 		if (user.email) {
 			await adminClient
 				.from('class_invitations')
 				.update({ status: 'accepted' })
 				.eq('class_id', classId)
-				.eq('email', user.email)
+				.eq('email', user.email.toLowerCase())
 				.eq('status', 'pending');
 		}
 
 		const className = typeof classData.name === 'string' ? classData.name : '';
-		redirect(303, `${resolve('/classes')}?joined=${encodeURIComponent(className)}`);
+
+		// Check if user has a display_name
+		const { data: profileData } = await adminClient
+			.from('profiles')
+			.select('display_name')
+			.eq('id', user.id)
+			.maybeSingle();
+
+		const hasName =
+			isRecord(profileData) &&
+			typeof profileData.display_name === 'string' &&
+			profileData.display_name.trim().length > 0;
+
+		const redirectUrl = hasName
+			? `${resolve('/classes')}?joined=${encodeURIComponent(className)}`
+			: `${resolve('/classes')}?joined=${encodeURIComponent(className)}&needsName=true`;
+
+		redirect(303, redirectUrl);
 	}
 };

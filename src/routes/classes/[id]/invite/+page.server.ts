@@ -132,6 +132,25 @@ export const actions: Actions = {
 		const user = locals.user;
 		if (!user) return fail(401, { message: 'Not authenticated' });
 
+		const supabase = locals.supabase;
+		const classId = params.id;
+
+		// Verify caller is the teacher of this class
+		const { data: classData, error: classError } = await supabase
+			.from('classes')
+			.select('teacher_id')
+			.eq('id', classId)
+			.single();
+
+		if (
+			classError ||
+			!isRecord(classData) ||
+			typeof classData.teacher_id !== 'string' ||
+			classData.teacher_id !== user.id
+		) {
+			return fail(403, { message: 'Only the teacher can send invitations.' });
+		}
+
 		const formData = await request.formData();
 		const rawEmails = (formData.get('emails') ?? '').toString();
 
@@ -162,9 +181,6 @@ export const actions: Actions = {
 				message: `Invalid email${invalidEmails.length > 1 ? 's' : ''}: ${invalidEmails.join(', ')}`
 			});
 		}
-
-		const supabase = locals.supabase;
-		const classId = params.id;
 
 		let sent = 0;
 		let alreadyPending = 0;

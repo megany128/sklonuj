@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
-	let user = $derived($page.data.user);
+	let user = $derived(page.data.user);
 
 	let category = $state<'bug' | 'feature' | 'general'>('feature');
 	let name = $state('');
@@ -14,20 +14,6 @@
 	let submitting = $state(false);
 	let submitted = $state(false);
 	let error = $state<string | null>(null);
-
-	// Dark mode (shared module)
-	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
-	let darkMode = $state(false);
-	let darkModeInitialized = $state(false);
-	$effect(() => {
-		if (darkModeInitialized) return;
-		darkModeInitialized = true;
-		initDarkMode();
-		const unsub = darkModeStore.subscribe((v) => {
-			darkMode = v;
-		});
-		return unsub;
-	});
 
 	const categoryLabels: Record<typeof category, string> = {
 		feature: 'Feature Suggestion',
@@ -73,16 +59,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
-	<NavBar
-		{darkMode}
-		onToggleDarkMode={toggleDarkMode}
-		{user}
-		onSignIn={() => goto(resolve('/'))}
-		onNavigate={(page) => {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- appending query param to resolved route
-			goto(page === 'lookup' ? `${resolve('/')}?view=lookup` : resolve('/'));
-		}}
-	/>
+	<NavBar {user} onSignIn={() => goto(resolve('/'))} />
 
 	<main class="mx-auto w-full max-w-xl flex-1 px-4 py-10">
 		<!-- Header -->

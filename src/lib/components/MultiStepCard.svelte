@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Case, MultiStepQuestion, MultiStepResult } from '$lib/types';
+	import type { Case, Difficulty, MultiStepQuestion, MultiStepResult } from '$lib/types';
 	import { ALL_CASES, CASE_LABELS, CASE_COLORS, CASE_NUMBER, isParadigm } from '$lib/types';
 	import { applyPrepositionVoicing, checkMultiStepForm } from '$lib/engine/drill';
 	import DiacriticsBar from './DiacriticsBar.svelte';
@@ -110,7 +110,7 @@
 		onComplete: (result: MultiStepResult) => void;
 		paradigmNotes?: Record<string, string> | null;
 		onSpeak?: ((text: string) => void) | null;
-		level?: string;
+		level?: Difficulty;
 	} = $props();
 
 	type Step = 'paradigm' | 'case' | 'form' | 'summary';
@@ -258,7 +258,7 @@
 	function handleFormSubmit() {
 		if (formSubmitted || formInput.trim() === '') return;
 		formSubmitted = true;
-		const result = checkMultiStepForm(question, formInput, level as 'A1' | 'A2' | 'B1' | 'B2');
+		const result = checkMultiStepForm(question, formInput, level);
 		formCorrect = result.correct;
 		formNearMiss = result.nearMiss;
 		canAdvance = false;
@@ -674,7 +674,13 @@
 								class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
 							>
 								<p class="text-sm font-semibold text-positive-stroke">
-									{formNearMiss ? 'Correct! (watch the diacritics)' : 'Correct!'}
+									{#if formNearMiss}
+										Correct (watch the diacritics): <span class="font-semibold"
+											>{question.correctForm}</span
+										>
+									{:else}
+										Correct!
+									{/if}
 								</p>
 							</div>
 						{:else}

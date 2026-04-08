@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
@@ -8,7 +8,7 @@
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
 	}
 
-	let formResult = $derived($page.form);
+	let formResult = $derived(page.form);
 	let errorMessage = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.message === 'string') {
 			return formResult.message;
@@ -18,6 +18,12 @@
 	let savedName = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.name === 'string') {
 			return formResult.name;
+		}
+		return '';
+	});
+	let savedDescription = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.description === 'string') {
+			return formResult.description;
 		}
 		return '';
 	});
@@ -35,7 +41,7 @@
 	<title>Create Class - Skloňuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 <div class="mx-auto max-w-lg px-4 py-8">
 	<a
@@ -49,7 +55,9 @@
 		<h1 class="mb-6 text-xl font-semibold text-text-default">Create a New Class</h1>
 
 		{#if errorMessage}
-			<div class="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+			<div
+				class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+			>
 				{errorMessage}
 			</div>
 		{/if}
@@ -80,6 +88,21 @@
 				/>
 			</div>
 
+			<div class="mb-4">
+				<label for="description" class="mb-1 block text-sm font-medium text-text-default">
+					Description <span class="font-normal text-text-subtitle">(optional)</span>
+				</label>
+				<textarea
+					id="description"
+					name="description"
+					value={savedDescription}
+					maxlength={500}
+					rows={2}
+					placeholder="e.g., Monday/Wednesday 10:00, Room 204"
+					class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+				></textarea>
+			</div>
+
 			<div class="mb-6">
 				<label for="level" class="mb-1 block text-sm font-medium text-text-default"> Level </label>
 				<select
@@ -98,7 +121,7 @@
 			<button
 				type="submit"
 				disabled={submitting}
-				class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity disabled:opacity-50"
+				class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 			>
 				{submitting ? 'Creating...' : 'Create Class'}
 			</button>

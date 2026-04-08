@@ -1,34 +1,42 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import posthog from '$lib/posthog';
 
-	let mode = $state<'login' | 'signup'>('login');
+	let mode = $state<'login' | 'signup' | 'forgot' | 'reset'>('login');
 	let email = $state('');
 	let password = $state('');
+	let newPassword = $state('');
+	let confirmPassword = $state('');
 	let loading = $state(false);
 	let error = $state('');
 	let confirmationSent = $state(false);
+	let resetEmailSent = $state(false);
 
 	const supabase = getSupabaseBrowserClient();
 
-	// Redirect already-authenticated users to the intended destination or home
-	let redirectPath = $derived($page.url.searchParams.get('redirect') ?? '');
+	const isJoiningClass = $derived(
+		(page.url.searchParams.get('returnTo') ?? '').includes('/classes/join')
+	);
 
 	function getRedirectUrl(): string {
-		// If a redirect path is specified, use it (relative to origin)
-		if (redirectPath) {
+		const redirectPath =
+			page.url.searchParams.get('redirect') ?? page.url.searchParams.get('returnTo') ?? '';
+		// Validate redirect is a relative path to prevent open redirects
+		if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
 			return redirectPath;
 		}
 		return resolve('/');
 	}
 
+	// Redirect already-authenticated users to the intended destination or home
+	// (but not if they are in recovery/reset mode — they need to set a new password)
 	$effect(() => {
-		if ($page.data.user) {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- redirect path is user-provided
+		if (page.data.user && mode !== 'reset') {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- getRedirectUrl validates the path or uses resolve('/')
 			goto(getRedirectUrl());
 		}
 	});
@@ -37,9 +45,14 @@
 		// Reset loading state in case user navigates back from OAuth redirect
 		loading = false;
 		// Show error from OAuth callback redirect (e.g., /auth?error=...)
-		const oauthError = $page.url.searchParams.get('error');
+		const oauthError = page.url.searchParams.get('error');
 		if (oauthError) {
 			error = oauthError;
+		}
+		// If this is a password recovery redirect, show the reset password form
+		const recovery = page.url.searchParams.get('recovery');
+		if (recovery === 'true') {
+			mode = 'reset';
 		}
 	});
 
@@ -65,16 +78,23 @@
 		}
 
 		if (mode === 'signup') {
+			// Preserve returnTo through the email confirmation round-trip so users who
+			// signed up via an invite link land back on the join flow after confirming.
+			const returnTo = page.url.searchParams.get('returnTo');
+			const callbackUrl =
+				returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')
+					? `${page.url.origin}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
+					: `${page.url.origin}/auth/callback`;
 			const { data, error: err } = await supabase.auth.signUp({
 				email,
 				password,
-				options: { emailRedirectTo: `${$page.url.origin}/auth/callback` }
+				options: { emailRedirectTo: callbackUrl }
 			});
 			if (err) {
 				error = err.message;
 			} else if (data.session) {
 				posthog.capture('signed_up', { method: 'email' });
-				// eslint-disable-next-line svelte/no-navigation-without-resolve -- redirect path is user-provided
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- getRedirectUrl validates the path or uses resolve('/')
 				goto(getRedirectUrl());
 			} else {
 				posthog.capture('signed_up', { method: 'email' });
@@ -85,7 +105,7 @@
 			if (err) {
 				error = err.message;
 			} else {
-				// eslint-disable-next-line svelte/no-navigation-without-resolve -- redirect path is user-provided
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- getRedirectUrl validates the path or uses resolve('/')
 				goto(getRedirectUrl());
 			}
 		}
@@ -96,14 +116,77 @@
 	async function handleGoogleOAuth() {
 		loading = true;
 		error = '';
+		const returnTo = page.url.searchParams.get('returnTo');
+		const callbackUrl =
+			returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')
+				? `${page.url.origin}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
+				: `${page.url.origin}/auth/callback`;
 		const { error: err } = await supabase.auth.signInWithOAuth({
 			provider: 'google',
-			options: { redirectTo: `${$page.url.origin}/auth/callback` }
+			options: { redirectTo: callbackUrl }
 		});
 		if (err) {
 			error = err.message;
 			loading = false;
 		}
+	}
+
+	async function handleForgotPassword() {
+		if (!email.trim()) {
+			error = 'Please enter your email.';
+			return;
+		}
+
+		loading = true;
+		error = '';
+
+		const returnTo = page.url.searchParams.get('returnTo');
+		const recoveryRedirect =
+			returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')
+				? `${page.url.origin}/auth/callback?type=recovery&returnTo=${encodeURIComponent(returnTo)}`
+				: `${page.url.origin}/auth/callback?type=recovery`;
+
+		const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: recoveryRedirect
+		});
+
+		if (err) {
+			error = err.message;
+		} else {
+			resetEmailSent = true;
+		}
+
+		loading = false;
+	}
+
+	async function handleResetPassword() {
+		if (!newPassword) {
+			error = 'Please enter a new password.';
+			return;
+		}
+
+		if (newPassword.length < 6) {
+			error = 'Password must be at least 6 characters.';
+			return;
+		}
+
+		if (newPassword !== confirmPassword) {
+			error = 'Passwords do not match.';
+			return;
+		}
+
+		loading = true;
+		error = '';
+
+		const { error: err } = await supabase.auth.updateUser({ password: newPassword });
+
+		if (err) {
+			error = err.message;
+		} else {
+			goto(resolve('/'));
+		}
+
+		loading = false;
 	}
 
 	function clearError() {
@@ -145,7 +228,67 @@
 		</a>
 
 		<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
-			{#if confirmationSent}
+			{#if isJoiningClass}
+				<div
+					class="mb-4 rounded-xl border border-emphasis/20 bg-emphasis/5 px-4 py-3 text-center text-sm text-text-default"
+				>
+					You're joining a class! Sign in or create an account to continue.
+				</div>
+			{/if}
+
+			{#if mode === 'reset'}
+				<!-- Set new password after clicking recovery link -->
+				<h1 class="mb-1 text-center text-lg font-semibold text-text-default">Set new password</h1>
+				<p class="mb-5 text-center text-xs text-text-subtitle">Enter your new password below.</p>
+
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleResetPassword();
+					}}
+					class="flex flex-col gap-3"
+				>
+					<input
+						type="password"
+						bind:value={newPassword}
+						placeholder="New password"
+						required
+						minlength="6"
+						aria-label="New password"
+						oninput={clearError}
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					/>
+
+					<input
+						type="password"
+						bind:value={confirmPassword}
+						placeholder="Confirm new password"
+						required
+						minlength="6"
+						aria-label="Confirm new password"
+						oninput={clearError}
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					/>
+
+					<div aria-live="assertive">
+						{#if error}
+							<p class="text-xs text-negative-stroke" role="alert">{error}</p>
+						{/if}
+					</div>
+
+					<button
+						type="submit"
+						disabled={loading}
+						class="rounded-xl bg-emphasis px-4 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+					>
+						{#if loading}
+							...
+						{:else}
+							Update password
+						{/if}
+					</button>
+				</form>
+			{:else if confirmationSent}
 				<div class="text-center">
 					<p class="mb-2 text-lg font-semibold text-text-default">Check your email</p>
 					<p class="mb-4 text-sm text-text-subtitle">
@@ -159,6 +302,81 @@
 							mode = 'login';
 						}}
 						class="text-sm text-emphasis underline underline-offset-2"
+					>
+						Back to sign in
+					</button>
+				</div>
+			{:else if resetEmailSent}
+				<div class="text-center">
+					<p class="mb-2 text-lg font-semibold text-text-default">Check your email</p>
+					<p class="mb-4 text-sm text-text-subtitle">
+						We sent a password reset link to <strong class="text-text-default">{email}</strong>.
+						Click it to set a new password.
+					</p>
+					<button
+						type="button"
+						onclick={() => {
+							resetEmailSent = false;
+							mode = 'login';
+						}}
+						class="text-sm text-emphasis underline underline-offset-2"
+					>
+						Back to sign in
+					</button>
+				</div>
+			{:else if mode === 'forgot'}
+				<!-- Forgot password form -->
+				<h1 class="mb-1 text-center text-lg font-semibold text-text-default">
+					Reset your password
+				</h1>
+				<p class="mb-5 text-center text-xs text-text-subtitle">
+					Enter your email and we'll send you a reset link.
+				</p>
+
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						handleForgotPassword();
+					}}
+					class="flex flex-col gap-3"
+				>
+					<input
+						type="email"
+						bind:value={email}
+						placeholder="Email"
+						required
+						aria-label="Email address"
+						oninput={clearError}
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+					/>
+
+					<div aria-live="assertive">
+						{#if error}
+							<p class="text-xs text-negative-stroke" role="alert">{error}</p>
+						{/if}
+					</div>
+
+					<button
+						type="submit"
+						disabled={loading}
+						class="rounded-xl bg-emphasis px-4 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+					>
+						{#if loading}
+							...
+						{:else}
+							Send reset link
+						{/if}
+					</button>
+				</form>
+
+				<div class="mt-4 flex flex-col items-center gap-1.5 text-xs text-text-subtitle">
+					<button
+						type="button"
+						onclick={() => {
+							error = '';
+							mode = 'login';
+						}}
+						class="underline underline-offset-2 hover:text-text-default"
 					>
 						Back to sign in
 					</button>
@@ -238,6 +456,21 @@
 						oninput={clearError}
 						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
+
+					{#if mode === 'login'}
+						<div class="flex justify-end">
+							<button
+								type="button"
+								onclick={() => {
+									error = '';
+									mode = 'forgot';
+								}}
+								class="text-xs text-text-subtitle underline underline-offset-2 hover:text-text-default"
+							>
+								Forgot password?
+							</button>
+						</div>
+					{/if}
 
 					<div aria-live="assertive">
 						{#if error}

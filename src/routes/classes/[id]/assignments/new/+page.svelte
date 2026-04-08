@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
+	import { SvelteSet } from 'svelte/reactivity';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 
@@ -9,8 +10,13 @@
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
 	}
 
+	function toStringArray(v: unknown): string[] {
+		if (!Array.isArray(v)) return [];
+		return v.filter((item): item is string => typeof item === 'string');
+	}
+
 	let classData = $derived.by(() => {
-		const val: unknown = $page.data.classData;
+		const val: unknown = page.data.classData;
 		if (isRecord(val) && typeof val.id === 'string') {
 			return { id: val.id, name: typeof val.name === 'string' ? val.name : '' };
 		}
@@ -18,11 +24,11 @@
 	});
 
 	let role = $derived.by(() => {
-		const val: unknown = $page.data.role;
+		const val: unknown = page.data.role;
 		return val === 'teacher' ? 'teacher' : 'student';
 	});
 
-	let formResult = $derived($page.form);
+	let formResult = $derived(page.form);
 	let errorMessage = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.message === 'string') {
 			return formResult.message;
@@ -30,14 +36,127 @@
 		return null;
 	});
 
+	// Form state preservation from server validation errors
+	let formTitle = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.title === 'string') return formResult.title;
+		return '';
+	});
+	let formDescription = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.description === 'string')
+			return formResult.description;
+		return '';
+	});
+	let formCaseValues: string[] = $derived.by(() => {
+		if (isRecord(formResult) && Array.isArray(formResult.selectedCases))
+			return toStringArray(formResult.selectedCases);
+		return [];
+	});
+	let formDrillTypeValues: string[] = $derived.by(() => {
+		if (isRecord(formResult) && Array.isArray(formResult.selectedDrillTypes))
+			return toStringArray(formResult.selectedDrillTypes);
+		return [];
+	});
+	let formNumberMode = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.numberMode === 'string')
+			return formResult.numberMode;
+		return 'both';
+	});
+	let formContentMode = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.contentMode === 'string')
+			return formResult.contentMode;
+		return 'both';
+	});
+	let formTargetQuestions = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.targetQuestions === 'string')
+			return formResult.targetQuestions;
+		return '20';
+	});
+	let formMinAccuracy = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.minAccuracy === 'string')
+			return formResult.minAccuracy;
+		return '';
+	});
+	let formDueDate = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.dueDate === 'string') return formResult.dueDate;
+		return '';
+	});
+
+	interface OtherClassItem {
+		id: string;
+		name: string;
+		studentCount: number;
+	}
+
+	let otherClasses: OtherClassItem[] = $derived.by(() => {
+		const val: unknown = page.data.otherClasses;
+		if (!Array.isArray(val)) return [];
+		const result: OtherClassItem[] = [];
+		for (const item of val) {
+			if (
+				isRecord(item) &&
+				typeof item.id === 'string' &&
+				typeof item.name === 'string' &&
+				typeof item.studentCount === 'number'
+			) {
+				result.push({ id: item.id, name: item.name, studentCount: item.studentCount });
+			}
+		}
+		return result;
+	});
+
+	let showMultiClass = $state(false);
+	let selectedAdditionalClasses = new SvelteSet<string>();
+
+	function toggleAdditionalClass(classId: string): void {
+		if (selectedAdditionalClasses.has(classId)) {
+			selectedAdditionalClasses.delete(classId);
+		} else {
+			selectedAdditionalClasses.add(classId);
+		}
+	}
+
+	let additionalClassesValue = $derived(Array.from(selectedAdditionalClasses).join(','));
+
 	let submitting = $state(false);
+	let validationError = $state<string | null>(null);
+
+	function toggleAllCheckboxes(e: MouseEvent, name: string, allValues: readonly string[]): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const form = target.closest('form');
+		if (!form) return;
+		const boxes = form.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`);
+		const allChecked = Array.from(boxes).every((b) => b.checked);
+		boxes.forEach((b) => (b.checked = !allChecked));
+		// Force reactivity by triggering a change event
+		void allValues;
+	}
+
+	function validateBeforeSubmit(event: SubmitEvent) {
+		const form = event.target;
+		if (!(form instanceof HTMLFormElement)) return;
+		const formData = new FormData(form);
+		const cases = formData.getAll('selected_cases');
+		const drillTypes = formData.getAll('selected_drill_types');
+		if (cases.length === 0) {
+			event.preventDefault();
+			validationError = 'Please select at least one case.';
+			return;
+		}
+		if (drillTypes.length === 0) {
+			event.preventDefault();
+			validationError = 'Please select at least one drill type.';
+			return;
+		}
+		validationError = null;
+	}
 </script>
 
 <svelte:head>
-	<title>New Assignment - Skloňuj</title>
+	<title>New Assignment - Sklonuj</title>
 </svelte:head>
 
-<NavBar user={$page.data.user} />
+<NavBar user={page.data.user} />
 
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">
@@ -56,16 +175,17 @@
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
 				<h1 class="mb-6 text-xl font-semibold text-text-default">Create Assignment</h1>
 
-				{#if errorMessage}
+				{#if errorMessage || validationError}
 					<div
-						class="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+						class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
 					>
-						{errorMessage}
+						{errorMessage ?? validationError}
 					</div>
 				{/if}
 
 				<form
 					method="POST"
+					onsubmit={validateBeforeSubmit}
 					use:enhance={() => {
 						submitting = true;
 						return async ({ update }) => {
@@ -85,6 +205,7 @@
 							name="title"
 							required
 							maxlength={200}
+							value={formTitle}
 							placeholder="e.g. Week 3 - Dative Practice"
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 						/>
@@ -102,18 +223,38 @@
 							rows={3}
 							placeholder="Instructions or notes for students..."
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
-						></textarea>
+							>{formDescription}</textarea
+						>
 					</div>
 
 					<!-- Cases -->
 					<div class="mb-4">
-						<p class="mb-2 text-sm font-medium text-text-default">Cases</p>
+						<div class="mb-2 flex items-center justify-between">
+							<p class="text-sm font-medium text-text-default">Cases</p>
+							<button
+								type="button"
+								onclick={(e: MouseEvent) => toggleAllCheckboxes(e, 'selected_cases', ALL_CASES)}
+								class="text-xs font-medium text-emphasis hover:underline"
+							>
+								{#if formCaseValues.length === ALL_CASES.length}
+									Deselect All
+								{:else}
+									Select All
+								{/if}
+							</button>
+						</div>
 						<div class="flex flex-wrap gap-2">
 							{#each ALL_CASES as c (c)}
 								<label
 									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
 								>
-									<input type="checkbox" name="selected_cases" value={c} checked class="sr-only" />
+									<input
+										type="checkbox"
+										name="selected_cases"
+										value={c}
+										checked={formCaseValues.includes(c)}
+										class="sr-only"
+									/>
 									{CASE_LABELS[c]}
 								</label>
 							{/each}
@@ -122,7 +263,21 @@
 
 					<!-- Drill Types -->
 					<div class="mb-4">
-						<p class="mb-2 text-sm font-medium text-text-default">Drill Types</p>
+						<div class="mb-2 flex items-center justify-between">
+							<p class="text-sm font-medium text-text-default">Drill Types</p>
+							<button
+								type="button"
+								onclick={(e: MouseEvent) =>
+									toggleAllCheckboxes(e, 'selected_drill_types', ALL_DRILL_TYPES)}
+								class="text-xs font-medium text-emphasis hover:underline"
+							>
+								{#if formDrillTypeValues.length === ALL_DRILL_TYPES.length}
+									Deselect All
+								{:else}
+									Select All
+								{/if}
+							</button>
+						</div>
 						<div class="flex flex-wrap gap-2">
 							{#each ALL_DRILL_TYPES as dt (dt)}
 								<label
@@ -132,7 +287,7 @@
 										type="checkbox"
 										name="selected_drill_types"
 										value={dt}
-										checked
+										checked={formDrillTypeValues.includes(dt)}
 										class="sr-only"
 									/>
 									{DRILL_TYPE_LABELS[dt]}
@@ -153,7 +308,7 @@
 										type="radio"
 										name="number_mode"
 										{value}
-										checked={value === 'both'}
+										checked={formNumberMode === value}
 										class="sr-only"
 									/>
 									{label}
@@ -174,7 +329,7 @@
 										type="radio"
 										name="content_mode"
 										{value}
-										checked={value === 'both'}
+										checked={formContentMode === value}
 										class="sr-only"
 									/>
 									{label}
@@ -192,11 +347,32 @@
 							type="number"
 							id="target_questions"
 							name="target_questions"
-							value={20}
+							value={formTargetQuestions}
 							min={1}
 							max={200}
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
 						/>
+					</div>
+
+					<!-- Minimum Accuracy -->
+					<div class="mb-4">
+						<label for="min_accuracy" class="mb-1 block text-sm font-medium text-text-default">
+							Minimum Accuracy to Complete (%)
+							<span class="text-text-subtitle">(optional)</span>
+						</label>
+						<input
+							type="number"
+							id="min_accuracy"
+							name="min_accuracy"
+							min={0}
+							max={100}
+							value={formMinAccuracy}
+							placeholder="e.g. 70"
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						/>
+						<p class="mt-1 text-xs text-text-subtitle">
+							If set, students must also reach this accuracy to complete the assignment.
+						</p>
 					</div>
 
 					<!-- Due Date -->
@@ -208,16 +384,71 @@
 							type="datetime-local"
 							id="due_date"
 							name="due_date"
+							value={formDueDate}
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
 						/>
 					</div>
 
+					<!-- Multi-class creation -->
+					{#if otherClasses.length > 0}
+						<div class="mb-6 rounded-xl border border-card-stroke p-4">
+							<button
+								type="button"
+								onclick={() => (showMultiClass = !showMultiClass)}
+								class="flex w-full items-center justify-between text-sm font-medium text-text-default"
+							>
+								<span>Also create for other classes</span>
+								<span
+									class="text-text-subtitle transition-transform"
+									class:rotate-180={showMultiClass}
+								>
+									&#9660;
+								</span>
+							</button>
+
+							{#if showMultiClass}
+								<div class="mt-3 space-y-2">
+									{#each otherClasses as cls (cls.id)}
+										<label
+											class="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-card-bg/80"
+										>
+											<input
+												type="checkbox"
+												checked={selectedAdditionalClasses.has(cls.id)}
+												onchange={() => toggleAdditionalClass(cls.id)}
+												class="h-4 w-4 rounded border-card-stroke text-emphasis accent-emphasis"
+											/>
+											<span class="flex-1 text-sm text-text-default">{cls.name}</span>
+											<span class="text-xs text-text-subtitle">
+												{cls.studentCount}
+												{cls.studentCount === 1 ? 'student' : 'students'}
+											</span>
+										</label>
+									{/each}
+								</div>
+								{#if selectedAdditionalClasses.size > 0}
+									<p class="mt-2 text-xs text-text-subtitle">
+										This assignment will be created for {selectedAdditionalClasses.size + 1} classes total.
+									</p>
+								{/if}
+							{/if}
+						</div>
+
+						<input type="hidden" name="additional_classes" value={additionalClassesValue} />
+					{/if}
+
 					<button
 						type="submit"
 						disabled={submitting}
-						class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity disabled:opacity-50"
+						class="w-full rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 					>
-						{submitting ? 'Creating...' : 'Create Assignment'}
+						{#if submitting}
+							Creating...
+						{:else if selectedAdditionalClasses.size > 0}
+							Create for {selectedAdditionalClasses.size + 1} Classes
+						{:else}
+							Create Assignment
+						{/if}
 					</button>
 				</form>
 			</div>

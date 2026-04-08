@@ -1,0 +1,28 @@
+name: Scheduled Tasks
+
+on:
+  schedule:
+    # Run every 6 hours: midnight, 6am, noon, 6pm UTC
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  reminders:
+    name: Send assignment reminders
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger reminders endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.PRODUCTION_URL }}/api/cron/reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"
+
+  snapshots:
+    name: Take progress snapshots
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger snapshots endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.PRODUCTION_URL }}/api/cron/snapshots" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"

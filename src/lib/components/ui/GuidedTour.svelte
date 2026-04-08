@@ -5,35 +5,12 @@
 		title?: string;
 	}
 
-	const STEPS: TourStep[] = [
-		{
-			target: null,
-			title: 'Welcome to Skloňuj!',
-			text: 'Master Czech noun declension with interactive drills across all 7 cases. Let\u2019s take a quick look around.'
-		},
-		{
-			target: 'case-pills',
-			text: 'Pick a case to focus on, or let Skloňuj choose your weakest one.'
-		},
-		{
-			target: 'mode-selector',
-			text: 'Follow Krok za krokem chapters or practice freely.'
-		},
-		{
-			target: 'ref-sidebar',
-			text: 'Tap here anytime to look up declension tables and case rules.'
-		},
-		{
-			target: 'settings',
-			text: 'Configure drill types, number, and content.'
-		}
-	];
-
 	interface Props {
+		steps: TourStep[];
 		onComplete: () => void;
 	}
 
-	let { onComplete }: Props = $props();
+	let { steps, onComplete }: Props = $props();
 
 	let currentStep = $state(0);
 	let spotlightRect = $state<{ top: number; left: number; width: number; height: number } | null>(
@@ -42,15 +19,17 @@
 	let tooltipStyle = $state('');
 	let transitioning = $state(false);
 	let ready = $state(false);
+	let tooltipEl = $state<HTMLDivElement | null>(null);
+	let previouslyFocused: HTMLElement | null = null;
 
 	function getTargetElement(step: number): HTMLElement | null {
-		const target = STEPS[step].target;
+		const target = steps[step].target;
 		if (!target) return null;
 		return document.querySelector(`[data-tour="${target}"]`);
 	}
 
 	function computePositions(): void {
-		const step = STEPS[currentStep];
+		const step = steps[currentStep];
 
 		// Intro step (no target) — center the tooltip
 		if (!step.target) {
@@ -114,7 +93,7 @@
 	function waitForElement(step: number): Promise<void> {
 		return new Promise<void>((resolve) => {
 			// No target (intro step) — resolve immediately
-			if (!STEPS[step].target) {
+			if (!steps[step].target) {
 				resolve();
 				return;
 			}
@@ -137,7 +116,7 @@
 	}
 
 	function advance(): void {
-		if (currentStep >= STEPS.length - 1) {
+		if (currentStep >= steps.length - 1) {
 			onComplete();
 			return;
 		}
@@ -147,6 +126,76 @@
 			computePositions();
 			transitioning = false;
 		});
+	}
+
+	function getFocusableElements(): HTMLElement[] {
+		if (!tooltipEl) return [];
+		const selector =
+			'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+		return Array.from(tooltipEl.querySelectorAll<HTMLElement>(selector));
+	}
+
+	function focusFirstElement(): void {
+		const focusable = getFocusableElements();
+		if (focusable.length > 0) {
+			focusable[0].focus();
+		} else if (tooltipEl) {
+			tooltipEl.focus();
+		}
+	}
+
+	function handleWindowKeydown(e: KeyboardEvent): void {
+		if (!ready || transitioning) return;
+
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			onComplete();
+			return;
+		}
+
+		const target = e.target instanceof Node ? e.target : null;
+		const focusInside = tooltipEl !== null && target !== null && tooltipEl.contains(target);
+
+		if (e.key === 'Tab') {
+			// Focus trap
+			const focusable = getFocusableElements();
+			if (focusable.length === 0) {
+				e.preventDefault();
+				return;
+			}
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			if (e.shiftKey) {
+				if (active === first || !focusInside) {
+					e.preventDefault();
+					last.focus();
+				}
+			} else {
+				if (active === last || !focusInside) {
+					e.preventDefault();
+					first.focus();
+				}
+			}
+			return;
+		}
+
+		if (!focusInside) return;
+
+		if (e.key === 'Enter' || e.key === ' ') {
+			// Let native activation handle buttons that are already focused
+			const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			if (active && active.tagName === 'BUTTON') return;
+			e.preventDefault();
+			advance();
+			return;
+		}
+
+		if (e.key === 'ArrowRight') {
+			e.preventDefault();
+			advance();
+			return;
+		}
 	}
 
 	// Set up positions on mount and handle resize
@@ -171,6 +220,28 @@
 		};
 	});
 
+	// Focus management: capture previously focused element, move focus in, restore on unmount
+	$effect(() => {
+		previouslyFocused =
+			document.activeElement instanceof HTMLElement ? document.activeElement : null;
+		return () => {
+			if (previouslyFocused && document.contains(previouslyFocused)) {
+				previouslyFocused.focus();
+			}
+		};
+	});
+
+	// When the tooltip becomes ready (or step changes), move focus into it
+	$effect(() => {
+		void currentStep;
+		if (ready && !transitioning && tooltipEl) {
+			// Defer to ensure the element is rendered
+			queueMicrotask(() => {
+				focusFirstElement();
+			});
+		}
+	});
+
 	// SVG mask path for the spotlight cutout
 	let maskPath = $derived.by(() => {
 		if (!spotlightRect) return '';
@@ -192,9 +263,17 @@
 	});
 </script>
 
+<svelte:window onkeydown={handleWindowKeydown} />
+
 <!-- Overlay with spotlight cutout -->
 {#if ready}
-	<div class="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Guided tour">
+	<div
+		class="fixed inset-0 z-[60]"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Guided tour"
+		data-modal
+	>
 		{#if spotlightRect}
 			<svg
 				class="pointer-events-none absolute inset-0 h-full w-full transition-all duration-300 ease-in-out"
@@ -208,10 +287,13 @@
 
 		<!-- Tooltip card -->
 		{#if !transitioning}
-			{@const isIntro = !STEPS[currentStep].target}
-			{@const totalNumbered = STEPS.length - 1}
+			{@const isIntro = !steps[currentStep].target}
+			{@const totalNumbered = steps.length - 1}
 			<div
-				class="absolute rounded-2xl border border-card-stroke bg-card-bg px-5 py-4 shadow-xl transition-all duration-300 ease-in-out {isIntro
+				bind:this={tooltipEl}
+				tabindex="-1"
+				data-modal
+				class="absolute rounded-2xl border border-card-stroke bg-card-bg px-5 py-4 shadow-xl transition-all duration-300 ease-in-out focus:outline-none {isIntro
 					? 'text-center'
 					: ''}"
 				style={tooltipStyle}
@@ -233,13 +315,13 @@
 						/>
 					</svg>
 				</button>
-				{#if STEPS[currentStep].title}
+				{#if steps[currentStep].title}
 					<h2 class="mb-1 text-lg font-semibold text-text-default sm:text-xl">
-						{STEPS[currentStep].title}
+						{steps[currentStep].title}
 					</h2>
 				{/if}
 				<p class="mb-3 text-sm leading-relaxed text-text-default {isIntro ? '' : 'pr-4'}">
-					{STEPS[currentStep].text}
+					{steps[currentStep].text}
 				</p>
 				<div class="flex items-center {isIntro ? 'justify-center' : 'justify-between'}">
 					{#if !isIntro}
@@ -252,7 +334,7 @@
 						onclick={advance}
 						class="rounded-xl bg-emphasis px-5 py-2 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
 					>
-						{currentStep === STEPS.length - 1 ? 'Jdeme na to!' : 'Next'}
+						{currentStep === steps.length - 1 ? 'Jdeme na to! (Let\u2019s go!)' : 'Next'}
 					</button>
 				</div>
 			</div>

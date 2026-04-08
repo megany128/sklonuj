@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { loadWordBank } from '$lib/engine/drill';
@@ -9,20 +9,7 @@
 	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER } from '$lib/types';
 	import type { Case, CaseForms } from '$lib/types';
 
-	let user = $derived($page.data.user);
-
-	import { darkMode as darkModeStore, initDarkMode, toggleDarkMode } from '$lib/darkmode';
-	let darkMode = $state(false);
-	let darkModeInitialized = $state(false);
-	$effect(() => {
-		if (darkModeInitialized) return;
-		darkModeInitialized = true;
-		initDarkMode();
-		const unsub = darkModeStore.subscribe((v) => {
-			darkMode = v;
-		});
-		return unsub;
-	});
+	let user = $derived(page.data.user);
 
 	interface Paradigm {
 		id: string;
@@ -46,7 +33,7 @@
 	}
 
 	onMount(() => {
-		const paramSection = $page.url.searchParams.get('paradigm');
+		const paramSection = page.url.searchParams.get('paradigm');
 		if (paramSection) {
 			const el = document.getElementById(paramSection.toLowerCase());
 			if (el) {
@@ -499,16 +486,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
-	<NavBar
-		{darkMode}
-		onToggleDarkMode={toggleDarkMode}
-		{user}
-		onSignIn={() => goto(resolve('/auth'))}
-		onNavigate={(p) => {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- appending query param to resolved route
-			goto(p === 'lookup' ? `${resolve('/')}?view=lookup` : resolve('/'));
-		}}
-	/>
+	<NavBar {user} onSignIn={() => goto(resolve('/auth'))} />
 
 	<!-- Table of Contents - desktop only -->
 	<nav

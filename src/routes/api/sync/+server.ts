@@ -1,16 +1,16 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2'] as const;
+type Level = 'A1' | 'A2' | 'B1' | 'B2';
+const VALID_LEVELS: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2']);
 const MAX_REQUEST_BYTES = 100 * 1024; // 100KB
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isValidLevel(value: unknown): value is (typeof VALID_LEVELS)[number] {
-	if (typeof value !== 'string') return false;
-	return (VALID_LEVELS as readonly string[]).includes(value);
+function isValidLevel(value: unknown): value is Level {
+	return typeof value === 'string' && VALID_LEVELS.has(value);
 }
 
 function isValidCaseScore(value: unknown): value is { attempts: number; correct: number } {
@@ -53,7 +53,7 @@ function isValidDateOnly(value: unknown): value is string {
 }
 
 interface ValidatedProgress {
-	level: string;
+	level: Level;
 	caseScores: Record<string, { attempts: number; correct: number }>;
 	paradigmScores: Record<string, { attempts: number; correct: number }>;
 	lastSession: string;

@@ -6,6 +6,7 @@
 		<meta name="google" content="notranslate" />
 		<meta name="theme-color" content="#1e293b" />
 		<meta name="author" content="Megan Yap" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 		<link rel="manifest" href="/manifest.json" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,10 +27,14 @@
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
-		<script
-			defer
-			src="https://static.cloudflareinsights.com/beacon.min.js"
-			data-cf-beacon='{"token": "34ec72c68a664069a61b25ca18d5dc67"}'
-		></script>
+		<script>
+			if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+				var s = document.createElement('script');
+				s.defer = true;
+				s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+				s.dataset.cfBeacon = '{"token": "34ec72c68a664069a61b25ca18d5dc67"}';
+				document.body.appendChild(s);
+			}
+		</script>
 	</body>
 </html>

@@ -22,5 +22,16 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 		redirect(303, `${resolve('/auth')}?error=auth_failed`);
 	}
 
+	// If this is a password recovery flow, redirect to auth page with recovery flag
+	const type = url.searchParams.get('type');
+	if (type === 'recovery') {
+		redirect(303, `${resolve('/auth')}?recovery=true`);
+	}
+
+	const returnTo = url.searchParams.get('returnTo');
+	if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+		redirect(303, returnTo);
+	}
+
 	redirect(303, resolve('/'));
 };
