@@ -3,6 +3,9 @@
 		target: string | null;
 		text: string;
 		title?: string;
+		// Optional setup hook called before the step is shown. Use this to ensure
+		// the target element will actually be in the DOM (e.g. switching tabs).
+		setup?: () => void;
 	}
 
 	interface Props {
@@ -102,16 +105,17 @@
 				resolve();
 				return;
 			}
-			// Poll for the element
+			// Poll for the element (short window — steps should use `setup` to
+			// ensure their target exists, this is just a safety net for async DOM updates).
 			let attempts = 0;
 			const interval = setInterval(() => {
 				attempts++;
 				const found = getTargetElement(step);
-				if (found || attempts > 50) {
+				if (found || attempts > 20) {
 					clearInterval(interval);
 					resolve();
 				}
-			}, 100);
+			}, 25);
 		});
 	}
 
@@ -122,6 +126,7 @@
 		}
 		transitioning = true;
 		currentStep++;
+		steps[currentStep].setup?.();
 		waitForElement(currentStep).then(() => {
 			computePositions();
 			transitioning = false;
@@ -334,7 +339,7 @@
 						onclick={advance}
 						class="rounded-xl bg-emphasis px-5 py-2 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
 					>
-						{currentStep === steps.length - 1 ? 'Jdeme na to! (Let\u2019s go!)' : 'Next'}
+						{currentStep === steps.length - 1 ? 'Jdeme na to!' : 'Next'}
 					</button>
 				</div>
 			</div>

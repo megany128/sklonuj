@@ -697,19 +697,28 @@
 		},
 		{
 			target: 'teacher-tabs',
-			text: 'Switch between your Students roster and Assignments using these tabs. The counts update automatically.'
-		},
-		{
-			target: 'teacher-invite',
-			text: 'Invite students by sharing the class code or sending email invitations directly.'
+			text: 'Switch between the Overall summary, your Students roster, and Assignments using these tabs. The counts update automatically.'
 		},
 		{
 			target: 'teacher-accuracy',
-			text: 'Track how your class is performing across all 7 Czech cases at a glance.'
+			text: 'Track how your class is performing across all 7 Czech cases at a glance.',
+			setup: () => {
+				activeTab = 'overall';
+			}
 		},
 		{
 			target: 'teacher-roster',
-			text: 'See all your students here. Click any row to expand their individual case accuracy and assignment progress.'
+			text: 'See all your students here. Click any row to expand their individual case accuracy and assignment progress.',
+			setup: () => {
+				activeTab = 'students';
+			}
+		},
+		{
+			target: 'teacher-invite',
+			text: 'Invite students by sharing the class code or sending email invitations directly.',
+			setup: () => {
+				activeTab = 'students';
+			}
 		}
 	];
 
