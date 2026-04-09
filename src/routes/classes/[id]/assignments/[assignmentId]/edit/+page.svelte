@@ -40,6 +40,14 @@
 		return isAssignmentData(val) ? val : null;
 	});
 
+	let fromAssignment = $derived.by(() => {
+		const val: unknown = page.data.fromAssignment;
+		if (isRecord(val) && typeof val.id === 'string' && typeof val.title === 'string') {
+			return { id: val.id, title: val.title };
+		}
+		return null;
+	});
+
 	let hasProgress = $derived.by(() => {
 		const val: unknown = page.data.hasProgress;
 		return val === true;
@@ -92,10 +100,10 @@
 {#if classData && assignment}
 	<div class="mx-auto max-w-lg px-4 py-8">
 		<a
-			href={resolve(`/classes/${classData.id}/assignments/${assignment.id}`)}
+			href={resolve(`/classes/${classData.id}/assignments/${fromAssignment?.id ?? assignment.id}`)}
 			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
 		>
-			&larr; Back to {assignment.title}
+			&larr; Back to {fromAssignment?.title ?? assignment.title}
 		</a>
 
 		<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">

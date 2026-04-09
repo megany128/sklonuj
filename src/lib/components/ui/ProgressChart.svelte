@@ -397,7 +397,9 @@
 
 	{#if !hasData}
 		<div class="py-12 text-center text-sm text-text-subtitle">
-			No progress data available yet. Snapshots are recorded daily.
+			{mode === 'student'
+				? 'Your progress chart will fill in as you practice — it updates once a day.'
+				: 'Your class progress chart will fill in as students practice — it updates once a day.'}
 		</div>
 	{:else}
 		<div class="relative w-full overflow-x-auto">
@@ -460,11 +462,19 @@
 						<circle
 							cx={xScale(point.date)}
 							cy={yScale(point.value)}
-							r={line.label === 'Class Average' ? 4 : 3}
+							r={line.label === 'Class Average' ? 6 : 5}
 							fill={line.color}
 							stroke="var(--color-card-bg)"
-							stroke-width="1.5"
+							stroke-width="2"
 							opacity={line.label === 'Class Average' ? 1 : 0.8}
+							pointer-events="none"
+						/>
+						<!-- Invisible hit-slop circle for easier hover/tap targeting -->
+						<circle
+							cx={xScale(point.date)}
+							cy={yScale(point.value)}
+							r={14}
+							fill="transparent"
 							role="img"
 							aria-label="{line.label}: {Math.round(point.value)}% on {point.date}"
 							onmouseenter={(e) => handlePointHover(e, point.date, line.label, point.value)}

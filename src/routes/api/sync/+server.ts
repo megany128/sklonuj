@@ -156,7 +156,14 @@ export const GET: RequestHandler = async ({ locals }) => {
 		return json({ error: 'Not authenticated' }, { status: 401 });
 	}
 
-	const today = new Date().toISOString().slice(0, 10);
+	// Use the same local-date logic as the client: before 5 AM UTC, treat
+	// the previous calendar day as "today" so late-night sessions match.
+	const now = new Date();
+	const todayDate = new Date(now);
+	if (todayDate.getUTCHours() < 5) {
+		todayDate.setUTCDate(todayDate.getUTCDate() - 1);
+	}
+	const today = todayDate.toISOString().slice(0, 10);
 	const { data, error } = await locals.supabase
 		.from('practice_sessions')
 		.select('questions_attempted, questions_correct')

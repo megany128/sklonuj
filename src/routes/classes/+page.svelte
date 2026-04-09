@@ -6,7 +6,6 @@
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
-	import { SvelteMap } from 'svelte/reactivity';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 
 	interface ClassRow {
@@ -31,32 +30,11 @@
 		classInfo: ClassRow;
 	}
 
-	interface AssignmentRow {
-		id: string;
-		classId: string;
-		title: string;
-		description: string | null;
-		selectedCases: string[];
-		selectedDrillTypes: string[];
-		numberMode: string;
-		contentMode: string;
-		targetQuestions: number;
-		dueDate: string | null;
-		createdAt: string;
-	}
-
 	interface ClassSummary {
 		classId: string;
 		pendingCount: number;
 		overdueCount: number;
 		nextDueDate: string | null;
-	}
-
-	interface AssignmentProgressRow {
-		assignmentId: string;
-		questionsAttempted: number;
-		questionsCorrect: number;
-		completedAt: string | null;
 	}
 
 	function isRecord(value: unknown): value is Record<string, unknown> {
@@ -83,32 +61,11 @@
 		);
 	}
 
-	function isAssignmentArray(v: unknown): v is AssignmentRow[] {
-		if (!Array.isArray(v)) return false;
-		return v.every(
-			(item) =>
-				isRecord(item) &&
-				typeof item.id === 'string' &&
-				typeof item.title === 'string' &&
-				typeof item.targetQuestions === 'number'
-		);
-	}
-
 	function isClassSummaryArray(v: unknown): v is ClassSummary[] {
 		if (!Array.isArray(v)) return false;
 		return v.every(
 			(item) =>
 				isRecord(item) && typeof item.classId === 'string' && typeof item.pendingCount === 'number'
-		);
-	}
-
-	function isProgressArray(v: unknown): v is AssignmentProgressRow[] {
-		if (!Array.isArray(v)) return false;
-		return v.every(
-			(item) =>
-				isRecord(item) &&
-				typeof item.assignmentId === 'string' &&
-				typeof item.questionsAttempted === 'number'
 		);
 	}
 
@@ -133,14 +90,6 @@
 		const val: unknown = page.data.studentClasses;
 		return isStudentClassArray(val) ? val : [];
 	});
-	let studentAssignments = $derived.by(() => {
-		const val: unknown = page.data.studentAssignments;
-		return isAssignmentArray(val) ? val : [];
-	});
-	let studentProgress = $derived.by(() => {
-		const val: unknown = page.data.studentProgress;
-		return isProgressArray(val) ? val : [];
-	});
 
 	let classSummaries = $derived.by(() => {
 		const val: unknown = page.data.studentClassSummaries;
@@ -149,18 +98,6 @@
 
 	let isTeacher = $derived(teacherClasses.length > 0 || archivedClasses.length > 0);
 	let isStudent = $derived(studentClasses.length > 0);
-
-	// Build a progress map for quick lookups
-	let progressMap = $derived.by(() => {
-		const map = new SvelteMap<string, AssignmentProgressRow>();
-		for (const p of studentProgress) {
-			map.set(p.assignmentId, p);
-		}
-		return map;
-	});
-
-	// For single-class students, get the class info
-	let singleClass = $derived(studentClasses.length === 1 ? studentClasses[0] : null);
 
 	// Welcome modal for students who just joined via invite link
 	let joinedClassName = $state<string | null>(null);
@@ -258,21 +195,6 @@
 		nameError = null;
 	}
 
-	function getAssignmentStatus(
-		assignment: AssignmentRow,
-		progress: AssignmentProgressRow | undefined
-	): 'completed' | 'in-progress' | 'not-started' {
-		if (progress?.completedAt) return 'completed';
-		if (progress && progress.questionsAttempted > 0) return 'in-progress';
-		return 'not-started';
-	}
-
-	function getStatusLabel(status: 'completed' | 'in-progress' | 'not-started'): string {
-		if (status === 'completed') return 'Completed';
-		if (status === 'in-progress') return 'In Progress';
-		return 'Not Started';
-	}
-
 	// Calendar-day diff between now and `dueDate`. Uses UTC-day math so the
 	// result is stable across DST transitions and independent of the browser
 	// timezone (source `due_date` is a UTC timestamptz).
@@ -285,21 +207,34 @@
 		return dueDayUTC - nowDayUTC;
 	}
 
-	function getDueDateColor(dueDate: string | null): 'green' | 'yellow' | 'red' | 'none' {
-		if (!dueDate) return 'none';
-		const diffDays = calendarDayDiff(dueDate);
-		if (diffDays < 0) return 'red';
-		if (diffDays <= 2) return 'yellow';
-		return 'green';
+	function formatTimeSuffix(date: Date): string {
+		if (date.getUTCHours() === 0 && date.getUTCMinutes() === 0) return '';
+		return (
+			' at ' +
+			date.toLocaleTimeString('en-US', {
+				timeZone: 'UTC',
+				hour: 'numeric',
+				minute: '2-digit'
+			})
+		);
 	}
 
 	function formatDueDate(dueDate: string): string {
+		const date = new Date(dueDate);
 		const diffDays = calendarDayDiff(dueDate);
-		if (diffDays < 0)
-			return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'}`;
-		if (diffDays === 0) return 'Due today';
-		if (diffDays === 1) return 'Due tomorrow';
-		return `Due in ${diffDays} days`;
+		const timeSuffix = formatTimeSuffix(date);
+		if (diffDays < 0) {
+			const abs = Math.abs(diffDays);
+			return `Overdue by ${abs} day${abs === 1 ? '' : 's'}`;
+		}
+		if (diffDays === 0) return `Today${timeSuffix}`;
+		if (diffDays === 1) return `Tomorrow${timeSuffix}`;
+		if (diffDays <= 6) return `In ${diffDays} days`;
+		return date.toLocaleDateString('en-US', {
+			timeZone: 'UTC',
+			month: 'short',
+			day: 'numeric'
+		});
 	}
 
 	async function copyClassCode(code: string, classId: string) {
@@ -477,144 +412,51 @@
 			<section class="mb-8">
 				<h2 class="mb-3 text-lg font-semibold text-text-default">Enrolled Classes</h2>
 
-				{#if singleClass && !isTeacher}
-					<!-- Single class without teacher role: show assignments inline -->
-					<div class="mb-4">
-						<p class="text-sm text-text-subtitle">
-							{singleClass.classInfo.name} &middot; Level {singleClass.classInfo.level}
-						</p>
-					</div>
-
-					{#if studentAssignments.length === 0}
-						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
-							<p class="text-sm text-text-subtitle">
-								No assignments yet — your teacher will add them soon.
-							</p>
-						</div>
-					{:else}
-						<div class="space-y-3">
-							{#each studentAssignments as assignment (assignment.id)}
-								{@const progress = progressMap.get(assignment.id)}
-								{@const status = getAssignmentStatus(assignment, progress)}
-								{@const attempted = progress?.questionsAttempted ?? 0}
-								{@const target = assignment.targetQuestions}
-								{@const progressPct = Math.min(100, Math.round((attempted / target) * 100))}
-								{@const dueDateColor = getDueDateColor(assignment.dueDate)}
-
-								<div class="rounded-2xl border border-card-stroke bg-card-bg p-4">
-									<div class="flex items-start justify-between gap-3">
-										<div class="min-w-0 flex-1">
-											<div class="flex items-center gap-2">
-												<h3 class="font-semibold text-text-default">{assignment.title}</h3>
-												<span
-													class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {status ===
-													'completed'
-														? 'bg-positive-background text-positive-stroke'
-														: status === 'in-progress'
-															? 'bg-warning-background text-warning-text'
-															: 'bg-shaded-background text-text-subtitle'}"
-												>
-													{getStatusLabel(status)}
-												</span>
-											</div>
-											{#if assignment.description}
-												<p class="mt-1 line-clamp-2 text-sm text-text-subtitle">
-													{assignment.description}
-												</p>
-											{/if}
-											{#if assignment.dueDate}
-												<p
-													class="mt-1.5 text-xs font-medium {dueDateColor === 'red'
-														? 'text-negative-stroke'
-														: dueDateColor === 'yellow'
-															? 'text-warning-text'
-															: dueDateColor === 'green'
-																? 'text-positive-stroke'
-																: 'text-text-subtitle'}"
-												>
-													{formatDueDate(assignment.dueDate)}
-												</p>
-											{/if}
-										</div>
-										<a
-											href={resolve(`/classes/${singleClass.classId}/assignments/${assignment.id}`)}
-											class="shrink-0 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
-										>
-											{#if status === 'not-started'}
-												Start Practice
-											{:else if status === 'in-progress'}
-												Continue
-											{:else}
-												Review
-											{/if}
-										</a>
-									</div>
-
-									<!-- Progress bar -->
-									<div class="mt-3">
-										<div class="mb-1 flex items-center justify-between text-xs text-text-subtitle">
-											<span>{Math.min(attempted, target)} / {target} questions</span>
-											<span>{progressPct}%</span>
-										</div>
-										<div class="h-2 w-full overflow-hidden rounded-full bg-shaded-background">
-											<div
-												class="h-full rounded-full bg-positive-stroke transition-all"
-												style="width: {progressPct}%"
-											></div>
-										</div>
-									</div>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				{:else}
-					<!-- Multiple enrolled classes, or also a teacher -->
-					<div class="space-y-3">
-						{#each studentClasses as enrollment (enrollment.classId)}
-							{@const summary = classSummaries.find((s) => s.classId === enrollment.classId)}
-							<a
-								href={resolve(`/classes/${enrollment.classInfo.id}`)}
-								class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
-							>
-								<div class="flex items-start justify-between">
-									<div>
-										<h3 class="font-semibold text-text-default">
-											{enrollment.classInfo.name}
-										</h3>
-										<p class="mt-1 text-sm text-text-subtitle">
-											Level {enrollment.classInfo.level} &middot; Joined {new Date(
-												enrollment.joinedAt
-											).toLocaleDateString()}
-										</p>
-									</div>
-									{#if summary && (summary.pendingCount > 0 || summary.overdueCount > 0)}
-										<div class="flex shrink-0 items-center gap-2">
-											{#if summary.overdueCount > 0}
-												<span
-													class="rounded-full bg-negative-background px-2 py-0.5 text-xs font-medium text-negative-stroke"
-												>
-													{summary.overdueCount} overdue
-												</span>
-											{/if}
-											{#if summary.pendingCount > 0}
-												<span
-													class="rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
-												>
-													{summary.pendingCount} pending
-												</span>
-											{/if}
-										</div>
-									{/if}
-								</div>
-								{#if summary?.nextDueDate}
-									<p class="mt-1.5 text-xs text-text-subtitle">
-										Next due: {formatDueDate(summary.nextDueDate)}
+				<div class="space-y-3">
+					{#each studentClasses as enrollment (enrollment.classId)}
+						{@const summary = classSummaries.find((s) => s.classId === enrollment.classId)}
+						<a
+							href={resolve(`/classes/${enrollment.classInfo.id}`)}
+							class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
+						>
+							<div class="flex items-start justify-between">
+								<div>
+									<h3 class="font-semibold text-text-default">
+										{enrollment.classInfo.name}
+									</h3>
+									<p class="mt-1 text-sm text-text-subtitle">
+										Level {enrollment.classInfo.level} &middot; Joined {new Date(
+											enrollment.joinedAt
+										).toLocaleDateString()}
 									</p>
+								</div>
+								{#if summary && (summary.pendingCount > 0 || summary.overdueCount > 0)}
+									<div class="flex shrink-0 items-center gap-2">
+										{#if summary.overdueCount > 0}
+											<span
+												class="rounded-full bg-negative-background px-2 py-0.5 text-xs font-medium text-negative-stroke"
+											>
+												{summary.overdueCount} overdue
+											</span>
+										{/if}
+										{#if summary.pendingCount > 0}
+											<span
+												class="rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
+											>
+												{summary.pendingCount} due
+											</span>
+										{/if}
+									</div>
 								{/if}
-							</a>
-						{/each}
-					</div>
-				{/if}
+							</div>
+							{#if summary?.nextDueDate}
+								<p class="mt-1.5 text-xs text-text-subtitle">
+									Next due: {formatDueDate(summary.nextDueDate)}
+								</p>
+							{/if}
+						</a>
+					{/each}
+				</div>
 			</section>
 		{/if}
 

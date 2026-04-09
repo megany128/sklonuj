@@ -12,7 +12,8 @@
 	import Star from '@lucide/svelte/icons/star';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import ArrowUpCircle from '@lucide/svelte/icons/arrow-up-circle';
-	import { slide } from 'svelte/transition';
+	import { slide, fly, fade } from 'svelte/transition';
+	import { untrack } from 'svelte';
 	import { get } from 'svelte/store';
 	import { goto, replaceState } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -38,7 +39,6 @@
 		ALL_DRILL_TYPES,
 		CASE_LABELS,
 		CASE_SHORT_LABELS,
-		CASE_COLORS,
 		CASE_HEX,
 		CASE_INDEX,
 		isCase
@@ -397,7 +397,6 @@
 	}
 	let studentAssignments = $state<StudentAssignment[]>([]);
 	let assignmentsPanelExpanded = $state(true);
-	let matchingAssignmentId = $state<string | null>(null);
 
 	function loadStudentAssignments(): void {
 		if (!user) return;
@@ -462,16 +461,21 @@
 			contentMode: string;
 		}
 	): boolean {
-		const casesMatch =
-			assignment.selectedCases.every((c) => isCaseValue(c) && settings.selectedCases.includes(c)) &&
-			settings.selectedCases.every((c) => assignment.selectedCases.includes(c));
-		const typesMatch =
-			assignment.selectedDrillTypes.every(
-				(dt) => isDrillType(dt) && settings.selectedDrillTypes.includes(dt)
-			) && settings.selectedDrillTypes.every((dt) => assignment.selectedDrillTypes.includes(dt));
-		const numberMatch = settings.numberMode === assignment.numberMode;
-		const contentMatch = (settings.contentMode ?? 'both') === assignment.contentMode;
-		return casesMatch && typesMatch && numberMatch && contentMatch;
+		// Check that the student's practice covers the assignment's requirements.
+		// The student may have more cases/types enabled — that's fine for a
+		// suggestion; the assignment's params are a subset of the practice.
+		const casesCovered = assignment.selectedCases.every(
+			(c) => isCaseValue(c) && settings.selectedCases.includes(c)
+		);
+		const typesCovered = assignment.selectedDrillTypes.every(
+			(dt) => isDrillType(dt) && settings.selectedDrillTypes.includes(dt)
+		);
+		const numberMatch =
+			settings.numberMode === assignment.numberMode || settings.numberMode === 'both';
+		const contentMatch =
+			(settings.contentMode ?? 'both') === assignment.contentMode ||
+			(settings.contentMode ?? 'both') === 'both';
+		return casesCovered && typesCovered && numberMatch && contentMatch;
 	}
 
 	function findMatchingAssignment(): StudentAssignment | null {
@@ -487,84 +491,74 @@
 		return matching[0];
 	}
 
-	function updateMatchingAssignment(): void {
-		if (assignmentId) {
-			// Already in explicit assignment mode, don't auto-detect
-			matchingAssignmentId = null;
-			return;
-		}
-		const match = findMatchingAssignment();
-		matchingAssignmentId = match ? match.id : null;
+	// Toast prompt: shown once per assignment when practice settings match
+	let assignmentToastMatch = $state<StudentAssignment | null>(null);
+	let dismissedAssignmentToasts = $state(new Set<string>());
+	let assignmentToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// Confirmation toast: shown briefly after an assignment is applied
+	let appliedToastName = $state<string | null>(null);
+	let appliedToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function showAppliedToast(name: string): void {
+		appliedToastName = name;
+		if (appliedToastTimer) clearTimeout(appliedToastTimer);
+		appliedToastTimer = setTimeout(() => {
+			appliedToastName = null;
+			appliedToastTimer = null;
+		}, 3000);
 	}
 
-	function recordAutoDetectedAssignmentProgress(correct: boolean): void {
+	function checkAssignmentMatchToast(): void {
 		if (assignmentId) return; // Already in explicit assignment mode
-		if (!matchingAssignmentId) return;
-		const matchId = matchingAssignmentId;
-		fetch('/api/assignment-progress', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				assignmentId: matchId,
-				correct,
-				recentMistakes: assignmentMistakes.length > 0 ? assignmentMistakes : undefined
-			})
-		})
-			.then((res) => res.json())
-			.then((data: unknown) => {
-				if (isRecord(data) && typeof data.questions_attempted === 'number') {
-					const newCompletedAt = typeof data.completed_at === 'string' ? data.completed_at : null;
-					const matchedAssignment = studentAssignments.find((a) => a.id === matchId);
-					const wasCompleted =
-						matchedAssignment?.completedAt !== null && matchedAssignment?.completedAt !== undefined;
-					studentAssignments = studentAssignments.map((a) => {
-						if (a.id !== matchId) return a;
-						return {
-							...a,
-							attempted:
-								typeof data.questions_attempted === 'number'
-									? data.questions_attempted
-									: a.attempted,
-							correct:
-								typeof data.questions_correct === 'number' ? data.questions_correct : a.correct,
-							completedAt: newCompletedAt
-						};
-					});
-					// Show completion modal when assignment just became completed
-					if (!wasCompleted && newCompletedAt !== null && matchedAssignment) {
-						const updatedAssignment = studentAssignments.find((a) => a.id === matchId);
-						if (updatedAssignment) {
-							assignmentId = matchId;
-							assignmentInfo = {
-								title: updatedAssignment.title,
-								classId: updatedAssignment.classId,
-								selectedCases: updatedAssignment.selectedCases,
-								selectedDrillTypes: updatedAssignment.selectedDrillTypes,
-								numberMode:
-									updatedAssignment.numberMode === 'sg' || updatedAssignment.numberMode === 'pl'
-										? updatedAssignment.numberMode
-										: 'both',
-								contentMode: updatedAssignment.contentMode,
-								targetQuestions: updatedAssignment.targetQuestions,
-								attempted: updatedAssignment.attempted,
-								correct: updatedAssignment.correct,
-								completedAt: updatedAssignment.completedAt
-							};
-							showCompletionModal = true;
-						}
-					}
-					// Re-evaluate matching after progress update
-					updateMatchingAssignment();
-				}
-			})
-			.catch(() => {
-				assignmentError = 'Failed to save assignment progress. Your work may not be recorded.';
-				clearAssignmentErrorAfterDelay();
-			});
+		const match = findMatchingAssignment();
+		if (!match || dismissedAssignmentToasts.has(match.id)) {
+			assignmentToastMatch = null;
+			return;
+		}
+		if (assignmentToastMatch?.id === match.id) return; // Already showing
+		assignmentToastMatch = match;
+		// Auto-dismiss after 15 seconds
+		if (assignmentToastTimer) clearTimeout(assignmentToastTimer);
+		assignmentToastTimer = setTimeout(() => {
+			dismissAssignmentToast();
+		}, 15000);
+	}
+
+	function dismissAssignmentToast(): void {
+		if (assignmentToastMatch) {
+			dismissedAssignmentToasts = new Set([...dismissedAssignmentToasts, assignmentToastMatch.id]);
+		}
+		assignmentToastMatch = null;
+		if (assignmentToastTimer) {
+			clearTimeout(assignmentToastTimer);
+			assignmentToastTimer = null;
+		}
+	}
+
+	function applyAssignmentFromToast(): void {
+		if (!assignmentToastMatch) return;
+		startAssignment(assignmentToastMatch);
+		assignmentToastMatch = null;
+		if (assignmentToastTimer) {
+			clearTimeout(assignmentToastTimer);
+			assignmentToastTimer = null;
+		}
 	}
 
 	function startAssignment(assignment: StudentAssignment): void {
-		// Set assignment mode without page reload
+		// Update URL FIRST — the $effect that watches page.url re-activates or
+		// clears assignment mode whenever it sees a mismatch between the param
+		// and assignmentId. Setting state before updating the URL triggers that
+		// effect with stale URL, causing it to immediately undo our changes.
+		const url = new URL(window.location.href);
+		url.searchParams.set('assignment', assignment.id);
+		try {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- using URL object directly
+			replaceState(url.pathname + url.search, {});
+		} catch {
+			// ignore
+		}
 		assignmentId = assignment.id;
 		assignmentInfo = {
 			title: assignment.title,
@@ -596,27 +590,47 @@
 					? assignment.contentMode
 					: 'both'
 		};
-		// Sync the question-generation case set to the assignment's cases. The
-		// question generator picks from `effectiveEnabledCases`, which derives
-		// from `enabledCases` (NOT `drillSettings.selectedCases`), so we must
-		// update both. Also clear any active chapter so chapter case constraints
-		// don't override the assignment.
 		enabledCases = assignmentCases.length > 0 ? [...assignmentCases] : [...ALL_CASES];
 		selectedCase = 'all';
 		chapterBook = null;
 		chapterSelection = null;
-		// Update URL to reflect assignment mode
+		assignmentMistakes = [];
+		generateNextQuestion();
+		showAppliedToast(assignment.title);
+	}
+
+	function exitAssignmentMode(): void {
+		// Remove ?assignment param from URL FIRST — the $effect that watches
+		// page.url re-activates assignment mode whenever it sees a param that
+		// differs from assignmentId, so we must clear the URL before clearing
+		// state to avoid the effect immediately re-entering assignment mode.
 		const url = new URL(window.location.href);
-		url.searchParams.set('assignment', assignment.id);
+		url.searchParams.delete('assignment');
+		const newPath = url.pathname + url.search;
 		try {
 			// eslint-disable-next-line svelte/no-navigation-without-resolve -- using URL object directly
-			replaceState(url.pathname + url.search, {});
+			replaceState(newPath || '/', {});
 		} catch {
 			// ignore
 		}
-		matchingAssignmentId = null;
+		assignmentId = null;
+		assignmentInfo = null;
 		assignmentMistakes = [];
+		// Keep the assignments list collapsed — less intrusive when returning to free practice
+		assignmentsPanelExpanded = false;
 		generateNextQuestion();
+	}
+
+	function formatTimeSuffix(date: Date): string {
+		if (date.getUTCHours() === 0 && date.getUTCMinutes() === 0) return '';
+		return (
+			' at ' +
+			date.toLocaleTimeString('en-US', {
+				timeZone: 'UTC',
+				hour: 'numeric',
+				minute: '2-digit'
+			})
+		);
 	}
 
 	function getDueDateUrgency(
@@ -626,22 +640,32 @@
 		if (completedAt !== null) return { label: 'Done', color: 'var(--color-positive-stroke)' };
 		if (dueDate === null) return { label: 'No due date', color: 'var(--color-text-subtitle)' };
 
-		const now = new Date();
 		const due = new Date(dueDate);
-		const diffMs = due.getTime() - now.getTime();
-		const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+		const now = new Date();
+		const msPerDay = 24 * 60 * 60 * 1000;
+		const dueDay = Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate());
+		const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+		const diffDays = Math.round((dueDay - today) / msPerDay);
+		const timeSuffix = formatTimeSuffix(due);
 
 		if (diffDays < 0) return { label: `${Math.abs(diffDays)}d overdue`, color: '#d73e3e' };
-		if (diffDays === 0) return { label: 'Due today', color: '#d73e3e' };
-		if (diffDays === 1) return { label: 'Due tomorrow', color: '#e5a000' };
+		if (diffDays === 0) return { label: `Due today${timeSuffix}`, color: '#d73e3e' };
+		if (diffDays === 1) return { label: `Due tomorrow${timeSuffix}`, color: '#e5a000' };
 		if (diffDays <= 3) return { label: `Due in ${diffDays}d`, color: '#e5a000' };
 		return { label: `Due in ${diffDays}d`, color: '#40c607' };
 	}
 
 	let pendingAssignments = $derived(studentAssignments.filter((a) => a.completedAt === null));
 	let showAssignmentsPanel = $derived(
-		user !== null && studentAssignments.length > 0 && !assignmentId && !assignmentLoading
+		user !== null && studentAssignments.length > 0 && !assignmentLoading
 	);
+	// When an assignment becomes active, auto-collapse the Your Assignments panel
+	// so it condenses to a single framed row showing the focused assignment.
+	$effect(() => {
+		if (assignmentId) {
+			assignmentsPanelExpanded = false;
+		}
+	});
 
 	function collectAssignmentMistake(
 		word: string,
@@ -1210,15 +1234,18 @@
 		);
 	}
 
+	// Sync assignment mode from URL. Only subscribes to page.url — reads
+	// assignmentId via untrack() so internal state changes (startAssignment,
+	// exitAssignmentMode) don't cause the effect to re-run and fight with them.
 	$effect(() => {
 		const paramId = page.url.searchParams.get('assignment');
-		if (paramId && paramId !== assignmentId) {
+		const currentId = untrack(() => assignmentId);
+		if (paramId && paramId !== currentId) {
 			assignmentId = paramId;
 			assignmentLoading = true;
 			fetch(`/api/assignment-progress?assignmentId=${paramId}`)
 				.then((res) => {
 					if (res.status === 401) {
-						// Unauthenticated: redirect to sign-in and come back to this assignment.
 						const returnTo = `/?assignment=${paramId}`;
 						// eslint-disable-next-line svelte/no-navigation-without-resolve -- constructed auth URL with encoded returnTo
 						goto(`/auth?returnTo=${encodeURIComponent(returnTo)}`);
@@ -1254,12 +1281,6 @@
 									? data.contentMode
 									: 'both'
 						};
-						// Sync the question-generation case set to the assignment's
-						// cases. The generator picks from `effectiveEnabledCases`,
-						// which derives from `enabledCases` (NOT
-						// `drillSettings.selectedCases`), so we must update both.
-						// Also clear any active chapter so chapter constraints
-						// don't override the assignment.
 						enabledCases = [...assignmentCases];
 						selectedCase = 'all';
 						chapterBook = null;
@@ -1270,10 +1291,6 @@
 				.catch(() => {
 					assignmentId = null;
 					assignmentInfo = null;
-					// If the assignment fetch failed on a cold load where we
-					// skipped the initial question generation, fall back to a
-					// Free Practice question so the user isn't stuck on a
-					// blank card.
 					if (!question) {
 						generateNextQuestion();
 					}
@@ -1282,7 +1299,7 @@
 					assignmentLoading = false;
 				});
 		}
-		if (!paramId && assignmentId) {
+		if (!paramId && currentId) {
 			assignmentId = null;
 			assignmentInfo = null;
 		}
@@ -1523,7 +1540,7 @@
 		void studentAssignments;
 		void assignmentId;
 		if (initialized) {
-			updateMatchingAssignment();
+			checkAssignmentMatchToast();
 		}
 	});
 
@@ -2487,7 +2504,7 @@
 			trackSessionStats(result);
 			recordSessionActivity(false);
 			recordAssignmentProgress(false);
-			recordAutoDetectedAssignmentProgress(false);
+			checkAssignmentMatchToast();
 			streak = 0;
 			if (question.wordCategory === 'pronoun' && question.pronoun) {
 				paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
@@ -2548,7 +2565,7 @@
 		scheduleSyncToSupabase();
 		trackSessionStats(result);
 		recordSessionActivity(result.correct);
-		if (!result.correct && (assignmentId || matchingAssignmentId)) {
+		if (!result.correct && assignmentId) {
 			const lemma =
 				result.question.wordCategory === 'pronoun' && result.question.pronoun
 					? result.question.pronoun.lemma
@@ -2562,7 +2579,7 @@
 			);
 		}
 		recordAssignmentProgress(result.correct);
-		recordAutoDetectedAssignmentProgress(result.correct);
+		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: result.correct,
 			drillType: result.question.drillType,
@@ -2644,7 +2661,7 @@
 
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
 		recordSessionActivity(allCorrect);
-		if (!allCorrect && (assignmentId || matchingAssignmentId)) {
+		if (!allCorrect && assignmentId) {
 			collectAssignmentMistake(
 				result.question.word.lemma,
 				result.question.correctForm,
@@ -2654,7 +2671,7 @@
 			);
 		}
 		recordAssignmentProgress(allCorrect);
-		recordAutoDetectedAssignmentProgress(allCorrect);
+		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: allCorrect,
 			drillType: 'multi_step',
@@ -2884,30 +2901,118 @@
 
 		<!-- Student assignments panel -->
 		{#if showAssignmentsPanel}
-			<div class="mb-4 rounded-2xl border border-card-stroke bg-card-bg">
-				<button
-					type="button"
-					onclick={() => (assignmentsPanelExpanded = !assignmentsPanelExpanded)}
-					class="flex w-full items-center justify-between px-4 py-3"
-				>
-					<div class="flex items-center gap-2">
-						<ListChecks class="size-4 text-emphasis" aria-hidden="true" />
-						<span class="text-sm font-semibold text-text-default">Your Assignments</span>
-						{#if pendingAssignments.length > 0}
-							<span
-								class="rounded-full bg-emphasis px-1.5 py-0.5 text-xs font-bold leading-none text-text-inverted"
-							>
-								{pendingAssignments.length}
-							</span>
-						{/if}
+			<div
+				class="mb-4 rounded-2xl border bg-card-bg {assignmentInfo
+					? 'border-emphasis/40 ring-1 ring-emphasis/20'
+					: 'border-card-stroke'}"
+			>
+				{#if assignmentInfo}
+					{@const pct = Math.min(
+						100,
+						Math.round(
+							(assignmentInfo.attempted / Math.max(1, assignmentInfo.targetQuestions)) * 100
+						)
+					)}
+					{@const activeStudentAssignment = studentAssignments.find((a) => a.id === assignmentId)}
+					{@const activeDueUrgency = activeStudentAssignment
+						? getDueDateUrgency(activeStudentAssignment.dueDate, assignmentInfo.completedAt)
+						: null}
+					<div class="flex items-center gap-3 px-4 py-3">
+						<button
+							type="button"
+							onclick={() => (assignmentsPanelExpanded = !assignmentsPanelExpanded)}
+							class="flex min-w-0 flex-1 items-center gap-3"
+							aria-expanded={assignmentsPanelExpanded}
+						>
+							<ListChecks class="size-4 shrink-0 text-emphasis" aria-hidden="true" />
+							<div class="min-w-0 flex-1 text-left">
+								<div class="flex flex-wrap items-center gap-2">
+									<span class="truncate text-sm font-semibold text-text-default">
+										{assignmentInfo.title}
+									</span>
+									{#if assignmentInfo.completedAt}
+										<span
+											class="shrink-0 rounded-full bg-positive-background px-1.5 py-0.5 text-[10px] font-medium text-positive-stroke"
+										>
+											Completed
+										</span>
+									{:else}
+										<span
+											class="shrink-0 rounded-full bg-emphasis/10 px-1.5 py-0.5 text-[10px] font-medium text-emphasis"
+										>
+											In progress
+										</span>
+									{/if}
+									{#if activeDueUrgency && activeDueUrgency.label !== 'Done'}
+										<span
+											class="shrink-0 text-[10px] font-semibold"
+											style="color: {activeDueUrgency.color}"
+										>
+											{activeDueUrgency.label}
+										</span>
+									{/if}
+								</div>
+								<div class="mt-1 flex items-center gap-2">
+									<div class="h-1.5 flex-1 overflow-hidden rounded-full bg-shaded-background">
+										<div
+											class="h-full rounded-full {assignmentInfo.completedAt
+												? 'bg-positive-stroke'
+												: 'bg-emphasis'} transition-all"
+											style="width: {pct}%"
+										></div>
+									</div>
+									<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
+										{Math.min(
+											assignmentInfo.attempted,
+											assignmentInfo.targetQuestions
+										)}/{assignmentInfo.targetQuestions}
+									</span>
+								</div>
+								<p class="mt-0.5 text-[10px] text-text-subtitle">
+									Cases, drill types & settings are set by this assignment.
+								</p>
+							</div>
+							<ChevronDown
+								class="size-4 shrink-0 text-text-subtitle transition-transform duration-200 {assignmentsPanelExpanded
+									? 'rotate-180'
+									: ''}"
+								aria-hidden="true"
+							/>
+						</button>
+						<button
+							type="button"
+							onclick={() => exitAssignmentMode()}
+							class="shrink-0 rounded-lg border border-card-stroke px-2.5 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+						>
+							Exit
+						</button>
 					</div>
-					<ChevronDown
-						class="size-4 text-text-subtitle transition-transform duration-200 {assignmentsPanelExpanded
-							? 'rotate-180'
-							: ''}"
-						aria-hidden="true"
-					/>
-				</button>
+				{:else}
+					<button
+						type="button"
+						onclick={() => (assignmentsPanelExpanded = !assignmentsPanelExpanded)}
+						class="flex w-full items-center justify-between gap-3 px-4 py-3"
+						aria-expanded={assignmentsPanelExpanded}
+					>
+						<div class="flex items-center gap-2">
+							<ListChecks class="size-4 text-emphasis" aria-hidden="true" />
+							<span class="text-sm font-semibold text-text-default">Your Assignments</span>
+							{#if pendingAssignments.length > 0}
+								<span
+									class="flex size-[18px] items-center justify-center rounded-full bg-orange-500 text-[11px] font-bold leading-none text-white"
+								>
+									{pendingAssignments.length > 9 ? '9+' : pendingAssignments.length}
+								</span>
+							{/if}
+						</div>
+						<ChevronDown
+							class="size-4 shrink-0 text-text-subtitle transition-transform duration-200 {assignmentsPanelExpanded
+								? 'rotate-180'
+								: ''}"
+							aria-hidden="true"
+						/>
+					</button>
+				{/if}
 				{#if assignmentsPanelExpanded}
 					<div transition:slide={{ duration: 200 }} class="flex flex-col gap-2 px-4 pb-3">
 						{#each studentAssignments as assignment (assignment.id)}
@@ -2920,10 +3025,10 @@
 										)
 									: 0}
 							{@const isCompleted = assignment.completedAt !== null}
-							{@const isMatching = matchingAssignmentId === assignment.id}
+							{@const isActive = assignmentId === assignment.id}
 							<div
-								class="rounded-xl border px-3 py-2.5 transition-colors {isMatching
-									? 'border-emphasis/40 bg-emphasis/5'
+								class="rounded-xl border px-3 py-2.5 transition-colors {isActive
+									? 'border-emphasis bg-emphasis/5 ring-1 ring-emphasis/20'
 									: 'border-card-stroke bg-shaded-background/50'}"
 							>
 								<div class="flex items-start justify-between gap-2">
@@ -2938,17 +3043,25 @@
 											<span style="color: {urgency.color}" class="shrink-0 font-medium">
 												{urgency.label}
 											</span>
-											{#if isMatching}
+											{#if isActive}
 												<span
-													class="shrink-0 rounded-full bg-emphasis/10 px-1.5 py-0.5 text-xs font-medium text-emphasis"
+													class="shrink-0 rounded-full bg-emphasis px-1.5 py-0.5 text-xs font-medium text-text-inverted"
 												>
-													Counts toward this!
+													Practicing
 												</span>
 											{/if}
 										</div>
 									</div>
 									<div class="shrink-0">
-										{#if isCompleted}
+										{#if isActive}
+											<button
+												type="button"
+												onclick={() => exitAssignmentMode()}
+												class="rounded-lg border border-card-stroke px-2.5 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+											>
+												Exit
+											</button>
+										{:else if isCompleted}
 											<span
 												class="inline-flex items-center gap-1 rounded-lg bg-positive-background px-2.5 py-1.5 text-xs font-medium text-positive-stroke"
 											>
@@ -2993,6 +3106,12 @@
 						{/each}
 					</div>
 				{/if}
+			</div>
+		{/if}
+
+		{#if assignmentLoading}
+			<div class="mb-4 rounded-2xl border border-card-stroke bg-card-bg p-4 text-center">
+				<span class="text-sm text-text-subtitle">Loading assignment...</span>
 			</div>
 		{/if}
 
@@ -3347,63 +3466,6 @@
 			</div>
 		{/if}
 
-		<!-- Assignment progress banner -->
-		{#if assignmentLoading}
-			<div
-				class="mx-auto mb-4 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg p-4 text-center"
-			>
-				<span class="text-sm text-text-subtitle">Loading assignment...</span>
-			</div>
-		{:else if assignmentInfo}
-			<div
-				class="mx-auto mb-4 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg p-4"
-			>
-				<div class="mb-2 flex items-center justify-between">
-					<span class="text-sm font-semibold text-emphasis">{assignmentInfo.title}</span>
-					<a
-						href={resolve(`/classes/${assignmentInfo.classId}/assignments/${assignmentId}`)}
-						class="text-xs text-text-subtitle hover:text-text-default"
-					>
-						Back to Assignment
-					</a>
-				</div>
-				{#if assignmentInfo.selectedCases.length > 0}
-					<div class="mb-2 flex flex-wrap gap-1">
-						{#each assignmentInfo.selectedCases as c (c)}
-							{#if isCase(c)}
-								<span
-									class="rounded-full px-2 py-0.5 text-[10px] font-medium {CASE_COLORS[c]
-										.bg}/20 {CASE_COLORS[c].text}"
-								>
-									{CASE_SHORT_LABELS[c]}
-								</span>
-							{/if}
-						{/each}
-					</div>
-				{/if}
-				<div class="flex items-center gap-3">
-					<div class="h-2 flex-1 overflow-hidden rounded-full bg-shaded-background">
-						<div
-							class="h-full rounded-full bg-positive-stroke transition-all"
-							style="width: {Math.min(
-								100,
-								(assignmentInfo.attempted / assignmentInfo.targetQuestions) * 100
-							)}%"
-						></div>
-					</div>
-					<span class="text-xs font-medium text-text-subtitle">
-						{Math.min(
-							assignmentInfo.attempted,
-							assignmentInfo.targetQuestions
-						)}/{assignmentInfo.targetQuestions}
-					</span>
-				</div>
-				{#if assignmentInfo.completedAt}
-					<p class="mt-2 text-xs font-medium text-positive-stroke">Assignment completed!</p>
-				{/if}
-			</div>
-		{/if}
-
 		<!-- Drill area -->
 		<div class="mx-auto mt-6 max-w-[867px]">
 			{#if multiStepQuestion}
@@ -3495,6 +3557,57 @@
 
 {#if showOnboarding}
 	<GuidedTour steps={practiceOnboardingSteps} onComplete={dismissOnboarding} />
+{/if}
+
+<!-- Assignment applied confirmation toast -->
+{#if appliedToastName}
+	<div
+		class="fixed left-0 right-0 top-28 z-40 flex items-center justify-center px-3 sm:top-32"
+		role="status"
+		in:fly={{ y: -20, duration: 250 }}
+		out:fade={{ duration: 200 }}
+	>
+		<div class="rounded-xl bg-emphasis px-5 py-2.5 shadow-lg">
+			<p class="text-sm font-medium text-text-inverted">
+				Now practicing <span class="font-semibold">{appliedToastName}</span>
+			</p>
+		</div>
+	</div>
+{/if}
+
+<!-- Assignment match suggestion toast -->
+{#if assignmentToastMatch && !appliedToastName}
+	<div
+		class="fixed left-0 right-0 top-28 z-50 flex items-center justify-center px-3 sm:top-32"
+		role="alert"
+		in:fly={{ y: -20, duration: 300 }}
+		out:fly={{ y: -20, duration: 200 }}
+	>
+		<div
+			class="w-full max-w-sm rounded-xl border-2 border-orange-400 bg-card-bg p-4 shadow-xl dark:border-orange-500"
+		>
+			<p class="text-sm font-medium text-text-default">You have an assignment that matches!</p>
+			<p class="mt-1 text-sm text-text-default">
+				Switch to <span class="font-semibold">{assignmentToastMatch.title}</span> to track your progress?
+			</p>
+			<div class="mt-3 flex items-center gap-2">
+				<button
+					type="button"
+					onclick={applyAssignmentFromToast}
+					class="rounded-lg bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+				>
+					Yes, switch
+				</button>
+				<button
+					type="button"
+					onclick={dismissAssignmentToast}
+					class="rounded-lg border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+				>
+					No thanks
+				</button>
+			</div>
+		</div>
+	</div>
 {/if}
 
 <AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />

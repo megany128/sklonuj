@@ -2,8 +2,13 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import X from '@lucide/svelte/icons/x';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
-	import { CASE_LABELS, DRILL_TYPE_LABELS } from '$lib/types';
+	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
@@ -142,6 +147,7 @@
 	}
 
 	let confirmingDelete = $state(false);
+	let confirmingDuplicate = $state(false);
 	let duplicating = $state(false);
 	let retrying = $state(false);
 	let showMistakes = $state(false);
@@ -176,6 +182,110 @@
 	function findCaseScore(scores: CaseAccuracy[], caseKey: string): CaseAccuracy | undefined {
 		return scores.find((s) => s.case === caseKey);
 	}
+
+	// Derive whether any students have started this assignment
+	let hasProgress = $derived.by(() => {
+		return studentProgress.some((sp) => sp.questionsAttempted > 0);
+	});
+
+	// ---------- Edit Assignment Modal ----------
+	let showEditModal = $state(false);
+	let editSubmitting = $state(false);
+	let editError = $state<string | null>(null);
+	let editModalEl = $state<HTMLDivElement | null>(null);
+	let editOpenerEl: HTMLElement | null = null;
+
+	function formatDateForInput(isoDate: string): string {
+		const d = new Date(isoDate);
+		const pad = (n: number) => String(n).padStart(2, '0');
+		return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+	}
+
+	function toggleAllCheckboxes(e: MouseEvent, name: string): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const form = target.closest('form');
+		if (!form) return;
+		const boxes = form.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`);
+		const allChecked = Array.from(boxes).every((b) => b.checked);
+		boxes.forEach((b) => (b.checked = !allChecked));
+	}
+
+	function allCasesSelected(): boolean {
+		if (!assignment) return false;
+		return ALL_CASES.every((c) => assignment.selectedCases.includes(c));
+	}
+
+	function allDrillTypesSelected(): boolean {
+		if (!assignment) return false;
+		return ALL_DRILL_TYPES.every((dt) => assignment.selectedDrillTypes.includes(dt));
+	}
+
+	function getFocusableElements(container: HTMLElement): HTMLElement[] {
+		const selectors =
+			'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+		return Array.from(container.querySelectorAll<HTMLElement>(selectors)).filter(
+			(el) => !el.hasAttribute('disabled') && el.tabIndex !== -1
+		);
+	}
+
+	function openEditModal(e?: MouseEvent): void {
+		editError = null;
+		editSubmitting = false;
+		const target = e?.currentTarget;
+		editOpenerEl = target instanceof HTMLElement ? target : null;
+		showEditModal = true;
+	}
+
+	function closeEditModal(): void {
+		showEditModal = false;
+		if (editOpenerEl) {
+			editOpenerEl.focus();
+			editOpenerEl = null;
+		}
+	}
+
+	function editModalKeydown(e: KeyboardEvent): void {
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			closeEditModal();
+			return;
+		}
+		if (e.key !== 'Tab') return;
+		const el = editModalEl;
+		if (!el) return;
+		const focusables = getFocusableElements(el);
+		if (focusables.length === 0) {
+			e.preventDefault();
+			return;
+		}
+		const first = focusables[0];
+		const last = focusables[focusables.length - 1];
+		const active = document.activeElement;
+		if (e.shiftKey) {
+			if (active === first || !el.contains(active)) {
+				e.preventDefault();
+				last.focus();
+			}
+		} else {
+			if (active === last) {
+				e.preventDefault();
+				first.focus();
+			}
+		}
+	}
+
+	$effect(() => {
+		if (!showEditModal) return;
+		const el = editModalEl;
+		if (!el) return;
+		const focusables = getFocusableElements(el);
+		if (focusables.length > 0) {
+			focusables[0].focus();
+		} else {
+			el.focus();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -195,119 +305,173 @@
 
 		<!-- Assignment info -->
 		<div class="mb-6 rounded-2xl border border-card-stroke bg-card-bg p-6">
-			<h1 class="text-xl font-semibold text-text-default">{assignment.title}</h1>
-			{#if assignment.description}
-				<p class="mt-1 text-sm text-text-subtitle">{assignment.description}</p>
-			{/if}
-
-			<div class="mt-4 flex flex-wrap gap-4 text-sm text-text-subtitle">
-				<div>
-					<span class="font-medium text-text-default">Target:</span>
-					{assignment.targetQuestions} questions
+			<div class="flex items-start justify-between gap-3">
+				<div class="min-w-0 flex-1">
+					<h1 class="text-xl font-semibold text-text-default">{assignment.title}</h1>
+					{#if assignment.description}
+						<p class="mt-1 text-sm text-text-subtitle">{assignment.description}</p>
+					{/if}
 				</div>
-				{#if assignment.minAccuracy !== null}
-					<div>
-						<span class="font-medium text-text-default">Min Accuracy:</span>
-						{assignment.minAccuracy}%
+
+				{#if role === 'teacher'}
+					<!-- Teacher quick actions (icon buttons) -->
+					<div class="flex shrink-0 items-center gap-1">
+						<button
+							type="button"
+							title="Edit assignment"
+							aria-label="Edit assignment"
+							onclick={openEditModal}
+							class="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-card-stroke p-2 text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+						>
+							<Pencil class="size-4" aria-hidden="true" />
+						</button>
+						<div class="relative">
+							{#if confirmingDuplicate}
+								<div
+									class="absolute right-0 top-full z-10 mt-1 w-48 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
+								>
+									<p class="mb-2 text-xs text-text-subtitle">Duplicate this assignment?</p>
+									<div class="flex items-center gap-2">
+										<form
+											method="POST"
+											action="?/duplicate"
+											use:enhance={() => {
+												duplicating = true;
+												return async ({ update }) => {
+													duplicating = false;
+													confirmingDuplicate = false;
+													await update();
+												};
+											}}
+										>
+											<button
+												type="submit"
+												disabled={duplicating}
+												class="cursor-pointer rounded-lg border border-emphasis bg-emphasis px-2.5 py-1 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+											>
+												{duplicating ? 'Duplicating...' : 'Yes, duplicate'}
+											</button>
+										</form>
+										<button
+											type="button"
+											onclick={() => (confirmingDuplicate = false)}
+											class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							{/if}
+							<button
+								type="button"
+								title="Duplicate assignment"
+								aria-label="Duplicate assignment"
+								onclick={() => {
+									confirmingDelete = false;
+									confirmingDuplicate = !confirmingDuplicate;
+								}}
+								class="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-card-stroke p-2 text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+							>
+								<Copy class="size-4" aria-hidden="true" />
+							</button>
+						</div>
+						<div class="relative">
+							{#if confirmingDelete}
+								<div
+									class="absolute right-0 top-full z-10 mt-1 w-52 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
+								>
+									<p class="mb-2 text-xs text-text-subtitle">
+										Delete this assignment? This cannot be undone.
+									</p>
+									<div class="flex items-center gap-2">
+										<form method="POST" action="?/delete" use:enhance>
+											<button
+												type="submit"
+												class="cursor-pointer rounded-lg border border-negative-stroke px-2.5 py-1 text-xs font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+											>
+												Yes, delete
+											</button>
+										</form>
+										<button
+											type="button"
+											onclick={() => (confirmingDelete = false)}
+											class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							{/if}
+							<button
+								type="button"
+								title="Delete assignment"
+								aria-label="Delete assignment"
+								onclick={() => {
+									confirmingDuplicate = false;
+									confirmingDelete = !confirmingDelete;
+								}}
+								class="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-card-stroke p-2 text-text-subtitle transition-colors hover:border-negative-stroke hover:text-negative-stroke"
+							>
+								<Trash2 class="size-4" aria-hidden="true" />
+							</button>
+						</div>
 					</div>
 				{/if}
-				<div>
-					<span class="font-medium text-text-default">Number:</span>
-					{numberModeLabel(assignment.numberMode)}
-				</div>
-				<div>
-					<span class="font-medium text-text-default">Content:</span>
-					{contentModeLabel(assignment.contentMode)}
-				</div>
+			</div>
+
+			<dl class="mt-4 grid grid-cols-[max-content_1fr] items-start gap-x-4 gap-y-2 text-sm">
+				<dt class="pt-0.5 text-text-subtitle">Cases</dt>
+				<dd class="flex flex-wrap gap-1">
+					{#each assignment.selectedCases as c (c)}
+						{#if isCaseKey(c)}
+							<span
+								class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
+							>
+								{CASE_LABELS[c]}
+							</span>
+						{/if}
+					{/each}
+				</dd>
+				<dt class="pt-0.5 text-text-subtitle">Drill types</dt>
+				<dd class="flex flex-wrap gap-1">
+					{#each assignment.selectedDrillTypes as dt (dt)}
+						{#if isDrillTypeKey(dt)}
+							<span
+								class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
+							>
+								{DRILL_TYPE_LABELS[dt]}
+							</span>
+						{/if}
+					{/each}
+				</dd>
+				<dt class="text-text-subtitle">Number</dt>
+				<dd class="text-text-default">{numberModeLabel(assignment.numberMode)}</dd>
+				<dt class="text-text-subtitle">Content</dt>
+				<dd class="text-text-default">{contentModeLabel(assignment.contentMode)}</dd>
+				<dt class="text-text-subtitle">Target</dt>
+				<dd class="text-text-default">{assignment.targetQuestions} questions</dd>
+				{#if assignment.minAccuracy !== null}
+					<dt class="text-text-subtitle">Min accuracy</dt>
+					<dd class="text-text-default">{assignment.minAccuracy}%</dd>
+				{/if}
 				{#if assignment.dueDate}
-					<div>
-						<span class="font-medium text-text-default">Due:</span>
-						{new Date(assignment.dueDate).toLocaleDateString('en-US', {
+					{@const dueDate = new Date(assignment.dueDate)}
+					{@const hasTime = dueDate.getUTCHours() !== 0 || dueDate.getUTCMinutes() !== 0}
+					<dt class="text-text-subtitle">Due</dt>
+					<dd class="text-text-default">
+						{dueDate.toLocaleDateString('en-US', {
 							timeZone: 'UTC',
 							month: 'short',
 							day: 'numeric',
 							year: 'numeric',
-							hour: '2-digit',
-							minute: '2-digit'
-						})} UTC
-					</div>
+							...(hasTime ? { hour: 'numeric', minute: '2-digit' } : {})
+						})}
+					</dd>
 				{/if}
-			</div>
-
-			<div class="mt-3 flex flex-wrap gap-1">
-				{#each assignment.selectedCases as c (c)}
-					{#if isCaseKey(c)}
-						<span class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle">
-							{CASE_LABELS[c]}
-						</span>
-					{/if}
-				{/each}
-				{#each assignment.selectedDrillTypes as dt (dt)}
-					{#if isDrillTypeKey(dt)}
-						<span class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle">
-							{DRILL_TYPE_LABELS[dt]}
-						</span>
-					{/if}
-				{/each}
-			</div>
+			</dl>
 		</div>
 
 		{#if role === 'teacher'}
-			<!-- Teacher actions -->
-			<div class="mb-6 flex flex-wrap items-center gap-2">
-				<a
-					href={resolve(`/classes/${classData.id}/assignments/${assignment.id}/edit`)}
-					class="rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
-				>
-					Edit Assignment
-				</a>
-				<form
-					method="POST"
-					action="?/duplicate"
-					use:enhance={() => {
-						duplicating = true;
-						return async ({ update }) => {
-							duplicating = false;
-							await update();
-						};
-					}}
-				>
-					<button
-						type="submit"
-						disabled={duplicating}
-						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default disabled:opacity-50"
-					>
-						{duplicating ? 'Duplicating...' : 'Duplicate'}
-					</button>
-				</form>
-				{#if confirmingDelete}
-					<span class="text-sm text-text-subtitle">Are you sure?</span>
-					<form method="POST" action="?/delete" use:enhance>
-						<button
-							type="submit"
-							class="cursor-pointer rounded-xl border border-negative-stroke px-4 py-2 text-sm font-medium text-negative-stroke transition-colors hover:bg-negative-background"
-						>
-							Yes, Delete
-						</button>
-					</form>
-					<button
-						type="button"
-						onclick={() => (confirmingDelete = false)}
-						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
-					>
-						Cancel
-					</button>
-				{:else}
-					<button
-						type="button"
-						onclick={() => (confirmingDelete = true)}
-						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-negative-stroke transition-colors hover:border-negative-stroke hover:bg-negative-background"
-					>
-						Delete Assignment
-					</button>
-				{/if}
-			</div>
-
 			<!-- Teacher: student progress table with per-case breakdown -->
 			<div>
 				<h2 class="mb-3 text-lg font-semibold text-text-default">
@@ -528,6 +692,316 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Edit Assignment Modal -->
+	{#if showEditModal && role === 'teacher'}
+		<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<div class="absolute inset-0 bg-black/50" onclick={closeEditModal} role="presentation"></div>
+			<div
+				bind:this={editModalEl}
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="edit-assignment-modal-heading"
+				tabindex={-1}
+				onkeydown={editModalKeydown}
+				class="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+			>
+				<button
+					type="button"
+					aria-label="Close"
+					onclick={closeEditModal}
+					class="absolute right-4 top-4 cursor-pointer text-text-subtitle transition-colors hover:text-text-default"
+				>
+					<X class="h-5 w-5" aria-hidden="true" />
+				</button>
+
+				<h2 id="edit-assignment-modal-heading" class="mb-4 text-xl font-semibold text-text-default">
+					Edit Assignment
+				</h2>
+
+				{#if hasProgress}
+					<div
+						class="mb-4 rounded-xl border border-warning-text/30 bg-warning-background px-4 py-3 text-sm text-warning-text"
+					>
+						Students have already started this assignment. Changes may affect their progress.
+					</div>
+				{/if}
+
+				{#if editError}
+					<div
+						class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+					>
+						{editError}
+					</div>
+				{/if}
+
+				<form
+					method="POST"
+					action={resolve(`/classes/${classData.id}/assignments/${assignment.id}/edit`)}
+					onsubmit={(e: SubmitEvent) => {
+						if (hasProgress) {
+							if (
+								!confirm(
+									'Students have already started this assignment. Are you sure you want to save changes?'
+								)
+							) {
+								e.preventDefault();
+								return;
+							}
+						}
+					}}
+					use:enhance={() => {
+						editSubmitting = true;
+						editError = null;
+						return async ({ result, update }) => {
+							editSubmitting = false;
+							if (result.type === 'redirect') {
+								showEditModal = false;
+								editOpenerEl = null;
+								await invalidateAll();
+							} else if (result.type === 'success') {
+								showEditModal = false;
+								editOpenerEl = null;
+								await update();
+							} else if (result.type === 'failure') {
+								const data: unknown = result.data;
+								if (isRecord(data) && typeof data.message === 'string') {
+									editError = data.message;
+								} else {
+									editError = 'Failed to update assignment.';
+								}
+							}
+						};
+					}}
+				>
+					<!-- Title -->
+					<div class="mb-4">
+						<label for="edit-title" class="mb-1 block text-sm font-medium text-text-default">
+							Title
+						</label>
+						<input
+							type="text"
+							id="edit-title"
+							name="title"
+							required
+							maxlength={200}
+							value={assignment.title}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						/>
+					</div>
+
+					<!-- Description -->
+					<div class="mb-4">
+						<label for="edit-description" class="mb-1 block text-sm font-medium text-text-default">
+							Description <span class="text-text-subtitle">(optional)</span>
+						</label>
+						<textarea
+							id="edit-description"
+							name="description"
+							maxlength={1000}
+							rows={3}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+							>{assignment.description ?? ''}</textarea
+						>
+					</div>
+
+					<!-- Cases -->
+					<div class="mb-4">
+						<div class="mb-2 flex items-center justify-between">
+							<p class="text-sm font-medium text-text-default">Cases</p>
+							<button
+								type="button"
+								onclick={(e: MouseEvent) => toggleAllCheckboxes(e, 'selected_cases')}
+								class="text-xs font-medium text-emphasis hover:underline"
+							>
+								{#if allCasesSelected()}
+									Deselect All
+								{:else}
+									Select All
+								{/if}
+							</button>
+						</div>
+						<div class="flex flex-wrap gap-2">
+							{#each ALL_CASES as c (c)}
+								<label
+									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+								>
+									<input
+										type="checkbox"
+										name="selected_cases"
+										value={c}
+										checked={assignment.selectedCases.includes(c)}
+										class="sr-only"
+									/>
+									{CASE_LABELS[c]}
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Drill Types -->
+					<div class="mb-4">
+						<div class="mb-2 flex items-center justify-between">
+							<p class="text-sm font-medium text-text-default">Drill Types</p>
+							<button
+								type="button"
+								onclick={(e: MouseEvent) => toggleAllCheckboxes(e, 'selected_drill_types')}
+								class="text-xs font-medium text-emphasis hover:underline"
+							>
+								{#if allDrillTypesSelected()}
+									Deselect All
+								{:else}
+									Select All
+								{/if}
+							</button>
+						</div>
+						<div class="flex flex-wrap gap-2">
+							{#each ALL_DRILL_TYPES as dt (dt)}
+								<label
+									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+								>
+									<input
+										type="checkbox"
+										name="selected_drill_types"
+										value={dt}
+										checked={assignment.selectedDrillTypes.includes(dt)}
+										class="sr-only"
+									/>
+									{DRILL_TYPE_LABELS[dt]}
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Number Mode -->
+					<div class="mb-4">
+						<p class="mb-2 text-sm font-medium text-text-default">Number</p>
+						<div class="flex gap-2">
+							{#each [['both', 'Both'], ['sg', 'Singular Only'], ['pl', 'Plural Only']] as [value, label] (value)}
+								<label
+									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+								>
+									<input
+										type="radio"
+										name="number_mode"
+										{value}
+										checked={assignment.numberMode === value}
+										class="sr-only"
+									/>
+									{label}
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Content Mode -->
+					<div class="mb-4">
+						<p class="mb-2 text-sm font-medium text-text-default">Content</p>
+						<div class="flex gap-2">
+							{#each [['both', 'Both'], ['nouns', 'Nouns Only'], ['pronouns', 'Pronouns Only']] as [value, label] (value)}
+								<label
+									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+								>
+									<input
+										type="radio"
+										name="content_mode"
+										{value}
+										checked={assignment.contentMode === value}
+										class="sr-only"
+									/>
+									{label}
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Target Questions -->
+					<div class="mb-4">
+						<label
+							for="edit-target_questions"
+							class="mb-1 block text-sm font-medium text-text-default"
+						>
+							Target Questions
+						</label>
+						<input
+							type="number"
+							id="edit-target_questions"
+							name="target_questions"
+							value={assignment.targetQuestions}
+							min={1}
+							max={200}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+						/>
+					</div>
+
+					<!-- Minimum Accuracy -->
+					<div class="mb-4">
+						<label for="edit-min_accuracy" class="mb-1 block text-sm font-medium text-text-default">
+							Minimum Accuracy to Complete (%)
+							<span class="text-text-subtitle">(optional)</span>
+						</label>
+						<input
+							type="number"
+							id="edit-min_accuracy"
+							name="min_accuracy"
+							min={0}
+							max={100}
+							value={assignment.minAccuracy ?? ''}
+							placeholder="e.g. 70"
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						/>
+						<p class="mt-1 text-xs text-text-subtitle">
+							If set, students must also reach this accuracy to complete the assignment.
+						</p>
+					</div>
+
+					<!-- Due Date -->
+					<div class="mb-6">
+						<label for="edit-due_date" class="mb-1 block text-sm font-medium text-text-default">
+							Due Date <span class="text-text-subtitle">(optional)</span>
+						</label>
+						<input
+							type="datetime-local"
+							id="edit-due_date"
+							name="due_date"
+							value={assignment.dueDate ? formatDateForInput(assignment.dueDate) : ''}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+						/>
+					</div>
+
+					<!-- Notify Students -->
+					<div class="mb-6">
+						<label class="flex cursor-pointer items-center gap-2 text-sm text-text-default">
+							<input
+								type="checkbox"
+								name="notify_students"
+								checked
+								class="h-4 w-4 rounded border-card-stroke accent-emphasis"
+							/>
+							Notify students of this change
+						</label>
+					</div>
+
+					<div class="flex gap-3">
+						<button
+							type="submit"
+							disabled={editSubmitting}
+							class="flex-1 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+						>
+							{editSubmitting ? 'Saving...' : 'Save Changes'}
+						</button>
+						<button
+							type="button"
+							onclick={closeEditModal}
+							class="rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+						>
+							Cancel
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
 {:else if classData}
 	<div class="mx-auto max-w-4xl px-4 py-8">
 		<a

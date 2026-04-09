@@ -23,6 +23,41 @@ function isScoreEntry(v: unknown): v is ScoreEntry {
 	return isRecord(v) && typeof v.attempts === 'number' && typeof v.correct === 'number';
 }
 
+/**
+ * Aggregate raw case_scores entries (keyed like "gen_sg", "gen_pl") into per-base-case totals
+ * (keyed "gen", "dat", etc.). Also returns the overall attempts/correct totals.
+ */
+function aggregateCaseScores(raw: Record<string, unknown>): {
+	perCase: CaseAccuracy[];
+	totalAttempts: number;
+	totalCorrect: number;
+} {
+	const byBase = new Map<string, { attempts: number; correct: number }>();
+	let totalAttempts = 0;
+	let totalCorrect = 0;
+	for (const key of Object.keys(raw)) {
+		const entry = raw[key];
+		if (!isScoreEntry(entry)) continue;
+		totalAttempts += entry.attempts;
+		totalCorrect += entry.correct;
+		const baseCase = key.split('_')[0] ?? key;
+		const existing = byBase.get(baseCase) ?? { attempts: 0, correct: 0 };
+		existing.attempts += entry.attempts;
+		existing.correct += entry.correct;
+		byBase.set(baseCase, existing);
+	}
+	const perCase: CaseAccuracy[] = [];
+	for (const [baseCase, data] of byBase) {
+		perCase.push({
+			case: baseCase,
+			attempts: data.attempts,
+			correct: data.correct,
+			accuracy: data.attempts > 0 ? (data.correct / data.attempts) * 100 : 0
+		});
+	}
+	return { perCase, totalAttempts, totalCorrect };
+}
+
 interface AssignmentStatus {
 	assignmentId: string;
 	assignmentTitle: string;
@@ -48,6 +83,7 @@ interface StudentRow {
 	totalAttempts: number;
 	assignmentStatuses: AssignmentStatus[];
 	caseScores: CaseAccuracy[];
+	recentMistakes: MistakeEntry[];
 }
 
 interface AssignmentRow {
@@ -63,6 +99,46 @@ interface AssignmentRow {
 	createdAt: string;
 	completedCount: number;
 	totalStudents: number;
+}
+
+interface MistakeEntry {
+	word: string;
+	expectedForm: string;
+	givenAnswer: string;
+	case: string;
+	number: string;
+}
+
+interface AggregatedMistake {
+	word: string;
+	expectedForm: string;
+	givenAnswer: string;
+	case: string;
+	count: number;
+}
+
+function parseMistakes(raw: unknown): MistakeEntry[] {
+	if (!Array.isArray(raw)) return [];
+	const result: MistakeEntry[] = [];
+	for (const m of raw) {
+		if (
+			isRecord(m) &&
+			typeof m.word === 'string' &&
+			typeof m.expectedForm === 'string' &&
+			typeof m.givenAnswer === 'string' &&
+			typeof m.case === 'string' &&
+			typeof m.number === 'string'
+		) {
+			result.push({
+				word: m.word,
+				expectedForm: m.expectedForm,
+				givenAnswer: m.givenAnswer,
+				case: m.case,
+				number: m.number
+			});
+		}
+	}
+	return result;
 }
 
 export const load: PageServerLoad = async ({ locals, parent }) => {
@@ -153,12 +229,15 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Fetch assignment progress for all students in this class
+	// Fetch assignment progress (including mistakes) for all students in this class
 	const progressByStudentAssignment = new Map<string, Map<string, AssignmentStatus>>();
+	const mistakesByStudent = new Map<string, MistakeEntry[]>();
 	if (assignmentIds.length > 0) {
 		const { data: progressData } = await supabase
 			.from('assignment_progress')
-			.select('assignment_id, student_id, questions_attempted, questions_correct, completed_at')
+			.select(
+				'assignment_id, student_id, questions_attempted, questions_correct, completed_at, mistakes'
+			)
 			.in('assignment_id', assignmentIds);
 
 		if (Array.isArray(progressData)) {
@@ -181,50 +260,64 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 						correct: typeof p.questions_correct === 'number' ? p.questions_correct : 0,
 						completed: p.completed_at !== null && p.completed_at !== undefined
 					});
+
+					// Collect per-student mistakes for the expanded student panel
+					if (role === 'teacher') {
+						const studentMistakes = parseMistakes(p.mistakes);
+						if (studentMistakes.length > 0) {
+							const existing = mistakesByStudent.get(p.student_id) ?? [];
+							existing.push(...studentMistakes);
+							mistakesByStudent.set(p.student_id, existing);
+						}
+					}
 				}
 			}
 		}
 	}
 
-	// Fetch user_progress (case_scores) for each student using admin client
+	// Fetch user_progress (case_scores, paradigm_scores) for each student using admin client
 	// (RLS prevents teacher from reading other users' progress)
 	const userProgressMap = new Map<
 		string,
 		{ overallAccuracy: number | null; totalAttempts: number; caseScores: CaseAccuracy[] }
 	>();
+	const classParadigmScores: Record<string, { attempts: number; correct: number }> = {};
 	if (adminClient && studentIds.length > 0) {
 		const { data: userProgressData } = await adminClient
 			.from('user_progress')
-			.select('user_id, case_scores')
+			.select('user_id, case_scores, paradigm_scores')
 			.in('user_id', studentIds);
 
 		if (Array.isArray(userProgressData)) {
 			for (const up of userProgressData) {
 				if (isRecord(up) && typeof up.user_id === 'string') {
 					const caseScores = up.case_scores;
-					let totalAttempts = 0;
-					let totalCorrect = 0;
-					const perCaseScores: CaseAccuracy[] = [];
-					if (isRecord(caseScores)) {
-						for (const key of Object.keys(caseScores)) {
-							const entry = caseScores[key];
-							if (isScoreEntry(entry)) {
-								totalAttempts += entry.attempts;
-								totalCorrect += entry.correct;
-								perCaseScores.push({
-									case: key,
-									attempts: entry.attempts,
-									correct: entry.correct,
-									accuracy: entry.attempts > 0 ? (entry.correct / entry.attempts) * 100 : 0
-								});
-							}
-						}
-					}
+					const { perCase, totalAttempts, totalCorrect } = isRecord(caseScores)
+						? aggregateCaseScores(caseScores)
+						: { perCase: [], totalAttempts: 0, totalCorrect: 0 };
 					userProgressMap.set(up.user_id, {
 						overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null,
 						totalAttempts,
-						caseScores: perCaseScores
+						caseScores: perCase
 					});
+
+					// Aggregate paradigm_scores across all students
+					if (role === 'teacher' && isRecord(up.paradigm_scores)) {
+						for (const key of Object.keys(up.paradigm_scores)) {
+							const entry = up.paradigm_scores[key];
+							if (!isScoreEntry(entry)) continue;
+							const existing = classParadigmScores[key];
+							if (existing) {
+								existing.attempts += entry.attempts;
+								existing.correct += entry.correct;
+							} else {
+								classParadigmScores[key] = {
+									attempts: entry.attempts,
+									correct: entry.correct
+								};
+							}
+						}
+					}
 				}
 			}
 		}
@@ -257,6 +350,10 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					}
 				}
 
+				// Take up to 15 most recent mistakes for this student
+				const studentMistakes = mistakesByStudent.get(sid) ?? [];
+				const recentMistakes = studentMistakes.slice(-15).reverse();
+
 				students.push({
 					studentId: sid,
 					displayName: profileMap.get(sid) ?? null,
@@ -265,7 +362,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					overallAccuracy: progress?.overallAccuracy ?? null,
 					totalAttempts: progress?.totalAttempts ?? 0,
 					assignmentStatuses,
-					caseScores: progress?.caseScores ?? []
+					caseScores: progress?.caseScores ?? [],
+					recentMistakes
 				});
 			}
 		}
@@ -323,26 +421,13 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 			.eq('user_id', userId)
 			.maybeSingle();
 
-		let totalAttempts = 0;
-		let totalCorrect = 0;
-		const perCaseScores: CaseAccuracy[] = [];
-
-		if (isRecord(ownProgress) && isRecord(ownProgress.case_scores)) {
-			const caseScores = ownProgress.case_scores;
-			for (const key of Object.keys(caseScores)) {
-				const entry = caseScores[key];
-				if (isScoreEntry(entry)) {
-					totalAttempts += entry.attempts;
-					totalCorrect += entry.correct;
-					perCaseScores.push({
-						case: key,
-						attempts: entry.attempts,
-						correct: entry.correct,
-						accuracy: entry.attempts > 0 ? (entry.correct / entry.attempts) * 100 : 0
-					});
-				}
-			}
-		}
+		const {
+			perCase: perCaseScores,
+			totalAttempts,
+			totalCorrect
+		} = isRecord(ownProgress) && isRecord(ownProgress.case_scores)
+			? aggregateCaseScores(ownProgress.case_scores)
+			: { perCase: [], totalAttempts: 0, totalCorrect: 0 };
 
 		// Count completed assignments for this student
 		let assignmentsCompleted = 0;
@@ -487,7 +572,41 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 	const allSnapshots = [...historicalSnapshots, ...todaySnapshots];
 
-	return { students, assignments, role, studentStats, progressSnapshots: allSnapshots };
+	// Aggregate common mistakes from the already-fetched per-student mistakes (teacher only)
+	let commonMistakes: AggregatedMistake[] = [];
+	if (role === 'teacher') {
+		const freqMap = new Map<
+			string,
+			{ word: string; expectedForm: string; givenAnswer: string; case: string; count: number }
+		>();
+		for (const [, studentMistakes] of mistakesByStudent) {
+			for (const m of studentMistakes) {
+				const key = `${m.word}|${m.expectedForm}|${m.givenAnswer}|${m.case}`;
+				const existing = freqMap.get(key);
+				if (existing) {
+					existing.count += 1;
+				} else {
+					freqMap.set(key, {
+						word: m.word,
+						expectedForm: m.expectedForm,
+						givenAnswer: m.givenAnswer,
+						case: m.case,
+						count: 1
+					});
+				}
+			}
+		}
+		commonMistakes = [...freqMap.values()].sort((a, b) => b.count - a.count).slice(0, 20);
+	}
+
+	return {
+		students,
+		assignments,
+		role,
+		studentStats,
+		progressSnapshots: allSnapshots,
+		...(role === 'teacher' ? { classParadigmScores, commonMistakes } : {})
+	};
 };
 
 export const actions: Actions = {
@@ -636,13 +755,17 @@ export const actions: Actions = {
 		const supabase = locals.supabase;
 		const classId = params.id;
 
-		const { error } = await supabase
+		const { data, error } = await supabase
 			.from('class_memberships')
 			.delete()
 			.eq('class_id', classId)
-			.eq('student_id', user.id);
+			.eq('student_id', user.id)
+			.select('class_id');
 
 		if (error) return fail(500, { message: 'Failed to leave class.' });
+		if (!Array.isArray(data) || data.length === 0) {
+			return fail(500, { message: 'Failed to leave class. Please try again.' });
+		}
 
 		redirect(303, resolve('/classes'));
 	},

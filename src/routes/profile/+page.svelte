@@ -9,13 +9,11 @@
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import type { Case } from '$lib/types';
 	import { CASE_LABELS, isCase } from '$lib/types';
-	import { streak as streakStore } from '$lib/engine/streak';
 	import { progress as progressStore } from '$lib/engine/progress';
 	import { onMount } from 'svelte';
 	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { BADGE_ICONS } from '$lib/data/badge-icons';
 
 	function focusOnMount(node: HTMLElement) {
@@ -107,9 +105,9 @@
 	let expandedCase = $state<string | null>(null);
 	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun'>('case');
 
-	type ProfileTab = 'overview' | 'mastery' | 'mistakes' | 'achievements';
-	let profileTab = $state<ProfileTab>('overview');
-	const PROFILE_TAB_ORDER: ProfileTab[] = ['overview', 'mastery', 'mistakes', 'achievements'];
+	type ProfileTab = 'progress' | 'mistakes' | 'achievements';
+	let profileTab = $state<ProfileTab>('progress');
+	const PROFILE_TAB_ORDER: ProfileTab[] = ['progress', 'mistakes', 'achievements'];
 
 	function focusProfileTab(tab: ProfileTab): void {
 		const el = document.getElementById(`profile-tab-${tab}`);
@@ -274,57 +272,7 @@
 		}
 		return attempts;
 	});
-	let totalCorrect = $derived.by(() => {
-		let correct = 0;
-		for (const score of Object.values(caseScores)) {
-			correct += score.correct;
-		}
-		return correct;
-	});
 	let daysPracticed = $derived(serverSessions.length);
-
-	let overallAccuracy = $derived(
-		totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
-	);
-
-	// Current streak: consecutive days practiced ending at today or yesterday.
-	// For guest users, fall back to the client-side streak store.
-	let currentStreak = $derived.by(() => {
-		if (serverSessions.length === 0) return $streakStore.currentStreak;
-		const sessionDates = new Set(serverSessions.map((s) => s.session_date));
-		const todayStr = formatLocalDate(Date.now());
-
-		// Use day offsets to avoid mutable Date instances
-		let dayOffset = 0;
-		if (!sessionDates.has(dateByOffset(todayStr, 0))) {
-			dayOffset = -1;
-			if (!sessionDates.has(dateByOffset(todayStr, -1))) {
-				return 0;
-			}
-		}
-
-		let streak = 0;
-		while (sessionDates.has(dateByOffset(todayStr, dayOffset))) {
-			streak++;
-			dayOffset--;
-		}
-		return streak;
-	});
-
-	function formatLocalDate(ms: number): string {
-		const d = new Date(ms);
-		const y = d.getFullYear();
-		const m = String(d.getMonth() + 1).padStart(2, '0');
-		const day = String(d.getDate()).padStart(2, '0');
-		return `${y}-${m}-${day}`;
-	}
-
-	/** Offset a YYYY-MM-DD string by N days (negative = past). */
-	function dateByOffset(baseDate: string, days: number): string {
-		const parts = baseDate.split('-');
-		const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]) + days);
-		return formatLocalDate(d.getTime());
-	}
 
 	// Weakest area: find the paradigm+case combination with lowest accuracy (min 5 attempts)
 	let weakestArea = $derived.by<{
@@ -382,54 +330,6 @@
 	});
 
 	let userDisplayLabel = $derived(displayName || user?.email?.split('@')[0] || 'User');
-
-	// Weak areas: cases with accuracy below 60%, sorted from weakest to strongest
-	interface WeakArea {
-		caseKey: string;
-		number: string;
-		label: string;
-		accuracy: number;
-		attempts: number;
-		status: string;
-	}
-
-	let weakAreas = $derived.by<WeakArea[]>(() => {
-		const areas: WeakArea[] = [];
-		for (const [key, score] of Object.entries(caseScores)) {
-			if (score.attempts < 3) continue;
-			const pct = Math.round((score.correct / score.attempts) * 100);
-			if (pct >= 60) continue;
-
-			const parts = key.split('_');
-			if (parts.length !== 2) continue;
-			const caseKey = parts[0];
-			const num = parts[1];
-
-			const caseMeta = CASE_META.find((c) => c.key === caseKey);
-			if (!caseMeta) continue;
-
-			areas.push({
-				caseKey,
-				number: num,
-				label: `${caseMeta.label} ${num === 'sg' ? 'singular' : 'plural'}`,
-				accuracy: pct,
-				attempts: score.attempts,
-				status: pct < 40 ? 'needs work' : 'improving'
-			});
-		}
-		areas.sort((a, b) => a.accuracy - b.accuracy);
-		return areas;
-	});
-
-	let weakCaseKeys = $derived.by<string[]>(() => {
-		const keys: string[] = [];
-		for (const area of weakAreas) {
-			if (!keys.includes(area.caseKey)) {
-				keys.push(area.caseKey);
-			}
-		}
-		return keys;
-	});
 
 	// Combine sg+pl for each case
 	function getCaseTotals(caseKey: string): { attempts: number; correct: number } {
@@ -513,6 +413,98 @@
 		return labels;
 	});
 
+	// Daily accuracy for the progress-over-time chart
+	interface DailyAccuracy {
+		date: string;
+		accuracy: number;
+	}
+
+	let dailyAccuracy = $derived.by<DailyAccuracy[]>(() => {
+		const points: DailyAccuracy[] = [];
+		for (const s of serverSessions) {
+			if (s.questions_attempted > 0) {
+				points.push({
+					date: s.session_date,
+					accuracy: Math.round((s.questions_correct / s.questions_attempted) * 100)
+				});
+			}
+		}
+		// Sort by date ascending
+		points.sort((a, b) => a.date.localeCompare(b.date));
+		return points;
+	});
+
+	// Chart dimensions for accuracy-over-time SVG
+	const ACC_CHART_WIDTH = 700;
+	const ACC_CHART_HEIGHT = 240;
+	const ACC_PAD_LEFT = 44;
+	const ACC_PAD_RIGHT = 16;
+	const ACC_PAD_TOP = 12;
+	const ACC_PAD_BOTTOM = 36;
+	const ACC_PLOT_WIDTH = ACC_CHART_WIDTH - ACC_PAD_LEFT - ACC_PAD_RIGHT;
+	const ACC_PLOT_HEIGHT = ACC_CHART_HEIGHT - ACC_PAD_TOP - ACC_PAD_BOTTOM;
+	const ACC_Y_TICKS = [0, 25, 50, 75, 100];
+
+	function accXScale(index: number, total: number): number {
+		if (total <= 1) return ACC_PAD_LEFT + ACC_PLOT_WIDTH / 2;
+		return ACC_PAD_LEFT + (index / (total - 1)) * ACC_PLOT_WIDTH;
+	}
+
+	function accYScale(value: number): number {
+		return ACC_PAD_TOP + ACC_PLOT_HEIGHT - (value / 100) * ACC_PLOT_HEIGHT;
+	}
+
+	let accPolylinePoints = $derived.by(() => {
+		return dailyAccuracy
+			.map((p, i) => `${accXScale(i, dailyAccuracy.length)},${accYScale(p.accuracy)}`)
+			.join(' ');
+	});
+
+	let accXLabels = $derived.by(() => {
+		const pts = dailyAccuracy;
+		if (pts.length <= 6) return pts.map((p, i) => ({ index: i, label: formatAccDate(p.date) }));
+		const step = Math.ceil(pts.length / 6);
+		const labels: Array<{ index: number; label: string }> = [];
+		for (let i = 0; i < pts.length; i++) {
+			if (i % step === 0 || i === pts.length - 1) {
+				labels.push({ index: i, label: formatAccDate(pts[i].date) });
+			}
+		}
+		return labels;
+	});
+
+	function formatAccDate(dateStr: string): string {
+		const d = new Date(dateStr + 'T00:00:00');
+		return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+	}
+
+	let hoveredAccPoint = $state<{
+		x: number;
+		y: number;
+		date: string;
+		accuracy: number;
+	} | null>(null);
+
+	function handleAccPointHover(event: MouseEvent, date: string, accuracy: number): void {
+		const target = event.currentTarget;
+		if (target instanceof SVGElement) {
+			const svg = target.closest('svg');
+			if (svg) {
+				const rect = svg.getBoundingClientRect();
+				hoveredAccPoint = {
+					x: event.clientX - rect.left,
+					y: event.clientY - rect.top,
+					date,
+					accuracy
+				};
+			}
+		}
+	}
+
+	function clearAccHover(): void {
+		hoveredAccPoint = null;
+	}
+
 	function attemptLabel(n: number): string {
 		return `${n} attempt${n === 1 ? '' : 's'}`;
 	}
@@ -534,6 +526,50 @@
 		if (ratio <= 0.5) return 'var(--color-heatmap-2, #006d32)';
 		if (ratio <= 0.75) return 'var(--color-heatmap-3, #26a641)';
 		return 'var(--color-heatmap-4, #39d353)';
+	}
+
+	// Tooltip for case accuracy cards
+	let hoveredCaseCard = $state<{
+		key: string;
+		label: string;
+		x: number;
+		y: number;
+	} | null>(null);
+
+	let hoveredCaseInfo = $derived.by(() => {
+		if (!hoveredCaseCard) return null;
+		let sg: { attempts: number; correct: number };
+		let pl: { attempts: number; correct: number };
+		if (hoveredCaseCard.key === '_overall') {
+			// Aggregate Sg/Pl across all cases
+			sg = { attempts: 0, correct: 0 };
+			pl = { attempts: 0, correct: 0 };
+			for (const cm of CASE_META) {
+				const s = caseScores[`${cm.key}_sg`] ?? { attempts: 0, correct: 0 };
+				const p = caseScores[`${cm.key}_pl`] ?? { attempts: 0, correct: 0 };
+				sg.attempts += s.attempts;
+				sg.correct += s.correct;
+				pl.attempts += p.attempts;
+				pl.correct += p.correct;
+			}
+		} else {
+			sg = caseScores[`${hoveredCaseCard.key}_sg`] ?? { attempts: 0, correct: 0 };
+			pl = caseScores[`${hoveredCaseCard.key}_pl`] ?? { attempts: 0, correct: 0 };
+		}
+		const sgPct = sg.attempts > 0 ? Math.round((sg.correct / sg.attempts) * 100) : null;
+		const plPct = pl.attempts > 0 ? Math.round((pl.correct / pl.attempts) * 100) : null;
+		return { sg, pl, sgPct, plPct, label: hoveredCaseCard.label };
+	});
+
+	function handleCaseCardEnter(e: MouseEvent, key: string, label: string): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const rect = target.getBoundingClientRect();
+		hoveredCaseCard = { key, label, x: rect.left + rect.width / 2, y: rect.top };
+	}
+
+	function handleCaseCardLeave(): void {
+		hoveredCaseCard = null;
 	}
 
 	// Tooltip for paradigm heatmap cells
@@ -693,10 +729,22 @@
 		});
 	}
 
-	function heatmapTooltip(dateKey: string, count: number): string {
-		const label = formatHeatmapDay(dateKey);
-		if (count === 0) return `${label} · no practice`;
-		return `${label} · ${count} question${count === 1 ? '' : 's'}`;
+	let hoveredHeatmapDay = $state<{
+		date: string;
+		count: number;
+		x: number;
+		y: number;
+	} | null>(null);
+
+	function handleHeatmapDayEnter(e: MouseEvent, date: string, count: number): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const rect = target.getBoundingClientRect();
+		hoveredHeatmapDay = { date, count, x: rect.left + rect.width / 2, y: rect.top };
+	}
+
+	function handleHeatmapDayLeave(): void {
+		hoveredHeatmapDay = null;
 	}
 
 	// Refresh server data whenever the profile page mounts so freshly-synced
@@ -768,6 +816,23 @@
 					<div class="mt-1">
 						<span class="text-sm text-text-subtitle">Member since {memberSince}</span>
 					</div>
+					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtitle">
+						<span
+							><span class="font-semibold text-text-default">{totalAttempts}</span> questions completed</span
+						>
+						{#if daysPracticed > 0}
+							<span
+								><span class="font-semibold text-text-default">{daysPracticed}</span>
+								{daysPracticed === 1 ? 'day' : 'days'} practiced</span
+							>
+						{:else}
+							<span
+								><span class="font-semibold text-text-default"
+									>{earnedBadgeCount}/{badges.length}</span
+								> badges</span
+							>
+						{/if}
+					</div>
 				{:else}
 					<h1 class="text-lg font-semibold text-text-default sm:text-xl">Your Progress</h1>
 					<p class="mt-1 text-sm text-text-subtitle">
@@ -779,36 +844,24 @@
 							Sign in
 						</a> to sync across devices.
 					</p>
-				{/if}
-			</section>
-
-			<!-- 2. Overall stats row -->
-			<section class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-				<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-					<p class="text-xl font-semibold text-text-default sm:text-2xl">{totalAttempts}</p>
-					<p class="text-xs text-text-subtitle">Total questions</p>
-				</div>
-				<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-					<p class="text-xl font-semibold text-text-default sm:text-2xl">{overallAccuracy}%</p>
-					<p class="text-xs text-text-subtitle">Accuracy</p>
-				</div>
-				{#if daysPracticed > 0}
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-						<p class="text-xl font-semibold text-text-default sm:text-2xl">{daysPracticed}</p>
-						<p class="text-xs text-text-subtitle">Days practiced</p>
-					</div>
-				{:else}
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-						<p class="text-xl font-semibold text-text-default sm:text-2xl">
-							{earnedBadgeCount}/{badges.length}
-						</p>
-						<p class="text-xs text-text-subtitle">Badges earned</p>
+					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtitle">
+						<span
+							><span class="font-semibold text-text-default">{totalAttempts}</span> questions completed</span
+						>
+						{#if daysPracticed > 0}
+							<span
+								><span class="font-semibold text-text-default">{daysPracticed}</span>
+								{daysPracticed === 1 ? 'day' : 'days'} practiced</span
+							>
+						{:else}
+							<span
+								><span class="font-semibold text-text-default"
+									>{earnedBadgeCount}/{badges.length}</span
+								> badges</span
+							>
+						{/if}
 					</div>
 				{/if}
-				<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-					<p class="text-xl font-semibold text-text-default sm:text-2xl">{currentStreak}</p>
-					<p class="text-xs text-text-subtitle">Day streak</p>
-				</div>
 			</section>
 
 			<!-- Tabs -->
@@ -823,32 +876,17 @@
 					<button
 						type="button"
 						role="tab"
-						id="profile-tab-overview"
-						aria-selected={profileTab === 'overview'}
-						aria-controls="profile-panel-overview"
-						tabindex={profileTab === 'overview' ? 0 : -1}
-						onclick={() => (profileTab = 'overview')}
+						id="profile-tab-progress"
+						aria-selected={profileTab === 'progress'}
+						aria-controls="profile-panel-progress"
+						tabindex={profileTab === 'progress' ? 0 : -1}
+						onclick={() => (profileTab = 'progress')}
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
-						'overview'
+						'progress'
 							? 'border-emphasis text-text-default'
 							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
-						Overview
-					</button>
-					<button
-						type="button"
-						role="tab"
-						id="profile-tab-mastery"
-						aria-selected={profileTab === 'mastery'}
-						aria-controls="profile-panel-mastery"
-						tabindex={profileTab === 'mastery' ? 0 : -1}
-						onclick={() => (profileTab = 'mastery')}
-						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
-						'mastery'
-							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
-					>
-						Mastery
+						Progress
 					</button>
 					<button
 						type="button"
@@ -863,7 +901,7 @@
 							? 'border-emphasis text-text-default'
 							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
-						Mistakes{storedMistakes.length > 0 ? ` (${storedMistakes.length})` : ''}
+						Recent Mistakes{storedMistakes.length > 0 ? ` (${storedMistakes.length})` : ''}
 					</button>
 					<button
 						type="button"
@@ -883,12 +921,12 @@
 				</div>
 			</div>
 
-			<!-- Overview Tab -->
-			{#if profileTab === 'overview'}
+			<!-- Progress Tab (combined Overview + Mastery) -->
+			{#if profileTab === 'progress'}
 				<div
 					role="tabpanel"
-					id="profile-panel-overview"
-					aria-labelledby="profile-tab-overview"
+					id="profile-panel-progress"
+					aria-labelledby="profile-tab-progress"
 					tabindex={0}
 				>
 					{#if !weakestArea && serverSessions.length === 0}
@@ -932,114 +970,6 @@
 						</section>
 					{/if}
 
-					<!-- Weak areas section -->
-					{#if weakAreas.length > 0}
-						<section class="mb-6">
-							<h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-								Your Weak Areas
-							</h2>
-							<div class="space-y-2">
-								{#each weakAreas as area (area.caseKey + '_' + area.number)}
-									{@const caseMeta = CASE_META.find((c) => c.key === area.caseKey)}
-									<div
-										class="flex items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
-									>
-										<div class="flex items-center gap-3">
-											<div
-												class="size-2.5 shrink-0 rounded-full"
-												style="background-color: {caseMeta?.hex ?? 'var(--color-text-subtitle)'}"
-											></div>
-											<div>
-												<p class="text-sm font-medium text-text-default">{area.label}</p>
-												<p class="text-xs text-text-subtitle">
-													{area.accuracy}% accuracy ({attemptLabel(area.attempts)})
-												</p>
-											</div>
-										</div>
-										<span
-											class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {area.status ===
-											'needs work'
-												? 'bg-negative-background text-negative-stroke'
-												: 'bg-warning-background text-warning-text'}"
-										>
-											{area.status}
-										</span>
-									</div>
-								{/each}
-							</div>
-							<div class="mt-3">
-								<a
-									href="{resolve('/')}?cases={weakCaseKeys.join(',')}"
-									class="inline-flex items-center gap-1.5 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
-								>
-									<ArrowRight class="size-4" aria-hidden="true" />
-									Practice Weak Areas
-								</a>
-							</div>
-						</section>
-					{/if}
-
-					<!-- 3. Activity heatmap (signed-in users with session data) -->
-					{#if serverSessions.length > 0}
-						<section class="mb-8 overflow-hidden">
-							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-								Activity
-							</h2>
-							<div class="-mx-4 overflow-x-auto px-4">
-								<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-									<!-- Month labels -->
-									<div class="mb-1 flex" style="padding-left: 28px;">
-										{#each heatmapMonthLabels as ml (ml.weekIndex)}
-											<span
-												class="text-xs text-text-subtitle"
-												style="position: relative; left: {ml.weekIndex *
-													14}px; width: 0; white-space: nowrap;"
-											>
-												{ml.label}
-											</span>
-										{/each}
-									</div>
-									<!-- Grid -->
-									<div class="flex items-start gap-0.5">
-										<!-- Day labels -->
-										<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-										</div>
-										<!-- Weeks -->
-										{#each heatmapWeeks as week, weekIdx (weekIdx)}
-											<div class="flex flex-col gap-0.5">
-												{#each week as day (day.date)}
-													<div
-														class="h-[11px] w-[11px] rounded-[2px]"
-														style="background-color: {heatmapColor(day.count)};"
-														title={heatmapTooltip(day.date, day.count)}
-														aria-label={heatmapTooltip(day.date, day.count)}
-													></div>
-												{/each}
-											</div>
-										{/each}
-									</div>
-								</div>
-							</div>
-						</section>
-					{/if}
-				</div>
-			{/if}
-
-			<!-- Mastery Tab -->
-			{#if profileTab === 'mastery'}
-				<div
-					role="tabpanel"
-					id="profile-panel-mastery"
-					aria-labelledby="profile-tab-mastery"
-					tabindex={0}
-				>
 					<!-- 4. Case & Paradigm breakdown with tabs -->
 					<section class="mb-8">
 						<div class="mb-4 flex items-center gap-2 sm:gap-4">
@@ -1081,67 +1011,77 @@
 
 						<div class="breakdown-content">
 							{#if breakdownTab === 'case'}
-								<!-- By Case view: accuracy rings -->
-								<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+								<!-- By Case view: compact accuracy grid -->
+								{@const overallTotals = CASE_META.reduce(
+									(acc, cm) => {
+										const t = getCaseTotals(cm.key);
+										return {
+											attempts: acc.attempts + t.attempts,
+											correct: acc.correct + t.correct
+										};
+									},
+									{ attempts: 0, correct: 0 }
+								)}
+								{@const overallPct =
+									overallTotals.attempts > 0
+										? Math.round((overallTotals.correct / overallTotals.attempts) * 100)
+										: null}
+								<div class="grid grid-cols-4 gap-2 sm:grid-cols-8">
+									<button
+										type="button"
+										onclick={() => (expandedCase = null)}
+										onmouseenter={(e: MouseEvent) => handleCaseCardEnter(e, '_overall', 'Overall')}
+										onmouseleave={handleCaseCardLeave}
+										class="flex cursor-pointer flex-col justify-center rounded-xl border-2 border-current p-3 text-center transition-opacity sm:mr-2 {overallPct !==
+										null
+											? overallPct >= 70
+												? 'bg-positive-background text-positive-stroke'
+												: overallPct >= 40
+													? 'bg-warning-background text-warning-text'
+													: 'bg-negative-background text-negative-stroke'
+											: 'bg-card-bg text-text-subtitle'}"
+									>
+										<p class="text-xs font-bold uppercase tracking-wide">Avg</p>
+										<p class="text-xl font-extrabold">
+											{overallPct !== null ? `${overallPct}%` : '--'}
+										</p>
+									</button>
 									{#each CASE_META as caseMeta (caseMeta.key)}
 										{@const totals = getCaseTotals(caseMeta.key)}
 										{@const pct =
 											totals.attempts > 0
 												? Math.round((totals.correct / totals.attempts) * 100)
-												: 0}
-										{@const circumference = 2 * Math.PI * 28}
-										{@const strokeOffset =
-											totals.attempts > 0 ? circumference * (1 - pct / 100) : circumference}
-										{@const ringColor =
-											totals.attempts > 0 ? accuracyColor(pct) : 'var(--color-shaded-background)'}
+												: null}
 										{@const isSelected = expandedCase === caseMeta.key}
 										<button
 											type="button"
-											class="flex flex-col items-center gap-2 rounded-xl border p-4 transition {isSelected
-												? 'border-emphasis/40 bg-card-bg'
-												: 'border-card-stroke bg-card-bg hover:border-emphasis/40 hover:bg-shaded-background'}"
 											onclick={() => (expandedCase = isSelected ? null : caseMeta.key)}
+											onmouseenter={(e: MouseEvent) =>
+												handleCaseCardEnter(e, caseMeta.key, caseMeta.label)}
+											onmouseleave={handleCaseCardLeave}
+											class="cursor-pointer rounded-xl border p-3 text-center transition-colors {isSelected
+												? 'ring-2 ring-emphasis/40'
+												: ''} {pct !== null
+												? pct >= 70
+													? 'bg-positive-background text-positive-stroke'
+													: pct >= 40
+														? 'bg-warning-background text-warning-text'
+														: 'bg-negative-background text-negative-stroke'
+												: 'bg-card-bg text-text-subtitle'} {isSelected
+												? 'border-emphasis/40'
+												: 'border-card-stroke'}"
 										>
-											<svg width="72" height="72" viewBox="0 0 72 72" class="pointer-events-none">
-												<circle
-													cx="36"
-													cy="36"
-													r="28"
-													fill="none"
-													stroke="var(--color-shaded-background)"
-													stroke-width="6"
-												/>
-												{#if totals.attempts > 0}
-													<circle
-														cx="36"
-														cy="36"
-														r="28"
-														fill="none"
-														stroke={ringColor}
-														stroke-width="6"
-														stroke-linecap="round"
-														stroke-dasharray={circumference}
-														stroke-dashoffset={strokeOffset}
-														transform="rotate(-90 36 36)"
-													/>
-												{/if}
-												<text
-													x="36"
-													y="36"
-													text-anchor="middle"
-													dominant-baseline="central"
-													class="text-sm font-semibold"
-													fill={totals.attempts > 0 ? ringColor : 'var(--color-text-subtitle)'}
-												>
-													{totals.attempts > 0 ? `${pct}%` : '--'}
-												</text>
-											</svg>
-											<div class="pointer-events-none text-center">
-												<p class="text-xs font-medium text-text-default">{caseMeta.label}</p>
-												<p class="text-xs text-text-subtitle">
-													{totals.attempts > 0 ? attemptLabel(totals.attempts) : 'No data'}
+											<p class="text-xs font-medium uppercase">
+												{caseMeta.abbrev}
+											</p>
+											<p class="text-lg font-bold">
+												{pct !== null ? `${pct}%` : '--'}
+											</p>
+											{#if totals.attempts > 0}
+												<p class="text-[10px] opacity-70">
+													{totals.correct}/{totals.attempts}
 												</p>
-											</div>
+											{/if}
 										</button>
 									{/each}
 								</div>
@@ -1249,139 +1189,129 @@
 										</p>
 									{:else}
 										{#each PARADIGM_GROUPS as group (group.label)}
-											{@const groupParadigms = group.paradigms.filter(
-												(p) => getParadigmTotals(p).attempts > 0
-											)}
-											{#if groupParadigms.length > 0}
-												<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-													<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
-														<p
-															class="text-xs font-semibold uppercase tracking-wide text-text-subtitle"
-														>
-															{group.label}
-														</p>
-													</div>
-													<div class="overflow-x-auto pb-2">
-														<!-- Case header labels -->
-														<div class="mb-1 flex items-center">
-															<div class="w-28 shrink-0"></div>
-															<div class="w-5 shrink-0"></div>
-															{#each CASE_META as cm (cm.key)}
-																<div
-																	class="shrink-0 text-center text-xs text-text-subtitle"
-																	style="width: 32px;"
-																>
-																	{cm.abbrev}
-																</div>
-															{/each}
-														</div>
-														<!-- Paradigm rows -->
-														{#each groupParadigms as paradigm, pi (paradigm)}
-															<!-- Divider between paradigms -->
-															{#if pi > 0}
-																<div class="my-1.5 border-t border-card-stroke"></div>
-															{/if}
-															<!-- Wrapper: label spans both Sg+Pl rows -->
-															<div class="flex items-center">
-																<!-- Left label: name + description, spanning both rows -->
-																<div class="w-28 shrink-0 pr-2">
-																	<p class="text-xs font-medium leading-tight text-text-default">
-																		{paradigm}
-																	</p>
-																	<p class="text-xs leading-tight text-text-subtitle">
-																		{PARADIGM_DESC[paradigm] ?? ''}
-																	</p>
-																</div>
-																<!-- Sg + Pl rows stacked -->
-																<div class="flex flex-col gap-0.5">
-																	<!-- Sg row -->
-																	<div class="flex items-center">
-																		<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
-																			Sg
-																		</div>
-																		{#each CASE_META as cm (cm.key)}
-																			{@const score = getParadigmCaseNumberScore(
-																				paradigm,
-																				cm.key,
-																				'sg'
-																			)}
-																			{@const pct =
-																				score.attempts > 0
-																					? Math.round((score.correct / score.attempts) * 100)
-																					: -1}
-																			<div
-																				class="flex shrink-0 justify-center"
-																				style="width: 32px;"
-																			>
-																				<div
-																					class="paradigm-cell h-5 w-6 rounded-[3px]"
-																					style="background-color: {pct >= 0
-																						? cellColor(pct)
-																						: 'var(--color-shaded-background)'}; opacity: {pct >= 0
-																						? 0.85
-																						: 1};"
-																					role="gridcell"
-																					tabindex="0"
-																					aria-label="{paradigm} {cm.label} singular: {pct >= 0
-																						? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
-																						: 'no data'}"
-																					onmouseenter={(e: MouseEvent) =>
-																						handleCellEnter(e, paradigm, cm.key, 'sg')}
-																					onmouseleave={handleCellLeave}
-																					onfocus={(e: FocusEvent) =>
-																						handleCellEnter(e, paradigm, cm.key, 'sg')}
-																					onblur={handleCellLeave}
-																				></div>
-																			</div>
-																		{/each}
-																	</div>
-																	<!-- Pl row -->
-																	<div class="flex items-center">
-																		<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
-																			Pl
-																		</div>
-																		{#each CASE_META as cm (cm.key)}
-																			{@const score = getParadigmCaseNumberScore(
-																				paradigm,
-																				cm.key,
-																				'pl'
-																			)}
-																			{@const pct =
-																				score.attempts > 0
-																					? Math.round((score.correct / score.attempts) * 100)
-																					: -1}
-																			<div
-																				class="flex shrink-0 justify-center"
-																				style="width: 32px;"
-																			>
-																				<div
-																					class="paradigm-cell h-5 w-6 rounded-[3px]"
-																					style="background-color: {pct >= 0
-																						? cellColor(pct)
-																						: 'var(--color-shaded-background)'}; opacity: {pct >= 0
-																						? 0.85
-																						: 1};"
-																					role="gridcell"
-																					tabindex="0"
-																					aria-label="{paradigm} {cm.label} plural: {pct >= 0
-																						? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
-																						: 'no data'}"
-																					onmouseenter={(e: MouseEvent) =>
-																						handleCellEnter(e, paradigm, cm.key, 'pl')}
-																					onmouseleave={handleCellLeave}
-																					onfocus={(e: FocusEvent) =>
-																						handleCellEnter(e, paradigm, cm.key, 'pl')}
-																					onblur={handleCellLeave}
-																				></div>
-																			</div>
-																		{/each}
-																	</div>
-																</div>
+											{@const groupParadigms = group.paradigms}
+											<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+												<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
+													<p
+														class="text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+													>
+														{group.label}
+													</p>
+												</div>
+												<div class="overflow-x-auto pb-2">
+													<!-- Case header labels -->
+													<div class="mb-1 flex items-center">
+														<div class="w-28 shrink-0"></div>
+														<div class="w-5 shrink-0"></div>
+														{#each CASE_META as cm (cm.key)}
+															<div
+																class="shrink-0 text-center text-xs text-text-subtitle"
+																style="width: 32px;"
+															>
+																{cm.abbrev}
 															</div>
 														{/each}
 													</div>
+													<!-- Paradigm rows -->
+													{#each groupParadigms as paradigm, pi (paradigm)}
+														<!-- Divider between paradigms -->
+														{#if pi > 0}
+															<div class="my-1.5 border-t border-card-stroke"></div>
+														{/if}
+														<!-- Wrapper: label spans both Sg+Pl rows -->
+														<div class="flex items-center">
+															<!-- Left label: name + description, spanning both rows -->
+															<div class="w-28 shrink-0 pr-2">
+																<p class="text-xs font-medium leading-tight text-text-default">
+																	{paradigm}
+																</p>
+																<p class="text-xs leading-tight text-text-subtitle">
+																	{PARADIGM_DESC[paradigm] ?? ''}
+																</p>
+															</div>
+															<!-- Sg + Pl rows stacked -->
+															<div class="flex flex-col gap-0.5">
+																<!-- Sg row -->
+																<div class="flex items-center">
+																	<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																		Sg
+																	</div>
+																	{#each CASE_META as cm (cm.key)}
+																		{@const score = getParadigmCaseNumberScore(
+																			paradigm,
+																			cm.key,
+																			'sg'
+																		)}
+																		{@const pct =
+																			score.attempts > 0
+																				? Math.round((score.correct / score.attempts) * 100)
+																				: -1}
+																		<div class="flex shrink-0 justify-center" style="width: 32px;">
+																			<div
+																				class="paradigm-cell h-5 w-6 rounded-[3px]"
+																				style="background-color: {pct >= 0
+																					? cellColor(pct)
+																					: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																					? 0.85
+																					: 1};"
+																				role="gridcell"
+																				tabindex="0"
+																				aria-label="{paradigm} {cm.label} singular: {pct >= 0
+																					? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																					: 'no data'}"
+																				onmouseenter={(e: MouseEvent) =>
+																					handleCellEnter(e, paradigm, cm.key, 'sg')}
+																				onmouseleave={handleCellLeave}
+																				onfocus={(e: FocusEvent) =>
+																					handleCellEnter(e, paradigm, cm.key, 'sg')}
+																				onblur={handleCellLeave}
+																			></div>
+																		</div>
+																	{/each}
+																</div>
+																<!-- Pl row -->
+																<div class="flex items-center">
+																	<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																		Pl
+																	</div>
+																	{#each CASE_META as cm (cm.key)}
+																		{@const score = getParadigmCaseNumberScore(
+																			paradigm,
+																			cm.key,
+																			'pl'
+																		)}
+																		{@const pct =
+																			score.attempts > 0
+																				? Math.round((score.correct / score.attempts) * 100)
+																				: -1}
+																		<div class="flex shrink-0 justify-center" style="width: 32px;">
+																			<div
+																				class="paradigm-cell h-5 w-6 rounded-[3px]"
+																				style="background-color: {pct >= 0
+																					? cellColor(pct)
+																					: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																					? 0.85
+																					: 1};"
+																				role="gridcell"
+																				tabindex="0"
+																				aria-label="{paradigm} {cm.label} plural: {pct >= 0
+																					? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																					: 'no data'}"
+																				onmouseenter={(e: MouseEvent) =>
+																					handleCellEnter(e, paradigm, cm.key, 'pl')}
+																				onmouseleave={handleCellLeave}
+																				onfocus={(e: FocusEvent) =>
+																					handleCellEnter(e, paradigm, cm.key, 'pl')}
+																				onblur={handleCellLeave}
+																			></div>
+																		</div>
+																	{/each}
+																</div>
+															</div>
+														</div>
+													{/each}
 												</div>
-											{/if}
+											</div>
 										{/each}
 
 										<!-- Legend -->
@@ -1577,6 +1507,185 @@
 							{/if}
 						</div>
 					</section>
+
+					<!-- Accuracy Over Time chart -->
+					{#if dailyAccuracy.length >= 2}
+						<section class="mb-8">
+							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Accuracy Over Time
+							</h2>
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+								<div class="relative w-full overflow-x-auto">
+									<svg
+										viewBox="0 0 {ACC_CHART_WIDTH} {ACC_CHART_HEIGHT}"
+										class="w-full"
+										style="min-width: 360px"
+										role="img"
+										aria-label="Daily accuracy over time chart"
+									>
+										<!-- Grid lines and Y-axis labels -->
+										{#each ACC_Y_TICKS as tick (tick)}
+											<line
+												x1={ACC_PAD_LEFT}
+												y1={accYScale(tick)}
+												x2={ACC_CHART_WIDTH - ACC_PAD_RIGHT}
+												y2={accYScale(tick)}
+												stroke="var(--color-card-stroke)"
+												stroke-width="1"
+												stroke-dasharray={tick === 0 ? 'none' : '4 2'}
+											/>
+											<text
+												x={ACC_PAD_LEFT - 8}
+												y={accYScale(tick) + 4}
+												text-anchor="end"
+												fill="var(--color-text-subtitle)"
+												font-size="11"
+											>
+												{tick}%
+											</text>
+										{/each}
+
+										<!-- X-axis date labels -->
+										{#each accXLabels as xl (xl.index)}
+											<text
+												x={accXScale(xl.index, dailyAccuracy.length)}
+												y={ACC_CHART_HEIGHT - 8}
+												text-anchor="middle"
+												fill="var(--color-text-subtitle)"
+												font-size="10"
+											>
+												{xl.label}
+											</text>
+										{/each}
+
+										<!-- Accuracy line -->
+										<polyline
+											points={accPolylinePoints}
+											fill="none"
+											stroke="var(--color-emphasis)"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										/>
+
+										<!-- Data points -->
+										{#each dailyAccuracy as point, i (point.date)}
+											<circle
+												cx={accXScale(i, dailyAccuracy.length)}
+												cy={accYScale(point.accuracy)}
+												r="5"
+												fill="var(--color-emphasis)"
+												stroke="var(--color-card-bg)"
+												stroke-width="2"
+												pointer-events="none"
+											/>
+											<!-- Invisible hit-slop circle for hover -->
+											<circle
+												cx={accXScale(i, dailyAccuracy.length)}
+												cy={accYScale(point.accuracy)}
+												r="14"
+												fill="transparent"
+												role="img"
+												aria-label="{formatAccDate(point.date)}: {point.accuracy}% accuracy"
+												onmouseenter={(e) => handleAccPointHover(e, point.date, point.accuracy)}
+												onmouseleave={clearAccHover}
+											/>
+										{/each}
+									</svg>
+
+									<!-- Tooltip -->
+									{#if hoveredAccPoint}
+										<div
+											class="pointer-events-none absolute z-10 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
+											style="left: {Math.min(
+												hoveredAccPoint.x + 12,
+												ACC_CHART_WIDTH - 120
+											)}px; top: {hoveredAccPoint.y - 40}px"
+										>
+											<p class="font-medium text-text-default">
+												{formatAccDate(hoveredAccPoint.date)}
+											</p>
+											<p class="text-text-subtitle">{hoveredAccPoint.accuracy}% accuracy</p>
+										</div>
+									{/if}
+								</div>
+							</div>
+						</section>
+					{/if}
+
+					<!-- Activity heatmap -->
+					{#if serverSessions.length > 0}
+						<section class="mb-6 overflow-hidden">
+							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Activity
+							</h2>
+							<div class="-mx-4 overflow-x-auto px-4">
+								<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+									<!-- Month labels -->
+									<div class="mb-1 flex" style="padding-left: 28px;">
+										{#each heatmapMonthLabels as ml (ml.weekIndex)}
+											<span
+												class="text-xs text-text-subtitle"
+												style="position: relative; left: {ml.weekIndex *
+													13}px; width: 0; white-space: nowrap;"
+											>
+												{ml.label}
+											</span>
+										{/each}
+									</div>
+									<!-- Grid -->
+									<div class="flex items-start gap-0.5">
+										<!-- Day labels -->
+										<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+										</div>
+										<!-- Weeks -->
+										{#each heatmapWeeks as week, weekIdx (weekIdx)}
+											<div class="flex flex-col gap-0.5">
+												{#each week as day (day.date)}
+													<div
+														role="img"
+														class="h-[11px] w-[11px] rounded-[2px]"
+														style="background-color: {heatmapColor(day.count)};"
+														aria-label="{formatHeatmapDay(day.date)}{day.count > 0
+															? ` · ${day.count} question${day.count === 1 ? '' : 's'}`
+															: ' · no practice'}"
+														onmouseenter={(e) => handleHeatmapDayEnter(e, day.date, day.count)}
+														onmouseleave={handleHeatmapDayLeave}
+													></div>
+												{/each}
+											</div>
+										{/each}
+									</div>
+								</div>
+							</div>
+						</section>
+
+						{#if hoveredHeatmapDay}
+							<div
+								class="pointer-events-none fixed z-50 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
+								style="left: {hoveredHeatmapDay.x}px; top: {hoveredHeatmapDay.y -
+									8}px; transform: translate(-50%, -100%);"
+							>
+								<p class="font-medium text-text-default">
+									{formatHeatmapDay(hoveredHeatmapDay.date)}
+								</p>
+								{#if hoveredHeatmapDay.count > 0}
+									<p class="text-text-subtitle">
+										{hoveredHeatmapDay.count} question{hoveredHeatmapDay.count === 1 ? '' : 's'}
+									</p>
+								{:else}
+									<p class="text-text-subtitle">No practice</p>
+								{/if}
+							</div>
+						{/if}
+					{/if}
 				</div>
 			{/if}
 
@@ -1784,7 +1893,7 @@
 										? Math.min(100, Math.round((progress.current / progress.target) * 100))
 										: 0}
 								<div
-									class="rounded-xl border border-card-stroke p-3 transition-colors {badge.earned
+									class="flex flex-col rounded-xl border border-card-stroke p-3 transition-colors {badge.earned
 										? 'bg-card-bg'
 										: 'bg-shaded-background opacity-50'}"
 								>
@@ -1803,32 +1912,32 @@
 										{badge.name}
 									</p>
 									<p class="mt-0.5 text-xs text-text-subtitle">{badge.description}</p>
-									{#if badge.earned && badge.earnedAt}
-										<p class="mt-1.5 text-[10px] font-medium text-positive-stroke">
-											Earned {formatBadgeDate(badge.earnedAt)}
-										</p>
-									{:else if progress}
-										<div class="mt-2">
-											<div
-												class="h-1 overflow-hidden rounded-full bg-card-stroke"
-												role="progressbar"
-												aria-valuenow={progressPct}
-												aria-valuemin="0"
-												aria-valuemax="100"
-												aria-label="{badge.name} progress"
-											>
-												<div
-													class="h-full rounded-full bg-emphasis transition-all"
-													style="width: {progressPct}%"
-												></div>
-											</div>
-											<p class="mt-1 text-[10px] text-text-subtitle">
-												{progress.current} / {progress.target}
+									<div class="mt-auto pt-2">
+										{#if badge.earned && badge.earnedAt}
+											<p class="text-[10px] font-medium text-positive-stroke">
+												Earned {formatBadgeDate(badge.earnedAt)}
 											</p>
-										</div>
-									{:else}
-										<p class="mt-1.5 text-[10px] text-text-subtitle">{badge.condition}</p>
-									{/if}
+										{:else if progress}
+											<div>
+												<div
+													class="h-1 overflow-hidden rounded-full bg-card-stroke"
+													role="progressbar"
+													aria-valuenow={progressPct}
+													aria-valuemin="0"
+													aria-valuemax="100"
+													aria-label="{badge.name} progress"
+												>
+													<div
+														class="h-full rounded-full bg-emphasis transition-all"
+														style="width: {progressPct}%"
+													></div>
+												</div>
+												<p class="mt-1 text-[10px] text-text-subtitle">
+													{progress.current} / {progress.target}
+												</p>
+											</div>
+										{/if}
+									</div>
 								</div>
 							{/each}
 						</div>
@@ -1882,6 +1991,41 @@
 		{/if}
 	</main>
 </div>
+
+<!-- Case card hover tooltip -->
+{#if hoveredCaseCard && hoveredCaseInfo}
+	<div
+		class="pointer-events-none fixed z-50 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-lg"
+		style="left: {hoveredCaseCard.x}px; top: {hoveredCaseCard.y -
+			8}px; transform: translate(-50%, -100%);"
+	>
+		<p class="mb-1 font-medium text-text-default">{hoveredCaseInfo.label}</p>
+		<div class="flex gap-3">
+			<div>
+				<span class="text-text-subtitle">Sg</span>
+				{#if hoveredCaseInfo.sgPct !== null}
+					<span class="ml-1 font-semibold" style="color: {accuracyColor(hoveredCaseInfo.sgPct)}"
+						>{hoveredCaseInfo.sgPct}%</span
+					>
+					<span class="text-text-subtitle">({hoveredCaseInfo.sg.attempts})</span>
+				{:else}
+					<span class="ml-1 text-text-subtitle">--</span>
+				{/if}
+			</div>
+			<div>
+				<span class="text-text-subtitle">Pl</span>
+				{#if hoveredCaseInfo.plPct !== null}
+					<span class="ml-1 font-semibold" style="color: {accuracyColor(hoveredCaseInfo.plPct)}"
+						>{hoveredCaseInfo.plPct}%</span
+					>
+					<span class="text-text-subtitle">({hoveredCaseInfo.pl.attempts})</span>
+				{:else}
+					<span class="ml-1 text-text-subtitle">--</span>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Paradigm heatmap tooltip -->
 {#if hoveredCell && hoveredCellScore}

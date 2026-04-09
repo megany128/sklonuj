@@ -7,12 +7,13 @@
 
 	let { open = false, onClose }: { open: boolean; onClose: () => void } = $props();
 
-	let mode = $state<'login' | 'signup'>('login');
+	let mode = $state<'login' | 'signup' | 'forgot'>('login');
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state('');
 	let confirmationSent = $state(false);
+	let resetEmailSent = $state(false);
 
 	let modalEl = $state<HTMLDivElement | undefined>(undefined);
 	let previouslyFocusedEl: Element | null = null;
@@ -75,6 +76,7 @@
 		error = '';
 		loading = false;
 		confirmationSent = false;
+		resetEmailSent = false;
 	}
 
 	function handleClose() {
@@ -121,6 +123,28 @@
 				handleClose();
 				goto(resolve('/'));
 			}
+		}
+
+		loading = false;
+	}
+
+	async function handleForgotPassword() {
+		if (!email.trim()) {
+			error = 'Please enter your email.';
+			return;
+		}
+
+		loading = true;
+		error = '';
+
+		const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: `${window.location.origin}/auth/callback?type=recovery`
+		});
+
+		if (err) {
+			error = err.message;
+		} else {
+			resetEmailSent = true;
 		}
 
 		loading = false;
@@ -190,6 +214,84 @@
 								mode = 'login';
 							}}
 							class="text-sm text-emphasis underline underline-offset-2"
+						>
+							Back to sign in
+						</button>
+					</div>
+				{:else if resetEmailSent}
+					<div class="text-center">
+						<p class="mb-2 text-lg font-semibold text-text-default">Check your email</p>
+						<p class="mb-4 text-sm text-text-subtitle">
+							We sent a password reset link to <strong class="text-text-default">{email}</strong>.
+							Click it to set a new password.
+						</p>
+						<button
+							type="button"
+							onclick={() => {
+								resetEmailSent = false;
+								mode = 'login';
+							}}
+							class="text-sm text-emphasis underline underline-offset-2"
+						>
+							Back to sign in
+						</button>
+					</div>
+				{:else if mode === 'forgot'}
+					<h1 class="mb-1 text-center text-lg font-semibold text-text-default">
+						Reset your password
+					</h1>
+					<p class="mb-5 text-center text-xs text-text-subtitle">
+						Enter your email and we'll send you a reset link.
+					</p>
+
+					<form
+						onsubmit={(e) => {
+							e.preventDefault();
+							handleForgotPassword();
+						}}
+						class="flex flex-col gap-3"
+					>
+						<input
+							type="email"
+							bind:value={email}
+							placeholder="Email"
+							required
+							aria-label="Email address"
+							aria-describedby={error ? 'auth-error' : undefined}
+							aria-invalid={!!error}
+							oninput={() => {
+								error = '';
+							}}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						/>
+
+						<div aria-live="assertive">
+							{#if error}
+								<p id="auth-error" class="text-xs text-negative-stroke" role="alert">{error}</p>
+							{/if}
+						</div>
+
+						<button
+							type="submit"
+							disabled={loading}
+							class="rounded-xl bg-emphasis px-4 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+						>
+							{#if loading}
+								...
+							{:else}
+								Send reset link
+							{/if}
+						</button>
+					</form>
+
+					<div class="mt-4 flex flex-col items-center gap-1.5 text-xs text-text-subtitle">
+						<button
+							type="button"
+							onclick={() => {
+								error = '';
+								mode = 'login';
+							}}
+							class="underline underline-offset-2 hover:text-text-default"
 						>
 							Back to sign in
 						</button>
@@ -275,6 +377,21 @@
 							}}
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 						/>
+
+						{#if mode === 'login'}
+							<div class="flex justify-end">
+								<button
+									type="button"
+									onclick={() => {
+										error = '';
+										mode = 'forgot';
+									}}
+									class="text-xs text-text-subtitle underline underline-offset-2 hover:text-text-default"
+								>
+									Forgot password?
+								</button>
+							</div>
+						{/if}
 
 						<div aria-live="assertive">
 							{#if error}

@@ -87,22 +87,28 @@ function parseMistakes(raw: unknown): MistakeEntry[] {
 }
 
 function parseCaseScores(caseScoresRaw: unknown, selectedCases: string[]): CaseAccuracy[] {
-	const perCaseScores: CaseAccuracy[] = [];
+	// case_scores is stored per number (e.g. "gen_sg", "gen_pl"); aggregate by base case.
+	const byBase = new Map<string, { attempts: number; correct: number }>();
 	if (isRecord(caseScoresRaw)) {
 		for (const key of Object.keys(caseScoresRaw)) {
-			if (selectedCases.length > 0 && !selectedCases.includes(key)) {
-				continue;
-			}
 			const entry = caseScoresRaw[key];
-			if (isScoreEntry(entry)) {
-				perCaseScores.push({
-					case: key,
-					attempts: entry.attempts,
-					correct: entry.correct,
-					accuracy: entry.attempts > 0 ? (entry.correct / entry.attempts) * 100 : 0
-				});
-			}
+			if (!isScoreEntry(entry)) continue;
+			const baseCase = key.split('_')[0] ?? key;
+			if (selectedCases.length > 0 && !selectedCases.includes(baseCase)) continue;
+			const existing = byBase.get(baseCase) ?? { attempts: 0, correct: 0 };
+			existing.attempts += entry.attempts;
+			existing.correct += entry.correct;
+			byBase.set(baseCase, existing);
 		}
+	}
+	const perCaseScores: CaseAccuracy[] = [];
+	for (const [baseCase, data] of byBase) {
+		perCaseScores.push({
+			case: baseCase,
+			attempts: data.attempts,
+			correct: data.correct,
+			accuracy: data.attempts > 0 ? (data.correct / data.attempts) * 100 : 0
+		});
 	}
 	return perCaseScores;
 }
@@ -364,7 +370,12 @@ export const actions: Actions = {
 			return fail(500, { message: 'Failed to duplicate assignment.' });
 		}
 
-		redirect(303, resolve(`/classes/${classId}/assignments/${newAssignment.id}/edit`));
+		// Pass ?from=<originalId> so the edit page's back link returns to the
+		// original assignment the teacher duplicated from rather than the new copy.
+		redirect(
+			303,
+			`${resolve(`/classes/${classId}/assignments/${newAssignment.id}/edit`)}?from=${assignmentId}`
+		);
 	},
 
 	delete: async ({ locals, params }) => {

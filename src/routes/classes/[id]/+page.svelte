@@ -5,6 +5,7 @@
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ChartPie from '@lucide/svelte/icons/chart-pie';
+	import HelpCircle from '@lucide/svelte/icons/circle-help';
 	import X from '@lucide/svelte/icons/x';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -12,10 +13,9 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import ProgressChart from '$lib/components/ui/ProgressChart.svelte';
-	import LeaderboardBanner from '$lib/components/ui/LeaderboardBanner.svelte';
 	import { CASE_LABELS, DRILL_TYPE_LABELS, ALL_DRILL_TYPES } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import GuidedTour from '$lib/components/ui/GuidedTour.svelte';
 
@@ -53,6 +53,14 @@
 		accuracy: number;
 	}
 
+	interface MistakeEntry {
+		word: string;
+		expectedForm: string;
+		givenAnswer: string;
+		case: string;
+		number: string;
+	}
+
 	interface StudentRow {
 		studentId: string;
 		displayName: string | null;
@@ -62,6 +70,7 @@
 		totalAttempts: number;
 		assignmentStatuses: AssignmentStatus[];
 		caseScores: CaseAccuracy[];
+		recentMistakes: MistakeEntry[];
 	}
 
 	interface AssignmentRow {
@@ -106,6 +115,17 @@
 		);
 	}
 
+	function isMistakeEntry(v: unknown): v is MistakeEntry {
+		return (
+			isRecord(v) &&
+			typeof v.word === 'string' &&
+			typeof v.expectedForm === 'string' &&
+			typeof v.givenAnswer === 'string' &&
+			typeof v.case === 'string' &&
+			typeof v.number === 'string'
+		);
+	}
+
 	function isStudentArray(v: unknown): v is StudentRow[] {
 		if (!Array.isArray(v)) return false;
 		return v.every(
@@ -118,7 +138,9 @@
 				Array.isArray(item.assignmentStatuses) &&
 				item.assignmentStatuses.every((s: unknown) => isAssignmentStatus(s)) &&
 				Array.isArray(item.caseScores) &&
-				item.caseScores.every((c: unknown) => isCaseAccuracy(c))
+				item.caseScores.every((c: unknown) => isCaseAccuracy(c)) &&
+				Array.isArray(item.recentMistakes) &&
+				item.recentMistakes.every((m: unknown) => isMistakeEntry(m))
 		);
 	}
 
@@ -135,6 +157,18 @@
 
 	function isDrillTypeKey(v: string): v is DrillType {
 		return v in DRILL_TYPE_LABELS;
+	}
+
+	function formatNumberMode(mode: string): string {
+		if (mode === 'sg') return 'Singular only';
+		if (mode === 'pl') return 'Plural only';
+		return 'Both (singular + plural)';
+	}
+
+	function formatContentMode(mode: string): string {
+		if (mode === 'nouns') return 'Nouns only';
+		if (mode === 'pronouns') return 'Pronouns only';
+		return 'Both (nouns + pronouns)';
 	}
 
 	let classData = $derived.by(() => {
@@ -174,30 +208,6 @@
 		return isAssignmentArray(val) ? val : [];
 	});
 
-	interface StudentStats {
-		overallAccuracy: number | null;
-		totalAttempts: number;
-		caseScores: CaseAccuracy[];
-		assignmentsCompleted: number;
-		assignmentsTotal: number;
-	}
-
-	function isStudentStats(v: unknown): v is StudentStats {
-		if (!isRecord(v)) return false;
-		return (
-			(v.overallAccuracy === null || typeof v.overallAccuracy === 'number') &&
-			typeof v.totalAttempts === 'number' &&
-			Array.isArray(v.caseScores) &&
-			typeof v.assignmentsCompleted === 'number' &&
-			typeof v.assignmentsTotal === 'number'
-		);
-	}
-
-	let studentStats = $derived.by(() => {
-		const val: unknown = page.data.studentStats;
-		return isStudentStats(val) ? val : null;
-	});
-
 	interface ProgressSnapshot {
 		studentId: string;
 		snapshotDate: string;
@@ -233,6 +243,125 @@
 			id: s.studentId,
 			name: studentDisplayName(s)
 		}));
+	});
+
+	// Class-aggregated paradigm scores (teacher only)
+	interface ScoreEntry {
+		attempts: number;
+		correct: number;
+	}
+	function isScoreEntry(v: unknown): v is ScoreEntry {
+		return isRecord(v) && typeof v.attempts === 'number' && typeof v.correct === 'number';
+	}
+	let classParadigmScores = $derived.by(() => {
+		const val: unknown = page.data.classParadigmScores;
+		const result: Record<string, ScoreEntry> = {};
+		if (!isRecord(val)) return result;
+		for (const [key, entry] of Object.entries(val)) {
+			if (isScoreEntry(entry)) {
+				result[key] = entry;
+			}
+		}
+		return result;
+	});
+	let hasParadigmData = $derived(
+		Object.keys(classParadigmScores).filter((k) => !k.startsWith('pronoun_')).length > 0
+	);
+
+	// Paradigm heatmap constants
+	const CASE_META: Array<{ key: string; label: string; abbrev: string; hex: string }> = [
+		{ key: 'nom', label: 'Nominative', abbrev: 'Nom', hex: '#8f7e86' },
+		{ key: 'gen', label: 'Genitive', abbrev: 'Gen', hex: '#5d8cdc' },
+		{ key: 'dat', label: 'Dative', abbrev: 'Dat', hex: '#e89a02' },
+		{ key: 'acc', label: 'Accusative', abbrev: 'Acc', hex: '#14b160' },
+		{ key: 'voc', label: 'Vocative', abbrev: 'Voc', hex: '#a777e0' },
+		{ key: 'loc', label: 'Locative', abbrev: 'Loc', hex: '#da5e5e' },
+		{ key: 'ins', label: 'Instrumental', abbrev: 'Ins', hex: '#e34994' }
+	];
+
+	const PARADIGM_DESC: Record<string, string> = {
+		pán: 'hard consonant ending',
+		muž: 'soft consonant ending',
+		předseda: 'vowel -a ending',
+		soudce: 'vowel -e ending',
+		hrad: 'hard consonant ending',
+		stroj: 'soft consonant ending',
+		žena: 'vowel -a ending',
+		růže: 'vowel -e ending',
+		píseň: 'soft consonant ending',
+		kost: 'hard consonant ending',
+		město: 'vowel -o ending',
+		moře: 'vowel -e ending',
+		kuře: 'vowel -e/-ě ending',
+		stavení: 'vowel -í ending'
+	};
+
+	const PARADIGM_GROUPS: Array<{ label: string; paradigms: string[] }> = [
+		{ label: 'Masculine', paradigms: ['pán', 'muž', 'předseda', 'soudce', 'hrad', 'stroj'] },
+		{ label: 'Feminine', paradigms: ['žena', 'růže', 'píseň', 'kost'] },
+		{ label: 'Neuter', paradigms: ['město', 'moře', 'kuře', 'stavení'] }
+	];
+
+	function getParadigmCaseNumberScore(paradigm: string, caseKey: string, num: string): ScoreEntry {
+		return classParadigmScores[`${paradigm}_${caseKey}_${num}`] ?? { attempts: 0, correct: 0 };
+	}
+
+	function accuracyColor(pct: number): string {
+		if (pct >= 80) return '#22c55e';
+		if (pct >= 60) return '#eab308';
+		if (pct >= 40) return '#f97316';
+		return '#ef4444';
+	}
+
+	function attemptLabel(n: number): string {
+		return `${n} attempt${n === 1 ? '' : 's'}`;
+	}
+
+	// Heatmap tooltip state
+	let hoveredCell = $state<{
+		paradigm: string;
+		caseKey: string;
+		num: string;
+		x: number;
+		y: number;
+	} | null>(null);
+
+	function handleCellEnter(
+		e: MouseEvent | FocusEvent,
+		paradigm: string,
+		caseKey: string,
+		num: string
+	): void {
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLElement)) return;
+		const rect = target.getBoundingClientRect();
+		hoveredCell = {
+			paradigm,
+			caseKey,
+			num,
+			x: rect.left + rect.width / 2,
+			y: rect.top
+		};
+	}
+
+	function handleCellLeave(): void {
+		hoveredCell = null;
+	}
+
+	let hoveredCellScore = $derived.by(() => {
+		if (!hoveredCell) return null;
+		const score = getParadigmCaseNumberScore(
+			hoveredCell.paradigm,
+			hoveredCell.caseKey,
+			hoveredCell.num
+		);
+		const pct = score.attempts > 0 ? Math.round((score.correct / score.attempts) * 100) : -1;
+		const caseMeta = CASE_META.find((c) => c.key === hoveredCell!.caseKey);
+		return {
+			label: `${caseMeta?.abbrev ?? hoveredCell!.caseKey} ${hoveredCell!.num}`,
+			pct,
+			attempts: score.attempts
+		};
 	});
 
 	// Class-level stats
@@ -349,80 +478,6 @@
 		return '';
 	});
 
-	// Leaderboard state
-	interface LeaderboardEntry {
-		rank: number;
-		userId: string;
-		displayName: string;
-		firstName: string;
-		score: number;
-		questionsAnswered: number;
-		correctAnswers: number;
-	}
-
-	let leaderboardData = $state<LeaderboardEntry[]>([]);
-	let leaderboardSentToday = $state<string[]>([]);
-
-	let showLeaderboard = $derived(
-		role === 'student' && classData?.leaderboard_enabled === true && leaderboardData.length > 1
-	);
-
-	function fetchLeaderboardData(classId: string): void {
-		fetch(`/api/leaderboard?classId=${classId}`)
-			.then((res) => {
-				if (!res.ok) return null;
-				return res.json();
-			})
-			.then((data: unknown) => {
-				if (!isRecord(data)) return;
-				if (Array.isArray(data.leaderboard)) {
-					const entries: LeaderboardEntry[] = [];
-					for (const item of data.leaderboard) {
-						if (
-							isRecord(item) &&
-							typeof item.rank === 'number' &&
-							typeof item.userId === 'string' &&
-							typeof item.displayName === 'string' &&
-							typeof item.firstName === 'string' &&
-							typeof item.score === 'number' &&
-							typeof item.questionsAnswered === 'number' &&
-							typeof item.correctAnswers === 'number'
-						) {
-							entries.push({
-								rank: item.rank,
-								userId: item.userId,
-								displayName: item.displayName,
-								firstName: item.firstName,
-								score: item.score,
-								questionsAnswered: item.questionsAnswered,
-								correctAnswers: item.correctAnswers
-							});
-						}
-					}
-					leaderboardData = entries;
-				}
-				if (Array.isArray(data.sentToday)) {
-					leaderboardSentToday = data.sentToday.filter(
-						(v: unknown): v is string => typeof v === 'string'
-					);
-				}
-			})
-			.catch(() => {
-				// silently fail
-			});
-	}
-
-	function handleLeaderboardReactionSent(toUserId: string): void {
-		leaderboardSentToday = [...leaderboardSentToday, toUserId];
-	}
-
-	// Fetch leaderboard on mount for students
-	$effect(() => {
-		if (role === 'student' && classData?.leaderboard_enabled && classData.id) {
-			fetchLeaderboardData(classData.id);
-		}
-	});
-
 	// Student's assignment completion map for filtering
 	let studentCompletionMap = $derived.by(() => {
 		const map = new SvelteMap<string, boolean>();
@@ -451,28 +506,6 @@
 		}
 		return map;
 	});
-
-	function studentAssignmentStatusLabel(status: AssignmentStatus): {
-		label: string;
-		colorClass: string;
-	} {
-		if (status.completed) {
-			return { label: 'Completed', colorClass: 'bg-positive-background text-positive-stroke' };
-		}
-		if (status.attempted > 0) {
-			return { label: 'In Progress', colorClass: 'bg-warning-background text-warning-text' };
-		}
-		return {
-			label: 'Not Started',
-			colorClass: 'bg-shaded-background text-text-subtitle'
-		};
-	}
-
-	function studentAssignmentButtonLabel(status: AssignmentStatus): string {
-		if (status.completed) return 'Review';
-		if (status.attempted > 0) return 'Continue';
-		return 'Start Practice';
-	}
 
 	let filteredAssignments = $derived.by(() => {
 		const query = assignmentSearch.toLowerCase().trim();
@@ -507,6 +540,20 @@
 			});
 		}
 
+		// For students, surface the most urgent assignments first so they can see
+		// at a glance what's due soon: incomplete items ordered by earliest due
+		// date, then undated items, then completed items at the bottom.
+		if (role === 'student') {
+			result = [...result].sort((a, b) => {
+				const aDone = studentCompletionMap.get(a.id) === true;
+				const bDone = studentCompletionMap.get(b.id) === true;
+				if (aDone !== bDone) return aDone ? 1 : -1;
+				const aTime = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+				const bTime = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+				return aTime - bTime;
+			});
+		}
+
 		return result;
 	});
 
@@ -531,6 +578,8 @@
 	let confirmingArchive = $state(false);
 	let confirmingRemoveStudentId = $state<string | null>(null);
 	let confirmingLeave = $state(false);
+	let leaveError = $state<string | null>(null);
+	let leaveSubmitting = $state(false);
 	let confirmingRegenerate = $state(false);
 	let regenerateSuccess = $state(false);
 	let removeSuccessMessage = $state<string | null>(null);
@@ -568,11 +617,14 @@
 
 	let showInviteModal = $state(false);
 	let showCreateAssignmentModal = $state(false);
+	let showEditClassModal = $state(false);
 
 	let inviteModalEl = $state<HTMLDivElement | null>(null);
 	let assignmentModalEl = $state<HTMLDivElement | null>(null);
+	let editClassModalEl = $state<HTMLDivElement | null>(null);
 	let inviteOpenerEl: HTMLElement | null = null;
 	let assignmentOpenerEl: HTMLElement | null = null;
+	let editClassOpenerEl: HTMLElement | null = null;
 	let regenerateTriggerEl = $state<HTMLButtonElement | null>(null);
 
 	function getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -626,6 +678,10 @@
 		() => assignmentModalEl,
 		() => closeAssignmentModal()
 	);
+	const editClassModalKeydown = makeModalKeydown(
+		() => editClassModalEl,
+		() => closeEditClassModal()
+	);
 
 	function closeInviteModal(): void {
 		showInviteModal = false;
@@ -640,6 +696,14 @@
 		if (assignmentOpenerEl) {
 			assignmentOpenerEl.focus();
 			assignmentOpenerEl = null;
+		}
+	}
+
+	function closeEditClassModal(): void {
+		showEditClassModal = false;
+		if (editClassOpenerEl) {
+			editClassOpenerEl.focus();
+			editClassOpenerEl = null;
 		}
 	}
 
@@ -658,6 +722,18 @@
 	$effect(() => {
 		if (!showCreateAssignmentModal) return;
 		const el = assignmentModalEl;
+		if (!el) return;
+		const focusables = getFocusableElements(el);
+		if (focusables.length > 0) {
+			focusables[0].focus();
+		} else {
+			el.focus();
+		}
+	});
+
+	$effect(() => {
+		if (!showEditClassModal) return;
+		const el = editClassModalEl;
 		if (!el) return;
 		const focusables = getFocusableElements(el);
 		if (focusables.length > 0) {
@@ -704,7 +780,7 @@
 		},
 		{
 			target: 'teacher-tabs',
-			text: 'Switch between the Overall summary, your Students roster, and Assignments using these tabs. The counts update automatically.'
+			text: 'Switch between the Overall summary, your Students roster, and Assignments using these tabs.'
 		},
 		{
 			target: 'teacher-accuracy',
@@ -759,6 +835,18 @@
 	let assignmentSubmitting = $state(false);
 	let assignmentError = $state<string | null>(null);
 	let assignmentValidationError = $state<string | null>(null);
+
+	// Edit class modal state
+	let editClassSubmitting = $state(false);
+	let editClassError = $state<string | null>(null);
+
+	function openEditClassModal(e?: MouseEvent) {
+		editClassError = null;
+		editClassSubmitting = false;
+		const target = e?.currentTarget;
+		editClassOpenerEl = target instanceof HTMLElement ? target : null;
+		showEditClassModal = true;
+	}
 
 	function openInviteModal(e?: MouseEvent) {
 		inviteError = null;
@@ -835,7 +923,79 @@
 			day: 'numeric',
 			year: date.getUTCFullYear() !== now.getUTCFullYear() ? 'numeric' : undefined
 		});
-		return isPast ? `Overdue (${formatted})` : `Due ${formatted}`;
+		const timeSuffix = formatTimeSuffix(date);
+		return isPast ? `Overdue (${formatted}${timeSuffix})` : `Due ${formatted}${timeSuffix}`;
+	}
+
+	type DueUrgency = 'overdue' | 'soon' | 'later';
+
+	/** Format a time suffix like " at 3:00 PM" if the timestamp isn't midnight UTC. */
+	function formatTimeSuffix(date: Date): string {
+		if (date.getUTCHours() === 0 && date.getUTCMinutes() === 0) return '';
+		return (
+			' at ' +
+			date.toLocaleTimeString('en-US', {
+				timeZone: 'UTC',
+				hour: 'numeric',
+				minute: '2-digit'
+			})
+		);
+	}
+
+	function getDueInfo(
+		dateStr: string | null,
+		completed: boolean
+	): { urgency: DueUrgency | null; label: string; pillClass: string } | null {
+		if (dateStr === null) return null;
+		const date = new Date(dateStr);
+		const now = new Date();
+		const formatted = date.toLocaleDateString('en-US', {
+			timeZone: 'UTC',
+			month: 'short',
+			day: 'numeric',
+			year: date.getUTCFullYear() !== now.getUTCFullYear() ? 'numeric' : undefined
+		});
+		const timeSuffix = formatTimeSuffix(date);
+
+		// If completed, just show a muted "Due <date>" without urgency styling.
+		if (completed) {
+			return {
+				urgency: null,
+				label: `Due ${formatted}`,
+				pillClass: 'bg-shaded-background text-text-subtitle'
+			};
+		}
+
+		const msPerDay = 24 * 60 * 60 * 1000;
+		const dueDay = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+		const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+		const daysDiff = Math.round((dueDay - today) / msPerDay);
+
+		if (daysDiff < 0) {
+			return {
+				urgency: 'overdue',
+				label: `Overdue · ${formatted}`,
+				pillClass: 'bg-negative-background text-negative-stroke'
+			};
+		}
+		let relative: string;
+		if (daysDiff === 0) relative = `Due today${timeSuffix}`;
+		else if (daysDiff === 1) relative = `Due tomorrow${timeSuffix}`;
+		else if (daysDiff <= 6) relative = `Due in ${daysDiff} days`;
+		else relative = `Due ${formatted}`;
+
+		if (daysDiff <= 3) {
+			return {
+				urgency: 'soon',
+				label: relative,
+				pillClass: 'bg-orange-500 text-white'
+			};
+		}
+		return {
+			urgency: 'later',
+			label: relative,
+			pillClass: 'bg-shaded-background text-text-subtitle'
+		};
 	}
 
 	function studentDisplayName(student: StudentRow): string {
@@ -987,13 +1147,15 @@
 					<div class="flex items-center gap-2">
 						<h1 class="truncate text-xl font-semibold text-text-default">{classData.name}</h1>
 						{#if role === 'teacher' && !classData.archived}
-							<a
-								href={resolve(`/classes/${classData.id}/edit`)}
-								class="inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+							<button
+								type="button"
+								onclick={openEditClassModal}
+								class="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1.5 text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 								title="Edit class"
+								aria-label="Edit class"
 							>
 								<Pencil class="h-4 w-4" aria-hidden="true" />
-							</a>
+							</button>
 						{/if}
 					</div>
 					<p class="mt-1 text-sm text-text-subtitle">
@@ -1002,98 +1164,102 @@
 						>
 							Level {classData.level}
 						</span>
-						<span class="mx-1">&middot;</span>
-						{students.length}
-						{students.length === 1 ? 'student' : 'students'}
+						{#if role === 'teacher'}
+							<span class="mx-1">&middot;</span>
+							{students.length}
+							{students.length === 1 ? 'student' : 'students'}
+						{/if}
 					</p>
 					{#if classData.description}
 						<p class="mt-1 text-sm text-text-subtitle">{classData.description}</p>
 					{/if}
 
-					<!-- Class code pill + regenerate -->
-					<div class="mt-3 flex flex-wrap items-center gap-2">
-						<button
-							type="button"
-							onclick={copyCode}
-							title="Click to copy"
-							data-tour="teacher-code"
-							class="cursor-pointer rounded-full border px-3 py-1.5 font-mono text-xs transition-colors {codeCopied
-								? 'border-positive-stroke text-positive-stroke'
-								: 'border-card-stroke text-text-subtitle hover:border-emphasis hover:text-text-default'}"
-						>
-							{codeCopied ? 'Copied!' : displayedClassCode}
-						</button>
-						{#if role === 'teacher' && !classData.archived}
-							<div class="relative">
-								{#if confirmingRegenerate}
-									<div
-										id="regenerate-popover"
-										class="absolute left-0 top-full z-20 mt-1 w-56 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
-									>
-										<p class="mb-2 text-xs text-text-subtitle">
-											Regenerate the class code? Students will need the new code to join.
-										</p>
-										<div class="flex items-center gap-2">
-											<form
-												method="POST"
-												action="?/regenerateCode"
-												use:enhance={() => {
-													return async ({ result, update }) => {
-														confirmingRegenerate = false;
-														if (result.type === 'success') {
-															regenerateSuccess = true;
-															if (
-																isRecord(result.data) &&
-																typeof result.data.classCode === 'string'
-															) {
-																overriddenClassCode = result.data.classCode;
+					<!-- Class code pill + regenerate (teacher only) -->
+					{#if role === 'teacher'}
+						<div class="mt-3 flex flex-wrap items-center gap-2">
+							<button
+								type="button"
+								onclick={copyCode}
+								title="Click to copy"
+								data-tour="teacher-code"
+								class="cursor-pointer rounded-full border px-3 py-1.5 font-mono text-xs transition-colors {codeCopied
+									? 'border-positive-stroke text-positive-stroke'
+									: 'border-card-stroke text-text-subtitle hover:border-emphasis hover:text-text-default'}"
+							>
+								{codeCopied ? 'Copied!' : displayedClassCode}
+							</button>
+							{#if !classData.archived}
+								<div class="relative">
+									{#if confirmingRegenerate}
+										<div
+											id="regenerate-popover"
+											class="absolute left-0 top-full z-20 mt-1 w-56 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
+										>
+											<p class="mb-2 text-xs text-text-subtitle">
+												Regenerate the class code? Students will need the new code to join.
+											</p>
+											<div class="flex items-center gap-2">
+												<form
+													method="POST"
+													action="?/regenerateCode"
+													use:enhance={() => {
+														return async ({ result, update }) => {
+															confirmingRegenerate = false;
+															if (result.type === 'success') {
+																regenerateSuccess = true;
+																if (
+																	isRecord(result.data) &&
+																	typeof result.data.classCode === 'string'
+																) {
+																	overriddenClassCode = result.data.classCode;
+																}
+																setTimeout(() => {
+																	regenerateSuccess = false;
+																}, 2000);
 															}
-															setTimeout(() => {
-																regenerateSuccess = false;
-															}, 2000);
-														}
-														await update();
-													};
-												}}
-											>
-												<button
-													type="submit"
-													class="cursor-pointer rounded-lg border border-negative-stroke px-2.5 py-1 text-xs font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+															await update();
+														};
+													}}
 												>
-													Regenerate
+													<button
+														type="submit"
+														class="cursor-pointer rounded-lg border border-negative-stroke px-2.5 py-1 text-xs font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+													>
+														Regenerate
+													</button>
+												</form>
+												<button
+													type="button"
+													onclick={() => (confirmingRegenerate = false)}
+													class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+												>
+													Cancel
 												</button>
-											</form>
-											<button
-												type="button"
-												onclick={() => (confirmingRegenerate = false)}
-												class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
-											>
-												Cancel
-											</button>
+											</div>
 										</div>
-									</div>
-								{/if}
-								<button
-									type="button"
-									title={regenerateSuccess ? 'Class code updated' : 'Regenerate class code'}
-									aria-label="Regenerate class code"
-									bind:this={regenerateTriggerEl}
-									onclick={() => (confirmingRegenerate = !confirmingRegenerate)}
-									class="inline-flex cursor-pointer items-center justify-center rounded-lg border p-1.5 transition-colors {regenerateSuccess
-										? 'border-positive-stroke text-positive-stroke'
-										: 'border-card-stroke text-text-subtitle hover:border-emphasis hover:text-text-default'}"
-								>
-									{#if regenerateSuccess}
-										<!-- Check icon -->
-										<Check class="size-3.5" aria-hidden="true" />
-									{:else}
-										<!-- Refresh icon -->
-										<RefreshCw class="size-3.5" aria-hidden="true" />
 									{/if}
-								</button>
-							</div>
-						{/if}
-					</div>
+									<button
+										type="button"
+										title={regenerateSuccess ? 'Class code updated' : 'Regenerate class code'}
+										aria-label="Regenerate class code"
+										bind:this={regenerateTriggerEl}
+										onclick={() => (confirmingRegenerate = !confirmingRegenerate)}
+										class="inline-flex cursor-pointer items-center justify-center rounded-lg border p-1.5 transition-colors {regenerateSuccess
+											? 'border-positive-stroke text-positive-stroke'
+											: 'border-card-stroke text-text-subtitle hover:border-emphasis hover:text-text-default'}"
+									>
+										{#if regenerateSuccess}
+											<!-- Check icon -->
+											<Check class="size-3.5" aria-hidden="true" />
+										{:else}
+											<!-- Refresh icon -->
+											<RefreshCw class="size-3.5" aria-hidden="true" />
+										{/if}
+									</button>
+								</div>
+							{/if}
+						</div>
+					{/if}
 				</div>
 
 				<!-- Right: archive/unarchive icon button -->
@@ -1273,13 +1439,13 @@
 							<h2 class="mb-3 text-lg font-semibold text-text-default">Class Accuracy</h2>
 							<div class="grid grid-cols-4 gap-2 sm:grid-cols-8">
 								<div
-									class="rounded-xl border border-card-stroke p-3 text-center {avgClassAccuracy !==
+									class="flex flex-col justify-center rounded-xl border-2 border-current p-3 text-center sm:mr-2 {avgClassAccuracy !==
 									null
 										? caseAccuracyColor(avgClassAccuracy)
 										: 'bg-card-bg text-text-subtitle'}"
 								>
-									<p class="text-xs font-medium uppercase">Avg</p>
-									<p class="text-lg font-bold">
+									<p class="text-xs font-bold uppercase tracking-wide">Avg</p>
+									<p class="text-xl font-extrabold">
 										{avgClassAccuracy !== null ? `${Math.round(avgClassAccuracy)}%` : '--'}
 									</p>
 								</div>
@@ -1315,6 +1481,161 @@
 								mode="teacher"
 							/>
 						</div>
+
+						<!-- Paradigm Accuracy Heatmap (teacher only) -->
+						{#if role === 'teacher' && hasParadigmData}
+							<div class="mb-6">
+								<h2 class="mb-3 text-lg font-semibold text-text-default">Paradigm Accuracy</h2>
+								<div class="flex flex-col gap-4">
+									{#each PARADIGM_GROUPS as group (group.label)}
+										{@const groupParadigms = group.paradigms}
+										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+											<p
+												class="mb-3 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+											>
+												{group.label}
+											</p>
+											<div class="overflow-x-auto pb-2">
+												<!-- Case header labels -->
+												<div class="mb-1 flex items-center">
+													<div class="w-28 shrink-0"></div>
+													<div class="w-5 shrink-0"></div>
+													{#each CASE_META as cm (cm.key)}
+														<div
+															class="shrink-0 text-center text-xs text-text-subtitle"
+															style="width: 32px;"
+														>
+															{cm.abbrev}
+														</div>
+													{/each}
+												</div>
+												<!-- Paradigm rows -->
+												{#each groupParadigms as paradigm, pi (paradigm)}
+													{#if pi > 0}
+														<div class="my-1.5 border-t border-card-stroke"></div>
+													{/if}
+													<div class="flex items-center">
+														<div class="w-28 shrink-0 pr-2">
+															<p class="text-xs font-medium leading-tight text-text-default">
+																{paradigm}
+															</p>
+															<p class="text-xs leading-tight text-text-subtitle">
+																{PARADIGM_DESC[paradigm] ?? ''}
+															</p>
+														</div>
+														<div class="flex flex-col gap-0.5">
+															<!-- Sg row -->
+															<div class="flex items-center">
+																<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																	Sg
+																</div>
+																{#each CASE_META as cm (cm.key)}
+																	{@const score = getParadigmCaseNumberScore(
+																		paradigm,
+																		cm.key,
+																		'sg'
+																	)}
+																	{@const pct =
+																		score.attempts > 0
+																			? Math.round((score.correct / score.attempts) * 100)
+																			: -1}
+																	<div class="flex shrink-0 justify-center" style="width: 32px;">
+																		<div
+																			class="h-5 w-6 rounded-[3px]"
+																			style="background-color: {pct >= 0
+																				? accuracyColor(pct)
+																				: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																				? 0.85
+																				: 1};"
+																			role="gridcell"
+																			tabindex="0"
+																			aria-label="{paradigm} {cm.label} singular: {pct >= 0
+																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																				: 'no data'}"
+																			onmouseenter={(e: MouseEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'sg')}
+																			onmouseleave={handleCellLeave}
+																			onfocus={(e: FocusEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'sg')}
+																			onblur={handleCellLeave}
+																		></div>
+																	</div>
+																{/each}
+															</div>
+															<!-- Pl row -->
+															<div class="flex items-center">
+																<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																	Pl
+																</div>
+																{#each CASE_META as cm (cm.key)}
+																	{@const score = getParadigmCaseNumberScore(
+																		paradigm,
+																		cm.key,
+																		'pl'
+																	)}
+																	{@const pct =
+																		score.attempts > 0
+																			? Math.round((score.correct / score.attempts) * 100)
+																			: -1}
+																	<div class="flex shrink-0 justify-center" style="width: 32px;">
+																		<div
+																			class="h-5 w-6 rounded-[3px]"
+																			style="background-color: {pct >= 0
+																				? accuracyColor(pct)
+																				: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																				? 0.85
+																				: 1};"
+																			role="gridcell"
+																			tabindex="0"
+																			aria-label="{paradigm} {cm.label} plural: {pct >= 0
+																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																				: 'no data'}"
+																			onmouseenter={(e: MouseEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'pl')}
+																			onmouseleave={handleCellLeave}
+																			onfocus={(e: FocusEvent) =>
+																				handleCellEnter(e, paradigm, cm.key, 'pl')}
+																			onblur={handleCellLeave}
+																		></div>
+																	</div>
+																{/each}
+															</div>
+														</div>
+													</div>
+												{/each}
+											</div>
+										</div>
+									{/each}
+
+									<!-- Legend -->
+									<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+										<div class="flex items-center gap-1">
+											<div
+												class="h-3 w-3 rounded-[2px]"
+												style="background-color: var(--color-shaded-background);"
+											></div>
+											No data
+										</div>
+										<div class="flex items-center gap-1">
+											<div class="h-3 w-3 rounded-[2px]" style="background-color: #ef4444;"></div>
+											&lt;40%
+										</div>
+										<div class="flex items-center gap-1">
+											<div class="h-3 w-3 rounded-[2px]" style="background-color: #f97316;"></div>
+											40–59%
+										</div>
+										<div class="flex items-center gap-1">
+											<div class="h-3 w-3 rounded-[2px]" style="background-color: #eab308;"></div>
+											60–79%
+										</div>
+										<div class="flex items-center gap-1">
+											<div class="h-3 w-3 rounded-[2px]" style="background-color: #22c55e;"></div>
+											≥80%
+										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
 					{:else if students.length > 0 && !hasProgressData}
 						<!-- Empty progress state -->
 						<div
@@ -1443,47 +1764,73 @@
 														{student.totalAttempts}
 													</td>
 													{#if !classData.archived}
-														<td class="px-2 py-3">
+														<td class="relative px-2 py-3">
 															{#if confirmingRemoveStudentId === student.studentId}
-																<form
-																	method="POST"
-																	action="?/removeStudent"
-																	use:enhance={() => {
-																		return async ({ result, update }) => {
-																			if (result.type === 'success') {
-																				const name = studentDisplayName(student);
-																				removeSuccessMessage = `${name} has been removed from the class.`;
-																				if (removeSuccessTimer) clearTimeout(removeSuccessTimer);
-																				removeSuccessTimer = setTimeout(() => {
-																					removeSuccessMessage = null;
-																				}, 3000);
-																			}
-																			confirmingRemoveStudentId = null;
-																			await update();
-																		};
-																	}}
+																<div
+																	class="absolute right-0 top-full z-10 mt-1 w-52 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
 																>
-																	<input type="hidden" name="studentId" value={student.studentId} />
-																	<button
-																		type="submit"
-																		class="cursor-pointer text-xs text-red-600 hover:underline"
-																		onclick={(e) => e.stopPropagation()}
-																	>
-																		Confirm
-																	</button>
-																</form>
-															{:else}
-																<button
-																	type="button"
-																	class="cursor-pointer text-xs text-text-subtitle hover:text-red-500"
-																	onclick={(e) => {
-																		e.stopPropagation();
-																		confirmingRemoveStudentId = student.studentId;
-																	}}
-																>
-																	Remove
-																</button>
+																	<p class="mb-2 text-xs text-text-subtitle">
+																		Remove {studentDisplayName(student)} from class?
+																	</p>
+																	<div class="flex items-center gap-2">
+																		<form
+																			method="POST"
+																			action="?/removeStudent"
+																			use:enhance={() => {
+																				return async ({ result, update }) => {
+																					if (result.type === 'success') {
+																						const name = studentDisplayName(student);
+																						removeSuccessMessage = `${name} has been removed from the class.`;
+																						if (removeSuccessTimer)
+																							clearTimeout(removeSuccessTimer);
+																						removeSuccessTimer = setTimeout(() => {
+																							removeSuccessMessage = null;
+																						}, 3000);
+																					}
+																					confirmingRemoveStudentId = null;
+																					await update();
+																				};
+																			}}
+																		>
+																			<input
+																				type="hidden"
+																				name="studentId"
+																				value={student.studentId}
+																			/>
+																			<button
+																				type="submit"
+																				class="cursor-pointer rounded-lg border border-negative-stroke px-2.5 py-1 text-xs font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+																				onclick={(e) => e.stopPropagation()}
+																			>
+																				Yes, remove
+																			</button>
+																		</form>
+																		<button
+																			type="button"
+																			onclick={(e) => {
+																				e.stopPropagation();
+																				confirmingRemoveStudentId = null;
+																			}}
+																			class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+																		>
+																			Cancel
+																		</button>
+																	</div>
+																</div>
 															{/if}
+															<button
+																type="button"
+																class="cursor-pointer text-xs text-text-subtitle hover:text-red-500"
+																onclick={(e) => {
+																	e.stopPropagation();
+																	confirmingRemoveStudentId =
+																		confirmingRemoveStudentId === student.studentId
+																			? null
+																			: student.studentId;
+																}}
+															>
+																Remove
+															</button>
 														</td>
 													{/if}
 												</tr>
@@ -1524,6 +1871,59 @@
 																		{/each}
 																	</div>
 																</div>
+
+																<!-- Recent Mistakes -->
+																{#if student.recentMistakes.length > 0}
+																	<div>
+																		<h4
+																			class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+																		>
+																			Recent Mistakes
+																		</h4>
+																		<div
+																			class="overflow-hidden rounded-lg border border-card-stroke bg-card-bg"
+																		>
+																			<table class="w-full text-xs">
+																				<thead>
+																					<tr
+																						class="border-b border-card-stroke text-left text-text-subtitle"
+																					>
+																						<th class="px-2 py-1.5 font-medium">Word</th>
+																						<th class="px-2 py-1.5 font-medium">Correct form</th>
+																						<th class="px-2 py-1.5 font-medium">Student answered</th
+																						>
+																						<th class="px-2 py-1.5 font-medium">Case</th>
+																					</tr>
+																				</thead>
+																				<tbody>
+																					{#each student.recentMistakes as mistake (mistake.word + mistake.expectedForm + mistake.givenAnswer + mistake.case)}
+																						{@const mistakeCaseLabel = isCaseKey(mistake.case)
+																							? CASE_LABELS[mistake.case]
+																							: mistake.case}
+																						<tr
+																							class="border-b border-card-stroke/50 last:border-b-0"
+																						>
+																							<td class="px-2 py-1.5 text-text-default"
+																								>{mistake.word}</td
+																							>
+																							<td
+																								class="px-2 py-1.5 font-medium text-positive-stroke"
+																								>{mistake.expectedForm}</td
+																							>
+																							<td
+																								class="px-2 py-1.5 font-medium text-negative-stroke"
+																								>{mistake.givenAnswer}</td
+																							>
+																							<td class="px-2 py-1.5 text-text-subtitle"
+																								>{mistakeCaseLabel}</td
+																							>
+																						</tr>
+																					{/each}
+																				</tbody>
+																			</table>
+																		</div>
+																	</div>
+																{/if}
 
 																<!-- Assignment progress -->
 																<div>
@@ -1625,10 +2025,10 @@
 											assignmentFilter = item.value;
 											showAllAssignments = false;
 										}}
-										class="cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors {assignmentFilter ===
+										class="cursor-pointer rounded-full border px-3 py-1 text-xs font-medium transition-colors {assignmentFilter ===
 										item.value
-											? 'bg-emphasis text-text-inverted'
-											: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
+											? 'border-emphasis bg-emphasis text-text-inverted'
+											: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-emphasis hover:text-text-default'}"
 									>
 										{item.label}
 									</button>
@@ -1653,8 +2053,8 @@
 										href={resolve(`/classes/${classData.id}/assignments/${assignment.id}`)}
 										class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
 									>
-										<div class="flex items-start justify-between">
-											<div>
+										<div class="flex items-start justify-between gap-3">
+											<div class="min-w-0 flex-1">
 												<h3 class="font-semibold text-text-default">
 													{assignment.title}
 												</h3>
@@ -1663,26 +2063,44 @@
 														{assignment.description}
 													</p>
 												{/if}
-												<div class="mt-2 flex flex-wrap gap-1">
-													{#each assignment.selectedCases as c (c)}
-														{#if isCaseKey(c)}
-															<span
-																class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
-															>
-																{CASE_LABELS[c]}
-															</span>
-														{/if}
-													{/each}
-													{#each assignment.selectedDrillTypes as dt (dt)}
-														{#if isDrillTypeKey(dt)}
-															<span
-																class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
-															>
-																{DRILL_TYPE_LABELS[dt]}
-															</span>
-														{/if}
-													{/each}
-												</div>
+												<dl
+													class="mt-2 grid grid-cols-[max-content_1fr] items-start gap-x-3 gap-y-1.5 text-xs"
+												>
+													<dt class="pt-0.5 text-text-subtitle">Cases</dt>
+													<dd class="flex flex-wrap gap-1">
+														{#each assignment.selectedCases as c (c)}
+															{#if isCaseKey(c)}
+																<span
+																	class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
+																>
+																	{CASE_LABELS[c]}
+																</span>
+															{/if}
+														{/each}
+													</dd>
+													<dt class="pt-0.5 text-text-subtitle">Drill types</dt>
+													<dd class="flex flex-wrap gap-1">
+														{#each assignment.selectedDrillTypes as dt (dt)}
+															{#if isDrillTypeKey(dt)}
+																<span
+																	class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
+																>
+																	{DRILL_TYPE_LABELS[dt]}
+																</span>
+															{/if}
+														{/each}
+													</dd>
+													<dt class="text-text-subtitle">Number</dt>
+													<dd class="text-text-default">
+														{formatNumberMode(assignment.numberMode)}
+													</dd>
+													<dt class="text-text-subtitle">Content</dt>
+													<dd class="text-text-default">
+														{formatContentMode(assignment.contentMode)}
+													</dd>
+													<dt class="text-text-subtitle">Questions</dt>
+													<dd class="text-text-default">{assignment.targetQuestions}</dd>
+												</dl>
 											</div>
 											<div class="flex flex-col items-end gap-1">
 												{#if assignment.dueDate}
@@ -1720,90 +2138,18 @@
 			{/if}
 		{/if}
 
-		<!-- ==================== STUDENT VIEW (no tabs) ==================== -->
+		<!-- ==================== STUDENT VIEW ==================== -->
 		{#if role === 'student'}
-			<!-- Student Stats Dashboard -->
-			{#if studentStats}
-				<div class="mb-6 grid grid-cols-3 gap-3">
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
-						<p class="text-2xl font-bold text-text-default">
-							{studentStats.totalAttempts}
-						</p>
-						<p class="text-xs text-text-subtitle">Questions Attempted</p>
-					</div>
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
-						<p class="text-2xl font-bold text-text-default">
-							{studentStats.overallAccuracy !== null
-								? `${Math.round(studentStats.overallAccuracy)}%`
-								: '--'}
-						</p>
-						<p class="text-xs text-text-subtitle">Overall Accuracy</p>
-					</div>
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
-						<p class="text-2xl font-bold text-text-default">
-							{studentStats.assignmentsCompleted}/{studentStats.assignmentsTotal}
-						</p>
-						<p class="text-xs text-text-subtitle">Assignments Completed</p>
-					</div>
-				</div>
-
-				{#if studentStats.caseScores.length > 0}
-					<div class="mb-6">
-						<h2 class="mb-3 text-lg font-semibold text-text-default">Your Case Accuracy</h2>
-						<div class="grid grid-cols-7 gap-2">
-							{#each ALL_CASES as c (c)}
-								{@const score = findCaseScore(studentStats.caseScores, c)}
-								<div
-									class="rounded-xl border border-card-stroke p-3 text-center {score
-										? caseAccuracyColor(score.accuracy)
-										: 'bg-card-bg text-text-subtitle'}"
-								>
-									<p class="text-xs font-medium uppercase">
-										{CASE_LABELS[c].slice(0, 3)}
-									</p>
-									<p class="text-lg font-bold">
-										{score ? `${Math.round(score.accuracy)}%` : '--'}
-									</p>
-									{#if score && score.attempts > 0}
-										<p class="text-[10px] opacity-70">
-											{score.correct}/{score.attempts}
-										</p>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			{/if}
-
-			<!-- Leaderboard -->
-			{#if showLeaderboard && classData}
-				<div class="mb-6">
-					<LeaderboardBanner
-						leaderboard={leaderboardData}
-						{currentUserId}
-						classId={classData.id}
-						sentToday={leaderboardSentToday}
-						onReactionSent={handleLeaderboardReactionSent}
-					/>
-				</div>
-			{/if}
-
-			<!-- Progress Over Time -->
-			{#if progressSnapshots.length > 0}
-				<div class="mb-6">
-					<ProgressChart snapshots={progressSnapshots} students={chartStudents} mode="student" />
-				</div>
-			{/if}
-
 			<!-- Assignments -->
 			<div class="mb-6">
-				<div class="mb-3 flex items-center justify-between">
-					<h2 class="text-lg font-semibold text-text-default">
-						Assignments ({assignments.length})
-					</h2>
+				<div class="mb-3 flex items-center gap-2">
+					<h2 class="text-lg font-semibold text-text-default">Assignments</h2>
+					<span
+						class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-medium text-text-subtitle"
+					>
+						{assignments.length}
+					</span>
 				</div>
-
 				{#if assignments.length === 0}
 					<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
 						<p class="text-sm text-text-subtitle">No assignments yet.</p>
@@ -1819,10 +2165,10 @@
 										assignmentFilter = item.value;
 										showAllAssignments = false;
 									}}
-									class="cursor-pointer rounded-full px-3 py-1 text-xs font-medium transition-colors {assignmentFilter ===
+									class="cursor-pointer rounded-full border px-3 py-1 text-xs font-medium transition-colors {assignmentFilter ===
 									item.value
-										? 'bg-emphasis text-text-inverted'
-										: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
+										? 'border-emphasis bg-emphasis text-text-inverted'
+										: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-emphasis hover:text-text-default'}"
 								>
 									{item.label}
 								</button>
@@ -1843,100 +2189,67 @@
 					{:else}
 						<div class="space-y-3">
 							{#each visibleAssignments as assignment (assignment.id)}
+								{@const studentStatus = studentAssignmentProgressMap.get(assignment.id)}
+								{@const isDone = studentStatus?.completed === true}
+								{@const dueInfo = getDueInfo(assignment.dueDate, isDone)}
+								{@const status = studentStatus ?? {
+									assignmentId: assignment.id,
+									assignmentTitle: assignment.title,
+									attempted: 0,
+									target: assignment.targetQuestions,
+									correct: 0,
+									completed: false
+								}}
+								{@const progressPct =
+									status.target > 0
+										? Math.min(100, Math.round((status.attempted / status.target) * 100))
+										: 0}
 								<a
-									href={resolve(`/classes/${classData.id}/assignments/${assignment.id}`)}
-									class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
+									href="{resolve('/')}?assignment={assignment.id}"
+									class="flex items-center gap-3 rounded-2xl border p-3 transition-colors sm:p-4 {isDone
+										? 'border-card-stroke bg-card-bg opacity-60 hover:opacity-100'
+										: dueInfo?.urgency === 'overdue'
+											? 'border-negative-stroke bg-negative-background hover:opacity-90'
+											: dueInfo?.urgency === 'soon'
+												? 'border-orange-400/60 bg-orange-50 hover:opacity-90 dark:bg-orange-950/30'
+												: 'border-card-stroke bg-card-bg hover:border-emphasis/40'}"
 								>
-									<div class="flex items-start justify-between">
-										<div>
-											<h3 class="font-semibold text-text-default">
+									<div class="min-w-0 flex-1">
+										<div class="flex flex-wrap items-center gap-2">
+											<h3 class="text-sm font-semibold text-text-default">
 												{assignment.title}
 											</h3>
-											{#if assignment.description}
-												<p class="mt-0.5 text-sm text-text-subtitle">
-													{assignment.description}
-												</p>
+											{#if dueInfo}
+												<span
+													class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {dueInfo.pillClass}"
+												>
+													{dueInfo.label}
+												</span>
 											{/if}
-											<div class="mt-2 flex flex-wrap gap-1">
-												{#each assignment.selectedCases as c (c)}
-													{#if isCaseKey(c)}
-														<span
-															class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
-														>
-															{CASE_LABELS[c]}
-														</span>
-													{/if}
-												{/each}
-												{#each assignment.selectedDrillTypes as dt (dt)}
-													{#if isDrillTypeKey(dt)}
-														<span
-															class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
-														>
-															{DRILL_TYPE_LABELS[dt]}
-														</span>
-													{/if}
-												{/each}
+										</div>
+										{#if assignment.description}
+											<p class="mt-0.5 text-xs text-text-subtitle">
+												{assignment.description}
+											</p>
+										{/if}
+									</div>
+									<div class="flex shrink-0 items-center gap-3">
+										<div class="flex flex-col items-end gap-0.5">
+											<span class="text-xs tabular-nums text-text-subtitle">
+												{Math.min(status.attempted, status.target)}/{status.target}
+											</span>
+											<div class="h-1.5 w-16 overflow-hidden rounded-full bg-shaded-background">
+												<div
+													class="h-full rounded-full {isDone
+														? 'bg-positive-stroke'
+														: 'bg-emphasis'}"
+													style="width: {progressPct}%"
+												></div>
 											</div>
 										</div>
-										<div class="flex flex-col items-end gap-1">
-											{#if assignment.dueDate}
-												<span
-													class="text-xs {new Date(assignment.dueDate) < new Date()
-														? 'text-negative-stroke'
-														: 'text-text-subtitle'}"
-												>
-													{formatDueDate(assignment.dueDate)}
-												</span>
-											{/if}
-											{#if true}
-												{@const progress = studentAssignmentProgressMap.get(assignment.id)}
-												{@const status = progress ?? {
-													assignmentId: assignment.id,
-													assignmentTitle: assignment.title,
-													attempted: 0,
-													target: assignment.targetQuestions,
-													correct: 0,
-													completed: false
-												}}
-												{@const statusInfo = studentAssignmentStatusLabel(status)}
-												{@const progressPct =
-													status.target > 0
-														? Math.min(100, Math.round((status.attempted / status.target) * 100))
-														: 0}
-												{@const accuracyPct =
-													status.attempted > 0
-														? Math.round((status.correct / status.attempted) * 100)
-														: null}
-												<span
-													class="rounded-full px-2 py-0.5 text-xs font-medium {statusInfo.colorClass}"
-												>
-													{statusInfo.label}
-												</span>
-												<span class="text-xs text-text-subtitle">
-													{status.attempted}/{status.target} questions
-												</span>
-												{#if accuracyPct !== null}
-													<span class="text-xs text-text-subtitle">
-														{accuracyPct}% accuracy
-													</span>
-												{/if}
-												<div
-													class="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-shaded-background"
-												>
-													<div
-														class="h-full rounded-full {status.completed
-															? 'bg-positive-stroke'
-															: 'bg-emphasis'}"
-														style="width: {progressPct}%"
-													></div>
-												</div>
-												<span
-													class="mt-1 rounded-xl bg-emphasis px-3 py-1 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90"
-												>
-													{studentAssignmentButtonLabel(status)}
-												</span>
-											{/if}
-										</div>
+										{#if isDone}
+											<span class="text-xs font-medium text-positive-stroke"> Done </span>
+										{/if}
 									</div>
 								</a>
 							{/each}
@@ -1959,17 +2272,47 @@
 
 			<!-- Leave Class -->
 			<div class="mb-6">
+				{#if leaveError}
+					<div
+						class="mb-3 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+					>
+						{leaveError}
+					</div>
+				{/if}
 				{#if confirmingLeave}
 					<div class="flex items-center gap-2">
 						<span class="text-sm text-text-subtitle"
 							>Are you sure you want to leave this class?</span
 						>
-						<form method="POST" action="?/leaveClass" use:enhance>
+						<form
+							method="POST"
+							action="?/leaveClass"
+							use:enhance={() => {
+								leaveSubmitting = true;
+								leaveError = null;
+								return async ({ result }) => {
+									leaveSubmitting = false;
+									if (result.type === 'redirect') {
+										// eslint-disable-next-line svelte/no-navigation-without-resolve -- result.location is server-side resolved URL
+										goto(result.location);
+									} else if (result.type === 'failure') {
+										const data: unknown = result.data;
+										if (isRecord(data) && typeof data.message === 'string') {
+											leaveError = data.message;
+										} else {
+											leaveError = 'Failed to leave class.';
+										}
+										confirmingLeave = false;
+									}
+								};
+							}}
+						>
 							<button
 								type="submit"
-								class="cursor-pointer rounded-xl border border-negative-stroke px-4 py-2 text-sm font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+								disabled={leaveSubmitting}
+								class="cursor-pointer rounded-xl border border-negative-stroke px-4 py-2 text-sm font-medium text-negative-stroke transition-colors hover:bg-negative-background disabled:opacity-50"
 							>
-								Yes, Leave
+								{leaveSubmitting ? 'Leaving...' : 'Yes, leave'}
 							</button>
 						</form>
 						<button
@@ -2159,11 +2502,12 @@
 						assignmentSubmitting = true;
 						return async ({ result }) => {
 							assignmentSubmitting = false;
-							if (result.type === 'redirect') {
+							if (result.type === 'redirect' || result.type === 'success') {
+								// Stay on the class page and refresh data so the new assignment
+								// appears in the list without navigating to it.
 								showCreateAssignmentModal = false;
 								assignmentOpenerEl = null;
-								// eslint-disable-next-line svelte/no-navigation-without-resolve -- result.location is server-side resolved URL
-								goto(result.location);
+								await invalidateAll();
 							} else if (result.type === 'failure') {
 								const data: unknown = result.data;
 								if (isRecord(data) && typeof data.message === 'string') {
@@ -2323,9 +2667,16 @@
 						<div>
 							<label
 								for="modal-min-accuracy"
-								class="mb-1 block text-sm font-medium text-text-default"
+								class="mb-1 flex items-center gap-1.5 text-sm font-medium text-text-default"
 							>
-								Min Accuracy (%) <span class="text-text-subtitle">(optional)</span>
+								Min Accuracy (%) <span class="font-normal text-text-subtitle">(optional)</span>
+								<span
+									class="inline-flex text-text-subtitle"
+									title="Students must reach at least this accuracy across the assignment to mark it complete. Leave blank to let any accuracy count as complete once they hit the target number of questions."
+									aria-label="Min accuracy help"
+								>
+									<HelpCircle class="size-3.5" aria-hidden="true" />
+								</span>
 							</label>
 							<input
 								type="number"
@@ -2364,7 +2715,181 @@
 		</div>
 	{/if}
 
+	<!-- Edit Class Modal -->
+	{#if showEditClassModal && classData}
+		<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<div
+				class="absolute inset-0 bg-black/50"
+				onclick={closeEditClassModal}
+				role="presentation"
+			></div>
+			<div
+				bind:this={editClassModalEl}
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="edit-class-modal-heading"
+				tabindex={-1}
+				onkeydown={editClassModalKeydown}
+				class="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+			>
+				<button
+					type="button"
+					aria-label="Close"
+					onclick={closeEditClassModal}
+					class="absolute right-4 top-4 cursor-pointer text-text-subtitle transition-colors hover:text-text-default"
+				>
+					<X class="h-5 w-5" aria-hidden="true" />
+				</button>
+
+				<h2 id="edit-class-modal-heading" class="mb-4 text-xl font-semibold text-text-default">
+					Edit Class
+				</h2>
+
+				{#if editClassError}
+					<div
+						class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
+					>
+						{editClassError}
+					</div>
+				{/if}
+
+				<form
+					method="POST"
+					action={resolve(`/classes/${classData.id}/edit`)}
+					use:enhance={() => {
+						editClassSubmitting = true;
+						editClassError = null;
+						return async ({ result, update }) => {
+							editClassSubmitting = false;
+							if (result.type === 'redirect') {
+								showEditClassModal = false;
+								editClassOpenerEl = null;
+								// eslint-disable-next-line svelte/no-navigation-without-resolve -- result.location is server-side resolved URL
+								goto(result.location);
+							} else if (result.type === 'success') {
+								showEditClassModal = false;
+								editClassOpenerEl = null;
+								await update();
+							} else if (result.type === 'failure') {
+								const data: unknown = result.data;
+								if (isRecord(data) && typeof data.message === 'string') {
+									editClassError = data.message;
+								} else {
+									editClassError = 'Failed to update class.';
+								}
+							}
+						};
+					}}
+				>
+					<div class="mb-4">
+						<label for="edit-name" class="mb-1 block text-sm font-medium text-text-default">
+							Class Name
+						</label>
+						<input
+							type="text"
+							id="edit-name"
+							name="name"
+							value={classData.name}
+							required
+							maxlength={100}
+							placeholder="e.g. Czech A1 - Monday Group"
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						/>
+					</div>
+
+					<div class="mb-4">
+						<label for="edit-description" class="mb-1 block text-sm font-medium text-text-default">
+							Description <span class="font-normal text-text-subtitle">(optional)</span>
+						</label>
+						<textarea
+							id="edit-description"
+							name="description"
+							value={classData.description ?? ''}
+							maxlength={500}
+							rows={2}
+							placeholder="e.g., Monday/Wednesday 10:00, Room 204"
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						></textarea>
+					</div>
+
+					<div class="mb-4">
+						<label for="edit-level" class="mb-1 block text-sm font-medium text-text-default">
+							Level
+						</label>
+						<select
+							id="edit-level"
+							name="level"
+							value={classData.level}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+						>
+							<option value="A1">A1 - Beginner</option>
+							<option value="A2">A2 - Elementary</option>
+							<option value="B1">B1 - Intermediate</option>
+							<option value="B2">B2 - Upper Intermediate</option>
+						</select>
+					</div>
+
+					<div class="mb-6">
+						<label
+							for="edit-leaderboard-enabled"
+							class="flex cursor-pointer items-center justify-between"
+						>
+							<div>
+								<span class="block text-sm font-medium text-text-default"
+									>Enable weekly leaderboard</span
+								>
+								<span class="text-xs text-text-subtitle"
+									>Students can see their rank and cheer each other</span
+								>
+							</div>
+							<div class="relative">
+								<input
+									type="checkbox"
+									id="edit-leaderboard-enabled"
+									name="leaderboard_enabled"
+									checked={classData.leaderboard_enabled}
+									class="peer sr-only"
+								/>
+								<div
+									class="h-6 w-11 rounded-full bg-darker-shaded-background transition-colors peer-checked:bg-emphasis"
+								></div>
+								<div
+									class="absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"
+								></div>
+							</div>
+						</label>
+					</div>
+
+					<button
+						type="submit"
+						disabled={editClassSubmitting}
+						class="w-full cursor-pointer rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+					>
+						{editClassSubmitting ? 'Saving...' : 'Save Changes'}
+					</button>
+				</form>
+			</div>
+		</div>
+	{/if}
+
 	{#if showTeacherTour}
 		<GuidedTour steps={teacherTourSteps} onComplete={dismissTeacherTour} />
 	{/if}
+{/if}
+
+<!-- Paradigm heatmap tooltip -->
+{#if hoveredCell && hoveredCellScore}
+	<div
+		class="pointer-events-none fixed z-50 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-lg"
+		style="left: {hoveredCell.x}px; top: {hoveredCell.y - 8}px; transform: translate(-50%, -100%);"
+	>
+		<p class="font-medium text-text-default">{hoveredCellScore.label}</p>
+		{#if hoveredCellScore.pct >= 0}
+			<p style="color: {accuracyColor(hoveredCellScore.pct)}">
+				{hoveredCellScore.pct}% ({attemptLabel(hoveredCellScore.attempts)})
+			</p>
+		{:else}
+			<p class="text-text-subtitle">No data</p>
+		{/if}
+	</div>
 {/if}

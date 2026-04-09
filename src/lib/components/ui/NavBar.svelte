@@ -14,10 +14,6 @@
 	let isResourcesPage = $derived(page.url.pathname.startsWith('/resources'));
 	let isClassesPage = $derived(page.url.pathname.startsWith('/classes'));
 
-	let pendingAssignmentCount = $derived(
-		typeof page.data.pendingAssignmentCount === 'number' ? page.data.pendingAssignmentCount : 0
-	);
-
 	let {
 		user = null,
 		onSignIn,
@@ -59,8 +55,29 @@
 	let menuOpen = $state(false);
 	let menuRef: HTMLDivElement | undefined = $state(undefined);
 	let toggleButtonRef: HTMLButtonElement | undefined = $state(undefined);
+	let hoverCloseTimer: ReturnType<typeof setTimeout> | null = null;
 	function closeMenu() {
 		menuOpen = false;
+	}
+
+	function cancelHoverClose() {
+		if (hoverCloseTimer !== null) {
+			clearTimeout(hoverCloseTimer);
+			hoverCloseTimer = null;
+		}
+	}
+
+	function handleHoverEnter() {
+		cancelHoverClose();
+		menuOpen = true;
+	}
+
+	function handleHoverLeave() {
+		cancelHoverClose();
+		hoverCloseTimer = setTimeout(() => {
+			menuOpen = false;
+			hoverCloseTimer = null;
+		}, 150);
 	}
 
 	// Outside-click listener managed via $effect, properly cleaned up on destroy
@@ -126,6 +143,7 @@
 	$effect(() => {
 		return () => {
 			if (themeBounceTimer !== null) clearTimeout(themeBounceTimer);
+			if (hoverCloseTimer !== null) clearTimeout(hoverCloseTimer);
 		};
 	});
 
@@ -174,23 +192,13 @@
 		</a>
 		<a
 			href={resolve('/classes')}
-			class="nav-tab relative text-xs transition-colors sm:text-sm {isClassesPage
+			class="nav-tab text-xs transition-colors sm:text-sm {isClassesPage
 				? 'font-semibold text-text-default'
 				: 'text-text-subtitle hover:text-text-default'}"
 			data-label="Classes"
 			data-tour="classes-link"
 		>
 			Classes
-			{#if pendingAssignmentCount > 0}
-				<span
-					class="absolute -right-3.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold leading-none text-white sm:-right-4 sm:-top-2 sm:size-[18px] sm:text-[11px]"
-					aria-label="{pendingAssignmentCount} pending assignment{pendingAssignmentCount === 1
-						? ''
-						: 's'}"
-				>
-					{pendingAssignmentCount > 9 ? '9+' : pendingAssignmentCount}
-				</span>
-			{/if}
 		</a>
 		{#if $streak.currentStreak > 0}
 			<span
@@ -202,7 +210,12 @@
 			</span>
 		{/if}
 		{#if user}
-			<div class="relative">
+			<div
+				class="relative"
+				onmouseenter={handleHoverEnter}
+				onmouseleave={handleHoverLeave}
+				role="presentation"
+			>
 				<button
 					type="button"
 					bind:this={toggleButtonRef}

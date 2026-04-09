@@ -10,10 +10,20 @@ export function toLocalDateStr(date: Date): string {
 }
 
 /**
- * Get today's date as a local-timezone YYYY-MM-DD string.
+ * Get the "effective" date for practice sessions as a YYYY-MM-DD string.
+ * Practice between 11 PM and 5 AM counts toward the previous calendar day,
+ * so a late-night session still registers as "today's" streak.
  */
 export function getTodayDateStr(): string {
-	return toLocalDateStr(new Date());
+	const now = new Date();
+	const hour = now.getHours();
+	if (hour < 5) {
+		// Before 5 AM: count as previous day
+		const prev = new Date(now);
+		prev.setDate(prev.getDate() - 1);
+		return toLocalDateStr(prev);
+	}
+	return toLocalDateStr(now);
 }
 
 export interface HeatmapDay {

@@ -6,7 +6,11 @@
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import posthog from '$lib/posthog';
 
-	let mode = $state<'login' | 'signup' | 'forgot' | 'reset'>('login');
+	// Initialize mode synchronously from URL so the redirect effect below
+	// doesn't bounce an authenticated recovery user away before onMount runs.
+	let mode = $state<'login' | 'signup' | 'forgot' | 'reset'>(
+		page.url.searchParams.get('recovery') === 'true' ? 'reset' : 'login'
+	);
 	let email = $state('');
 	let password = $state('');
 	let newPassword = $state('');
@@ -48,11 +52,6 @@
 		const oauthError = page.url.searchParams.get('error');
 		if (oauthError) {
 			error = oauthError;
-		}
-		// If this is a password recovery redirect, show the reset password form
-		const recovery = page.url.searchParams.get('recovery');
-		if (recovery === 'true') {
-			mode = 'reset';
 		}
 	});
 

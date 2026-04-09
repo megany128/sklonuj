@@ -38,11 +38,11 @@ interface AssignmentData {
 	dueDate: string | null;
 }
 
-export const load: PageServerLoad = async ({ locals, params, parent }) => {
+export const load: PageServerLoad = async ({ locals, params, parent, url }) => {
 	const { classData, role } = await parent();
 
 	if (role !== 'teacher') {
-		return { assignment: null, hasProgress: false };
+		return { assignment: null, hasProgress: false, fromAssignment: null };
 	}
 
 	const supabase = locals.supabase;
@@ -58,7 +58,28 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 		.maybeSingle();
 
 	if (assignmentError || !isRecord(assignmentData) || typeof assignmentData.id !== 'string') {
-		return { assignment: null, hasProgress: false };
+		return { assignment: null, hasProgress: false, fromAssignment: null };
+	}
+
+	// If the teacher arrived here via the duplicate flow, the original
+	// assignment id is passed as ?from=<id>. Fetch its title so the back link
+	// can point back to the source assignment rather than the fresh copy.
+	let fromAssignment: { id: string; title: string } | null = null;
+	const fromId = url.searchParams.get('from');
+	if (fromId && fromId !== assignmentId) {
+		const { data: fromData } = await supabase
+			.from('assignments')
+			.select('id, title')
+			.eq('id', fromId)
+			.eq('class_id', classData.id)
+			.maybeSingle();
+		if (
+			isRecord(fromData) &&
+			typeof fromData.id === 'string' &&
+			typeof fromData.title === 'string'
+		) {
+			fromAssignment = { id: fromData.id, title: fromData.title };
+		}
 	}
 
 	const assignment: AssignmentData = {
@@ -88,7 +109,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 
 	const hasProgress = Array.isArray(progressData) && progressData.length > 0;
 
-	return { assignment, hasProgress };
+	return { assignment, hasProgress, fromAssignment };
 };
 
 export const actions: Actions = {
