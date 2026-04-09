@@ -2144,9 +2144,7 @@
 			<div class="mb-6">
 				<div class="mb-3 flex items-center gap-2">
 					<h2 class="text-lg font-semibold text-text-default">Assignments</h2>
-					<span
-						class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-medium text-text-subtitle"
-					>
+					<span class="rounded-full bg-emphasis/15 px-2 py-0.5 text-xs font-semibold text-emphasis">
 						{assignments.length}
 					</span>
 				</div>
@@ -2235,10 +2233,10 @@
 									</div>
 									<div class="flex shrink-0 items-center gap-3">
 										<div class="flex flex-col items-end gap-0.5">
-											<span class="text-xs tabular-nums text-text-subtitle">
+											<span class="text-xs font-medium tabular-nums text-text-default">
 												{Math.min(status.attempted, status.target)}/{status.target}
 											</span>
-											<div class="h-1.5 w-16 overflow-hidden rounded-full bg-shaded-background">
+											<div class="h-1.5 w-16 overflow-hidden rounded-full bg-card-stroke/40">
 												<div
 													class="h-full rounded-full {isDone
 														? 'bg-positive-stroke'

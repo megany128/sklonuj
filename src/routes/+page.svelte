@@ -1286,6 +1286,7 @@
 						chapterBook = null;
 						chapterSelection = null;
 						generateNextQuestion();
+						showAppliedToast(data.title);
 					}
 				})
 				.catch(() => {
@@ -3039,7 +3040,10 @@
 											</span>
 										</div>
 										<div class="mt-0.5 flex items-center gap-2 text-xs text-text-subtitle">
-											<span class="truncate">{assignment.className}</span>
+											<span
+												class="truncate rounded-full border border-card-stroke bg-card-bg px-2 py-0.5"
+												>{assignment.className}</span
+											>
 											<span style="color: {urgency.color}" class="shrink-0 font-medium">
 												{urgency.label}
 											</span>
