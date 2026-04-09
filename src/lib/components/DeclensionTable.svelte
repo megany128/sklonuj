@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import X from '@lucide/svelte/icons/x';
 	import { loadWordBank } from '$lib/engine/drill';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import dictionaryData from '$lib/data/dictionary.json';
@@ -412,18 +414,10 @@
 			aria-controls="declension-table-panel"
 		>
 			<span class="font-semibold">Declension table</span>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
+			<ChevronDown
 				class="h-4 w-4 transition-transform duration-200 {expanded ? 'rotate-180' : ''}"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-					clip-rule="evenodd"
-				/>
-			</svg>
+				aria-hidden="true"
+			/>
 		</button>
 	{/if}
 
@@ -453,20 +447,12 @@
 					class="flex items-center gap-1 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
 				>
 					Browse paradigms
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ChevronDown
 						class="h-3 w-3 transition-transform duration-200 {paradigmsExpanded
 							? 'rotate-180'
 							: ''}"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</button>
 				{#if paradigmsExpanded}
 					<div class="mt-2 flex flex-wrap gap-x-4 gap-y-2">
@@ -528,16 +514,7 @@
 							aria-label="Clear search"
 							tabindex="0"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								class="h-4 w-4"
-							>
-								<path
-									d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-								/>
-							</svg>
+							<X class="h-4 w-4" aria-hidden="true" />
 						</button>
 					{/if}
 					{#if dropdownOpen}

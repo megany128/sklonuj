@@ -9,8 +9,14 @@
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import type { Case } from '$lib/types';
 	import { CASE_LABELS, isCase } from '$lib/types';
-	import { streak as streakStore, getStreakMessage } from '$lib/engine/streak';
+	import { streak as streakStore } from '$lib/engine/streak';
 	import { progress as progressStore } from '$lib/engine/progress';
+	import { onMount } from 'svelte';
+	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import { BADGE_ICONS } from '$lib/data/badge-icons';
 
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -100,6 +106,36 @@
 
 	let expandedCase = $state<string | null>(null);
 	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun'>('case');
+
+	type ProfileTab = 'overview' | 'mastery' | 'mistakes' | 'achievements';
+	let profileTab = $state<ProfileTab>('overview');
+	const PROFILE_TAB_ORDER: ProfileTab[] = ['overview', 'mastery', 'mistakes', 'achievements'];
+
+	function focusProfileTab(tab: ProfileTab): void {
+		const el = document.getElementById(`profile-tab-${tab}`);
+		if (el instanceof HTMLElement) el.focus();
+	}
+
+	function handleProfileTablistKeydown(e: KeyboardEvent): void {
+		const currentIndex = PROFILE_TAB_ORDER.indexOf(profileTab);
+		if (currentIndex === -1) return;
+		let nextIndex = currentIndex;
+		if (e.key === 'ArrowRight') {
+			nextIndex = (currentIndex + 1) % PROFILE_TAB_ORDER.length;
+		} else if (e.key === 'ArrowLeft') {
+			nextIndex = (currentIndex - 1 + PROFILE_TAB_ORDER.length) % PROFILE_TAB_ORDER.length;
+		} else if (e.key === 'Home') {
+			nextIndex = 0;
+		} else if (e.key === 'End') {
+			nextIndex = PROFILE_TAB_ORDER.length - 1;
+		} else {
+			return;
+		}
+		e.preventDefault();
+		const nextTab = PROFILE_TAB_ORDER[nextIndex];
+		profileTab = nextTab;
+		focusProfileTab(nextTab);
+	}
 
 	let hasPronounScores = $derived(
 		Object.keys(paradigmScores).some((k) => k.startsWith('pronoun_'))
@@ -645,6 +681,32 @@
 			year: 'numeric'
 		});
 	}
+
+	// Parse a YYYY-MM-DD heatmap key as a local-timezone date for display.
+	function formatHeatmapDay(dateKey: string): string {
+		const d = new Date(dateKey + 'T00:00:00');
+		return d.toLocaleDateString('en-US', {
+			weekday: 'short',
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		});
+	}
+
+	function heatmapTooltip(dateKey: string, count: number): string {
+		const label = formatHeatmapDay(dateKey);
+		if (count === 0) return `${label} · no practice`;
+		return `${label} · ${count} question${count === 1 ? '' : 's'}`;
+	}
+
+	// Refresh server data whenever the profile page mounts so freshly-synced
+	// practice sessions (e.g. from a few seconds ago on the practice page) show
+	// up in the heatmap, and newly earned badges / progress are visible.
+	onMount(() => {
+		if (user) {
+			void invalidateAll();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -699,19 +761,7 @@
 								class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 								aria-label="Edit display name"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 16 16"
-									fill="currentColor"
-									class="size-3.5"
-								>
-									<path
-										d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.262a1.75 1.75 0 0 0 0-2.474Z"
-									/>
-									<path
-										d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 14 9v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z"
-									/>
-								</svg>
+								<Pencil class="size-3.5" aria-hidden="true" />
 							</button>
 						</div>
 					</div>
@@ -761,916 +811,1030 @@
 				</div>
 			</section>
 
-			<!-- Streak card -->
-			{#if $streakStore.currentStreak > 0 || $streakStore.longestStreak > 0}
-				<section class="mb-6">
-					<div class="rounded-xl border border-card-stroke bg-card-bg p-4 sm:p-5">
-						<div class="flex items-center gap-3">
-							<div
-								class="flex size-10 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-950"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="currentColor"
-									class="size-5 text-orange-500"
-									aria-hidden="true"
-								>
-									<path
-										d="M12 23c-3.866 0-7-2.686-7-6 0-1.665.753-3.524 2.039-5.079a.75.75 0 0 1 1.212.004c.66.84 1.4 1.529 2.084 2.023.226-.909.26-1.903.06-2.976-.219-1.174-.72-2.365-1.479-3.473a.75.75 0 0 1 .853-1.12c1.57.482 3.07 1.382 4.233 2.66C15.15 10.352 15.75 11.9 15.75 13.5c0 .412-.053.816-.154 1.206a2.81 2.81 0 0 0 1.154-2.268c0-.478-.088-.948-.255-1.395a.75.75 0 0 1 .916-.951c1.476.578 2.839 1.91 3.339 3.908.148.59.25 1.235.25 1.5 0 3.314-3.134 6-7 6-.333 0-.667-.017-1-.05z"
-									/>
-								</svg>
-							</div>
-							<div class="flex-1">
-								<div class="flex items-baseline gap-2">
-									<span class="text-2xl font-bold text-text-default"
-										>{$streakStore.currentStreak}</span
-									>
-									<span class="text-sm text-text-subtitle">day streak</span>
-								</div>
-								{#if getStreakMessage($streakStore.currentStreak)}
-									<p class="text-sm font-medium text-orange-600 dark:text-orange-400">
-										{getStreakMessage($streakStore.currentStreak)}
-									</p>
-								{/if}
-							</div>
-						</div>
-						{#if $streakStore.longestStreak > $streakStore.currentStreak}
-							<div class="mt-3 border-t border-card-stroke pt-3">
-								<p class="text-xs text-text-subtitle">
-									Longest streak: <span class="font-semibold text-text-default"
-										>{$streakStore.longestStreak} days</span
-									>
-								</p>
-							</div>
-						{/if}
-					</div>
-				</section>
-			{/if}
-
-			<!-- Weakest area callout -->
-			{#if weakestArea}
-				<section class="mb-6">
-					<div
-						class="flex items-start gap-3 rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
+			<!-- Tabs -->
+			<div
+				class="mb-6 flex items-end justify-between border-b border-card-stroke"
+				role="tablist"
+				aria-label="Profile views"
+				tabindex={-1}
+				onkeydown={handleProfileTablistKeydown}
+			>
+				<div class="flex">
+					<button
+						type="button"
+						role="tab"
+						id="profile-tab-overview"
+						aria-selected={profileTab === 'overview'}
+						aria-controls="profile-panel-overview"
+						tabindex={profileTab === 'overview' ? 0 : -1}
+						onclick={() => (profileTab = 'overview')}
+						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
+						'overview'
+							? 'border-emphasis text-text-default'
+							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="mt-0.5 size-4 shrink-0 text-warning-text"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-						<div class="min-w-0">
-							<p class="text-xs font-semibold text-text-default">Focus area</p>
-							<p class="text-xs text-text-subtitle">
-								{weakestArea.caseLabel}
-								{weakestArea.number} in
-								{#if weakestArea.isPronoun}
-									pronoun <span class="font-medium text-text-default">{weakestArea.paradigm}</span>
-								{:else}
-									<span class="font-medium text-text-default"
-										>{PARADIGM_NAMES[weakestArea.paradigm] ?? weakestArea.paradigm}</span
-									>
-									paradigm
-								{/if}
-								({weakestArea.accuracy}% accuracy, {attemptLabel(weakestArea.attempts)})
+						Overview
+					</button>
+					<button
+						type="button"
+						role="tab"
+						id="profile-tab-mastery"
+						aria-selected={profileTab === 'mastery'}
+						aria-controls="profile-panel-mastery"
+						tabindex={profileTab === 'mastery' ? 0 : -1}
+						onclick={() => (profileTab = 'mastery')}
+						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
+						'mastery'
+							? 'border-emphasis text-text-default'
+							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+					>
+						Mastery
+					</button>
+					<button
+						type="button"
+						role="tab"
+						id="profile-tab-mistakes"
+						aria-selected={profileTab === 'mistakes'}
+						aria-controls="profile-panel-mistakes"
+						tabindex={profileTab === 'mistakes' ? 0 : -1}
+						onclick={() => (profileTab = 'mistakes')}
+						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
+						'mistakes'
+							? 'border-emphasis text-text-default'
+							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+					>
+						Mistakes{storedMistakes.length > 0 ? ` (${storedMistakes.length})` : ''}
+					</button>
+					<button
+						type="button"
+						role="tab"
+						id="profile-tab-achievements"
+						aria-selected={profileTab === 'achievements'}
+						aria-controls="profile-panel-achievements"
+						tabindex={profileTab === 'achievements' ? 0 : -1}
+						onclick={() => (profileTab = 'achievements')}
+						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
+						'achievements'
+							? 'border-emphasis text-text-default'
+							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+					>
+						Achievements ({earnedBadgeCount}/{badges.length})
+					</button>
+				</div>
+			</div>
+
+			<!-- Overview Tab -->
+			{#if profileTab === 'overview'}
+				<div
+					role="tabpanel"
+					id="profile-panel-overview"
+					aria-labelledby="profile-tab-overview"
+					tabindex={0}
+				>
+					{#if !weakestArea && serverSessions.length === 0}
+						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+							<p class="text-sm text-text-subtitle">No activity yet.</p>
+							<p class="mt-1 text-sm text-text-subtitle">
+								Start practicing to see your focus areas and activity here.
 							</p>
 						</div>
-					</div>
-				</section>
-			{/if}
+					{/if}
 
-			<!-- Weak areas section -->
-			{#if weakAreas.length > 0}
-				<section class="mb-6">
-					<h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-						Your Weak Areas
-					</h2>
-					<div class="space-y-2">
-						{#each weakAreas as area (area.caseKey + '_' + area.number)}
-							{@const caseMeta = CASE_META.find((c) => c.key === area.caseKey)}
+					<!-- Weakest area callout -->
+					{#if weakestArea}
+						<section class="mb-6">
 							<div
-								class="flex items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
+								class="flex items-start gap-3 rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
 							>
-								<div class="flex items-center gap-3">
-									<div
-										class="size-2.5 shrink-0 rounded-full"
-										style="background-color: {caseMeta?.hex ?? 'var(--color-text-subtitle)'}"
-									></div>
-									<div>
-										<p class="text-sm font-medium text-text-default">{area.label}</p>
-										<p class="text-xs text-text-subtitle">
-											{area.accuracy}% accuracy ({attemptLabel(area.attempts)})
-										</p>
-									</div>
-								</div>
-								<span
-									class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {area.status ===
-									'needs work'
-										? 'bg-negative-background text-negative-stroke'
-										: 'bg-warning-background text-warning-text'}"
-								>
-									{area.status}
-								</span>
-							</div>
-						{/each}
-					</div>
-					<div class="mt-3">
-						<a
-							href="{resolve('/')}?cases={weakCaseKeys.join(',')}"
-							class="inline-flex items-center gap-1.5 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								class="size-4"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M2 10a.75.75 0 0 1 .75-.75h12.59l-2.1-1.95a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.1-1.95H2.75A.75.75 0 0 1 2 10Z"
-									clip-rule="evenodd"
+								<TriangleAlert
+									class="mt-0.5 size-4 shrink-0 text-warning-text"
+									aria-hidden="true"
 								/>
-							</svg>
-							Practice Weak Areas
-						</a>
-					</div>
-				</section>
-			{/if}
+								<div class="min-w-0">
+									<p class="text-xs font-semibold text-text-default">Focus area</p>
+									<p class="text-xs text-text-subtitle">
+										{weakestArea.caseLabel}
+										{weakestArea.number} in
+										{#if weakestArea.isPronoun}
+											pronoun <span class="font-medium text-text-default"
+												>{weakestArea.paradigm}</span
+											>
+										{:else}
+											<span class="font-medium text-text-default"
+												>{PARADIGM_NAMES[weakestArea.paradigm] ?? weakestArea.paradigm}</span
+											>
+											paradigm
+										{/if}
+										({weakestArea.accuracy}% accuracy, {attemptLabel(weakestArea.attempts)})
+									</p>
+								</div>
+							</div>
+						</section>
+					{/if}
 
-			<!-- 3. Activity heatmap (signed-in users with session data) -->
-			{#if serverSessions.length > 0}
-				<section class="mb-8 overflow-hidden">
-					<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-						Activity
-					</h2>
-					<div class="-mx-4 overflow-x-auto px-4">
-						<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-							<!-- Month labels -->
-							<div class="mb-1 flex" style="padding-left: 28px;">
-								{#each heatmapMonthLabels as ml (ml.weekIndex)}
-									<span
-										class="text-xs text-text-subtitle"
-										style="position: relative; left: {ml.weekIndex *
-											14}px; width: 0; white-space: nowrap;"
+					<!-- Weak areas section -->
+					{#if weakAreas.length > 0}
+						<section class="mb-6">
+							<h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Your Weak Areas
+							</h2>
+							<div class="space-y-2">
+								{#each weakAreas as area (area.caseKey + '_' + area.number)}
+									{@const caseMeta = CASE_META.find((c) => c.key === area.caseKey)}
+									<div
+										class="flex items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
 									>
-										{ml.label}
-									</span>
+										<div class="flex items-center gap-3">
+											<div
+												class="size-2.5 shrink-0 rounded-full"
+												style="background-color: {caseMeta?.hex ?? 'var(--color-text-subtitle)'}"
+											></div>
+											<div>
+												<p class="text-sm font-medium text-text-default">{area.label}</p>
+												<p class="text-xs text-text-subtitle">
+													{area.accuracy}% accuracy ({attemptLabel(area.attempts)})
+												</p>
+											</div>
+										</div>
+										<span
+											class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {area.status ===
+											'needs work'
+												? 'bg-negative-background text-negative-stroke'
+												: 'bg-warning-background text-warning-text'}"
+										>
+											{area.status}
+										</span>
+									</div>
 								{/each}
 							</div>
-							<!-- Grid -->
-							<div class="flex items-start gap-0.5">
-								<!-- Day labels -->
-								<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
-									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-									<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
-									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-									<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
-									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-									<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
-									<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-								</div>
-								<!-- Weeks -->
-								{#each heatmapWeeks as week, weekIdx (weekIdx)}
-									<div class="flex flex-col gap-0.5">
-										{#each week as day (day.date)}
-											<div
-												class="h-[11px] w-[11px] rounded-[2px]"
-												style="background-color: {heatmapColor(day.count)};"
-												title="{day.date}: {day.count} questions"
-											></div>
+							<div class="mt-3">
+								<a
+									href="{resolve('/')}?cases={weakCaseKeys.join(',')}"
+									class="inline-flex items-center gap-1.5 rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+								>
+									<ArrowRight class="size-4" aria-hidden="true" />
+									Practice Weak Areas
+								</a>
+							</div>
+						</section>
+					{/if}
+
+					<!-- 3. Activity heatmap (signed-in users with session data) -->
+					{#if serverSessions.length > 0}
+						<section class="mb-8 overflow-hidden">
+							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Activity
+							</h2>
+							<div class="-mx-4 overflow-x-auto px-4">
+								<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+									<!-- Month labels -->
+									<div class="mb-1 flex" style="padding-left: 28px;">
+										{#each heatmapMonthLabels as ml (ml.weekIndex)}
+											<span
+												class="text-xs text-text-subtitle"
+												style="position: relative; left: {ml.weekIndex *
+													14}px; width: 0; white-space: nowrap;"
+											>
+												{ml.label}
+											</span>
 										{/each}
 									</div>
-								{/each}
+									<!-- Grid -->
+									<div class="flex items-start gap-0.5">
+										<!-- Day labels -->
+										<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+										</div>
+										<!-- Weeks -->
+										{#each heatmapWeeks as week, weekIdx (weekIdx)}
+											<div class="flex flex-col gap-0.5">
+												{#each week as day (day.date)}
+													<div
+														class="h-[11px] w-[11px] rounded-[2px]"
+														style="background-color: {heatmapColor(day.count)};"
+														title={heatmapTooltip(day.date, day.count)}
+														aria-label={heatmapTooltip(day.date, day.count)}
+													></div>
+												{/each}
+											</div>
+										{/each}
+									</div>
+								</div>
 							</div>
-						</div>
-					</div>
-				</section>
+						</section>
+					{/if}
+				</div>
 			{/if}
 
-			<!-- 4. Case & Paradigm breakdown with tabs -->
-			<section class="mb-8">
-				<div class="mb-4 flex items-center gap-2 sm:gap-4">
-					<button
-						type="button"
-						class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
-						'case'
-							? 'text-text-default'
-							: 'text-text-subtitle hover:text-text-default'}"
-						onclick={() => (breakdownTab = 'case')}
-					>
-						By Case
-					</button>
-					<button
-						type="button"
-						class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
-						'paradigm'
-							? 'text-text-default'
-							: 'text-text-subtitle hover:text-text-default'}"
-						onclick={() => (breakdownTab = 'paradigm')}
-					>
-						By Paradigm
-					</button>
-					{#if hasPronounScores}
-						<button
-							type="button"
-							class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
-							'pronoun'
-								? 'text-text-default'
-								: 'text-text-subtitle hover:text-text-default'}"
-							onclick={() => (breakdownTab = 'pronoun')}
-						>
-							Pronouns
-						</button>
-					{/if}
-					<!-- Tab indicator -->
-					<div class="flex-1"></div>
-				</div>
-
-				<div class="breakdown-content">
-					{#if breakdownTab === 'case'}
-						<!-- By Case view: accuracy rings -->
-						<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
-							{#each CASE_META as caseMeta (caseMeta.key)}
-								{@const totals = getCaseTotals(caseMeta.key)}
-								{@const pct =
-									totals.attempts > 0 ? Math.round((totals.correct / totals.attempts) * 100) : 0}
-								{@const circumference = 2 * Math.PI * 28}
-								{@const strokeOffset =
-									totals.attempts > 0 ? circumference * (1 - pct / 100) : circumference}
-								{@const ringColor =
-									totals.attempts > 0 ? accuracyColor(pct) : 'var(--color-shaded-background)'}
-								{@const isSelected = expandedCase === caseMeta.key}
+			<!-- Mastery Tab -->
+			{#if profileTab === 'mastery'}
+				<div
+					role="tabpanel"
+					id="profile-panel-mastery"
+					aria-labelledby="profile-tab-mastery"
+					tabindex={0}
+				>
+					<!-- 4. Case & Paradigm breakdown with tabs -->
+					<section class="mb-8">
+						<div class="mb-4 flex items-center gap-2 sm:gap-4">
+							<button
+								type="button"
+								class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
+								'case'
+									? 'text-text-default'
+									: 'text-text-subtitle hover:text-text-default'}"
+								onclick={() => (breakdownTab = 'case')}
+							>
+								By Case
+							</button>
+							<button
+								type="button"
+								class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
+								'paradigm'
+									? 'text-text-default'
+									: 'text-text-subtitle hover:text-text-default'}"
+								onclick={() => (breakdownTab = 'paradigm')}
+							>
+								By Paradigm
+							</button>
+							{#if hasPronounScores}
 								<button
 									type="button"
-									class="flex flex-col items-center gap-2 rounded-xl border p-4 transition {isSelected
-										? 'border-emphasis/40 bg-card-bg'
-										: 'border-card-stroke bg-card-bg hover:border-emphasis/40 hover:bg-shaded-background'}"
-									onclick={() => (expandedCase = isSelected ? null : caseMeta.key)}
+									class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
+									'pronoun'
+										? 'text-text-default'
+										: 'text-text-subtitle hover:text-text-default'}"
+									onclick={() => (breakdownTab = 'pronoun')}
 								>
-									<svg width="72" height="72" viewBox="0 0 72 72" class="pointer-events-none">
-										<circle
-											cx="36"
-											cy="36"
-											r="28"
-											fill="none"
-											stroke="var(--color-shaded-background)"
-											stroke-width="6"
-										/>
-										{#if totals.attempts > 0}
-											<circle
-												cx="36"
-												cy="36"
-												r="28"
-												fill="none"
-												stroke={ringColor}
-												stroke-width="6"
-												stroke-linecap="round"
-												stroke-dasharray={circumference}
-												stroke-dashoffset={strokeOffset}
-												transform="rotate(-90 36 36)"
-											/>
-										{/if}
-										<text
-											x="36"
-											y="36"
-											text-anchor="middle"
-											dominant-baseline="central"
-											class="text-sm font-semibold"
-											fill={totals.attempts > 0 ? ringColor : 'var(--color-text-subtitle)'}
-										>
-											{totals.attempts > 0 ? `${pct}%` : '--'}
-										</text>
-									</svg>
-									<div class="pointer-events-none text-center">
-										<p class="text-xs font-medium text-text-default">{caseMeta.label}</p>
-										<p class="text-xs text-text-subtitle">
-											{totals.attempts > 0 ? attemptLabel(totals.attempts) : 'No data'}
-										</p>
-									</div>
+									Pronouns
 								</button>
-							{/each}
+							{/if}
+							<!-- Tab indicator -->
+							<div class="flex-1"></div>
 						</div>
 
-						<!-- Detail panel below grid -->
-						{#if expandedCase}
-							{@const meta = CASE_META.find((c) => c.key === expandedCase)}
-							{@const totals = getCaseTotals(expandedCase)}
-							{@const sg = caseScores[`${expandedCase}_sg`] ?? { attempts: 0, correct: 0 }}
-							{@const pl = caseScores[`${expandedCase}_pl`] ?? { attempts: 0, correct: 0 }}
-							{@const sgPct = sg.attempts > 0 ? Math.round((sg.correct / sg.attempts) * 100) : 0}
-							{@const plPct = pl.attempts > 0 ? Math.round((pl.correct / pl.attempts) * 100) : 0}
-							<div
-								class="case-detail-panel mt-3 overflow-hidden rounded-xl border border-card-stroke bg-card-bg"
-							>
-								<div
-									class="h-1"
-									style="background-color: {meta?.hex ?? 'var(--color-emphasis)'}"
-								></div>
-								<div class="p-4">
-									<div class="mb-3 flex items-center justify-between">
-										<h3 class="text-sm font-semibold text-text-default">{meta?.label}</h3>
+						<div class="breakdown-content">
+							{#if breakdownTab === 'case'}
+								<!-- By Case view: accuracy rings -->
+								<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+									{#each CASE_META as caseMeta (caseMeta.key)}
+										{@const totals = getCaseTotals(caseMeta.key)}
+										{@const pct =
+											totals.attempts > 0
+												? Math.round((totals.correct / totals.attempts) * 100)
+												: 0}
+										{@const circumference = 2 * Math.PI * 28}
+										{@const strokeOffset =
+											totals.attempts > 0 ? circumference * (1 - pct / 100) : circumference}
+										{@const ringColor =
+											totals.attempts > 0 ? accuracyColor(pct) : 'var(--color-shaded-background)'}
+										{@const isSelected = expandedCase === caseMeta.key}
 										<button
 											type="button"
-											class="text-xs text-text-subtitle hover:text-text-default"
-											onclick={() => (expandedCase = null)}
+											class="flex flex-col items-center gap-2 rounded-xl border p-4 transition {isSelected
+												? 'border-emphasis/40 bg-card-bg'
+												: 'border-card-stroke bg-card-bg hover:border-emphasis/40 hover:bg-shaded-background'}"
+											onclick={() => (expandedCase = isSelected ? null : caseMeta.key)}
 										>
-											Close
-										</button>
-									</div>
-
-									{#if totals.attempts > 0}
-										<!-- Sg vs Pl -->
-										<div class="mb-4 grid grid-cols-2 gap-3">
-											<div class="rounded-lg bg-shaded-background p-3">
-												<p class="text-xs text-text-subtitle">Singular</p>
-												<p
-													class="mt-0.5 text-xl font-semibold"
-													style="color: {sg.attempts > 0
-														? accuracyColor(sgPct)
-														: 'var(--color-text-subtitle)'}"
-												>
-													{sg.attempts > 0 ? `${sgPct}%` : '--'}
-												</p>
-												<p class="text-xs text-text-subtitle">{attemptLabel(sg.attempts)}</p>
-											</div>
-											<div class="rounded-lg bg-shaded-background p-3">
-												<p class="text-xs text-text-subtitle">Plural</p>
-												<p
-													class="mt-0.5 text-xl font-semibold"
-													style="color: {pl.attempts > 0
-														? accuracyColor(plPct)
-														: 'var(--color-text-subtitle)'}"
-												>
-													{pl.attempts > 0 ? `${plPct}%` : '--'}
-												</p>
-												<p class="text-xs text-text-subtitle">{attemptLabel(pl.attempts)}</p>
-											</div>
-										</div>
-
-										<!-- Per paradigm -->
-										<p
-											class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
-										>
-											By paradigm
-										</p>
-										<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-											{#each PARADIGM_ORDER as paradigm (paradigm)}
-												{@const ps = getParadigmCaseScore(paradigm, expandedCase)}
-												{#if ps.attempts > 0}
-													{@const psPct = Math.round((ps.correct / ps.attempts) * 100)}
-													<div
-														class="flex items-center justify-between rounded-lg bg-shaded-background px-3 py-2"
-													>
-														<span class="text-xs text-text-default"
-															>{PARADIGM_NAMES[paradigm] ?? paradigm}</span
-														>
-														<div class="flex items-center gap-2">
-															<span class="text-xs text-text-subtitle">{ps.attempts} att.</span>
-															<span
-																class="text-xs font-semibold"
-																style="color: {accuracyColor(psPct)}">{psPct}%</span
-															>
-														</div>
-													</div>
+											<svg width="72" height="72" viewBox="0 0 72 72" class="pointer-events-none">
+												<circle
+													cx="36"
+													cy="36"
+													r="28"
+													fill="none"
+													stroke="var(--color-shaded-background)"
+													stroke-width="6"
+												/>
+												{#if totals.attempts > 0}
+													<circle
+														cx="36"
+														cy="36"
+														r="28"
+														fill="none"
+														stroke={ringColor}
+														stroke-width="6"
+														stroke-linecap="round"
+														stroke-dasharray={circumference}
+														stroke-dashoffset={strokeOffset}
+														transform="rotate(-90 36 36)"
+													/>
 												{/if}
-											{/each}
-										</div>
-									{:else}
-										<p class="text-sm text-text-subtitle">No practice data for this case yet.</p>
-									{/if}
-								</div>
-							</div>
-						{/if}
-					{:else if breakdownTab === 'paradigm'}
-						<!-- By Paradigm view: grouped by gender -->
-						<div class="flex flex-col gap-4">
-							{#if Object.keys(paradigmScores).filter((k) => !k.startsWith('pronoun_')).length === 0}
-								<p class="py-8 text-center text-sm text-text-subtitle">
-									No paradigm practice data yet.
-								</p>
-							{:else}
-								{#each PARADIGM_GROUPS as group (group.label)}
-									{@const groupParadigms = group.paradigms.filter(
-										(p) => getParadigmTotals(p).attempts > 0
-									)}
-									{#if groupParadigms.length > 0}
-										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-											<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
-												<p class="text-xs font-semibold uppercase tracking-wide text-text-subtitle">
-													{group.label}
+												<text
+													x="36"
+													y="36"
+													text-anchor="middle"
+													dominant-baseline="central"
+													class="text-sm font-semibold"
+													fill={totals.attempts > 0 ? ringColor : 'var(--color-text-subtitle)'}
+												>
+													{totals.attempts > 0 ? `${pct}%` : '--'}
+												</text>
+											</svg>
+											<div class="pointer-events-none text-center">
+												<p class="text-xs font-medium text-text-default">{caseMeta.label}</p>
+												<p class="text-xs text-text-subtitle">
+													{totals.attempts > 0 ? attemptLabel(totals.attempts) : 'No data'}
 												</p>
 											</div>
-											<div class="overflow-x-auto pb-2">
-												<!-- Case header labels -->
-												<div class="mb-1 flex items-center">
-													<div class="w-28 shrink-0"></div>
-													<div class="w-5 shrink-0"></div>
-													{#each CASE_META as cm (cm.key)}
-														<div
-															class="shrink-0 text-center text-xs text-text-subtitle"
-															style="width: 32px;"
+										</button>
+									{/each}
+								</div>
+
+								<!-- Detail panel below grid -->
+								{#if expandedCase}
+									{@const meta = CASE_META.find((c) => c.key === expandedCase)}
+									{@const totals = getCaseTotals(expandedCase)}
+									{@const sg = caseScores[`${expandedCase}_sg`] ?? { attempts: 0, correct: 0 }}
+									{@const pl = caseScores[`${expandedCase}_pl`] ?? { attempts: 0, correct: 0 }}
+									{@const sgPct =
+										sg.attempts > 0 ? Math.round((sg.correct / sg.attempts) * 100) : 0}
+									{@const plPct =
+										pl.attempts > 0 ? Math.round((pl.correct / pl.attempts) * 100) : 0}
+									<div
+										class="case-detail-panel mt-3 overflow-hidden rounded-xl border border-card-stroke bg-card-bg"
+									>
+										<div
+											class="h-1"
+											style="background-color: {meta?.hex ?? 'var(--color-emphasis)'}"
+										></div>
+										<div class="p-4">
+											<div class="mb-3 flex items-center justify-between">
+												<h3 class="text-sm font-semibold text-text-default">{meta?.label}</h3>
+												<button
+													type="button"
+													class="text-xs text-text-subtitle hover:text-text-default"
+													onclick={() => (expandedCase = null)}
+												>
+													Close
+												</button>
+											</div>
+
+											{#if totals.attempts > 0}
+												<!-- Sg vs Pl -->
+												<div class="mb-4 grid grid-cols-2 gap-3">
+													<div class="rounded-lg bg-shaded-background p-3">
+														<p class="text-xs text-text-subtitle">Singular</p>
+														<p
+															class="mt-0.5 text-xl font-semibold"
+															style="color: {sg.attempts > 0
+																? accuracyColor(sgPct)
+																: 'var(--color-text-subtitle)'}"
 														>
-															{cm.abbrev}
-														</div>
+															{sg.attempts > 0 ? `${sgPct}%` : '--'}
+														</p>
+														<p class="text-xs text-text-subtitle">{attemptLabel(sg.attempts)}</p>
+													</div>
+													<div class="rounded-lg bg-shaded-background p-3">
+														<p class="text-xs text-text-subtitle">Plural</p>
+														<p
+															class="mt-0.5 text-xl font-semibold"
+															style="color: {pl.attempts > 0
+																? accuracyColor(plPct)
+																: 'var(--color-text-subtitle)'}"
+														>
+															{pl.attempts > 0 ? `${plPct}%` : '--'}
+														</p>
+														<p class="text-xs text-text-subtitle">{attemptLabel(pl.attempts)}</p>
+													</div>
+												</div>
+
+												<!-- Per paradigm -->
+												<p
+													class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+												>
+													By paradigm
+												</p>
+												<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+													{#each PARADIGM_ORDER as paradigm (paradigm)}
+														{@const ps = getParadigmCaseScore(paradigm, expandedCase)}
+														{#if ps.attempts > 0}
+															{@const psPct = Math.round((ps.correct / ps.attempts) * 100)}
+															<div
+																class="flex items-center justify-between rounded-lg bg-shaded-background px-3 py-2"
+															>
+																<span class="text-xs text-text-default"
+																	>{PARADIGM_NAMES[paradigm] ?? paradigm}</span
+																>
+																<div class="flex items-center gap-2">
+																	<span class="text-xs text-text-subtitle">{ps.attempts} att.</span>
+																	<span
+																		class="text-xs font-semibold"
+																		style="color: {accuracyColor(psPct)}">{psPct}%</span
+																	>
+																</div>
+															</div>
+														{/if}
 													{/each}
 												</div>
-												<!-- Paradigm rows -->
-												{#each groupParadigms as paradigm, pi (paradigm)}
-													<!-- Divider between paradigms -->
-													{#if pi > 0}
-														<div class="my-1.5 border-t border-card-stroke"></div>
-													{/if}
-													<!-- Wrapper: label spans both Sg+Pl rows -->
-													<div class="flex items-center">
-														<!-- Left label: name + description, spanning both rows -->
-														<div class="w-28 shrink-0 pr-2">
-															<p class="text-xs font-medium leading-tight text-text-default">
-																{paradigm}
-															</p>
-															<p class="text-xs leading-tight text-text-subtitle">
-																{PARADIGM_DESC[paradigm] ?? ''}
-															</p>
-														</div>
-														<!-- Sg + Pl rows stacked -->
-														<div class="flex flex-col gap-0.5">
-															<!-- Sg row -->
-															<div class="flex items-center">
-																<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
-																	Sg
-																</div>
-																{#each CASE_META as cm (cm.key)}
-																	{@const score = getParadigmCaseNumberScore(
-																		paradigm,
-																		cm.key,
-																		'sg'
-																	)}
-																	{@const pct =
-																		score.attempts > 0
-																			? Math.round((score.correct / score.attempts) * 100)
-																			: -1}
-																	<div class="flex shrink-0 justify-center" style="width: 32px;">
-																		<div
-																			class="paradigm-cell h-5 w-6 rounded-[3px]"
-																			style="background-color: {pct >= 0
-																				? cellColor(pct)
-																				: 'var(--color-shaded-background)'}; opacity: {pct >= 0
-																				? 0.85
-																				: 1};"
-																			role="gridcell"
-																			tabindex="0"
-																			aria-label="{paradigm} {cm.label} singular: {pct >= 0
-																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
-																				: 'no data'}"
-																			onmouseenter={(e: MouseEvent) =>
-																				handleCellEnter(e, paradigm, cm.key, 'sg')}
-																			onmouseleave={handleCellLeave}
-																			onfocus={(e: FocusEvent) =>
-																				handleCellEnter(e, paradigm, cm.key, 'sg')}
-																			onblur={handleCellLeave}
-																		></div>
-																	</div>
-																{/each}
-															</div>
-															<!-- Pl row -->
-															<div class="flex items-center">
-																<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
-																	Pl
-																</div>
-																{#each CASE_META as cm (cm.key)}
-																	{@const score = getParadigmCaseNumberScore(
-																		paradigm,
-																		cm.key,
-																		'pl'
-																	)}
-																	{@const pct =
-																		score.attempts > 0
-																			? Math.round((score.correct / score.attempts) * 100)
-																			: -1}
-																	<div class="flex shrink-0 justify-center" style="width: 32px;">
-																		<div
-																			class="paradigm-cell h-5 w-6 rounded-[3px]"
-																			style="background-color: {pct >= 0
-																				? cellColor(pct)
-																				: 'var(--color-shaded-background)'}; opacity: {pct >= 0
-																				? 0.85
-																				: 1};"
-																			role="gridcell"
-																			tabindex="0"
-																			aria-label="{paradigm} {cm.label} plural: {pct >= 0
-																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
-																				: 'no data'}"
-																			onmouseenter={(e: MouseEvent) =>
-																				handleCellEnter(e, paradigm, cm.key, 'pl')}
-																			onmouseleave={handleCellLeave}
-																			onfocus={(e: FocusEvent) =>
-																				handleCellEnter(e, paradigm, cm.key, 'pl')}
-																			onblur={handleCellLeave}
-																		></div>
-																	</div>
-																{/each}
-															</div>
-														</div>
+											{:else}
+												<p class="text-sm text-text-subtitle">
+													No practice data for this case yet.
+												</p>
+											{/if}
+										</div>
+									</div>
+								{/if}
+							{:else if breakdownTab === 'paradigm'}
+								<!-- By Paradigm view: grouped by gender -->
+								<div class="flex flex-col gap-4">
+									{#if Object.keys(paradigmScores).filter((k) => !k.startsWith('pronoun_')).length === 0}
+										<p class="py-8 text-center text-sm text-text-subtitle">
+											No paradigm practice data yet.
+										</p>
+									{:else}
+										{#each PARADIGM_GROUPS as group (group.label)}
+											{@const groupParadigms = group.paradigms.filter(
+												(p) => getParadigmTotals(p).attempts > 0
+											)}
+											{#if groupParadigms.length > 0}
+												<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+													<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
+														<p
+															class="text-xs font-semibold uppercase tracking-wide text-text-subtitle"
+														>
+															{group.label}
+														</p>
 													</div>
-												{/each}
+													<div class="overflow-x-auto pb-2">
+														<!-- Case header labels -->
+														<div class="mb-1 flex items-center">
+															<div class="w-28 shrink-0"></div>
+															<div class="w-5 shrink-0"></div>
+															{#each CASE_META as cm (cm.key)}
+																<div
+																	class="shrink-0 text-center text-xs text-text-subtitle"
+																	style="width: 32px;"
+																>
+																	{cm.abbrev}
+																</div>
+															{/each}
+														</div>
+														<!-- Paradigm rows -->
+														{#each groupParadigms as paradigm, pi (paradigm)}
+															<!-- Divider between paradigms -->
+															{#if pi > 0}
+																<div class="my-1.5 border-t border-card-stroke"></div>
+															{/if}
+															<!-- Wrapper: label spans both Sg+Pl rows -->
+															<div class="flex items-center">
+																<!-- Left label: name + description, spanning both rows -->
+																<div class="w-28 shrink-0 pr-2">
+																	<p class="text-xs font-medium leading-tight text-text-default">
+																		{paradigm}
+																	</p>
+																	<p class="text-xs leading-tight text-text-subtitle">
+																		{PARADIGM_DESC[paradigm] ?? ''}
+																	</p>
+																</div>
+																<!-- Sg + Pl rows stacked -->
+																<div class="flex flex-col gap-0.5">
+																	<!-- Sg row -->
+																	<div class="flex items-center">
+																		<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																			Sg
+																		</div>
+																		{#each CASE_META as cm (cm.key)}
+																			{@const score = getParadigmCaseNumberScore(
+																				paradigm,
+																				cm.key,
+																				'sg'
+																			)}
+																			{@const pct =
+																				score.attempts > 0
+																					? Math.round((score.correct / score.attempts) * 100)
+																					: -1}
+																			<div
+																				class="flex shrink-0 justify-center"
+																				style="width: 32px;"
+																			>
+																				<div
+																					class="paradigm-cell h-5 w-6 rounded-[3px]"
+																					style="background-color: {pct >= 0
+																						? cellColor(pct)
+																						: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																						? 0.85
+																						: 1};"
+																					role="gridcell"
+																					tabindex="0"
+																					aria-label="{paradigm} {cm.label} singular: {pct >= 0
+																						? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																						: 'no data'}"
+																					onmouseenter={(e: MouseEvent) =>
+																						handleCellEnter(e, paradigm, cm.key, 'sg')}
+																					onmouseleave={handleCellLeave}
+																					onfocus={(e: FocusEvent) =>
+																						handleCellEnter(e, paradigm, cm.key, 'sg')}
+																					onblur={handleCellLeave}
+																				></div>
+																			</div>
+																		{/each}
+																	</div>
+																	<!-- Pl row -->
+																	<div class="flex items-center">
+																		<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																			Pl
+																		</div>
+																		{#each CASE_META as cm (cm.key)}
+																			{@const score = getParadigmCaseNumberScore(
+																				paradigm,
+																				cm.key,
+																				'pl'
+																			)}
+																			{@const pct =
+																				score.attempts > 0
+																					? Math.round((score.correct / score.attempts) * 100)
+																					: -1}
+																			<div
+																				class="flex shrink-0 justify-center"
+																				style="width: 32px;"
+																			>
+																				<div
+																					class="paradigm-cell h-5 w-6 rounded-[3px]"
+																					style="background-color: {pct >= 0
+																						? cellColor(pct)
+																						: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																						? 0.85
+																						: 1};"
+																					role="gridcell"
+																					tabindex="0"
+																					aria-label="{paradigm} {cm.label} plural: {pct >= 0
+																						? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																						: 'no data'}"
+																					onmouseenter={(e: MouseEvent) =>
+																						handleCellEnter(e, paradigm, cm.key, 'pl')}
+																					onmouseleave={handleCellLeave}
+																					onfocus={(e: FocusEvent) =>
+																						handleCellEnter(e, paradigm, cm.key, 'pl')}
+																					onblur={handleCellLeave}
+																				></div>
+																			</div>
+																		{/each}
+																	</div>
+																</div>
+															</div>
+														{/each}
+													</div>
+												</div>
+											{/if}
+										{/each}
+
+										<!-- Legend -->
+										<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: var(--color-shaded-background);"
+												></div>
+												No data
+											</div>
+											<div class="flex items-center gap-1">
+												<div class="h-3 w-3 rounded-[2px]" style="background-color: #ef4444;"></div>
+												&lt;40%
+											</div>
+											<div class="flex items-center gap-1">
+												<div class="h-3 w-3 rounded-[2px]" style="background-color: #f97316;"></div>
+												40–59%
+											</div>
+											<div class="flex items-center gap-1">
+												<div class="h-3 w-3 rounded-[2px]" style="background-color: #eab308;"></div>
+												60–79%
+											</div>
+											<div class="flex items-center gap-1">
+												<div class="h-3 w-3 rounded-[2px]" style="background-color: #22c55e;"></div>
+												≥80%
 											</div>
 										</div>
 									{/if}
-								{/each}
-
-								<!-- Legend -->
-								<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
-									<div class="flex items-center gap-1">
-										<div
-											class="h-3 w-3 rounded-[2px]"
-											style="background-color: var(--color-shaded-background);"
-										></div>
-										No data
-									</div>
-									<div class="flex items-center gap-1">
-										<div class="h-3 w-3 rounded-[2px]" style="background-color: #ef4444;"></div>
-										&lt;40%
-									</div>
-									<div class="flex items-center gap-1">
-										<div class="h-3 w-3 rounded-[2px]" style="background-color: #f97316;"></div>
-										40–59%
-									</div>
-									<div class="flex items-center gap-1">
-										<div class="h-3 w-3 rounded-[2px]" style="background-color: #eab308;"></div>
-										60–79%
-									</div>
-									<div class="flex items-center gap-1">
-										<div class="h-3 w-3 rounded-[2px]" style="background-color: #22c55e;"></div>
-										≥80%
-									</div>
 								</div>
-							{/if}
-						</div>
-					{:else if breakdownTab === 'pronoun'}
-						<!-- By Pronoun view: heatmap grid cards -->
-						<div class="flex flex-col gap-4">
-							{#if activePronounLemmas.length === 0}
-								<p class="py-8 text-center text-sm text-text-subtitle">
-									No pronoun practice data yet.
-								</p>
-							{:else}
-								{#each activePronounLemmas as lemma (lemma)}
-									{@const pronounParadigm = `pronoun_${lemma}`}
-									{@const totals = getParadigmTotals(pronounParadigm)}
-									{@const totalPct =
-										totals.attempts > 0 ? Math.round((totals.correct / totals.attempts) * 100) : 0}
-									<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-										<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
-											<div class="min-w-0">
-												<span class="text-sm font-semibold text-text-default">{lemma}</span>
-												<span class="ml-1 text-xs text-text-subtitle sm:ml-2"
-													>{PRONOUN_TRANSLATIONS[lemma] ?? ''}</span
-												>
-											</div>
-											<span class="text-xs text-text-subtitle">
-												{#if totals.attempts > 0}
-													{totalPct}% ({totals.attempts})
-												{:else}
-													No data
-												{/if}
-											</span>
-										</div>
-
-										<!-- Mini heatmap: 7 cases x 2 rows (sg, pl) -->
-										<div class="overflow-x-auto pb-1">
-											<!-- Case header labels -->
-											<div class="mb-1 flex items-center">
-												<div class="w-7 shrink-0"></div>
-												{#each CASE_META as cm (cm.key)}
-													<div
-														class="shrink-0 text-center text-xs text-text-subtitle"
-														style="width: 32px;"
-													>
-														{cm.abbrev}
-													</div>
-												{/each}
-											</div>
-											<!-- Sg row -->
-											<div class="mb-0.5 flex items-center">
-												<div class="w-7 shrink-0 text-right text-xs text-text-subtitle">Sg</div>
-												{#each CASE_META as cm (cm.key)}
-													{@const score = getParadigmCaseNumberScore(pronounParadigm, cm.key, 'sg')}
-													{@const pct =
-														score.attempts > 0
-															? Math.round((score.correct / score.attempts) * 100)
-															: -1}
-													<div class="flex shrink-0 justify-center" style="width: 32px;">
-														<div
-															class="paradigm-cell h-5 w-6 rounded-[3px]"
-															style="background-color: {pct >= 0
-																? cellColor(pct)
-																: 'var(--color-shaded-background)'}; opacity: {pct >= 0
-																? 0.85
-																: 1};"
-															role="gridcell"
-															tabindex="0"
-															aria-label="{cm.label} singular: {pct >= 0
-																? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
-																: 'no data'}"
-															onmouseenter={(e: MouseEvent) =>
-																handleCellEnter(e, pronounParadigm, cm.key, 'sg')}
-															onmouseleave={handleCellLeave}
-															onfocus={(e: FocusEvent) =>
-																handleCellEnter(e, pronounParadigm, cm.key, 'sg')}
-															onblur={handleCellLeave}
-														></div>
-													</div>
-												{/each}
-											</div>
-											<!-- Pl row -->
-											<div class="flex items-center">
-												<div class="w-7 shrink-0 text-right text-xs text-text-subtitle">Pl</div>
-												{#each CASE_META as cm (cm.key)}
-													{@const score = getParadigmCaseNumberScore(pronounParadigm, cm.key, 'pl')}
-													{@const pct =
-														score.attempts > 0
-															? Math.round((score.correct / score.attempts) * 100)
-															: -1}
-													<div class="flex shrink-0 justify-center" style="width: 32px;">
-														<div
-															class="paradigm-cell h-5 w-6 rounded-[3px]"
-															style="background-color: {pct >= 0
-																? cellColor(pct)
-																: 'var(--color-shaded-background)'}; opacity: {pct >= 0
-																? 0.85
-																: 1};"
-															role="gridcell"
-															tabindex="0"
-															aria-label="{cm.label} plural: {pct >= 0
-																? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
-																: 'no data'}"
-															onmouseenter={(e: MouseEvent) =>
-																handleCellEnter(e, pronounParadigm, cm.key, 'pl')}
-															onmouseleave={handleCellLeave}
-															onfocus={(e: FocusEvent) =>
-																handleCellEnter(e, pronounParadigm, cm.key, 'pl')}
-															onblur={handleCellLeave}
-														></div>
-													</div>
-												{/each}
-											</div>
-										</div>
-									</div>
-								{/each}
-
-								<!-- Legend -->
-								<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
-									<div class="flex items-center gap-1">
-										<div
-											class="h-3 w-3 rounded-[2px]"
-											style="background-color: var(--color-shaded-background);"
-										></div>
-										No data
-									</div>
-									<div class="flex items-center gap-1">
-										<div
-											class="h-3 w-3 rounded-[2px]"
-											style="background-color: #ef4444; opacity: 0.85;"
-										></div>
-										&lt;40%
-									</div>
-									<div class="flex items-center gap-1">
-										<div
-											class="h-3 w-3 rounded-[2px]"
-											style="background-color: #f97316; opacity: 0.85;"
-										></div>
-										40-59%
-									</div>
-									<div class="flex items-center gap-1">
-										<div
-											class="h-3 w-3 rounded-[2px]"
-											style="background-color: #eab308; opacity: 0.85;"
-										></div>
-										60-79%
-									</div>
-									<div class="flex items-center gap-1">
-										<div
-											class="h-3 w-3 rounded-[2px]"
-											style="background-color: #22c55e; opacity: 0.85;"
-										></div>
-										80%+
-									</div>
-								</div>
-							{/if}
-						</div>
-					{/if}
-				</div>
-			</section>
-			<!-- 5. Review Mistakes -->
-			{#if storedMistakes.length > 0}
-				<section class="mb-8">
-					<div class="mb-4 flex items-center justify-between">
-						<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-							Recent Mistakes ({storedMistakes.length})
-						</h2>
-						<div class="flex items-center gap-2">
-							<a
-								href="{resolve('/')}?mode=review"
-								class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:bg-brand-600"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="size-3.5"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.312.311a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm-10.9-4.59a.75.75 0 0 0 1.45.388A5.5 5.5 0 0 1 15.088 9.58l.312.311h-2.433a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V7.008a.75.75 0 0 0-1.5 0v2.033l-.312-.31A7 7 0 0 0 3.962 11.86a.75.75 0 0 0 .45-1.027Z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-								Practice Mistakes
-							</a>
-							<button
-								type="button"
-								onclick={() => (confirmingClearMistakes = true)}
-								class="rounded-lg px-2 py-1.5 text-xs text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-							>
-								Clear all
-							</button>
-						</div>
-					</div>
-
-					<!-- Case filter pills -->
-					{#if mistakeCaseCounts.length > 2}
-						<div class="mb-3 flex flex-wrap gap-1.5">
-							{#each mistakeCaseCounts as { key, label, count } (key)}
-								<button
-									type="button"
-									onclick={() => (mistakeFilterCase = key)}
-									class="rounded-full px-2.5 py-1 text-xs font-medium transition-colors
-									{mistakeFilterCase === key
-										? 'bg-emphasis text-on-accent'
-										: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
-								>
-									{label}
-									<span class="ml-0.5 opacity-70">{count}</span>
-								</button>
-							{/each}
-						</div>
-					{/if}
-
-					<!-- Grouped mistakes list -->
-					<div class="space-y-4">
-						{#each groupedMistakes as group (group.caseKey)}
-							<div>
-								<div class="mb-2 flex items-center gap-2">
-									<span
-										class="inline-block size-2.5 rounded-full"
-										style="background-color: {CASE_META.find((c) => c.key === group.caseKey)?.hex ??
-											'#888'}"
-									></span>
-									<h3 class="text-xs font-semibold text-text-default">
-										{group.label}
-									</h3>
-									<span class="text-xs text-text-subtitle">({group.mistakes.length})</span>
-								</div>
-								<div class="overflow-hidden rounded-xl border border-card-stroke bg-card-bg">
-									<table class="w-full text-left text-xs">
-										<thead>
-											<tr class="border-b border-card-stroke bg-shaded-background/50">
-												<th class="px-3 py-2 font-medium text-text-subtitle">Word</th>
-												<th class="px-3 py-2 font-medium text-text-subtitle">Number</th>
-												<th class="px-3 py-2 font-medium text-text-subtitle">Your answer</th>
-												<th class="px-3 py-2 font-medium text-text-subtitle">Correct</th>
-												<th class="hidden px-3 py-2 font-medium text-text-subtitle sm:table-cell"
-													>When</th
-												>
-											</tr>
-										</thead>
-										<tbody>
-											{#each group.mistakes as mistake, i (mistake.timestamp + mistake.lemma)}
-												<tr
-													class={i < group.mistakes.length - 1 ? 'border-b border-card-stroke' : ''}
-												>
-													<td class="px-3 py-2">
-														<span class="font-medium text-text-default">{mistake.lemma}</span>
-														<span class="ml-1 text-text-subtitle">{mistake.translation}</span>
-													</td>
-													<td class="px-3 py-2 text-text-subtitle">
-														{mistake.targetNumber === 'sg' ? 'singular' : 'plural'}
-													</td>
-													<td class="px-3 py-2">
-														{#if mistake.userAnswer}
-															<span class="text-negative-stroke">{mistake.userAnswer}</span>
-														{:else}
-															<span class="italic text-text-subtitle">skipped</span>
-														{/if}
-													</td>
-													<td class="px-3 py-2">
-														<span class="font-medium text-positive-stroke"
-															>{mistake.correctAnswer}</span
+							{:else if breakdownTab === 'pronoun'}
+								<!-- By Pronoun view: heatmap grid cards -->
+								<div class="flex flex-col gap-4">
+									{#if activePronounLemmas.length === 0}
+										<p class="py-8 text-center text-sm text-text-subtitle">
+											No pronoun practice data yet.
+										</p>
+									{:else}
+										{#each activePronounLemmas as lemma (lemma)}
+											{@const pronounParadigm = `pronoun_${lemma}`}
+											{@const totals = getParadigmTotals(pronounParadigm)}
+											{@const totalPct =
+												totals.attempts > 0
+													? Math.round((totals.correct / totals.attempts) * 100)
+													: 0}
+											<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+												<div class="mb-3 flex flex-wrap items-baseline justify-between gap-1">
+													<div class="min-w-0">
+														<span class="text-sm font-semibold text-text-default">{lemma}</span>
+														<span class="ml-1 text-xs text-text-subtitle sm:ml-2"
+															>{PRONOUN_TRANSLATIONS[lemma] ?? ''}</span
 														>
-													</td>
-													<td class="hidden px-3 py-2 text-text-subtitle sm:table-cell">
-														{formatRelativeTime(mistake.timestamp)}
-													</td>
-												</tr>
-											{/each}
-										</tbody>
-									</table>
+													</div>
+													<span class="text-xs text-text-subtitle">
+														{#if totals.attempts > 0}
+															{totalPct}% ({totals.attempts})
+														{:else}
+															No data
+														{/if}
+													</span>
+												</div>
+
+												<!-- Mini heatmap: 7 cases x 2 rows (sg, pl) -->
+												<div class="overflow-x-auto pb-1">
+													<!-- Case header labels -->
+													<div class="mb-1 flex items-center">
+														<div class="w-7 shrink-0"></div>
+														{#each CASE_META as cm (cm.key)}
+															<div
+																class="shrink-0 text-center text-xs text-text-subtitle"
+																style="width: 32px;"
+															>
+																{cm.abbrev}
+															</div>
+														{/each}
+													</div>
+													<!-- Sg row -->
+													<div class="mb-0.5 flex items-center">
+														<div class="w-7 shrink-0 text-right text-xs text-text-subtitle">Sg</div>
+														{#each CASE_META as cm (cm.key)}
+															{@const score = getParadigmCaseNumberScore(
+																pronounParadigm,
+																cm.key,
+																'sg'
+															)}
+															{@const pct =
+																score.attempts > 0
+																	? Math.round((score.correct / score.attempts) * 100)
+																	: -1}
+															<div class="flex shrink-0 justify-center" style="width: 32px;">
+																<div
+																	class="paradigm-cell h-5 w-6 rounded-[3px]"
+																	style="background-color: {pct >= 0
+																		? cellColor(pct)
+																		: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																		? 0.85
+																		: 1};"
+																	role="gridcell"
+																	tabindex="0"
+																	aria-label="{cm.label} singular: {pct >= 0
+																		? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																		: 'no data'}"
+																	onmouseenter={(e: MouseEvent) =>
+																		handleCellEnter(e, pronounParadigm, cm.key, 'sg')}
+																	onmouseleave={handleCellLeave}
+																	onfocus={(e: FocusEvent) =>
+																		handleCellEnter(e, pronounParadigm, cm.key, 'sg')}
+																	onblur={handleCellLeave}
+																></div>
+															</div>
+														{/each}
+													</div>
+													<!-- Pl row -->
+													<div class="flex items-center">
+														<div class="w-7 shrink-0 text-right text-xs text-text-subtitle">Pl</div>
+														{#each CASE_META as cm (cm.key)}
+															{@const score = getParadigmCaseNumberScore(
+																pronounParadigm,
+																cm.key,
+																'pl'
+															)}
+															{@const pct =
+																score.attempts > 0
+																	? Math.round((score.correct / score.attempts) * 100)
+																	: -1}
+															<div class="flex shrink-0 justify-center" style="width: 32px;">
+																<div
+																	class="paradigm-cell h-5 w-6 rounded-[3px]"
+																	style="background-color: {pct >= 0
+																		? cellColor(pct)
+																		: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																		? 0.85
+																		: 1};"
+																	role="gridcell"
+																	tabindex="0"
+																	aria-label="{cm.label} plural: {pct >= 0
+																		? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																		: 'no data'}"
+																	onmouseenter={(e: MouseEvent) =>
+																		handleCellEnter(e, pronounParadigm, cm.key, 'pl')}
+																	onmouseleave={handleCellLeave}
+																	onfocus={(e: FocusEvent) =>
+																		handleCellEnter(e, pronounParadigm, cm.key, 'pl')}
+																	onblur={handleCellLeave}
+																></div>
+															</div>
+														{/each}
+													</div>
+												</div>
+											</div>
+										{/each}
+
+										<!-- Legend -->
+										<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: var(--color-shaded-background);"
+												></div>
+												No data
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #ef4444; opacity: 0.85;"
+												></div>
+												&lt;40%
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #f97316; opacity: 0.85;"
+												></div>
+												40-59%
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #eab308; opacity: 0.85;"
+												></div>
+												60-79%
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #22c55e; opacity: 0.85;"
+												></div>
+												80%+
+											</div>
+										</div>
+									{/if}
+								</div>
+							{/if}
+						</div>
+					</section>
+				</div>
+			{/if}
+
+			<!-- Mistakes Tab -->
+			{#if profileTab === 'mistakes'}
+				<div
+					role="tabpanel"
+					id="profile-panel-mistakes"
+					aria-labelledby="profile-tab-mistakes"
+					tabindex={0}
+				>
+					{#if storedMistakes.length === 0}
+						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+							<p class="text-sm text-text-subtitle">No mistakes recorded.</p>
+							<p class="mt-1 text-sm text-text-subtitle">Nice work — keep it up!</p>
+						</div>
+					{/if}
+					<!-- 5. Review Mistakes -->
+					{#if storedMistakes.length > 0}
+						<section class="mb-8">
+							<div class="mb-4 flex items-center justify-between">
+								<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+									Recent Mistakes ({storedMistakes.length})
+								</h2>
+								<div class="flex items-center gap-2">
+									<a
+										href="{resolve('/')}?mode=review"
+										class="inline-flex items-center gap-2 rounded-full border border-negative-stroke/30 bg-card-bg px-4 py-1.5 text-sm font-medium text-negative-stroke transition-colors hover:border-negative-stroke hover:bg-negative-background"
+									>
+										<RefreshCcw class="size-4" aria-hidden="true" />
+										Review {storedMistakes.length}
+										{storedMistakes.length === 1 ? 'mistake' : 'mistakes'}
+									</a>
+									<button
+										type="button"
+										onclick={() => (confirmingClearMistakes = true)}
+										class="rounded-lg px-2 py-1.5 text-xs text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+									>
+										Clear all
+									</button>
 								</div>
 							</div>
-						{/each}
-					</div>
-				</section>
-			{/if}
 
-			<!-- Clear mistakes confirmation modal -->
-			{#if confirmingClearMistakes}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div
-					class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-					onclick={(e) => {
-						if (e.target === e.currentTarget) confirmingClearMistakes = false;
-					}}
-					onkeydown={(e) => {
-						if (e.key === 'Escape') confirmingClearMistakes = false;
-					}}
-				>
-					<div
-						role="dialog"
-						aria-modal="true"
-						aria-label="Confirm clear mistakes"
-						class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
-					>
-						<h2 class="mb-2 text-base font-semibold text-text-default">Clear all mistakes?</h2>
-						<p class="mb-4 text-sm text-text-subtitle">
-							This will remove all {storedMistakes.length} stored mistake records. This cannot be undone.
-						</p>
-						<div class="flex justify-end gap-2">
-							<button
-								type="button"
-								onclick={() => (confirmingClearMistakes = false)}
-								class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-							>
-								Cancel
-							</button>
-							<button
-								type="button"
-								onclick={() => {
-									clearMistakes();
-									confirmingClearMistakes = false;
-								}}
-								class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-red-700"
-							>
-								Clear mistakes
-							</button>
-						</div>
-					</div>
-				</div>
-			{/if}
-
-			<!-- 6. Achievements -->
-			<section class="mb-8">
-				<div class="mb-4 flex items-center justify-between">
-					<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-						Achievements
-					</h2>
-					<span class="text-xs font-medium text-text-subtitle">
-						{earnedBadgeCount}/{badges.length} earned
-					</span>
-				</div>
-
-				<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-					{#each badges as badge (badge.id)}
-						<div
-							class="rounded-xl border border-card-stroke p-3 transition-colors {badge.earned
-								? 'bg-card-bg'
-								: 'bg-shaded-background opacity-50'}"
-						>
-							<div class="mb-1 text-2xl">{badge.icon}</div>
-							<p
-								class="text-sm font-semibold {badge.earned
-									? 'text-text-default'
-									: 'text-text-subtitle'}"
-							>
-								{badge.name}
-							</p>
-							<p class="mt-0.5 text-xs text-text-subtitle">{badge.description}</p>
-							{#if badge.earned && badge.earnedAt}
-								<p class="mt-1.5 text-[10px] font-medium text-positive-stroke">
-									Earned {formatBadgeDate(badge.earnedAt)}
-								</p>
-							{:else}
-								<p class="mt-1.5 text-[10px] text-text-subtitle">{badge.condition}</p>
+							<!-- Case filter pills -->
+							{#if mistakeCaseCounts.length > 2}
+								<div class="mb-3 flex flex-wrap gap-1.5">
+									{#each mistakeCaseCounts as { key, label, count } (key)}
+										<button
+											type="button"
+											onclick={() => (mistakeFilterCase = key)}
+											class="rounded-full border px-2.5 py-1 text-xs font-medium transition-colors
+									{mistakeFilterCase === key
+												? 'border-emphasis bg-emphasis text-text-inverted'
+												: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-emphasis/40 hover:text-text-default'}"
+										>
+											{label}
+											<span class="ml-0.5 opacity-70">{count}</span>
+										</button>
+									{/each}
+								</div>
 							{/if}
+
+							<!-- Grouped mistakes list -->
+							<div class="space-y-4">
+								{#each groupedMistakes as group (group.caseKey)}
+									<div>
+										<div class="mb-2 flex items-center gap-2">
+											<span
+												class="inline-block size-2.5 rounded-full"
+												style="background-color: {CASE_META.find((c) => c.key === group.caseKey)
+													?.hex ?? '#888'}"
+											></span>
+											<h3 class="text-xs font-semibold text-text-default">
+												{group.label}
+											</h3>
+											<span class="text-xs text-text-subtitle">({group.mistakes.length})</span>
+										</div>
+										<div class="overflow-hidden rounded-xl border border-card-stroke bg-card-bg">
+											<table class="w-full text-left text-xs">
+												<thead>
+													<tr class="border-b border-card-stroke bg-shaded-background/50">
+														<th class="px-3 py-2 font-medium text-text-subtitle">Word</th>
+														<th class="px-3 py-2 font-medium text-text-subtitle">Number</th>
+														<th class="px-3 py-2 font-medium text-text-subtitle">Your answer</th>
+														<th class="px-3 py-2 font-medium text-text-subtitle">Correct</th>
+														<th
+															class="hidden px-3 py-2 font-medium text-text-subtitle sm:table-cell"
+															>When</th
+														>
+													</tr>
+												</thead>
+												<tbody>
+													{#each group.mistakes as mistake, i (mistake.timestamp + mistake.lemma)}
+														<tr
+															class={i < group.mistakes.length - 1
+																? 'border-b border-card-stroke'
+																: ''}
+														>
+															<td class="px-3 py-2">
+																<span class="font-medium text-text-default">{mistake.lemma}</span>
+																<span class="ml-1 text-text-subtitle">{mistake.translation}</span>
+															</td>
+															<td class="px-3 py-2 text-text-subtitle">
+																{mistake.targetNumber === 'sg' ? 'singular' : 'plural'}
+															</td>
+															<td class="px-3 py-2">
+																{#if mistake.userAnswer}
+																	<span class="text-negative-stroke">{mistake.userAnswer}</span>
+																{:else}
+																	<span class="italic text-text-subtitle">skipped</span>
+																{/if}
+															</td>
+															<td class="px-3 py-2">
+																<span class="font-medium text-positive-stroke"
+																	>{mistake.correctAnswer}</span
+																>
+															</td>
+															<td class="hidden px-3 py-2 text-text-subtitle sm:table-cell">
+																{formatRelativeTime(mistake.timestamp)}
+															</td>
+														</tr>
+													{/each}
+												</tbody>
+											</table>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</section>
+					{/if}
+
+					<!-- Clear mistakes confirmation modal -->
+					{#if confirmingClearMistakes}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+							onclick={(e) => {
+								if (e.target === e.currentTarget) confirmingClearMistakes = false;
+							}}
+							onkeydown={(e) => {
+								if (e.key === 'Escape') confirmingClearMistakes = false;
+							}}
+						>
+							<div
+								role="dialog"
+								aria-modal="true"
+								aria-label="Confirm clear mistakes"
+								class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-lg"
+							>
+								<h2 class="mb-2 text-base font-semibold text-text-default">Clear all mistakes?</h2>
+								<p class="mb-4 text-sm text-text-subtitle">
+									This will remove all {storedMistakes.length} stored mistake records. This cannot be
+									undone.
+								</p>
+								<div class="flex justify-end gap-2">
+									<button
+										type="button"
+										onclick={() => (confirmingClearMistakes = false)}
+										class="rounded-lg px-4 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+									>
+										Cancel
+									</button>
+									<button
+										type="button"
+										onclick={() => {
+											clearMistakes();
+											confirmingClearMistakes = false;
+										}}
+										class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-red-700"
+									>
+										Clear mistakes
+									</button>
+								</div>
+							</div>
 						</div>
-					{/each}
+					{/if}
 				</div>
-			</section>
+			{/if}
+
+			<!-- Achievements Tab -->
+			{#if profileTab === 'achievements'}
+				<div
+					role="tabpanel"
+					id="profile-panel-achievements"
+					aria-labelledby="profile-tab-achievements"
+					tabindex={0}
+				>
+					<!-- 6. Achievements -->
+					<section class="mb-8">
+						<div class="mb-4 flex items-center justify-between">
+							<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Achievements
+							</h2>
+							<span class="text-xs font-medium text-text-subtitle">
+								{earnedBadgeCount}/{badges.length} earned
+							</span>
+						</div>
+
+						<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+							{#each badges as badge (badge.id)}
+								{@const BadgeIcon = BADGE_ICONS[badge.id]}
+								{@const progress = !badge.earned && badge.getProgress ? badge.getProgress() : null}
+								{@const progressPct =
+									progress && progress.target > 0
+										? Math.min(100, Math.round((progress.current / progress.target) * 100))
+										: 0}
+								<div
+									class="rounded-xl border border-card-stroke p-3 transition-colors {badge.earned
+										? 'bg-card-bg'
+										: 'bg-shaded-background opacity-50'}"
+								>
+									<div class="mb-1.5 {badge.earned ? 'text-emphasis' : 'text-text-subtitle'}">
+										{#if BadgeIcon}
+											<BadgeIcon class="size-6" aria-hidden="true" />
+										{:else}
+											<span class="text-2xl">{badge.icon}</span>
+										{/if}
+									</div>
+									<p
+										class="text-sm font-semibold {badge.earned
+											? 'text-text-default'
+											: 'text-text-subtitle'}"
+									>
+										{badge.name}
+									</p>
+									<p class="mt-0.5 text-xs text-text-subtitle">{badge.description}</p>
+									{#if badge.earned && badge.earnedAt}
+										<p class="mt-1.5 text-[10px] font-medium text-positive-stroke">
+											Earned {formatBadgeDate(badge.earnedAt)}
+										</p>
+									{:else if progress}
+										<div class="mt-2">
+											<div
+												class="h-1 overflow-hidden rounded-full bg-card-stroke"
+												role="progressbar"
+												aria-valuenow={progressPct}
+												aria-valuemin="0"
+												aria-valuemax="100"
+												aria-label="{badge.name} progress"
+											>
+												<div
+													class="h-full rounded-full bg-emphasis transition-all"
+													style="width: {progressPct}%"
+												></div>
+											</div>
+											<p class="mt-1 text-[10px] text-text-subtitle">
+												{progress.current} / {progress.target}
+											</p>
+										</div>
+									{:else}
+										<p class="mt-1.5 text-[10px] text-text-subtitle">{badge.condition}</p>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					</section>
+				</div>
+			{/if}
 
 			<!-- 6. Danger zone (signed-in users only) -->
 			{#if user}

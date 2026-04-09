@@ -1,4 +1,17 @@
 <script lang="ts">
+	import ListChecks from '@lucide/svelte/icons/list-checks';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
+	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import VolumeX from '@lucide/svelte/icons/volume-x';
+	import Settings from '@lucide/svelte/icons/settings';
+	import X from '@lucide/svelte/icons/x';
+	import NotebookText from '@lucide/svelte/icons/notebook-text';
+	import Star from '@lucide/svelte/icons/star';
+	import BadgeCheck from '@lucide/svelte/icons/badge-check';
+	import ArrowUpCircle from '@lucide/svelte/icons/arrow-up-circle';
 	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
 	import { goto, replaceState } from '$app/navigation';
@@ -105,6 +118,8 @@
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import posthog from '$lib/posthog';
+	import { BADGE_ICONS } from '$lib/data/badge-icons';
+	import type { Component } from 'svelte';
 
 	let user = $derived(page.data.user);
 
@@ -116,9 +131,12 @@
 		if (syncTimer) clearTimeout(syncTimer);
 		syncTimer = setTimeout(() => {
 			const current = get(progress);
+			// keepalive lets the request complete through client-side navigation
+			// so the server doesn't see the connection get aborted mid-flight.
 			fetch('/api/sync', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				keepalive: true,
 				body: JSON.stringify({
 					progress: {
 						level: current.level,
@@ -151,6 +169,7 @@
 			fetch('/api/sync', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				keepalive: true,
 				body: JSON.stringify({
 					session: {
 						sessionDate: getTodayDate(),
@@ -835,7 +854,9 @@
 	interface MilestoneToast_ {
 		id: number;
 		message: string;
-		emoji: string;
+		emoji?: string;
+		icon?: Component;
+		onClick?: () => void;
 	}
 	let toasts = $state<MilestoneToast_[]>([]);
 	let celebratedMilestones = $state(new Set<string>());
@@ -2343,9 +2364,13 @@
 
 	const TOTAL_MILESTONES = [10, 25, 50, 100];
 
-	function addToast(message: string, emoji: string): void {
+	function addToast(
+		message: string,
+		emoji: string,
+		options?: { icon?: Component; onClick?: () => void }
+	): void {
 		const id = toastIdCounter++;
-		toasts = [...toasts, { id, message, emoji }];
+		toasts = [...toasts, { id, message, emoji, icon: options?.icon, onClick: options?.onClick }];
 	}
 
 	function removeToast(id: number): void {
@@ -2431,7 +2456,10 @@
 		};
 		const newBadges = checkAndAwardBadges(badgeContext);
 		for (const badge of newBadges) {
-			addToast(`${badge.name} — Achievement unlocked!`, badge.icon);
+			addToast(`${badge.name} — Achievement unlocked!`, badge.icon, {
+				icon: BADGE_ICONS[badge.id],
+				onClick: () => goto(resolve('/profile'))
+			});
 		}
 	}
 
@@ -2863,18 +2891,7 @@
 					class="flex w-full items-center justify-between px-4 py-3"
 				>
 					<div class="flex items-center gap-2">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="size-4 text-emphasis"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M6 4.75A.75.75 0 016.75 4h10.5a.75.75 0 010 1.5H6.75A.75.75 0 016 4.75zM6 10a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H6.75A.75.75 0 016 10zm0 5.25a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H6.75a.75.75 0 01-.75-.75zM1.99 4.75a1 1 0 011-1h.01a1 1 0 010 2h-.01a1 1 0 01-1-1zM2.99 9a1 1 0 100 2h.01a1 1 0 100-2h-.01zM1.99 15.25a1 1 0 011-1h.01a1 1 0 010 2h-.01a1 1 0 01-1-1z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+						<ListChecks class="size-4 text-emphasis" aria-hidden="true" />
 						<span class="text-sm font-semibold text-text-default">Your Assignments</span>
 						{#if pendingAssignments.length > 0}
 							<span
@@ -2884,20 +2901,12 @@
 							</span>
 						{/if}
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ChevronDown
 						class="size-4 text-text-subtitle transition-transform duration-200 {assignmentsPanelExpanded
 							? 'rotate-180'
 							: ''}"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</button>
 				{#if assignmentsPanelExpanded}
 					<div transition:slide={{ duration: 200 }} class="flex flex-col gap-2 px-4 pb-3">
@@ -3058,18 +3067,7 @@
 								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 								aria-label="Previous chapter"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<ChevronLeft class="h-4 w-4" aria-hidden="true" />
 							</button>
 							<div class="relative flex min-w-0 flex-col items-center gap-0.5">
 								<button
@@ -3087,20 +3085,12 @@
 											>{chapterAccPct}%</span
 										>
 									{/if}
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										fill="currentColor"
+									<ChevronDown
 										class="h-3.5 w-3.5 shrink-0 text-text-subtitle transition-transform duration-200 {chapterPickerOpen
 											? 'rotate-180'
 											: ''}"
-									>
-										<path
-											fill-rule="evenodd"
-											d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-											clip-rule="evenodd"
-										/>
-									</svg>
+										aria-hidden="true"
+									/>
 								</button>
 								{#if chapterPickerOpen}
 									<div
@@ -3183,18 +3173,7 @@
 								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 								aria-label="Next chapter"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<ChevronRight class="size-4" aria-hidden="true" />
 							</button>
 						</div>
 					{/if}
@@ -3211,20 +3190,12 @@
 						{#if enabledCases.length < ALL_CASES.length}
 							<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
 						{/if}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
+						<ChevronDown
 							class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
 								? 'rotate-180'
 								: ''}"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+							aria-hidden="true"
+						/>
 					</button>
 				{/if}
 			</div>
@@ -3242,16 +3213,7 @@
 							? 'border-negative-stroke bg-negative-background text-negative-stroke'
 							: 'border-negative-stroke/30 bg-card-bg text-negative-stroke hover:border-negative-stroke hover:bg-negative-background'}"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="h-4 w-4"
-						>
-							<path
-								d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H4.598a.75.75 0 00-.75.75v3.634a.75.75 0 001.5 0v-2.033a7 7 0 0011.713-3.13.75.75 0 00-1.449-.391l-.3.015zM4.688 8.576a5.5 5.5 0 019.201-2.466l.312.311h-2.433a.75.75 0 000 1.5h3.634a.75.75 0 00.75-.75V3.537a.75.75 0 00-1.5 0v2.033A7 7 0 003.239 8.89a.75.75 0 001.449.391v-.705z"
-							/>
-						</svg>
+						<RefreshCcw class="size-4" aria-hidden="true" />
 						{#if practicingMistakes}
 							Reviewing {relevantMistakeCount}
 							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
@@ -3269,35 +3231,9 @@
 						aria-label="Toggle audio autoplay"
 					>
 						{#if autoplayAudio}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="size-4"
-							>
-								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-								<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-								<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-							</svg>
+							<Volume2 class="size-4" aria-hidden="true" />
 						{:else}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								class="size-4"
-							>
-								<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-								<line x1="23" y1="9" x2="17" y2="15" />
-								<line x1="17" y1="9" x2="23" y2="15" />
-							</svg>
+							<VolumeX class="size-4" aria-hidden="true" />
 						{/if}
 					</button>
 				{/if}
@@ -3311,21 +3247,7 @@
 					aria-label="Exercise settings"
 					data-tour="settings"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="size-4"
-					>
-						<circle cx="12" cy="12" r="3" />
-						<path
-							d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-						/>
-					</svg>
+					<Settings class="size-4" aria-hidden="true" />
 				</button>
 			</div>
 		</div>
@@ -3419,16 +3341,7 @@
 						class="shrink-0 p-1 text-text-subtitle transition-colors hover:text-text-default"
 						aria-label="Dismiss"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="size-4"
-						>
-							<path
-								d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-							/>
-						</svg>
+						<X class="size-4" aria-hidden="true" />
 					</button>
 				</div>
 			</div>
@@ -3529,6 +3442,8 @@
 			<MilestoneToast
 				message={toast.message}
 				emoji={toast.emoji}
+				icon={toast.icon}
+				onClick={toast.onClick}
 				onDismiss={() => removeToast(toast.id)}
 			/>
 		{/each}
@@ -3565,25 +3480,7 @@
 			aria-label="Toggle reference sidebar"
 			data-tour="ref-sidebar"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				class="h-5 w-5"
-			>
-				<path d="M2 6h4" />
-				<path d="M2 10h4" />
-				<path d="M2 14h4" />
-				<path d="M2 18h4" />
-				<rect width="16" height="20" x="4" y="2" rx="2" />
-				<path d="M9.5 8h5" />
-				<path d="M9.5 12H16" />
-				<path d="M9.5 16H14" />
-			</svg>
+			<NotebookText class="size-5" aria-hidden="true" />
 		</button>
 		<aside class="h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md">
 			<ReferenceSidebar
@@ -3620,44 +3517,11 @@
 						: 'bg-warning-background'}"
 				>
 					{#if accuracyPct >= 90}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="currentColor"
-							class="size-7 text-positive-stroke"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+						<Star class="size-7 text-positive-stroke" fill="currentColor" aria-hidden="true" />
 					{:else if accuracyPct >= 70}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="currentColor"
-							class="size-7 text-positive-stroke"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+						<BadgeCheck class="size-7 text-positive-stroke" aria-hidden="true" />
 					{:else}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="currentColor"
-							class="size-7 text-warning-text"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+						<ArrowUpCircle class="size-7 text-warning-text" aria-hidden="true" />
 					{/if}
 				</div>
 				<h2 class="text-lg font-semibold text-text-default">
@@ -3696,18 +3560,10 @@
 						onclick={() => (mistakesExpanded = !mistakesExpanded)}
 					>
 						<span>You missed {assignmentMistakes.length}</span>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
+						<ChevronDown
 							class="size-4 transition-transform {mistakesExpanded ? 'rotate-180' : ''}"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+							aria-hidden="true"
+						/>
 					</button>
 					{#if mistakesExpanded}
 						<div class="mt-2 space-y-1.5">

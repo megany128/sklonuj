@@ -1,4 +1,11 @@
 <script lang="ts">
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Check from '@lucide/svelte/icons/check';
+	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
+	import Archive from '@lucide/svelte/icons/archive';
+	import ChartPie from '@lucide/svelte/icons/chart-pie';
+	import X from '@lucide/svelte/icons/x';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
@@ -985,19 +992,7 @@
 								class="inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 								title="Edit class"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
-								>
-									<path
-										d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"
-									/>
-									<path
-										d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"
-									/>
-								</svg>
+								<Pencil class="h-4 w-4" aria-hidden="true" />
 							</a>
 						{/if}
 					</div>
@@ -1090,34 +1085,10 @@
 								>
 									{#if regenerateSuccess}
 										<!-- Check icon -->
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											viewBox="0 0 24 24"
-											fill="currentColor"
-											class="size-3.5"
-											aria-hidden="true"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z"
-												clip-rule="evenodd"
-											/>
-										</svg>
+										<Check class="size-3.5" aria-hidden="true" />
 									{:else}
-										<!-- Heroicons solid arrow-path -->
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											viewBox="0 0 24 24"
-											fill="currentColor"
-											class="size-3.5"
-											aria-hidden="true"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.992a.75.75 0 0 0 .75-.75V4.356a.75.75 0 0 0-1.5 0v3.18l-1.9-1.9A9 9 0 0 0 3.306 9.67a.75.75 0 1 0 1.45.388Zm15.408 3.352a.75.75 0 0 0-.919.53 7.5 7.5 0 0 1-12.548 3.364l-1.902-1.903h3.183a.75.75 0 0 0 0-1.5H2.984a.75.75 0 0 0-.75.75v4.992a.75.75 0 0 0 1.5 0v-3.18l1.9 1.9a9 9 0 0 0 15.059-4.035.75.75 0 0 0-.53-.918Z"
-												clip-rule="evenodd"
-											/>
-										</svg>
+										<!-- Refresh icon -->
+										<RefreshCw class="size-3.5" aria-hidden="true" />
 									{/if}
 								</button>
 							</div>
@@ -1135,22 +1106,8 @@
 									title="Unarchive class"
 									class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-card-stroke p-2 text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 								>
-									<!-- Unarchive (box with up arrow) -->
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										fill="currentColor"
-										class="h-4 w-4"
-									>
-										<path
-											d="M2 3a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2Z"
-										/>
-										<path
-											fill-rule="evenodd"
-											d="M2 7.5h16l-.811 7.71a2 2 0 0 1-1.99 1.79H4.802a2 2 0 0 1-1.99-1.79L2 7.5Zm5.22 1.72a.75.75 0 0 1 1.06 0L10 10.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 0-1.06Z"
-											clip-rule="evenodd"
-										/>
-									</svg>
+									<!-- Unarchive -->
+									<ArchiveRestore class="h-4 w-4" aria-hidden="true" />
 								</button>
 							</form>
 						{:else if !classData.archived}
@@ -1185,21 +1142,7 @@
 								class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-card-stroke p-2 text-text-subtitle transition-colors hover:border-negative-stroke hover:text-negative-stroke"
 							>
 								<!-- Archive box icon -->
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
-								>
-									<path
-										d="M2 3a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2Z"
-									/>
-									<path
-										fill-rule="evenodd"
-										d="M2 7.5h16l-.811 7.71a2 2 0 0 1-1.99 1.79H4.802a2 2 0 0 1-1.99-1.79L2 7.5ZM7 11a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H8a1 1 0 0 1-1-1Z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<Archive class="h-4 w-4" aria-hidden="true" />
 							</button>
 						{/if}
 					</div>
@@ -1268,7 +1211,7 @@
 					</button>
 				</div>
 				{#if !classData.archived}
-					<div class="flex min-h-[34px] items-end justify-end gap-2 pb-2 sm:min-w-[180px]">
+					<div class="flex min-h-[56px] items-end justify-end gap-2 pb-2 sm:min-w-[180px]">
 						{#if activeTab === 'overall'}
 							<div class="flex flex-col items-end gap-1">
 								<button
@@ -1314,6 +1257,15 @@
 									>{displayedClassCode}</span
 								> to get started.
 							</p>
+							{#if !classData.archived}
+								<button
+									type="button"
+									onclick={openInviteModal}
+									class="mt-4 cursor-pointer rounded-xl bg-emphasis px-5 py-2 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
+								>
+									Invite students
+								</button>
+							{/if}
 						</div>
 					{:else if students.length > 0 && hasProgressData}
 						<!-- Class Case Accuracy -->
@@ -1369,24 +1321,7 @@
 							class="mb-6 rounded-2xl border border-card-stroke bg-card-bg p-8 text-center"
 							data-tour="teacher-accuracy"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								fill="currentColor"
-								class="mx-auto mb-3 size-10 text-text-subtitle"
-								aria-hidden="true"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z"
-									clip-rule="evenodd"
-								/>
-								<path
-									fill-rule="evenodd"
-									d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z"
-									clip-rule="evenodd"
-								/>
-							</svg>
+							<ChartPie class="mx-auto mb-3 size-10 text-text-subtitle" aria-hidden="true" />
 							<h2 class="mb-1 text-base font-semibold text-text-default">No progress data yet</h2>
 							<p class="text-sm text-text-subtitle">
 								Once your students start practicing, accuracy stats and progress charts will appear
@@ -1404,12 +1339,21 @@
 					<div class="mb-6" data-tour="teacher-roster">
 						{#if students.length === 0}
 							<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
-								<p class="text-sm text-text-subtitle">No students have joined yet.</p>
+								<p class="text-sm text-text-subtitle">No students have joined this class yet.</p>
 								<p class="mt-1 text-sm text-text-subtitle">
 									Share the class code <span class="font-mono font-semibold"
 										>{displayedClassCode}</span
-									> with your students to get started.
+									> to get started.
 								</p>
+								{#if !classData.archived}
+									<button
+										type="button"
+										onclick={openInviteModal}
+										class="mt-4 cursor-pointer rounded-xl bg-emphasis px-5 py-2 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
+									>
+										Invite students
+									</button>
+								{/if}
 							</div>
 						{:else}
 							<!-- Search input -->
@@ -2073,16 +2017,7 @@
 					onclick={closeInviteModal}
 					class="absolute right-4 top-4 cursor-pointer text-text-subtitle transition-colors hover:text-text-default"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="h-5 w-5"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
-						/>
-					</svg>
+					<X class="h-5 w-5" aria-hidden="true" />
 				</button>
 
 				<h2 id="invite-modal-heading" class="mb-4 text-xl font-semibold text-text-default">
@@ -2201,16 +2136,7 @@
 					onclick={closeAssignmentModal}
 					class="absolute right-4 top-4 cursor-pointer text-text-subtitle transition-colors hover:text-text-default"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="h-5 w-5"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"
-						/>
-					</svg>
+					<X class="h-5 w-5" aria-hidden="true" />
 				</button>
 
 				<h2 id="assignment-modal-heading" class="mb-4 text-xl font-semibold text-text-default">

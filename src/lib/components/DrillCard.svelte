@@ -1,4 +1,8 @@
 <script lang="ts">
+	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import CircleHelp from '@lucide/svelte/icons/circle-help';
+	import CircleCheck from '@lucide/svelte/icons/circle-check';
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
 	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER, isCase } from '$lib/types';
 	import { applyPrepositionVoicing } from '$lib/engine/drill';
@@ -436,20 +440,7 @@
 									class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
 								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="size-4"
-									>
-										<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-										<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-										<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-									</svg>
+									<Volume2 class="size-4" aria-hidden="true" />
 								</button>
 							{/if}
 						</div>
@@ -489,20 +480,7 @@
 									onclick={() => onSpeak(fullSentenceText(question!))}
 									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
-									><svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="size-4"
-									>
-										<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-										<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-										<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-									</svg></button
+									><Volume2 class="size-4" aria-hidden="true" /></button
 								>{/if}
 						</p>
 					{:else}
@@ -517,20 +495,7 @@
 									onclick={() => onSpeak(sentenceWithGap(question!))}
 									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
-									><svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										class="size-4"
-									>
-										<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-										<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-										<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-									</svg></button
+									><Volume2 class="size-4" aria-hidden="true" /></button
 								>{/if}
 						</p>
 						<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
@@ -540,20 +505,7 @@
 									: question.word.translation}</span
 							>
 							<span class="group relative">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									class="h-4 w-4 text-text-subtitle"
-								>
-									<circle cx="12" cy="12" r="10" />
-									<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-									<path d="M12 17h.01" />
-								</svg>
+								<CircleHelp class="h-4 w-4 text-text-subtitle" aria-hidden="true" />
 								<span
 									class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
 								>
@@ -663,18 +615,7 @@
 					<div class="drill-fade-enter space-y-4" aria-live="polite">
 						{#if result.correct}
 							<div class="flex items-center justify-center gap-2">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-5 w-5 text-positive-stroke"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<CircleCheck class="h-5 w-5 text-positive-stroke" aria-hidden="true" />
 								<p class="text-lg font-semibold text-positive-stroke">
 									{#if streak >= 3}
 										Correct! {streak} in a row!
@@ -741,16 +682,7 @@
 							{#if correctTemplateWhy?.trim() || correctWhyNote?.trim()}
 								<div class="w-full border-t border-darker-subtitle/30 pt-4">
 									<div class="mb-2 flex items-center justify-center gap-1.5">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-											class="h-3.5 w-3.5 text-darker-subtitle"
-										>
-											<path
-												d="M10 1a6 6 0 00-3.815 10.631C7.237 12.5 8 13.443 8 14.456v.644a.75.75 0 00.75.75h2.5a.75.75 0 00.75-.75v-.644c0-1.013.762-1.957 1.815-2.825A6 6 0 0010 1zM8.863 17.414a.75.75 0 00-.226 1.483 9.066 9.066 0 002.726 0 .75.75 0 00-.226-1.483 7.563 7.563 0 01-2.274 0z"
-											/>
-										</svg>
+										<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
 										<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
 									</div>
 									{#if correctTemplateWhy}

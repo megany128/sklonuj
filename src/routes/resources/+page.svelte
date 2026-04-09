@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -135,18 +136,10 @@
 									{guide.description}
 								</p>
 							</div>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
+							<ArrowRight
 								class="mt-0.5 size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-									clip-rule="evenodd"
-								/>
-							</svg>
+								aria-hidden="true"
+							/>
 						</div>
 					</a>
 				{/each}

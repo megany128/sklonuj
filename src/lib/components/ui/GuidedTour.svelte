@@ -1,4 +1,6 @@
 <script lang="ts">
+	import X from '@lucide/svelte/icons/x';
+
 	interface TourStep {
 		target: string | null;
 		text: string;
@@ -309,16 +311,7 @@
 					class="absolute right-1.5 top-1.5 p-1.5 text-text-subtitle transition-colors hover:text-text-default"
 					aria-label="Skip tour"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="size-4"
-					>
-						<path
-							d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-						/>
-					</svg>
+					<X class="size-4" aria-hidden="true" />
 				</button>
 				{#if steps[currentStep].title}
 					<h2 class="mb-1 text-lg font-semibold text-text-default sm:text-xl">

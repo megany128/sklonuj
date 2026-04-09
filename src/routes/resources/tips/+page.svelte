@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -148,18 +150,7 @@
 			href={resolve('/resources')}
 			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-emphasis"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-				class="size-4"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
-					clip-rule="evenodd"
-				/>
-			</svg>
+			<ArrowLeft class="size-4" aria-hidden="true" />
 			Back to Resources
 		</a>
 
@@ -210,18 +201,10 @@
 							When to use each case, with examples and prepositions
 						</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 				<a
 					href={resolve('/resources/paradigms')}
@@ -231,18 +214,10 @@
 						<span class="text-sm font-medium text-text-default">All Declension Paradigms</span>
 						<p class="text-xs text-text-subtitle">Full tables for all 14 noun paradigms</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 				<a
 					href={resolve('/resources/pronouns')}
@@ -254,18 +229,10 @@
 							Personal, demonstrative, and possessive pronouns
 						</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 				<a
 					href={resolve('/')}
@@ -275,18 +242,10 @@
 						<span class="text-sm font-medium text-text-default">Practice Czech Declension</span>
 						<p class="text-xs text-text-subtitle">Interactive drills to test your knowledge</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 			</div>
 		</div>

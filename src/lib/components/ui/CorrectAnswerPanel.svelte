@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import type { Case, DrillType, Number_ } from '$lib/types';
 	import { CASE_COLORS, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import DottedUnderline from './DottedUnderline.svelte';
@@ -96,20 +98,7 @@
 						class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-darker-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 						aria-label="Listen to pronunciation"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							class="size-4"
-						>
-							<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-							<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-							<path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-						</svg>
+						<Volume2 class="size-4" aria-hidden="true" />
 					</button>
 				{/if}
 			</div>
@@ -155,16 +144,7 @@
 	{#if hasWhy}
 		<div class="w-full border-t border-darker-subtitle/30 pt-4">
 			<div class="mb-2 flex items-center justify-center gap-1.5">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 20 20"
-					fill="currentColor"
-					class="h-3.5 w-3.5 text-darker-subtitle"
-				>
-					<path
-						d="M10 1a6 6 0 00-3.815 10.631C7.237 12.5 8 13.443 8 14.456v.644a.75.75 0 00.75.75h2.5a.75.75 0 00.75-.75v-.644c0-1.013.762-1.957 1.815-2.825A6 6 0 0010 1zM8.863 17.414a.75.75 0 00-.226 1.483 9.066 9.066 0 002.726 0 .75.75 0 00-.226-1.483 7.563 7.563 0 01-2.274 0z"
-					/>
-				</svg>
+				<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
 				<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
 			</div>
 			{#if templateWhy}

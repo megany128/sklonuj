@@ -1,4 +1,8 @@
 <script lang="ts">
+	import Trophy from '@lucide/svelte/icons/trophy';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import X from '@lucide/svelte/icons/x';
+	import Smile from '@lucide/svelte/icons/smile';
 	import { slide } from 'svelte/transition';
 
 	interface LeaderboardEntry {
@@ -147,18 +151,7 @@
 		class="flex w-full items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-3 py-2 transition-colors hover:bg-shaded-background/50"
 	>
 		<div class="flex items-center gap-2">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-				class="size-4 text-warning-text"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M10 1c-1.828 0-3.623.149-5.371.435a.75.75 0 00-.629.74v.387c-.827.157-1.642.345-2.445.564a.75.75 0 00-.552.698c-.028 1.13.175 2.436.8 3.49.622 1.047 1.61 1.79 3.005 1.86A7.97 7.97 0 007.97 12.84a.75.75 0 00-.209.575l.164 4.926a.75.75 0 01-.75.775H5.75a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-1.424a.75.75 0 01-.75-.775l.164-4.926a.75.75 0 00-.209-.575A7.97 7.97 0 0015.192 9.174c1.395-.07 2.383-.813 3.005-1.86.625-1.054.828-2.36.8-3.49a.75.75 0 00-.552-.698 41.678 41.678 0 00-2.445-.564v-.387a.75.75 0 00-.629-.74A49.423 49.423 0 0010 1zM4.75 3.097v-.243a47.557 47.557 0 014.5-.354v1.08a.75.75 0 001.5 0V2.5c1.527.047 3.037.172 4.5.354v.243a36.32 36.32 0 00-5.25-.345 36.32 36.32 0 00-5.25.345zM3.166 7.87c-.491-.827-.673-1.845-.694-2.791A40.57 40.57 0 014.75 4.506v3.07c0 .625.073 1.232.21 1.816-.932-.254-1.487-.842-1.794-1.522zM15.25 7.576V4.506c.762.139 1.517.307 2.278.573-.021.946-.203 1.964-.694 2.791-.307.68-.862 1.268-1.794 1.522a8.065 8.065 0 00.21-1.816z"
-					clip-rule="evenodd"
-				/>
-			</svg>
+			<Trophy class="size-4 text-warning-text" aria-hidden="true" />
 			<span class="text-sm font-medium text-text-default">
 				You're #{myRank}{getRankSuffix(myRank)} this week
 			</span>
@@ -172,20 +165,12 @@
 			<span class="text-xs font-semibold text-text-subtitle">
 				{formatScore(myScore)} pts
 			</span>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
+			<ChevronDown
 				class="size-3.5 text-text-subtitle transition-transform duration-200 {expanded
 					? 'rotate-180'
 					: ''}"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-					clip-rule="evenodd"
-				/>
-			</svg>
+				aria-hidden="true"
+			/>
 		</div>
 	</button>
 
@@ -204,16 +189,7 @@
 						class="p-0.5 text-text-subtitle transition-colors hover:text-text-default"
 						aria-label="Close leaderboard"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
-							class="size-3.5"
-						>
-							<path
-								d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-							/>
-						</svg>
+						<X class="size-3.5" aria-hidden="true" />
 					</button>
 				</div>
 				<div class="flex flex-col gap-0.5">
@@ -287,18 +263,7 @@
 												title="Send reaction"
 												disabled={sendingReaction}
 											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-													class="size-3.5"
-												>
-													<path
-														fill-rule="evenodd"
-														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.536-4.464a.75.75 0 10-1.06-1.06 3.5 3.5 0 01-4.95 0 .75.75 0 00-1.06 1.06 5 5 0 007.07 0zM9 8.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S7.448 7 8 7s1 .672 1 1.5zm3 1.5c.552 0 1-.672 1-1.5S12.552 7 12 7s-1 .672-1 1.5.448 1.5 1 1.5z"
-														clip-rule="evenodd"
-													/>
-												</svg>
+												<Smile class="size-3.5" aria-hidden="true" />
 											</button>
 										{/if}
 

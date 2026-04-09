@@ -1,4 +1,8 @@
 <script lang="ts">
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Star from '@lucide/svelte/icons/star';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -511,20 +515,12 @@
 							? 'text-emphasis'
 							: 'text-text-subtitle hover:text-text-default'}"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 20 20"
-							fill="currentColor"
+						<ChevronRight
 							class="size-2.5 shrink-0 transition-transform {expandedGenders.has(group.id)
 								? 'rotate-90'
 								: ''}"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
+							aria-hidden="true"
+						/>
 						{group.label}
 					</button>
 					{#if expandedGenders.has(group.id)}
@@ -561,18 +557,7 @@
 			href={resolve('/resources')}
 			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-emphasis"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 20 20"
-				fill="currentColor"
-				class="size-4"
-			>
-				<path
-					fill-rule="evenodd"
-					d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z"
-					clip-rule="evenodd"
-				/>
-			</svg>
+			<ArrowLeft class="size-4" aria-hidden="true" />
 			Back to Resources
 		</a>
 
@@ -689,18 +674,7 @@
 												: 'border-card-stroke bg-shaded-background text-text-default hover:border-emphasis/50 hover:text-emphasis'}"
 										>
 											{paradigm.model}
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												viewBox="0 0 20 20"
-												fill="currentColor"
-												class="size-3 shrink-0 opacity-50"
-											>
-												<path
-													fill-rule="evenodd"
-													d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"
-													clip-rule="evenodd"
-												/>
-											</svg>
+											<Star class="size-3 shrink-0 opacity-50" aria-hidden="true" />
 										</button>
 										{#each paradigm.examples as example (example)}
 											<button
@@ -823,18 +797,7 @@
 									class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-emphasis transition-opacity hover:opacity-70"
 								>
 									Practice this paradigm
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										fill="currentColor"
-										class="size-4"
-									>
-										<path
-											fill-rule="evenodd"
-											d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-											clip-rule="evenodd"
-										/>
-									</svg>
+									<ArrowRight class="size-4" aria-hidden="true" />
 								</a>
 							</section>
 						{/each}
@@ -857,18 +820,10 @@
 							When to use each case, with examples and prepositions
 						</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 				<a
 					href={resolve('/resources/pronouns')}
@@ -880,18 +835,10 @@
 							Personal, demonstrative, and possessive pronouns
 						</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 				<a
 					href={resolve('/')}
@@ -901,18 +848,10 @@
 						<span class="text-sm font-medium text-text-default">Practice Czech Declension</span>
 						<p class="text-xs text-text-subtitle">Interactive drills to test your knowledge</p>
 					</div>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
+					<ArrowRight
 						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M3 10a.75.75 0 0 1 .75-.75h10.638l-3.96-3.96a.75.75 0 1 1 1.06-1.06l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06l3.96-3.96H3.75A.75.75 0 0 1 3 10Z"
-							clip-rule="evenodd"
-						/>
-					</svg>
+						aria-hidden="true"
+					/>
 				</a>
 			</div>
 		</div>

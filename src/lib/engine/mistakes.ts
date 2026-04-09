@@ -23,6 +23,9 @@ export interface MistakeRecord {
 
 const STORAGE_KEY = 'sklonuj_mistakes';
 const MAX_MISTAKES = 200;
+// Per-case cap so one runaway case can't crowd out the others. With 7 cases
+// this still leaves room for the global MAX_MISTAKES ceiling.
+const MAX_MISTAKES_PER_CASE = 30;
 
 const VALID_DRILL_TYPES: ReadonlySet<string> = new Set([
 	'form_production',
@@ -85,12 +88,25 @@ export function addMistake(record: Omit<MistakeRecord, 'timestamp'>): void {
 			...record,
 			timestamp: new Date().toISOString()
 		};
-		const updated = [newRecord, ...current];
-		// Keep only the most recent MAX_MISTAKES entries
-		if (updated.length > MAX_MISTAKES) {
-			return updated.slice(0, MAX_MISTAKES);
+		const prepended = [newRecord, ...current];
+
+		// Per-case cap: keep only the most recent MAX_MISTAKES_PER_CASE entries
+		// for each case so a runaway case can't crowd out the others. We walk
+		// in order (newest → oldest) and drop overflow, preserving recency.
+		const perCaseCount = new Map<Case, number>();
+		const perCaseFiltered: MistakeRecord[] = [];
+		for (const m of prepended) {
+			const count = perCaseCount.get(m.targetCase) ?? 0;
+			if (count >= MAX_MISTAKES_PER_CASE) continue;
+			perCaseCount.set(m.targetCase, count + 1);
+			perCaseFiltered.push(m);
 		}
-		return updated;
+
+		// Global cap as a backstop (e.g. if we ever change MAX_MISTAKES_PER_CASE).
+		if (perCaseFiltered.length > MAX_MISTAKES) {
+			return perCaseFiltered.slice(0, MAX_MISTAKES);
+		}
+		return perCaseFiltered;
 	});
 }
 

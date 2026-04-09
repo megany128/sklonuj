@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Check from '@lucide/svelte/icons/check';
+	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
@@ -174,31 +176,9 @@
 							class="inline-flex cursor-pointer items-center justify-center rounded-full p-1.5 text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 						>
 							{#if regenerateSuccess}
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4 text-positive-stroke"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<Check class="h-4 w-4 text-positive-stroke" aria-hidden="true" />
 							{:else}
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="h-4 w-4"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.598a.75.75 0 0 0-.75.75v3.634a.75.75 0 0 0 1.5 0v-2.033l.364.363a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.112-.231Zm-1.097-7.228a.75.75 0 0 0-.024-1.06 7 7 0 0 0-11.712 3.138.75.75 0 0 0 1.112.231 5.5 5.5 0 0 1 9.201-2.466l.312.311H10.67a.75.75 0 0 0 0 1.5h3.634a.75.75 0 0 0 .75-.75V1.66a.75.75 0 0 0-1.5 0v2.033l-.364-.363a7.012 7.012 0 0 0 .025-.134Z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<RefreshCw class="h-4 w-4" aria-hidden="true" />
 							{/if}
 						</button>
 					{/if}

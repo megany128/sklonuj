@@ -5,6 +5,11 @@ import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
 	plugins: [sveltekit(), tailwindcss()],
+	ssr: {
+		// @lucide/svelte ships .svelte source files; Vite must transform them
+		// during SSR rather than treat them as external Node ESM.
+		noExternal: ['@lucide/svelte']
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

@@ -6,6 +6,11 @@ import { ALL_CASES } from '../types';
 const BADGES_STORAGE_KEY = 'sklonuj_badges';
 const PRACTICE_DAYS_KEY = 'sklonuj_practice_days';
 
+export interface BadgeProgress {
+	current: number;
+	target: number;
+}
+
 export interface BadgeDefinition {
 	id: string;
 	name: string;
@@ -13,6 +18,13 @@ export interface BadgeDefinition {
 	icon: string;
 	condition: string;
 	check: (context: BadgeCheckContext) => boolean;
+	/**
+	 * Optional progress reporter for badges whose state can be inspected from
+	 * persistent storage (totals, streaks, accuracies). Badges that can only be
+	 * earned in-the-moment (single session, in-a-row, time of day) intentionally
+	 * omit this — there's nothing meaningful to show between attempts.
+	 */
+	getProgress?: () => BadgeProgress;
 }
 
 export interface EarnedBadge {
@@ -127,7 +139,8 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 		description: 'Answer 100 questions total',
 		icon: '\u{1F4AF}',
 		condition: 'Answer 100 questions',
-		check: () => getTotalQuestions() >= 100
+		check: () => getTotalQuestions() >= 100,
+		getProgress: () => ({ current: getTotalQuestions(), target: 100 })
 	},
 	{
 		id: 'thousand_strong',
@@ -135,7 +148,8 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 		description: 'Answer 1,000 questions total',
 		icon: '\u{1F3C6}',
 		condition: 'Answer 1,000 questions',
-		check: () => getTotalQuestions() >= 1000
+		check: () => getTotalQuestions() >= 1000,
+		getProgress: () => ({ current: getTotalQuestions(), target: 1000 })
 	},
 	{
 		id: 'sharp_shooter',
@@ -158,6 +172,20 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 				if (s.attempts >= 10 && s.accuracy >= 0.8) return true;
 			}
 			return false;
+		},
+		// Best accuracy on any case with at least 10 attempts. Cases with fewer
+		// attempts contribute their attempt count proportionally so the bar still
+		// moves while the user is ramping up.
+		getProgress: () => {
+			const strengths = getAllCaseStrengths();
+			let bestAccuracyPct = 0;
+			for (const c of ALL_CASES) {
+				const s = strengths[c];
+				if (s.attempts < 10) continue;
+				const pct = Math.round(s.accuracy * 100);
+				if (pct > bestAccuracyPct) bestAccuracyPct = pct;
+			}
+			return { current: bestAccuracyPct, target: 80 };
 		}
 	},
 	{
@@ -173,6 +201,16 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 				if (s.attempts < 5 || s.accuracy < 0.6) return false;
 			}
 			return true;
+		},
+		// Number of cases that already meet the threshold, out of 7.
+		getProgress: () => {
+			const strengths = getAllCaseStrengths();
+			let qualified = 0;
+			for (const c of ALL_CASES) {
+				const s = strengths[c];
+				if (s.attempts >= 5 && s.accuracy >= 0.6) qualified++;
+			}
+			return { current: qualified, target: ALL_CASES.length };
 		}
 	},
 	{
@@ -181,7 +219,8 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 		description: 'Practice 7 days in a row',
 		icon: '\u{1F4AA}',
 		condition: '7-day streak',
-		check: () => getConsecutiveDayStreak() >= 7
+		check: () => getConsecutiveDayStreak() >= 7,
+		getProgress: () => ({ current: getConsecutiveDayStreak(), target: 7 })
 	},
 	{
 		id: 'speed_demon',
