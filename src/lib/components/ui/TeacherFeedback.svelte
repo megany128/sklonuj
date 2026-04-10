@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 
 	interface Props {
@@ -14,7 +15,7 @@
 
 <div class="mt-8 border-t border-card-stroke pt-4 text-center">
 	<a
-		href={mailto}
+		href={resolve(mailto)}
 		class="inline-flex items-center gap-1.5 text-xs text-text-subtitle transition-colors hover:text-text-default"
 	>
 		<MessageSquare size={14} />

@@ -99,7 +99,6 @@
 	}
 
 	type LevelMode = 'student' | 'cefr' | 'kzk';
-	// eslint-disable-next-line svelte/valid-compile -- intentionally capturing initial value
 	const initialCl = assignment?.contentLevel ?? '';
 	const initialLevelMode: LevelMode = /^(A1|A2|B1)$/.test(initialCl)
 		? 'cefr'
