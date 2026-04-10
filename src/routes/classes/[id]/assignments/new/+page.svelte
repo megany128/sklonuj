@@ -4,7 +4,9 @@
 	import { enhance } from '$app/forms';
 	import { SvelteSet } from 'svelte/reactivity';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import TeacherFeedback from '$lib/components/ui/TeacherFeedback.svelte';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
+	import kzkChaptersJson from '$lib/data/kzk_chapters.json';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -66,6 +68,11 @@
 			return formResult.contentMode;
 		return 'both';
 	});
+	let formContentLevel = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.contentLevel === 'string')
+			return formResult.contentLevel;
+		return '';
+	});
 	let formTargetQuestions = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.targetQuestions === 'string')
 			return formResult.targetQuestions;
@@ -75,6 +82,33 @@
 		if (isRecord(formResult) && typeof formResult.dueDate === 'string') return formResult.dueDate;
 		return '';
 	});
+	const kzkChapters = kzkChaptersJson;
+
+	type LevelMode = 'student' | 'cefr' | 'kzk';
+	let levelMode = $state<LevelMode>('student');
+	let cefrLevel = $state('A1');
+	let kzkChapter = $state('kzk1_01');
+
+	// Derive the actual content_level value to send
+	let contentLevelValue = $derived.by(() => {
+		if (levelMode === 'cefr') return cefrLevel;
+		if (levelMode === 'kzk') return kzkChapter;
+		return '';
+	});
+
+	// Restore from form on validation error
+	$effect(() => {
+		if (formContentLevel) {
+			if (/^(A1|A2|B1)$/.test(formContentLevel)) {
+				levelMode = 'cefr';
+				cefrLevel = formContentLevel;
+			} else if (/^kzk[12]_\d{2}$/.test(formContentLevel)) {
+				levelMode = 'kzk';
+				kzkChapter = formContentLevel;
+			}
+		}
+	});
+
 	let dueDateValue = $state('');
 	$effect(() => {
 		if (formDueDate) dueDateValue = formDueDate;
@@ -337,6 +371,79 @@
 						</div>
 					</div>
 
+					<!-- Level -->
+					<div class="mb-4">
+						<p class="mb-2 text-sm font-medium text-text-default">Level</p>
+						<div class="flex flex-wrap gap-2">
+							<label
+								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+							>
+								<input
+									type="radio"
+									name="level_mode"
+									value="student"
+									checked={levelMode === 'student'}
+									onchange={() => (levelMode = 'student')}
+									class="sr-only"
+								/>
+								Student's own level
+							</label>
+							<label
+								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+							>
+								<input
+									type="radio"
+									name="level_mode"
+									value="cefr"
+									checked={levelMode === 'cefr'}
+									onchange={() => (levelMode = 'cefr')}
+									class="sr-only"
+								/>
+								CEFR Level
+							</label>
+							<label
+								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+							>
+								<input
+									type="radio"
+									name="level_mode"
+									value="kzk"
+									checked={levelMode === 'kzk'}
+									onchange={() => (levelMode = 'kzk')}
+									class="sr-only"
+								/>
+								KZK Chapter
+							</label>
+						</div>
+						{#if levelMode === 'cefr'}
+							<select
+								bind:value={cefrLevel}
+								class="mt-2 w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+							>
+								<option value="A1">A1</option>
+								<option value="A2">A2</option>
+								<option value="B1">B1</option>
+							</select>
+						{:else if levelMode === 'kzk'}
+							<select
+								bind:value={kzkChapter}
+								class="mt-2 w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+							>
+								<optgroup label={kzkChapters.kzk1.label}>
+									{#each kzkChapters.kzk1.chapters as ch (ch.id)}
+										<option value={ch.id}>{ch.label} — {ch.subtitle}</option>
+									{/each}
+								</optgroup>
+								<optgroup label={kzkChapters.kzk2.label}>
+									{#each kzkChapters.kzk2.chapters as ch (ch.id)}
+										<option value={ch.id}>{ch.label} — {ch.subtitle}</option>
+									{/each}
+								</optgroup>
+							</select>
+						{/if}
+						<input type="hidden" name="content_level" value={contentLevelValue} />
+					</div>
+
 					<!-- Target Questions -->
 					<div class="mb-4">
 						<label for="target_questions" class="mb-1 block text-sm font-medium text-text-default">
@@ -436,5 +543,6 @@
 				</form>
 			</div>
 		{/if}
+		<TeacherFeedback context="New Assignment" />
 	</div>
 {/if}

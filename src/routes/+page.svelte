@@ -332,6 +332,7 @@
 		selectedDrillTypes: string[];
 		numberMode: 'sg' | 'pl' | 'both';
 		contentMode: string;
+		contentLevel: string | null;
 		targetQuestions: number;
 		attempted: number;
 		correct: number;
@@ -403,6 +404,7 @@
 		selectedDrillTypes: string[];
 		numberMode: string;
 		contentMode: string;
+		contentLevel: string | null;
 		targetQuestions: number;
 		dueDate: string | null;
 		attempted: number;
@@ -447,6 +449,7 @@
 								),
 								numberMode: typeof item.numberMode === 'string' ? item.numberMode : 'both',
 								contentMode: typeof item.contentMode === 'string' ? item.contentMode : 'both',
+								contentLevel: typeof item.contentLevel === 'string' ? item.contentLevel : null,
 								targetQuestions: item.targetQuestions,
 								dueDate: typeof item.dueDate === 'string' ? item.dueDate : null,
 								attempted: typeof item.attempted === 'number' ? item.attempted : 0,
@@ -586,6 +589,7 @@
 					? assignment.numberMode
 					: 'both',
 			contentMode: assignment.contentMode,
+			contentLevel: assignment.contentLevel ?? null,
 			targetQuestions: assignment.targetQuestions,
 			attempted: assignment.attempted,
 			correct: assignment.correct,
@@ -2112,10 +2116,46 @@
 
 		const wordBank = loadWordBank();
 		const prog = get(progress);
-		const levelConfig = curriculum[prog.level];
+
+		// Determine difficulty filtering: assignment content_level overrides student level
+		let effectiveLevel = prog.level;
+		if (assignmentInfo?.contentLevel) {
+			const cl = assignmentInfo.contentLevel;
+			if (cl === 'A1' || cl === 'A2' || cl === 'B1') {
+				effectiveLevel = cl;
+			} else if (/^kzk[12]_\d{2}$/.test(cl)) {
+				// Map KZK chapter to CEFR level
+				const book = cl.startsWith('kzk1') ? 'kzk1' : 'kzk2';
+				if (book === 'kzk2') {
+					effectiveLevel = 'B1';
+				} else {
+					const chIdx = kzkChapters.kzk1.chapters.findIndex((ch) => ch.id === cl);
+					effectiveLevel = chIdx >= 13 ? 'A2' : 'A1';
+				}
+			}
+		}
+		const levelConfig = curriculum[effectiveLevel];
 		const unlockedDifficulties = levelConfig.unlocked_difficulty;
 
-		const eligibleWords = wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty));
+		// For KZK chapter assignments, prioritize chapter vocabulary
+		const assignmentChapterId = assignmentInfo?.contentLevel ?? null;
+		const isAssignmentChapterMode =
+			assignmentChapterId !== null && /^kzk[12]_\d{2}$/.test(assignmentChapterId);
+		let assignmentChapterLemmas: Set<string> | null = null;
+		if (isAssignmentChapterMode) {
+			const book = assignmentChapterId.startsWith('kzk1') ? 'kzk1' : 'kzk2';
+			const chapter = kzkChapters[book].chapters.find((ch) => ch.id === assignmentChapterId);
+			if (chapter) {
+				assignmentChapterLemmas = new Set(chapter.coreLemmas.map((l) => l.toLowerCase()));
+			}
+		}
+
+		// Filter eligible words — for chapter assignments, include all words from the chapter
+		// regardless of difficulty (textbook may teach higher-level words early)
+		const eligibleWords = wordBank.filter((w) => {
+			if (assignmentChapterLemmas?.has(w.lemma.toLowerCase())) return true;
+			return unlockedDifficulties.includes(w.difficulty);
+		});
 
 		if (eligibleWords.length === 0) {
 			question = null;
@@ -2216,7 +2256,16 @@
 				word = pickWordForChapter(eligibleWords, prog, fpCase, number_);
 			} else {
 				const validWords = eligibleWords.filter((w) => hasValidForm(w, fpCase, number_));
-				word = validWords.length > 0 ? weightedRandom(validWords, prog, fpCase, number_) : null;
+				if (assignmentChapterLemmas && validWords.length > 0) {
+					// Bias 75% toward chapter vocabulary
+					const chapterWords = validWords.filter((w) =>
+						assignmentChapterLemmas!.has(w.lemma.toLowerCase())
+					);
+					const pool = chapterWords.length > 0 && Math.random() < 0.75 ? chapterWords : validWords;
+					word = weightedRandom(pool, prog, fpCase, number_);
+				} else {
+					word = validWords.length > 0 ? weightedRandom(validWords, prog, fpCase, number_) : null;
+				}
 			}
 			if (!word) {
 				question = null;

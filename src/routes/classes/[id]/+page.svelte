@@ -17,6 +17,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import GuidedTour from '$lib/components/ui/GuidedTour.svelte';
+	import TeacherFeedback from '$lib/components/ui/TeacherFeedback.svelte';
 
 	const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
@@ -488,6 +489,56 @@
 		});
 	});
 
+	// Per-case student breakdown for tooltips
+	let caseStudentBreakdown = $derived.by(() => {
+		const breakdown: Record<string, { struggling: string[]; ok: string[]; strong: string[] }> = {};
+		for (const c of ALL_CASES) {
+			breakdown[c] = { struggling: [], ok: [], strong: [] };
+		}
+		for (const student of rosterStudents) {
+			const name = student.displayName ?? 'Anonymous';
+			for (const score of student.caseScores) {
+				const bucket = breakdown[score.case];
+				if (!bucket || score.attempts === 0) continue;
+				const pct = (score.correct / score.attempts) * 100;
+				if (pct < 50) bucket.struggling.push(name);
+				else if (pct < 80) bucket.ok.push(name);
+				else bucket.strong.push(name);
+			}
+		}
+		return breakdown;
+	});
+
+	// Overall student breakdown for avg box tooltip
+	let overallStudentBreakdown = $derived.by(() => {
+		const bd = { struggling: [] as string[], ok: [] as string[], strong: [] as string[] };
+		for (const student of rosterStudents) {
+			if (student.overallAccuracy === null || student.totalAttempts === 0) continue;
+			const name = student.displayName ?? 'Anonymous';
+			if (student.overallAccuracy < 50) bd.struggling.push(name);
+			else if (student.overallAccuracy < 80) bd.ok.push(name);
+			else bd.strong.push(name);
+		}
+		return bd;
+	});
+
+	let hoveredCaseBox = $state<string | null>(null);
+	let caseBoxTooltipPos = $state<{ x: number; y: number } | null>(null);
+
+	function handleCaseBoxEnter(event: MouseEvent, caseKey: string): void {
+		hoveredCaseBox = caseKey;
+		const target = event.currentTarget;
+		if (target instanceof HTMLElement) {
+			const rect = target.getBoundingClientRect();
+			caseBoxTooltipPos = { x: rect.left + rect.width / 2, y: rect.top };
+		}
+	}
+
+	function handleCaseBoxLeave(): void {
+		hoveredCaseBox = null;
+		caseBoxTooltipPos = null;
+	}
+
 	// Assignment filtering state
 	type AssignmentFilter = 'all' | 'active' | 'overdue' | 'completed';
 	const ASSIGNMENT_FILTER_OPTIONS: { value: AssignmentFilter; label: string }[] = [
@@ -596,6 +647,7 @@
 
 	let hasMoreAssignments = $derived(filteredAssignments.length > ASSIGNMENT_PAGE_SIZE);
 
+	let chartMetric = $state<'overall' | Case>('overall');
 	let expandedStudents = $state(new Set<string>());
 	let showCompletedAssignments = $state(new Set<string>());
 	function toggleCompletedAssignments(studentId: string) {
@@ -1470,7 +1522,6 @@
 								>
 									Export Progress (CSV)
 								</button>
-								<p class="text-[10px] text-text-subtitle">Includes student names and emails.</p>
 							</div>
 						{:else if activeTab === 'students'}
 							<div class="flex items-center gap-2">
@@ -1530,26 +1581,41 @@
 						<div class="mb-6">
 							<h2 class="mb-3 text-lg font-semibold text-text-default">Class Accuracy</h2>
 							<div class="grid grid-cols-4 gap-2 sm:grid-cols-8">
-								<div
-									class="flex flex-col justify-center rounded-xl border-2 border-current p-3 text-center sm:mr-2 {avgClassAccuracy !==
+								<button
+									type="button"
+									onclick={() => (chartMetric = 'overall')}
+									class="flex flex-col justify-center rounded-xl p-3 text-center transition-shadow sm:mr-2 {avgClassAccuracy !==
 									null
 										? caseAccuracyColor(avgClassAccuracy)
 										: 'bg-card-bg text-text-subtitle'}"
+									style="box-shadow: inset 0 0 0 {chartMetric === 'overall'
+										? '2.5px currentColor'
+										: '1px var(--color-card-stroke)'};"
+									onmouseenter={(e) => handleCaseBoxEnter(e, 'overall')}
+									onmouseleave={handleCaseBoxLeave}
 								>
 									<p class="text-xs font-bold uppercase tracking-wide">Avg</p>
 									<p class="text-xl font-extrabold">
 										{avgClassAccuracy !== null ? `${Math.round(avgClassAccuracy)}%` : '--'}
 									</p>
-								</div>
+								</button>
 								{#each classCaseAccuracy as caseItem (caseItem.case)}
 									{@const label = isCaseKey(caseItem.case)
 										? CASE_LABELS[caseItem.case]
 										: caseItem.case}
-									<div
-										class="rounded-xl border border-card-stroke p-3 text-center {caseItem.accuracy !==
-										null
+									{@const isSelected = chartMetric === caseItem.case}
+									<button
+										type="button"
+										onclick={() =>
+											(chartMetric = isCaseKey(caseItem.case) ? caseItem.case : 'overall')}
+										class="rounded-xl p-3 text-center transition-shadow {caseItem.accuracy !== null
 											? caseAccuracyColor(caseItem.accuracy)
 											: 'bg-card-bg text-text-subtitle'}"
+										style="box-shadow: inset 0 0 0 {isSelected
+											? '2.5px currentColor'
+											: '1px var(--color-card-stroke)'};"
+										onmouseenter={(e) => handleCaseBoxEnter(e, caseItem.case)}
+										onmouseleave={handleCaseBoxLeave}
 									>
 										<p class="text-xs font-medium uppercase">{label.slice(0, 3)}</p>
 										<p class="text-lg font-bold">
@@ -1560,7 +1626,7 @@
 												{caseItem.correct}/{caseItem.attempts}
 											</p>
 										{/if}
-									</div>
+									</button>
 								{/each}
 							</div>
 						</div>
@@ -1571,6 +1637,7 @@
 								snapshots={progressSnapshots}
 								students={chartStudents}
 								mode="teacher"
+								bind:selectedMetric={chartMetric}
 							/>
 						</div>
 
@@ -1995,7 +2062,7 @@
 																					? CASE_LABELS[mistake.case]
 																					: mistake.case}
 																				<div
-																					class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
+																					class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5 shadow-sm"
 																				>
 																					{#if mistake.prompt}
 																						<p
@@ -2006,6 +2073,14 @@
 																					{:else if mistake.sentence}
 																						<p class="mb-1.5 text-sm text-text-default italic">
 																							{mistake.sentence}
+																						</p>
+																					{:else if mistake.word}
+																						<p class="mb-1.5 text-sm font-medium text-text-default">
+																							{mistake.drillType === 'form_production'
+																								? `Decline "${mistake.word}" → ${mistakeCaseLabel} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`
+																								: mistake.drillType === 'case_identification'
+																									? `Identify the case of "${mistake.word}"`
+																									: `"${mistake.word}" — ${mistakeCaseLabel} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`}
 																						</p>
 																					{/if}
 																					{#if isMultiStep}
@@ -3139,6 +3214,8 @@
 		</div>
 	{/if}
 
+	<TeacherFeedback context="Class Detail" />
+
 	{#if showTeacherTour}
 		<GuidedTour steps={teacherTourSteps} onComplete={dismissTeacherTour} />
 	{/if}
@@ -3159,23 +3236,29 @@
 			{#if bd}
 				{#if bd.struggling.length > 0}
 					{@const t = truncateNames(bd.struggling, 5)}
-					<p class="mt-1" style="color: #ef4444">
-						<span class="font-medium">Struggling:</span>
-						{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}
+					<p class="mt-1">
+						<span class="font-medium" style="color: #ef4444">Struggling:</span>
+						<span class="text-text-default"
+							>{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}</span
+						>
 					</p>
 				{/if}
 				{#if bd.ok.length > 0}
 					{@const t = truncateNames(bd.ok, 5)}
-					<p class="mt-1" style="color: #f59e0b">
-						<span class="font-medium">Needs work:</span>
-						{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}
+					<p class="mt-1">
+						<span class="font-medium" style="color: #f59e0b">Needs work:</span>
+						<span class="text-text-default"
+							>{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}</span
+						>
 					</p>
 				{/if}
 				{#if bd.strong.length > 0}
 					{@const t = truncateNames(bd.strong, 5)}
-					<p class="mt-1" style="color: #22c55e">
-						<span class="font-medium">Strong:</span>
-						{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}
+					<p class="mt-1">
+						<span class="font-medium" style="color: #22c55e">Strong:</span>
+						<span class="text-text-default"
+							>{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}</span
+						>
 					</p>
 				{/if}
 			{/if}
@@ -3183,4 +3266,43 @@
 			<p class="text-text-subtitle">No data</p>
 		{/if}
 	</div>
+{/if}
+
+<!-- Case accuracy box tooltip -->
+{#if hoveredCaseBox && caseBoxTooltipPos}
+	{@const bd =
+		hoveredCaseBox === 'overall' ? overallStudentBreakdown : caseStudentBreakdown[hoveredCaseBox]}
+	{#if bd && (bd.struggling.length > 0 || bd.ok.length > 0 || bd.strong.length > 0)}
+		<div
+			class="pointer-events-none fixed z-50 max-w-xs rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-lg"
+			style="left: {caseBoxTooltipPos.x}px; top: {caseBoxTooltipPos.y -
+				8}px; transform: translate(-50%, -100%);"
+		>
+			<p class="mb-1 font-medium text-text-default">
+				{hoveredCaseBox === 'overall'
+					? 'Overall Accuracy'
+					: isCaseKey(hoveredCaseBox)
+						? CASE_LABELS[hoveredCaseBox]
+						: hoveredCaseBox}
+			</p>
+			{#if bd.struggling.length > 0}
+				<p class="mt-1">
+					<span class="font-medium" style="color: #ef4444">Struggling:</span>
+					<span class="text-text-default">{bd.struggling.join(', ')}</span>
+				</p>
+			{/if}
+			{#if bd.ok.length > 0}
+				<p class="mt-1">
+					<span class="font-medium" style="color: #f59e0b">Needs work:</span>
+					<span class="text-text-default">{bd.ok.join(', ')}</span>
+				</p>
+			{/if}
+			{#if bd.strong.length > 0}
+				<p class="mt-1">
+					<span class="font-medium" style="color: #22c55e">Strong:</span>
+					<span class="text-text-default">{bd.strong.join(', ')}</span>
+				</p>
+			{/if}
+		</div>
+	{/if}
 {/if}

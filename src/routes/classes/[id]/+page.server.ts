@@ -94,6 +94,7 @@ interface AssignmentRow {
 	selectedDrillTypes: string[];
 	numberMode: string;
 	contentMode: string;
+	contentLevel: string | null;
 	targetQuestions: number;
 	dueDate: string | null;
 	createdAt: string;
@@ -233,7 +234,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const { data: assignmentData } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, due_date, created_at'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, due_date, created_at'
 		)
 		.eq('class_id', classData.id)
 		.order('created_at', { ascending: false });
@@ -475,6 +476,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					selectedDrillTypes: toStringArray(a.selected_drill_types),
 					numberMode: typeof a.number_mode === 'string' ? a.number_mode : 'both',
 					contentMode: typeof a.content_mode === 'string' ? a.content_mode : 'both',
+					contentLevel: typeof a.content_level === 'string' ? a.content_level : null,
 					targetQuestions: typeof a.target_questions === 'number' ? a.target_questions : 20,
 					dueDate: typeof a.due_date === 'string' ? a.due_date : null,
 					createdAt: typeof a.created_at === 'string' ? a.created_at : '',

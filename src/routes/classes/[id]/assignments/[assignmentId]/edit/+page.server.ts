@@ -24,6 +24,8 @@ const VALID_DRILL_TYPES = new Set([
 ]);
 const VALID_NUMBER_MODES = new Set(['sg', 'pl', 'both']);
 const VALID_CONTENT_MODES = new Set(['nouns', 'pronouns', 'both']);
+const VALID_CEFR_LEVELS = new Set(['A1', 'A2', 'B1']);
+const CONTENT_LEVEL_KZK_PATTERN = /^kzk[12]_\d{2}$/;
 
 interface AssignmentData {
 	id: string;
@@ -33,6 +35,7 @@ interface AssignmentData {
 	selectedDrillTypes: string[];
 	numberMode: string;
 	contentMode: string;
+	contentLevel: string | null;
 	targetQuestions: number;
 	dueDate: string | null;
 }
@@ -50,7 +53,7 @@ export const load: PageServerLoad = async ({ locals, params, parent, url }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, due_date'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, due_date'
 		)
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
@@ -91,6 +94,8 @@ export const load: PageServerLoad = async ({ locals, params, parent, url }) => {
 			typeof assignmentData.number_mode === 'string' ? assignmentData.number_mode : 'both',
 		contentMode:
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
+		contentLevel:
+			typeof assignmentData.content_level === 'string' ? assignmentData.content_level : null,
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 20,
 		dueDate: typeof assignmentData.due_date === 'string' ? assignmentData.due_date : null
@@ -121,6 +126,12 @@ export const actions: Actions = {
 		const selectedDrillTypes = formData.getAll('selected_drill_types').map((v) => v.toString());
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
+		const contentLevelRaw = (formData.get('content_level') ?? '').toString().trim();
+		const contentLevel =
+			contentLevelRaw &&
+			(VALID_CEFR_LEVELS.has(contentLevelRaw) || CONTENT_LEVEL_KZK_PATTERN.test(contentLevelRaw))
+				? contentLevelRaw
+				: null;
 		const targetQuestionsRaw = (formData.get('target_questions') ?? '20').toString();
 		const dueDateRaw = (formData.get('due_date') ?? '').toString();
 
@@ -233,6 +244,7 @@ export const actions: Actions = {
 				selected_drill_types: selectedDrillTypes,
 				number_mode: numberMode,
 				content_mode: contentMode,
+				content_level: contentLevel,
 				target_questions: targetQuestions,
 				due_date: dueDate,
 				updated_at: new Date().toISOString()

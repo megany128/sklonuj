@@ -19,6 +19,8 @@ const VALID_DRILL_TYPES = new Set([
 ]);
 const VALID_NUMBER_MODES = new Set(['sg', 'pl', 'both']);
 const VALID_CONTENT_MODES = new Set(['nouns', 'pronouns', 'both']);
+const VALID_CEFR_LEVELS = new Set(['A1', 'A2', 'B1']);
+const CONTENT_LEVEL_KZK_PATTERN = /^kzk[12]_\d{2}$/;
 
 interface OtherClass {
 	id: string;
@@ -95,6 +97,7 @@ interface FormValues {
 	selectedDrillTypes: string[];
 	numberMode: string;
 	contentMode: string;
+	contentLevel: string;
 	targetQuestions: string;
 	dueDate: string;
 }
@@ -108,6 +111,7 @@ function failWithFormData(status: 400 | 403 | 500, message: string, values: Form
 		selectedDrillTypes: values.selectedDrillTypes,
 		numberMode: values.numberMode,
 		contentMode: values.contentMode,
+		contentLevel: values.contentLevel,
 		targetQuestions: values.targetQuestions,
 		dueDate: values.dueDate
 	});
@@ -125,6 +129,7 @@ export const actions: Actions = {
 		const selectedDrillTypes = formData.getAll('selected_drill_types').map((v) => v.toString());
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
+		const contentLevel = (formData.get('content_level') ?? '').toString().trim();
 		const targetQuestionsRaw = (formData.get('target_questions') ?? '20').toString();
 		const dueDateRaw = (formData.get('due_date') ?? '').toString();
 
@@ -135,6 +140,7 @@ export const actions: Actions = {
 			selectedDrillTypes,
 			numberMode,
 			contentMode,
+			contentLevel,
 			targetQuestions: targetQuestionsRaw,
 			dueDate: dueDateRaw
 		};
@@ -191,6 +197,14 @@ export const actions: Actions = {
 			return failWithFormData(400, 'Invalid content mode.', formValues);
 		}
 
+		if (
+			contentLevel !== '' &&
+			!VALID_CEFR_LEVELS.has(contentLevel) &&
+			!CONTENT_LEVEL_KZK_PATTERN.test(contentLevel)
+		) {
+			return failWithFormData(400, 'Invalid content level.', formValues);
+		}
+
 		const targetQuestions = parseInt(targetQuestionsRaw, 10);
 		if (isNaN(targetQuestions) || targetQuestions < 1 || targetQuestions > 200) {
 			return failWithFormData(400, 'Target questions must be between 1 and 200.', formValues);
@@ -236,6 +250,7 @@ export const actions: Actions = {
 				selected_drill_types: selectedDrillTypes,
 				number_mode: numberMode,
 				content_mode: contentMode,
+				content_level: contentLevel || null,
 				target_questions: targetQuestions,
 				due_date: dueDate
 			})
@@ -290,6 +305,7 @@ export const actions: Actions = {
 						selected_drill_types: selectedDrillTypes,
 						number_mode: numberMode,
 						content_mode: contentMode,
+						content_level: contentLevel || null,
 						target_questions: targetQuestions,
 						due_date: dueDate
 					})

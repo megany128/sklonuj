@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, class_id, title, selected_cases, selected_drill_types, number_mode, content_mode, target_questions'
+			'id, class_id, title, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions'
 		)
 		.eq('id', assignmentId)
 		.single();
@@ -103,6 +103,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			typeof assignmentData.number_mode === 'string' ? assignmentData.number_mode : 'both',
 		contentMode:
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
+		contentLevel:
+			typeof assignmentData.content_level === 'string' ? assignmentData.content_level : null,
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 0,
 		attempted,

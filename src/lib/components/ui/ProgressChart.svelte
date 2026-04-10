@@ -26,9 +26,11 @@
 		snapshots: ProgressSnapshot[];
 		students: StudentInfo[];
 		mode: 'teacher' | 'student';
+		selectedMetric?: 'overall' | Case;
 	}
 
-	const { snapshots, students, mode }: Props = $props();
+	const defaultMetric: 'overall' | Case = 'overall';
+	let { snapshots, students, mode, selectedMetric = $bindable(defaultMetric) }: Props = $props();
 
 	const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
@@ -56,9 +58,6 @@
 		'#6366f1'
 	];
 
-	type ViewMode = 'overall' | 'per-case';
-	let viewMode = $state<ViewMode>('overall');
-	let selectedCase = $state<Case>('nom');
 	let disabledStudentIds = new SvelteSet<string>();
 	let enabledStudentIds = $derived(
 		new SvelteSet(students.filter((s) => !disabledStudentIds.has(s.id)).map((s) => s.id))
@@ -70,6 +69,7 @@
 		label: string;
 		value: number;
 	} | null>(null);
+	let hoveredLineLabel = $state<string | null>(null);
 
 	// Chart dimensions
 	const CHART_WIDTH = 700;
@@ -91,12 +91,10 @@
 
 	function toggleAllStudents() {
 		if (enabledStudentIds.size === students.length) {
-			// Disable all
 			for (const s of students) {
 				disabledStudentIds.add(s.id);
 			}
 		} else {
-			// Enable all
 			disabledStudentIds.clear();
 		}
 	}
@@ -148,117 +146,84 @@
 		label: string;
 		color: string;
 		points: { date: string; value: number }[];
+		kind: 'class-avg' | 'student' | 'case-avg';
 	}
 
-	// Build chart lines based on view mode
+	// Helper: build an average line from snapshots for a given accessor
+	function buildAvgLine(
+		accessor: (s: ProgressSnapshot) => number | null
+	): { date: string; value: number }[] {
+		const points: { date: string; value: number }[] = [];
+		for (const date of dates) {
+			const daySnapshots = snapshotsByDate.get(date) ?? [];
+			const valid = daySnapshots.filter((s) => accessor(s) !== null);
+			if (valid.length > 0) {
+				const avg = valid.reduce((sum, s) => sum + (accessor(s) ?? 0), 0) / valid.length;
+				points.push({ date, value: avg });
+			}
+		}
+		return points;
+	}
+
+	// Build chart lines
 	let chartLines = $derived.by((): ChartLine[] => {
-		if (mode === 'teacher' && viewMode === 'overall') {
-			// Show class average + individual student lines
-			const lines: ChartLine[] = [];
+		const lines: ChartLine[] = [];
+		const isCase = selectedMetric !== 'overall';
+		const caseKey = isCase ? (selectedMetric as Case) : null;
 
-			// Class average line
-			const avgPoints: { date: string; value: number }[] = [];
-			for (const date of dates) {
-				const daySnapshots = snapshotsByDate.get(date) ?? [];
-				const enabledSnapshots = daySnapshots.filter(
-					(s) => enabledStudentIds.has(s.studentId) && s.overallAccuracy !== null
-				);
-				if (enabledSnapshots.length > 0) {
-					const avg =
-						enabledSnapshots.reduce((sum, s) => sum + (s.overallAccuracy ?? 0), 0) /
-						enabledSnapshots.length;
-					avgPoints.push({ date, value: avg });
-				}
-			}
-			if (avgPoints.length > 0) {
-				lines.push({ label: 'Class Average', color: 'var(--color-emphasis)', points: avgPoints });
-			}
-
+		if (mode === 'teacher') {
 			// Individual student lines
 			for (const student of students) {
 				if (!enabledStudentIds.has(student.id)) continue;
-				const studentSnapshots = snapshots.filter(
-					(s) => s.studentId === student.id && s.overallAccuracy !== null
-				);
+				const studentSnapshots = snapshots.filter((s) => {
+					if (s.studentId !== student.id) return false;
+					return isCase ? getCaseAccuracy(s, caseKey!) !== null : s.overallAccuracy !== null;
+				});
 				if (studentSnapshots.length === 0) continue;
 
 				const colorIndex = students.indexOf(student) % STUDENT_COLORS.length;
 				lines.push({
 					label: student.name,
 					color: STUDENT_COLORS[colorIndex],
+					kind: 'student',
 					points: studentSnapshots.map((s) => ({
 						date: s.snapshotDate,
-						value: s.overallAccuracy ?? 0
+						value: isCase ? (getCaseAccuracy(s, caseKey!) ?? 0) : (s.overallAccuracy ?? 0)
 					}))
 				});
 			}
 
-			return lines;
-		}
-
-		if (mode === 'teacher' && viewMode === 'per-case') {
-			// Show class average per-case accuracy for the selected case
-			const points: { date: string; value: number }[] = [];
-			for (const date of dates) {
-				const daySnapshots = snapshotsByDate.get(date) ?? [];
-				const enabledSnapshots = daySnapshots.filter((s) => {
-					if (!enabledStudentIds.has(s.studentId)) return false;
-					return getCaseAccuracy(s, selectedCase) !== null;
-				});
-				if (enabledSnapshots.length > 0) {
-					const avg =
-						enabledSnapshots.reduce((sum, s) => sum + (getCaseAccuracy(s, selectedCase) ?? 0), 0) /
-						enabledSnapshots.length;
-					points.push({ date, value: avg });
-				}
-			}
-
-			const lines: ChartLine[] = [];
-			if (points.length > 0) {
+			// Class average line
+			const avgPoints = isCase
+				? buildAvgLine((s) => getCaseAccuracy(s, caseKey!))
+				: buildAvgLine((s) => s.overallAccuracy);
+			if (avgPoints.length > 0) {
 				lines.push({
-					label: `${CASE_LABELS[selectedCase]} (avg)`,
-					color: CASE_COLORS[selectedCase],
-					points
+					label: isCase ? `${CASE_LABELS[caseKey!]} Average` : 'Class Average',
+					color: isCase ? CASE_COLORS[caseKey!] : 'var(--color-emphasis)',
+					kind: 'class-avg',
+					points: avgPoints
 				});
 			}
-			return lines;
-		}
-
-		if (mode === 'student' && viewMode === 'overall') {
-			// Single student overall accuracy
-			const studentSnapshots = snapshots.filter((s) => s.overallAccuracy !== null);
-			if (studentSnapshots.length === 0) return [];
-			return [
-				{
-					label: 'Your Accuracy',
-					color: 'var(--color-emphasis)',
+		} else {
+			// Student mode
+			const studentSnapshots = snapshots.filter((s) =>
+				isCase ? getCaseAccuracy(s, caseKey!) !== null : s.overallAccuracy !== null
+			);
+			if (studentSnapshots.length > 0) {
+				lines.push({
+					label: isCase ? CASE_LABELS[caseKey!] : 'Your Accuracy',
+					color: isCase ? CASE_COLORS[caseKey!] : 'var(--color-emphasis)',
+					kind: 'class-avg',
 					points: studentSnapshots.map((s) => ({
 						date: s.snapshotDate,
-						value: s.overallAccuracy ?? 0
-					}))
-				}
-			];
-		}
-
-		if (mode === 'student' && viewMode === 'per-case') {
-			// Show all 7 cases for the student
-			const lines: ChartLine[] = [];
-			for (const caseKey of ALL_CASES) {
-				const caseSnapshots = snapshots.filter((s) => getCaseAccuracy(s, caseKey) !== null);
-				if (caseSnapshots.length === 0) continue;
-				lines.push({
-					label: CASE_LABELS[caseKey],
-					color: CASE_COLORS[caseKey],
-					points: caseSnapshots.map((s) => ({
-						date: s.snapshotDate,
-						value: getCaseAccuracy(s, caseKey) ?? 0
+						value: isCase ? (getCaseAccuracy(s, caseKey!) ?? 0) : (s.overallAccuracy ?? 0)
 					}))
 				});
 			}
-			return lines;
 		}
 
-		return [];
+		return lines;
 	});
 
 	// Scale functions
@@ -313,57 +278,53 @@
 					label,
 					value
 				};
+				hoveredLineLabel = label;
 			}
 		}
 	}
 
+	function handleLineHover(label: string): void {
+		hoveredLineLabel = label;
+	}
+
 	function clearHover(): void {
 		hoveredPoint = null;
+		hoveredLineLabel = null;
+	}
+
+	function lineWidth(line: ChartLine, isFocused: boolean): number {
+		if (line.kind === 'class-avg') return 3;
+		return isFocused && hoveredLineLabel !== null ? 2 : 1.5;
+	}
+
+	function lineOpacity(line: ChartLine, isFocused: boolean): number {
+		if (line.kind === 'class-avg') return isFocused ? 1 : 0.5;
+		// student
+		if (!isFocused) return 0.2;
+		return hoveredLineLabel !== null ? 0.8 : 0.45;
+	}
+
+	function dotRadius(line: ChartLine, isFocused: boolean): number {
+		if (line.kind === 'class-avg') return 5;
+		return isFocused && hoveredLineLabel !== null ? 5 : 3.5;
 	}
 </script>
 
 <div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
 	<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 		<h2 class="text-lg font-semibold text-text-default">Progress Over Time</h2>
-		<div class="flex flex-wrap gap-1">
-			<button
-				type="button"
-				onclick={() => (viewMode = 'overall')}
-				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {viewMode === 'overall'
-					? 'bg-emphasis text-text-inverted'
-					: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
-			>
-				Overall
-			</button>
-			<button
-				type="button"
-				onclick={() => (viewMode = 'per-case')}
-				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {viewMode === 'per-case'
-					? 'bg-emphasis text-text-inverted'
-					: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
-			>
-				Per Case
-			</button>
-		</div>
+		<select
+			class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default"
+			bind:value={selectedMetric}
+		>
+			<option value="overall">Overall</option>
+			{#each ALL_CASES as c (c)}
+				<option value={c}>{CASE_LABELS[c]}</option>
+			{/each}
+		</select>
 	</div>
 
-	{#if viewMode === 'per-case' && mode === 'teacher'}
-		<div class="mb-3 flex flex-wrap gap-1">
-			{#each ALL_CASES as c (c)}
-				<button
-					type="button"
-					onclick={() => (selectedCase = c)}
-					class="rounded-full px-3 py-1 text-xs font-medium transition-colors {selectedCase === c
-						? 'text-on-accent'
-						: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
-					style={selectedCase === c ? `background-color: ${CASE_COLORS[c]}` : ''}
-				>
-					{CASE_LABELS[c]}
-				</button>
-			{/each}
-		</div>
-	{/if}
-
+	<!-- Student filter chips (teacher mode) -->
 	{#if mode === 'teacher' && students.length > 1}
 		<div class="mb-3">
 			<div class="flex flex-wrap items-center gap-2">
@@ -375,18 +336,23 @@
 					{enabledStudentIds.size === students.length ? 'Deselect All' : 'Select All'}
 				</button>
 				{#each students as student, i (student.id)}
+					{@const color = STUDENT_COLORS[i % STUDENT_COLORS.length]}
+					{@const active = enabledStudentIds.has(student.id)}
 					<button
 						type="button"
 						onclick={() => toggleStudent(student.id)}
-						class="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-opacity {enabledStudentIds.has(
-							student.id
-						)
-							? 'opacity-100'
-							: 'opacity-40'}"
+						class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all"
+						style="color: var(--color-text-default); box-shadow: inset 0 0 0 1.5px {color}; opacity: {active
+							? hoveredLineLabel !== null && hoveredLineLabel !== student.name
+								? 0.35
+								: 1
+							: 0.25}; transition: opacity 0.15s;"
+						onmouseenter={() => (hoveredLineLabel = student.name)}
+						onmouseleave={() => (hoveredLineLabel = null)}
 					>
 						<span
-							class="inline-block h-2 w-2 rounded-full"
-							style="background-color: {STUDENT_COLORS[i % STUDENT_COLORS.length]}"
+							class="inline-block h-2 w-2 shrink-0 rounded-full"
+							style="background-color: {color};"
 						></span>
 						{student.name}
 					</button>
@@ -447,27 +413,45 @@
 
 				<!-- Chart lines -->
 				{#each chartLines as line (line.label)}
+					{@const isFocused = hoveredLineLabel === null || hoveredLineLabel === line.label}
 					{#if line.points.length > 1}
+						<!-- Invisible wide hit-target for line hover -->
+						<path
+							d={linePath(line.points)}
+							fill="none"
+							stroke="transparent"
+							stroke-width="16"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							role="img"
+							aria-label="{line.label} trend line"
+							onmouseenter={() => handleLineHover(line.label)}
+							onmouseleave={clearHover}
+							style="cursor: pointer;"
+						/>
 						<path
 							d={linePath(line.points)}
 							fill="none"
 							stroke={line.color}
-							stroke-width={line.label === 'Class Average' ? 2.5 : 1.5}
+							stroke-width={lineWidth(line, isFocused)}
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							opacity={line.label === 'Class Average' ? 1 : 0.7}
+							opacity={lineOpacity(line, isFocused)}
+							pointer-events="none"
+							style="transition: opacity 0.15s, stroke-width 0.15s;"
 						/>
 					{/if}
 					{#each line.points as point (point.date)}
 						<circle
 							cx={xScale(point.date)}
 							cy={yScale(point.value)}
-							r={line.label === 'Class Average' ? 6 : 5}
+							r={dotRadius(line, isFocused)}
 							fill={line.color}
 							stroke="var(--color-card-bg)"
 							stroke-width="2"
-							opacity={line.label === 'Class Average' ? 1 : 0.8}
+							opacity={lineOpacity(line, isFocused)}
 							pointer-events="none"
+							style="transition: opacity 0.15s;"
 						/>
 						<!-- Invisible hit-slop circle for easier hover/tap targeting -->
 						<circle
@@ -498,19 +482,5 @@
 				</div>
 			{/if}
 		</div>
-
-		{#if viewMode === 'per-case' && mode === 'student'}
-			<div class="mt-3 flex flex-wrap justify-center gap-3">
-				{#each ALL_CASES as c (c)}
-					<div class="flex items-center gap-1 text-xs text-text-subtitle">
-						<span
-							class="inline-block h-2 w-2 rounded-full"
-							style="background-color: {CASE_COLORS[c]}"
-						></span>
-						{CASE_LABELS[c]}
-					</div>
-				{/each}
-			</div>
-		{/if}
 	{/if}
 </div>

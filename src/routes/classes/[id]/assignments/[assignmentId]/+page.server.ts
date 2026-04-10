@@ -22,6 +22,7 @@ interface AssignmentDetail {
 	selectedDrillTypes: string[];
 	numberMode: string;
 	contentMode: string;
+	contentLevel: string | null;
 	targetQuestions: number;
 	dueDate: string | null;
 	createdAt: string;
@@ -143,7 +144,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, due_date, created_at'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, due_date, created_at'
 		)
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
@@ -163,6 +164,8 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			typeof assignmentData.number_mode === 'string' ? assignmentData.number_mode : 'both',
 		contentMode:
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
+		contentLevel:
+			typeof assignmentData.content_level === 'string' ? assignmentData.content_level : null,
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 20,
 		dueDate: typeof assignmentData.due_date === 'string' ? assignmentData.due_date : null,
@@ -330,7 +333,7 @@ export const actions: Actions = {
 		const { data: original, error: fetchError } = await supabase
 			.from('assignments')
 			.select(
-				'title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions'
+				'title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions'
 			)
 			.eq('id', assignmentId)
 			.eq('class_id', classId)
@@ -352,6 +355,7 @@ export const actions: Actions = {
 					: [],
 				number_mode: typeof original.number_mode === 'string' ? original.number_mode : 'both',
 				content_mode: typeof original.content_mode === 'string' ? original.content_mode : 'both',
+				content_level: typeof original.content_level === 'string' ? original.content_level : null,
 				target_questions:
 					typeof original.target_questions === 'number' ? original.target_questions : 20,
 				due_date: null

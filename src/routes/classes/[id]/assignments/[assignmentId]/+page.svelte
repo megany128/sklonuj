@@ -9,6 +9,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import TeacherFeedback from '$lib/components/ui/TeacherFeedback.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
@@ -314,13 +315,37 @@
 
 	let expandedStudentMistakes = $state(new Set<string>());
 	let studentSearch = $state('');
+	type StudentSort = 'name' | 'accuracy-asc' | 'accuracy-desc' | 'progress';
+	let studentSort = $state<StudentSort>('name');
 	let filteredStudentProgress = $derived.by(() => {
 		const query = studentSearch.toLowerCase().trim();
-		if (!query) return studentProgress;
-		return studentProgress.filter((sp) => {
-			const name = (sp.displayName ?? '').toLowerCase();
-			return name.includes(query);
-		});
+		const list = query
+			? studentProgress.filter((sp) => (sp.displayName ?? '').toLowerCase().includes(query))
+			: [...studentProgress];
+
+		switch (studentSort) {
+			case 'name':
+				list.sort((a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? ''));
+				break;
+			case 'accuracy-asc':
+				list.sort((a, b) => {
+					const accA = a.questionsAttempted > 0 ? a.questionsCorrect / a.questionsAttempted : -1;
+					const accB = b.questionsAttempted > 0 ? b.questionsCorrect / b.questionsAttempted : -1;
+					return accA - accB;
+				});
+				break;
+			case 'accuracy-desc':
+				list.sort((a, b) => {
+					const accA = a.questionsAttempted > 0 ? a.questionsCorrect / a.questionsAttempted : -1;
+					const accB = b.questionsAttempted > 0 ? b.questionsCorrect / b.questionsAttempted : -1;
+					return accB - accA;
+				});
+				break;
+			case 'progress':
+				list.sort((a, b) => b.questionsAttempted - a.questionsAttempted);
+				break;
+		}
+		return list;
 	});
 	let teacherTab = $state<'overview' | 'students'>('overview');
 
@@ -697,7 +722,7 @@
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
 										{@const isMultiStep = mistake.drillType === 'multi_step'}
 										<div
-											class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
+											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5 shadow-sm"
 										>
 											{#if mistake.prompt}
 												<p class="mb-2 text-[15px] font-medium text-text-default">
@@ -706,6 +731,14 @@
 											{:else if mistake.sentence}
 												<p class="mb-1.5 text-sm text-text-default italic">
 													{mistake.sentence}
+												</p>
+											{:else if mistake.word && !isMultiStep}
+												<p class="mb-1.5 text-sm font-medium text-text-default">
+													{mistake.drillType === 'form_production'
+														? `Decline "${mistake.word}" → ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`
+														: mistake.drillType === 'case_identification'
+															? `Identify the case of "${mistake.word}"`
+															: `"${mistake.word}" — ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`}
 												</p>
 											{/if}
 											{#if isMultiStep}
@@ -820,13 +853,22 @@
 							<p class="text-sm text-text-subtitle">No students in this class yet.</p>
 						</div>
 					{:else}
-						<div class="mb-3">
+						<div class="mb-3 flex items-center gap-2">
 							<input
 								type="text"
 								placeholder="Search students..."
 								bind:value={studentSearch}
-								class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis sm:ml-auto sm:w-48"
+								class="flex-1 rounded-xl border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis sm:max-w-48"
 							/>
+							<select
+								bind:value={studentSort}
+								class="rounded-xl border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default"
+							>
+								<option value="name">Name A–Z</option>
+								<option value="accuracy-asc">Accuracy: Low first</option>
+								<option value="accuracy-desc">Accuracy: High first</option>
+								<option value="progress">Most progress</option>
+							</select>
 						</div>
 						<div class="space-y-3">
 							{#each filteredStudentProgress as sp (sp.studentId)}
@@ -851,6 +893,17 @@
 											<span class="font-medium text-text-default">
 												{sp.displayName ?? 'Anonymous'}
 											</span>
+											{#if accuracyPct !== null}
+												<span
+													class="text-sm font-semibold tabular-nums {accuracyPct >= 70
+														? 'text-positive-stroke'
+														: accuracyPct >= 50
+															? 'text-warning-text'
+															: 'text-negative-stroke'}"
+												>
+													{accuracyPct}% accuracy
+												</span>
+											{/if}
 											{#if isLowAccuracy}
 												<span
 													class="shrink-0 rounded-full bg-negative-background px-2 py-0.5 text-[10px] font-semibold text-negative-stroke"
@@ -897,17 +950,6 @@
 										<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
 											{cappedAttempted(sp.questionsAttempted)}/{assignment.targetQuestions}
 										</span>
-										{#if accuracyPct !== null}
-											<span
-												class="shrink-0 text-xs font-medium tabular-nums {accuracyPct >= 70
-													? 'text-positive-stroke'
-													: accuracyPct >= 50
-														? 'text-warning-text'
-														: 'text-negative-stroke'}"
-											>
-												{accuracyPct}% accuracy
-											</span>
-										{/if}
 									</div>
 									{#if sp.questionsAttempted > 0 && sp.caseScores.length > 0}
 										<div
@@ -1184,7 +1226,7 @@
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
 										{@const isMultiStep = mistake.drillType === 'multi_step'}
 										<div
-											class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
+											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5 shadow-sm"
 										>
 											{#if mistake.prompt}
 												<p class="mb-2 text-[15px] font-medium text-text-default">
@@ -1193,6 +1235,14 @@
 											{:else if mistake.sentence}
 												<p class="mb-1.5 text-sm text-text-default italic">
 													{mistake.sentence}
+												</p>
+											{:else if mistake.word && !isMultiStep}
+												<p class="mb-1.5 text-sm font-medium text-text-default">
+													{mistake.drillType === 'form_production'
+														? `Decline "${mistake.word}" → ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`
+														: mistake.drillType === 'case_identification'
+															? `Identify the case of "${mistake.word}"`
+															: `"${mistake.word}" — ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`}
 												</p>
 											{/if}
 											{#if isMultiStep}
@@ -1350,6 +1400,10 @@
 	</div>
 
 	<!-- Edit Assignment Modal -->
+	{#if role === 'teacher'}
+		<TeacherFeedback context="Assignment Detail" />
+	{/if}
+
 	{#if showEditModal && role === 'teacher'}
 		<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
 			<div class="absolute inset-0 bg-black/50" onclick={closeEditModal} role="presentation"></div>

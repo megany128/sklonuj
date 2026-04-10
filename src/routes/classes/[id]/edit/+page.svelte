@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import TeacherFeedback from '$lib/components/ui/TeacherFeedback.svelte';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -188,5 +189,6 @@
 				</button>
 			</form>
 		</div>
+		<TeacherFeedback context="Edit Class" />
 	</div>
 {/if}
