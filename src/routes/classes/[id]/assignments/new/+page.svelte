@@ -71,14 +71,13 @@
 			return formResult.targetQuestions;
 		return '20';
 	});
-	let formMinAccuracy = $derived.by(() => {
-		if (isRecord(formResult) && typeof formResult.minAccuracy === 'string')
-			return formResult.minAccuracy;
-		return '';
-	});
 	let formDueDate = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.dueDate === 'string') return formResult.dueDate;
 		return '';
+	});
+	let dueDateValue = $state('');
+	$effect(() => {
+		if (formDueDate) dueDateValue = formDueDate;
 	});
 
 	interface OtherClassItem {
@@ -161,7 +160,7 @@
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">
 		<a
-			href={resolve(`/classes/${classData.id}`)}
+			href={resolve(`/classes/${classData.id}?tab=assignments`)}
 			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {classData.name}
@@ -354,27 +353,6 @@
 						/>
 					</div>
 
-					<!-- Minimum Accuracy -->
-					<div class="mb-4">
-						<label for="min_accuracy" class="mb-1 block text-sm font-medium text-text-default">
-							Minimum Accuracy to Complete (%)
-							<span class="text-text-subtitle">(optional)</span>
-						</label>
-						<input
-							type="number"
-							id="min_accuracy"
-							name="min_accuracy"
-							min={0}
-							max={100}
-							value={formMinAccuracy}
-							placeholder="e.g. 70"
-							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
-						/>
-						<p class="mt-1 text-xs text-text-subtitle">
-							If set, students must also reach this accuracy to complete the assignment.
-						</p>
-					</div>
-
 					<!-- Due Date -->
 					<div class="mb-6">
 						<label for="due_date" class="mb-1 block text-sm font-medium text-text-default">
@@ -384,9 +362,14 @@
 							type="datetime-local"
 							id="due_date"
 							name="due_date"
-							value={formDueDate}
+							bind:value={dueDateValue}
 							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
 						/>
+						{#if dueDateValue && new Date(dueDateValue) < new Date()}
+							<p class="mt-1 text-xs text-warning-text">
+								This due date is in the past. Students may see it as overdue.
+							</p>
+						{/if}
 					</div>
 
 					<!-- Multi-class creation -->

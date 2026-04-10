@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
@@ -75,7 +75,7 @@ function toStringArray(v: unknown): string[] {
 	return v.filter((item): item is string => typeof item === 'string');
 }
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const user = locals.user;
 	if (!user) {
 		return {
@@ -352,6 +352,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 				overdueCount,
 				nextDueDate
 			});
+		}
+	}
+
+	// Auto-redirect students enrolled in exactly one class straight to that class page
+	if (
+		teacherClassesWithCounts.length === 0 &&
+		archivedClasses.length === 0 &&
+		studentClasses.length === 1
+	) {
+		// Skip redirect when special query params are present (e.g. ?joined welcome modal)
+		const hasSpecialParams = url.searchParams.has('joined');
+		if (!hasSpecialParams) {
+			redirect(302, `/classes/${studentClasses[0].classId}`);
 		}
 	}
 

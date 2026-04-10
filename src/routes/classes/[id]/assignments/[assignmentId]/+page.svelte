@@ -7,6 +7,7 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import X from '@lucide/svelte/icons/x';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
@@ -24,7 +25,6 @@
 		numberMode: string;
 		contentMode: string;
 		targetQuestions: number;
-		minAccuracy: number | null;
 		dueDate: string | null;
 		createdAt: string;
 	}
@@ -42,6 +42,7 @@
 		givenAnswer: string;
 		case: string;
 		number: string;
+		sentence?: string;
 	}
 
 	interface StudentProgress {
@@ -297,7 +298,7 @@
 {#if classData && assignment}
 	<div class="mx-auto max-w-4xl px-4 py-8">
 		<a
-			href={resolve(`/classes/${classData.id}`)}
+			href={resolve(`/classes/${classData.id}?tab=assignments`)}
 			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {classData.name}
@@ -450,10 +451,6 @@
 				<dd class="text-text-default">{contentModeLabel(assignment.contentMode)}</dd>
 				<dt class="text-text-subtitle">Target</dt>
 				<dd class="text-text-default">{assignment.targetQuestions} questions</dd>
-				{#if assignment.minAccuracy !== null}
-					<dt class="text-text-subtitle">Min accuracy</dt>
-					<dd class="text-text-default">{assignment.minAccuracy}%</dd>
-				{/if}
 				{#if assignment.dueDate}
 					{@const dueDate = new Date(assignment.dueDate)}
 					{@const hasTime = dueDate.getUTCHours() !== 0 || dueDate.getUTCMinutes() !== 0}
@@ -482,73 +479,84 @@
 						<p class="text-sm text-text-subtitle">No students in this class yet.</p>
 					</div>
 				{:else}
-					<div class="overflow-hidden rounded-2xl border border-card-stroke bg-card-bg">
-						<table class="w-full text-sm">
-							<thead>
-								<tr class="border-b border-card-stroke bg-shaded-background">
-									<th class="px-4 py-3 text-left font-medium text-text-subtitle">Student</th>
-									<th class="px-4 py-3 text-left font-medium text-text-subtitle">Progress</th>
-									<th class="px-4 py-3 text-left font-medium text-text-subtitle">Accuracy</th>
-									<th class="px-4 py-3 text-left font-medium text-text-subtitle">Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each studentProgress as sp (sp.studentId)}
-									<tr class="border-b border-card-stroke last:border-b-0">
-										<td class="px-4 py-3 text-text-default">
-											{sp.displayName ?? 'Anonymous'}
-										</td>
-										<td class="px-4 py-3 text-text-subtitle">
-											{cappedAttempted(sp.questionsAttempted)}/{assignment.targetQuestions}
-										</td>
-										<td class="px-4 py-3 text-text-subtitle">
-											{accuracy(sp.questionsAttempted, sp.questionsCorrect)}
-										</td>
-										<td class="px-4 py-3">
-											{#if sp.completedAt}
-												<span
-													class="rounded-full bg-positive-background px-2 py-0.5 text-xs font-medium text-positive-stroke"
-												>
-													Completed
-												</span>
-											{:else if sp.questionsAttempted > 0}
-												<span
-													class="rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
-												>
-													In Progress
-												</span>
-											{:else}
-												<span
-													class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-medium text-text-subtitle"
-												>
-													Not Started
-												</span>
-											{/if}
-										</td>
-									</tr>
-									<!-- Per-case breakdown row for this student -->
-									{#if sp.caseScores.length > 0}
-										<tr class="border-b border-card-stroke last:border-b-0">
-											<td colspan="4" class="px-4 pb-3 pt-0">
-												<div class="flex flex-wrap gap-1.5">
-													{#each assignmentCases as c (c)}
-														{@const score = findCaseScore(sp.caseScores, c)}
-														<div
-															class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs {score
-																? caseAccuracyColor(score.accuracy)
-																: 'bg-shaded-background text-text-subtitle'}"
-														>
-															<span class="font-medium">{CASE_LABELS[c].slice(0, 3)}</span>
-															<span>{score ? `${Math.round(score.accuracy)}%` : '--'}</span>
-														</div>
-													{/each}
-												</div>
-											</td>
-										</tr>
+					<div class="space-y-3">
+						{#each studentProgress as sp (sp.studentId)}
+							{@const pct = Math.min(
+								100,
+								Math.round((sp.questionsAttempted / Math.max(1, assignment.targetQuestions)) * 100)
+							)}
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-4">
+								<div class="flex items-center justify-between gap-3">
+									<span class="font-medium text-text-default">
+										{sp.displayName ?? 'Anonymous'}
+									</span>
+									{#if sp.completedAt}
+										<span
+											class="shrink-0 rounded-full bg-positive-background px-2 py-0.5 text-xs font-medium text-positive-stroke"
+										>
+											Completed
+										</span>
+									{:else if sp.questionsAttempted > 0}
+										<span
+											class="shrink-0 rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
+										>
+											In Progress
+										</span>
+									{:else}
+										<span
+											class="shrink-0 rounded-full bg-shaded-background px-2 py-0.5 text-xs font-medium text-text-subtitle"
+										>
+											Not Started
+										</span>
 									{/if}
-								{/each}
-							</tbody>
-						</table>
+								</div>
+								<div class="mt-2 flex items-center gap-3">
+									<div class="h-1.5 flex-1 overflow-hidden rounded-full bg-shaded-background">
+										<div
+											class="h-full rounded-full transition-all {sp.completedAt
+												? 'bg-positive-stroke'
+												: 'bg-emphasis'}"
+											style="width: {pct}%"
+										></div>
+									</div>
+									<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
+										{cappedAttempted(sp.questionsAttempted)}/{assignment.targetQuestions}
+									</span>
+									{#if sp.questionsAttempted > 0}
+										<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
+											{accuracy(sp.questionsAttempted, sp.questionsCorrect)}
+										</span>
+									{/if}
+								</div>
+								{#if sp.questionsAttempted > 0 && sp.caseScores.length > 0}
+									<div
+										class="mt-3 grid gap-1.5"
+										style="grid-template-columns: repeat({assignmentCases.length}, minmax(0, 1fr));"
+									>
+										{#each assignmentCases as c (c)}
+											{@const score = findCaseScore(sp.caseScores, c)}
+											<div
+												class="rounded-lg p-2 text-center {score
+													? caseAccuracyColor(score.accuracy)
+													: 'bg-shaded-background text-text-subtitle'}"
+											>
+												<p class="text-[10px] font-medium uppercase">
+													{CASE_LABELS[c].slice(0, 3)}
+												</p>
+												<p class="text-sm font-bold">
+													{score ? `${Math.round(score.accuracy)}%` : '--'}
+												</p>
+												{#if score}
+													<p class="text-[9px] opacity-70">
+														{score.correct}/{score.attempts}
+													</p>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/each}
 					</div>
 				{/if}
 			</div>
@@ -558,46 +566,64 @@
 				<h2 class="mb-4 text-lg font-semibold text-text-default">Your Progress</h2>
 				{#if studentProgress.length > 0}
 					{@const myProgress = studentProgress[0]}
-					<div class="mb-4 grid grid-cols-3 gap-3">
-						<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
-							<p class="text-2xl font-bold text-text-default">
-								{myProgress.questionsAttempted}
-							</p>
-							<p class="text-xs text-text-subtitle">
-								of {assignment.targetQuestions} attempted
-							</p>
-						</div>
-						<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
-							<p class="text-2xl font-bold text-text-default">
-								{accuracy(myProgress.questionsAttempted, myProgress.questionsCorrect)}
-							</p>
-							<p class="text-xs text-text-subtitle">accuracy</p>
-						</div>
-						<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
-							{#if myProgress.completedAt}
-								<p class="text-2xl font-bold text-positive-stroke">Done</p>
-								<p class="text-xs text-text-subtitle">completed</p>
-							{:else}
-								<p class="text-2xl font-bold text-warning-text">In Progress</p>
-								<p class="text-xs text-text-subtitle">keep going!</p>
-							{/if}
-						</div>
+					<div class="mb-4 grid grid-cols-2 gap-3">
+						{#if myProgress.completedAt}
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
+								<p class="text-2xl font-bold text-text-default">
+									{accuracy(myProgress.questionsAttempted, myProgress.questionsCorrect)}
+								</p>
+								<p class="text-xs text-text-subtitle">accuracy</p>
+							</div>
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
+								<p class="text-2xl font-bold text-text-default">
+									{myProgress.questionsCorrect}/{assignment.targetQuestions}
+								</p>
+								<p class="text-xs text-text-subtitle">correct</p>
+							</div>
+						{:else}
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
+								<p class="text-2xl font-bold text-text-default">
+									{myProgress.questionsAttempted}
+								</p>
+								<p class="text-xs text-text-subtitle">
+									of {assignment.targetQuestions} attempted
+								</p>
+							</div>
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-3 text-center">
+								<p class="text-2xl font-bold text-text-default">
+									{accuracy(myProgress.questionsAttempted, myProgress.questionsCorrect)}
+								</p>
+								<p class="text-xs text-text-subtitle">accuracy</p>
+							</div>
+						{/if}
 					</div>
 
 					<!-- Student case scores -->
 					{#if myProgress.caseScores.length > 0}
 						<div class="mb-4">
 							<h3 class="mb-2 text-sm font-medium text-text-default">Case Accuracy</h3>
-							<div class="flex flex-wrap gap-1.5">
+							<div
+								class="grid gap-1.5"
+								style="grid-template-columns: repeat({assignmentCases.length}, minmax(0, 1fr));"
+							>
 								{#each assignmentCases as c (c)}
 									{@const score = findCaseScore(myProgress.caseScores, c)}
 									<div
-										class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs {score
+										class="rounded-lg p-2 text-center {score
 											? caseAccuracyColor(score.accuracy)
 											: 'bg-shaded-background text-text-subtitle'}"
 									>
-										<span class="font-medium">{CASE_LABELS[c].slice(0, 3)}</span>
-										<span>{score ? `${Math.round(score.accuracy)}%` : '--'}</span>
+										<p class="text-[10px] font-medium uppercase">
+											{CASE_LABELS[c].slice(0, 3)}
+										</p>
+										<p class="text-sm font-bold">
+											{score ? `${Math.round(score.accuracy)}%` : '--'}
+										</p>
+										{#if score}
+											<p class="text-[9px] opacity-70">
+												{score.correct}/{score.attempts}
+											</p>
+										{/if}
 									</div>
 								{/each}
 							</div>
@@ -609,39 +635,56 @@
 							<button
 								type="button"
 								onclick={() => (showMistakes = !showMistakes)}
-								class="mb-2 cursor-pointer text-sm font-medium text-emphasis transition-opacity hover:opacity-80"
+								class="flex w-full cursor-pointer items-center justify-between rounded-lg bg-shaded-background px-3 py-2 text-sm text-text-subtitle transition-colors hover:bg-shaded-background/80"
 							>
-								{showMistakes ? 'Hide Mistakes' : `Review Mistakes (${myProgress.mistakes.length})`}
+								<span>Mistakes ({myProgress.mistakes.length})</span>
+								<ChevronDown
+									class="size-4 transition-transform {showMistakes ? 'rotate-180' : ''}"
+									aria-hidden="true"
+								/>
 							</button>
 							{#if showMistakes}
-								<div class="overflow-hidden rounded-xl border border-card-stroke">
-									<table class="w-full text-sm">
-										<thead>
-											<tr class="border-b border-card-stroke bg-shaded-background">
-												<th class="px-3 py-2 text-left font-medium text-text-subtitle">Word</th>
-												<th class="px-3 py-2 text-left font-medium text-text-subtitle">Expected</th>
-												<th class="px-3 py-2 text-left font-medium text-text-subtitle"
-													>Your Answer</th
+								<div class="mt-2 space-y-2">
+									{#each myProgress.mistakes as mistake, i (i)}
+										{@const isCaseId = isCaseKey(mistake.expectedForm)}
+										<div
+											class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
+										>
+											{#if mistake.sentence}
+												<p class="mb-1.5 text-sm text-text-default italic">
+													{mistake.sentence}
+												</p>
+											{/if}
+											<div class="flex items-baseline justify-between gap-2">
+												{#if isCaseId}
+													<span class="text-sm text-text-subtitle">
+														<span class="font-medium text-text-default">{mistake.word}</span>
+														— correct:
+														<span class="font-medium text-positive-stroke"
+															>{caseLabelFromKey(mistake.expectedForm)}</span
+														>
+													</span>
+												{:else}
+													<span class="text-sm font-medium text-text-default">
+														{mistake.word}
+														<span class="font-normal text-text-subtitle">&rarr;</span>
+														<span class="text-positive-stroke">{mistake.expectedForm}</span>
+													</span>
+												{/if}
+												<span class="shrink-0 text-xs text-text-subtitle">
+													{caseLabelFromKey(mistake.case)}
+													({numberLabel(mistake.number)})
+												</span>
+											</div>
+											<p class="mt-0.5 text-xs text-text-subtitle">
+												your answer: <span class="text-negative-stroke"
+													>{isCaseId
+														? caseLabelFromKey(mistake.givenAnswer)
+														: mistake.givenAnswer}</span
 												>
-												<th class="px-3 py-2 text-left font-medium text-text-subtitle">Case</th>
-											</tr>
-										</thead>
-										<tbody>
-											{#each myProgress.mistakes as mistake, i (i)}
-												<tr class="border-b border-card-stroke last:border-b-0">
-													<td class="px-3 py-2 text-text-default">{mistake.word}</td>
-													<td class="px-3 py-2 font-medium text-positive-stroke"
-														>{mistake.expectedForm}</td
-													>
-													<td class="px-3 py-2 text-negative-stroke">{mistake.givenAnswer}</td>
-													<td class="px-3 py-2 text-text-subtitle">
-														{caseLabelFromKey(mistake.case)}
-														<span class="text-xs">({numberLabel(mistake.number)})</span>
-													</td>
-												</tr>
-											{/each}
-										</tbody>
-									</table>
+											</p>
+										</div>
+									{/each}
 								</div>
 							{/if}
 						</div>
@@ -651,14 +694,22 @@
 				{/if}
 
 				<div class="flex flex-wrap items-center gap-2">
-					<a
-						href="{resolve('/')}?assignment={assignment.id}"
-						class="inline-block rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
-					>
-						{studentProgress.length > 0 && !studentProgress[0].completedAt
-							? 'Continue Practice'
-							: 'Start Practice'}
-					</a>
+					{#if !studentProgress.length || !studentProgress[0].completedAt}
+						<a
+							href="{resolve('/')}?assignment={assignment.id}"
+							class="inline-block rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+						>
+							{studentProgress.length > 0 ? 'Continue Practice' : 'Start Practice'}
+						</a>
+					{/if}
+					{#if studentProgress.length > 0 && studentProgress[0].mistakes.length > 0}
+						<a
+							href="{resolve('/')}?mode=review&assignment={assignment.id}"
+							class="inline-block rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+						>
+							Review Mistakes
+						</a>
+					{/if}
 
 					{#if studentProgress.length > 0 && studentProgress[0].completedAt}
 						<form
@@ -934,27 +985,6 @@
 						/>
 					</div>
 
-					<!-- Minimum Accuracy -->
-					<div class="mb-4">
-						<label for="edit-min_accuracy" class="mb-1 block text-sm font-medium text-text-default">
-							Minimum Accuracy to Complete (%)
-							<span class="text-text-subtitle">(optional)</span>
-						</label>
-						<input
-							type="number"
-							id="edit-min_accuracy"
-							name="min_accuracy"
-							min={0}
-							max={100}
-							value={assignment.minAccuracy ?? ''}
-							placeholder="e.g. 70"
-							class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
-						/>
-						<p class="mt-1 text-xs text-text-subtitle">
-							If set, students must also reach this accuracy to complete the assignment.
-						</p>
-					</div>
-
 					<!-- Due Date -->
 					<div class="mb-6">
 						<label for="edit-due_date" class="mb-1 block text-sm font-medium text-text-default">
@@ -1005,7 +1035,7 @@
 {:else if classData}
 	<div class="mx-auto max-w-4xl px-4 py-8">
 		<a
-			href={resolve(`/classes/${classData.id}`)}
+			href={resolve(`/classes/${classData.id}?tab=assignments`)}
 			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {classData.name}

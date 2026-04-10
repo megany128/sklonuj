@@ -5,7 +5,6 @@
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ChartPie from '@lucide/svelte/icons/chart-pie';
-	import HelpCircle from '@lucide/svelte/icons/circle-help';
 	import X from '@lucide/svelte/icons/x';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -523,18 +522,19 @@
 			result = result.filter((a) => {
 				const dueDate = a.dueDate ? new Date(a.dueDate) : null;
 				const isPastDue = dueDate !== null && dueDate < now;
+				const isCompleted =
+					role === 'teacher'
+						? a.totalStudents > 0 && a.completedCount >= a.totalStudents
+						: studentCompletionMap.get(a.id) === true;
 
 				if (assignmentFilter === 'active') {
-					return !isPastDue;
+					return !isPastDue && !isCompleted;
 				}
 				if (assignmentFilter === 'overdue') {
-					return isPastDue;
+					return isPastDue && !isCompleted;
 				}
 				if (assignmentFilter === 'completed') {
-					if (role === 'teacher') {
-						return a.totalStudents > 0 && a.completedCount >= a.totalStudents;
-					}
-					return studentCompletionMap.get(a.id) === true;
+					return isCompleted;
 				}
 				return true;
 			});
@@ -565,6 +565,16 @@
 	let hasMoreAssignments = $derived(filteredAssignments.length > ASSIGNMENT_PAGE_SIZE);
 
 	let expandedStudents = $state(new Set<string>());
+	let showCompletedAssignments = $state(new Set<string>());
+	function toggleCompletedAssignments(studentId: string) {
+		if (showCompletedAssignments.has(studentId)) {
+			showCompletedAssignments = new Set(
+				[...showCompletedAssignments].filter((s) => s !== studentId)
+			);
+		} else {
+			showCompletedAssignments = new Set([...showCompletedAssignments, studentId]);
+		}
+	}
 	function toggleStudent(id: string) {
 		if (expandedStudents.has(id)) {
 			expandedStudents = new Set([...expandedStudents].filter((s) => s !== id));
@@ -586,8 +596,12 @@
 	let removeSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 
 	type ActiveTab = 'overall' | 'students' | 'assignments';
-	let activeTab = $state<ActiveTab>('overall');
 	const TAB_ORDER: ActiveTab[] = ['overall', 'students', 'assignments'];
+	function isActiveTab(v: string | null): v is ActiveTab {
+		return v !== null && TAB_ORDER.includes(v as ActiveTab);
+	}
+	const initialTab = page.url.searchParams.get('tab');
+	let activeTab = $state<ActiveTab>(isActiveTab(initialTab) ? initialTab : 'overall');
 
 	function focusTab(tab: ActiveTab): void {
 		const el = document.getElementById(`tab-${tab}`);
@@ -832,9 +846,11 @@
 	let inviteSuccess = $state<string | null>(null);
 
 	// Create assignment modal state
+	let modalDueDateValue = $state('');
 	let assignmentSubmitting = $state(false);
 	let assignmentError = $state<string | null>(null);
-	let assignmentValidationError = $state<string | null>(null);
+	let casesError = $state<string | null>(null);
+	let drillTypesError = $state<string | null>(null);
 
 	// Edit class modal state
 	let editClassSubmitting = $state(false);
@@ -859,8 +875,10 @@
 
 	function openCreateAssignmentModal(e?: MouseEvent) {
 		assignmentError = null;
-		assignmentValidationError = null;
+		casesError = null;
+		drillTypesError = null;
 		assignmentSubmitting = false;
+		modalDueDateValue = '';
 		const target = e?.currentTarget;
 		assignmentOpenerEl = target instanceof HTMLElement ? target : null;
 		showCreateAssignmentModal = true;
@@ -872,17 +890,12 @@
 		const formData = new FormData(form);
 		const cases = formData.getAll('selected_cases');
 		const drillTypes = formData.getAll('selected_drill_types');
-		if (cases.length === 0) {
+		casesError = cases.length === 0 ? 'Please select at least one case.' : null;
+		drillTypesError = drillTypes.length === 0 ? 'Please select at least one drill type.' : null;
+		assignmentError = null;
+		if (casesError || drillTypesError) {
 			event.preventDefault();
-			assignmentValidationError = 'Please select at least one case.';
-			return;
 		}
-		if (drillTypes.length === 0) {
-			event.preventDefault();
-			assignmentValidationError = 'Please select at least one drill type.';
-			return;
-		}
-		assignmentValidationError = null;
 	}
 
 	function toggleAllCheckboxes(e: MouseEvent, name: string): void {
@@ -975,6 +988,13 @@
 			return {
 				urgency: 'overdue',
 				label: `Overdue · ${formatted}`,
+				pillClass: 'bg-negative-background text-negative-stroke'
+			};
+		}
+		if (daysDiff === 0 && date.getTime() < now.getTime()) {
+			return {
+				urgency: 'overdue',
+				label: `Overdue${timeSuffix}`,
 				pillClass: 'bg-negative-background text-negative-stroke'
 			};
 		}
@@ -1935,53 +1955,85 @@
 																	{#if student.assignmentStatuses.length === 0}
 																		<p class="text-sm text-text-subtitle">No assignments yet.</p>
 																	{:else}
-																		<div class="space-y-2">
-																			{#each student.assignmentStatuses as status (status.assignmentId)}
-																				<div class="rounded-lg bg-card-bg p-3">
-																					<div class="flex items-center justify-between">
-																						<span class="text-sm font-medium text-text-default">
-																							{status.assignmentTitle}
-																						</span>
-																						<span
-																							class="rounded-full px-2 py-0.5 text-xs font-medium {status.completed
-																								? 'bg-positive-stroke/20 text-positive-stroke'
-																								: 'bg-shaded-background text-text-subtitle'}"
-																						>
-																							{status.completed ? 'Completed' : 'In Progress'}
-																						</span>
-																					</div>
-																					<div
-																						class="mt-2 flex items-center gap-3 text-xs text-text-subtitle"
-																					>
-																						<span>
-																							{Math.min(
-																								status.attempted,
-																								status.target
-																							)}/{status.target} questions
-																						</span>
-																						<span>
-																							{status.attempted > 0
-																								? `${Math.round((status.correct / status.attempted) * 100)}% correct`
-																								: 'Not started'}
-																						</span>
-																					</div>
-																					<div
-																						class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-shaded-background"
-																					>
+																		{@const activeStatuses = student.assignmentStatuses.filter(
+																			(s) => !s.completed
+																		)}
+																		{@const completedStatuses = student.assignmentStatuses.filter(
+																			(s) => s.completed
+																		)}
+																		{@const showingCompleted = showCompletedAssignments.has(
+																			student.studentId
+																		)}
+																		{@const visibleStatuses = showingCompleted
+																			? student.assignmentStatuses
+																			: activeStatuses}
+																		{#if visibleStatuses.length > 0}
+																			<div class="space-y-2">
+																				{#each visibleStatuses as status (status.assignmentId)}
+																					<div class="rounded-lg bg-card-bg p-3">
+																						<div class="flex items-center justify-between">
+																							<span class="text-sm font-medium text-text-default">
+																								{status.assignmentTitle}
+																							</span>
+																							<span
+																								class="rounded-full px-2 py-0.5 text-xs font-medium {status.completed
+																									? 'bg-positive-stroke/20 text-positive-stroke'
+																									: 'bg-shaded-background text-text-subtitle'}"
+																							>
+																								{status.completed ? 'Completed' : 'In Progress'}
+																							</span>
+																						</div>
 																						<div
-																							class="h-full rounded-full {status.completed
-																								? 'bg-positive-stroke'
-																								: 'bg-emphasis'}"
-																							style="width: {Math.min(
-																								100,
-																								(status.attempted / Math.max(1, status.target)) *
-																									100
-																							)}%"
-																						></div>
+																							class="mt-2 flex items-center gap-3 text-xs text-text-subtitle"
+																						>
+																							<span>
+																								{Math.min(
+																									status.attempted,
+																									status.target
+																								)}/{status.target} questions
+																							</span>
+																							<span>
+																								{status.attempted > 0
+																									? `${Math.round((status.correct / status.attempted) * 100)}% correct`
+																									: 'Not started'}
+																							</span>
+																						</div>
+																						<div
+																							class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-shaded-background"
+																						>
+																							<div
+																								class="h-full rounded-full {status.completed
+																									? 'bg-positive-stroke'
+																									: 'bg-emphasis'}"
+																								style="width: {Math.min(
+																									100,
+																									(status.attempted / Math.max(1, status.target)) *
+																										100
+																								)}%"
+																							></div>
+																						</div>
 																					</div>
-																				</div>
-																			{/each}
-																		</div>
+																				{/each}
+																			</div>
+																		{:else}
+																			<p class="text-sm text-text-subtitle">
+																				All assignments completed!
+																			</p>
+																		{/if}
+																		{#if completedStatuses.length > 0}
+																			<button
+																				type="button"
+																				class="mt-2 cursor-pointer text-xs text-text-subtitle transition-colors hover:text-text-default"
+																				onclick={(e) => {
+																					e.stopPropagation();
+																					toggleCompletedAssignments(student.studentId);
+																				}}
+																			>
+																				{showingCompleted
+																					? 'Hide completed'
+																					: `Show ${completedStatuses.length} completed`}
+																			</button>
+																		{/if}
 																	{/if}
 																</div>
 															</div>
@@ -2202,9 +2254,18 @@
 									status.target > 0
 										? Math.min(100, Math.round((status.attempted / status.target) * 100))
 										: 0}
-								<a
-									href="{resolve('/')}?assignment={assignment.id}"
-									class="flex items-center gap-3 rounded-2xl border p-3 transition-colors sm:p-4 {isDone
+								<div
+									role="button"
+									tabindex={0}
+									onclick={() =>
+										goto(resolve(`/classes/${classData.id}/assignments/${assignment.id}`))}
+									onkeydown={(e) => {
+										if (e.key === 'Enter' || e.key === ' ') {
+											e.preventDefault();
+											goto(resolve(`/classes/${classData.id}/assignments/${assignment.id}`));
+										}
+									}}
+									class="flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition-colors sm:p-4 {isDone
 										? 'border-card-stroke bg-card-bg opacity-60 hover:opacity-100'
 										: dueInfo?.urgency === 'overdue'
 											? 'border-negative-stroke bg-negative-background hover:opacity-90'
@@ -2245,11 +2306,18 @@
 												></div>
 											</div>
 										</div>
-										{#if isDone}
-											<span class="text-xs font-medium text-positive-stroke"> Done </span>
+										{#if !isDone}
+											<a
+												href="{resolve('/')}?assignment={assignment.id}"
+												onclick={(e) => e.stopPropagation()}
+												onkeydown={(e) => e.stopPropagation()}
+												class="rounded-lg bg-emphasis px-3 py-1 text-xs font-semibold text-text-inverted transition-opacity hover:opacity-90"
+											>
+												Practice
+											</a>
 										{/if}
 									</div>
-								</a>
+								</div>
 							{/each}
 						</div>
 
@@ -2484,14 +2552,6 @@
 					Create Assignment
 				</h2>
 
-				{#if assignmentError || assignmentValidationError}
-					<div
-						class="mb-4 rounded-xl border border-negative-stroke/30 bg-negative-background px-4 py-3 text-sm text-negative-stroke"
-					>
-						{assignmentError ?? assignmentValidationError}
-					</div>
-				{/if}
-
 				<form
 					method="POST"
 					action={resolve(`/classes/${classData.id}/assignments/new`)}
@@ -2574,6 +2634,13 @@
 									</label>
 								{/each}
 							</div>
+							{#if casesError}
+								<div
+									class="mt-2 rounded-lg border border-negative-stroke/30 bg-negative-background px-3 py-2 text-xs text-negative-stroke"
+								>
+									{casesError}
+								</div>
+							{/if}
 						</div>
 
 						<!-- Drill Types -->
@@ -2598,6 +2665,13 @@
 									</label>
 								{/each}
 							</div>
+							{#if drillTypesError}
+								<div
+									class="mt-2 rounded-lg border border-negative-stroke/30 bg-negative-background px-3 py-2 text-xs text-negative-stroke"
+								>
+									{drillTypesError}
+								</div>
+							{/if}
 						</div>
 
 						<!-- Number Mode -->
@@ -2661,32 +2735,6 @@
 							/>
 						</div>
 
-						<!-- Min Accuracy -->
-						<div>
-							<label
-								for="modal-min-accuracy"
-								class="mb-1 flex items-center gap-1.5 text-sm font-medium text-text-default"
-							>
-								Min Accuracy (%) <span class="font-normal text-text-subtitle">(optional)</span>
-								<span
-									class="inline-flex text-text-subtitle"
-									title="Students must reach at least this accuracy across the assignment to mark it complete. Leave blank to let any accuracy count as complete once they hit the target number of questions."
-									aria-label="Min accuracy help"
-								>
-									<HelpCircle class="size-3.5" aria-hidden="true" />
-								</span>
-							</label>
-							<input
-								type="number"
-								id="modal-min-accuracy"
-								name="min_accuracy"
-								min={0}
-								max={100}
-								placeholder="e.g. 70"
-								class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
-							/>
-						</div>
-
 						<!-- Due Date -->
 						<div class="sm:col-span-2">
 							<label for="modal-due-date" class="mb-1 block text-sm font-medium text-text-default">
@@ -2696,15 +2744,29 @@
 								type="datetime-local"
 								id="modal-due-date"
 								name="due_date"
+								bind:value={modalDueDateValue}
 								class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
 							/>
+							{#if modalDueDateValue && new Date(modalDueDateValue) < new Date()}
+								<p class="mt-1 text-xs text-warning-text">
+									This due date is in the past. Students may see it as overdue.
+								</p>
+							{/if}
 						</div>
 					</div>
+
+					{#if assignmentError && !casesError && !drillTypesError}
+						<div
+							class="mt-4 rounded-lg border border-negative-stroke/30 bg-negative-background px-3 py-2 text-sm text-negative-stroke"
+						>
+							{assignmentError}
+						</div>
+					{/if}
 
 					<button
 						type="submit"
 						disabled={assignmentSubmitting}
-						class="mt-6 w-full cursor-pointer rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+						class="mt-4 w-full cursor-pointer rounded-xl bg-emphasis px-4 py-2 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
 					>
 						{assignmentSubmitting ? 'Creating...' : 'Create Assignment'}
 					</button>

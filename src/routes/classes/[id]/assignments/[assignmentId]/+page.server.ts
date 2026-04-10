@@ -23,7 +23,6 @@ interface AssignmentDetail {
 	numberMode: string;
 	contentMode: string;
 	targetQuestions: number;
-	minAccuracy: number | null;
 	dueDate: string | null;
 	createdAt: string;
 }
@@ -121,7 +120,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, min_accuracy, due_date, created_at'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, due_date, created_at'
 		)
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
@@ -143,8 +142,6 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 20,
-		minAccuracy:
-			typeof assignmentData.min_accuracy === 'number' ? assignmentData.min_accuracy : null,
 		dueDate: typeof assignmentData.due_date === 'string' ? assignmentData.due_date : null,
 		createdAt: typeof assignmentData.created_at === 'string' ? assignmentData.created_at : ''
 	};
@@ -336,7 +333,7 @@ export const actions: Actions = {
 		const { data: original, error: fetchError } = await supabase
 			.from('assignments')
 			.select(
-				'title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, min_accuracy'
+				'title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions'
 			)
 			.eq('id', assignmentId)
 			.eq('class_id', classId)
@@ -360,7 +357,6 @@ export const actions: Actions = {
 				content_mode: typeof original.content_mode === 'string' ? original.content_mode : 'both',
 				target_questions:
 					typeof original.target_questions === 'number' ? original.target_questions : 20,
-				min_accuracy: typeof original.min_accuracy === 'number' ? original.min_accuracy : null,
 				due_date: null
 			})
 			.select('id')

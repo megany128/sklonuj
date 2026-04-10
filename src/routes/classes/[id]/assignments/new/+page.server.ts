@@ -96,7 +96,6 @@ interface FormValues {
 	numberMode: string;
 	contentMode: string;
 	targetQuestions: string;
-	minAccuracy: string;
 	dueDate: string;
 }
 
@@ -110,7 +109,6 @@ function failWithFormData(status: 400 | 403 | 500, message: string, values: Form
 		numberMode: values.numberMode,
 		contentMode: values.contentMode,
 		targetQuestions: values.targetQuestions,
-		minAccuracy: values.minAccuracy,
 		dueDate: values.dueDate
 	});
 }
@@ -128,7 +126,6 @@ export const actions: Actions = {
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
 		const targetQuestionsRaw = (formData.get('target_questions') ?? '20').toString();
-		const minAccuracyRaw = (formData.get('min_accuracy') ?? '').toString().trim();
 		const dueDateRaw = (formData.get('due_date') ?? '').toString();
 
 		const formValues: FormValues = {
@@ -139,7 +136,6 @@ export const actions: Actions = {
 			numberMode,
 			contentMode,
 			targetQuestions: targetQuestionsRaw,
-			minAccuracy: minAccuracyRaw,
 			dueDate: dueDateRaw
 		};
 
@@ -200,15 +196,6 @@ export const actions: Actions = {
 			return failWithFormData(400, 'Target questions must be between 1 and 200.', formValues);
 		}
 
-		let minAccuracy: number | null = null;
-		if (minAccuracyRaw.length > 0) {
-			const parsed = parseInt(minAccuracyRaw, 10);
-			if (isNaN(parsed) || parsed < 0 || parsed > 100) {
-				return failWithFormData(400, 'Minimum accuracy must be between 0 and 100.', formValues);
-			}
-			minAccuracy = parsed;
-		}
-
 		let dueDate: string | null = null;
 		if (dueDateRaw) {
 			// datetime-local gives "YYYY-MM-DDTHH:MM" with no timezone info.
@@ -250,7 +237,6 @@ export const actions: Actions = {
 				number_mode: numberMode,
 				content_mode: contentMode,
 				target_questions: targetQuestions,
-				min_accuracy: minAccuracy,
 				due_date: dueDate
 			})
 			.select('id')
@@ -305,7 +291,6 @@ export const actions: Actions = {
 						number_mode: numberMode,
 						content_mode: contentMode,
 						target_questions: targetQuestions,
-						min_accuracy: minAccuracy,
 						due_date: dueDate
 					})
 					.select('id')

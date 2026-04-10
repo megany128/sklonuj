@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, class_id, title, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, min_accuracy'
+			'id, class_id, title, selected_cases, selected_drill_types, number_mode, content_mode, target_questions'
 		)
 		.eq('id', assignmentId)
 		.single();
@@ -105,8 +105,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 0,
-		minAccuracy:
-			typeof assignmentData.min_accuracy === 'number' ? assignmentData.min_accuracy : null,
 		attempted,
 		correct,
 		completedAt,
@@ -160,6 +158,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		givenAnswer: string;
 		case: string;
 		number: string;
+		sentence?: string;
 	}> | null = null;
 
 	if (Array.isArray(recentMistakes)) {
@@ -173,13 +172,15 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 				typeof m.case === 'string' &&
 				typeof m.number === 'string'
 			) {
-				validatedMistakes.push({
+				const entry: (typeof validatedMistakes)[number] = {
 					word: m.word,
 					expectedForm: m.expectedForm,
 					givenAnswer: m.givenAnswer,
 					case: m.case,
 					number: m.number
-				});
+				};
+				if (typeof m.sentence === 'string') entry.sentence = m.sentence;
+				validatedMistakes.push(entry);
 			}
 		}
 	}
@@ -189,7 +190,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	// Get the assignment and verify the student is a member of its class
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
-		.select('id, class_id, target_questions, min_accuracy')
+		.select('id, class_id, target_questions')
 		.eq('id', assignmentId)
 		.single();
 
@@ -238,13 +239,8 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	const newAttempted = existingAttempted + 1;
 	const newCorrect = existingCorrect + (correct ? 1 : 0);
 
-	// Check completion: must have enough attempts AND meet accuracy threshold (if set)
-	const hasEnoughAttempts = newAttempted >= assignmentData.target_questions;
-	const minAccuracy =
-		typeof assignmentData.min_accuracy === 'number' ? assignmentData.min_accuracy : null;
-	const currentAccuracy = newAttempted > 0 ? (newCorrect / newAttempted) * 100 : 0;
-	const meetsAccuracyThreshold = minAccuracy === null || currentAccuracy >= minAccuracy;
-	const isCompleted = hasEnoughAttempts && meetsAccuracyThreshold;
+	// Check completion: requires enough attempts
+	const isCompleted = newAttempted >= assignmentData.target_questions;
 
 	const now = new Date().toISOString();
 

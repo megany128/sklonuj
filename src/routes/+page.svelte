@@ -12,6 +12,7 @@
 	import Star from '@lucide/svelte/icons/star';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import ArrowUpCircle from '@lucide/svelte/icons/arrow-up-circle';
+	import Confetti from '$lib/components/ui/Confetti.svelte';
 	import { slide, fly, fade } from 'svelte/transition';
 	import { untrack } from 'svelte';
 	import { get } from 'svelte/store';
@@ -339,6 +340,7 @@
 	let assignmentInfo = $state<AssignmentInfo | null>(null);
 	let assignmentLoading = $state(false);
 	let showCompletionModal = $state(false);
+	let suppressCompletionModal = $state(false);
 	let mistakesExpanded = $state(false);
 	let assignmentError = $state<string | null>(null);
 	let assignmentErrorTimer: ReturnType<typeof setTimeout> | null = null;
@@ -350,6 +352,7 @@
 		givenAnswer: string;
 		case: string;
 		number: string;
+		sentence?: string;
 	}
 	let assignmentMistakes = $state<AssignmentMistake[]>([]);
 
@@ -498,10 +501,12 @@
 
 	// Confirmation toast: shown briefly after an assignment is applied
 	let appliedToastName = $state<string | null>(null);
+	let appliedToastReview = $state(false);
 	let appliedToastTimer: ReturnType<typeof setTimeout> | null = null;
 
-	function showAppliedToast(name: string): void {
+	function showAppliedToast(name: string, review = false): void {
 		appliedToastName = name;
+		appliedToastReview = review;
 		if (appliedToastTimer) clearTimeout(appliedToastTimer);
 		appliedToastTimer = setTimeout(() => {
 			appliedToastName = null;
@@ -527,7 +532,7 @@
 
 	function dismissAssignmentToast(): void {
 		if (assignmentToastMatch) {
-			dismissedAssignmentToasts = new Set([...dismissedAssignmentToasts, assignmentToastMatch.id]);
+			dismissedAssignmentToasts.add(assignmentToastMatch.id);
 		}
 		assignmentToastMatch = null;
 		if (assignmentToastTimer) {
@@ -595,7 +600,13 @@
 		chapterBook = null;
 		chapterSelection = null;
 		assignmentMistakes = [];
-		generateNextQuestion();
+		// If assignment is already completed, show the celebration immediately
+		if (assignment.completedAt !== null && !suppressCompletionModal) {
+			showCompletionModal = true;
+		} else {
+			generateNextQuestion();
+			suppressCompletionModal = false;
+		}
 		showAppliedToast(assignment.title);
 	}
 
@@ -613,6 +624,9 @@
 		} catch {
 			// ignore
 		}
+		// Suppress the "matches your settings" toast for the assignment we just left
+		if (assignmentId) dismissedAssignmentToasts.add(assignmentId);
+		assignmentToastMatch = null;
 		assignmentId = null;
 		assignmentInfo = null;
 		assignmentMistakes = [];
@@ -649,6 +663,8 @@
 		const timeSuffix = formatTimeSuffix(due);
 
 		if (diffDays < 0) return { label: `${Math.abs(diffDays)}d overdue`, color: '#d73e3e' };
+		if (diffDays === 0 && due.getTime() < now.getTime())
+			return { label: `Overdue${timeSuffix}`, color: '#d73e3e' };
 		if (diffDays === 0) return { label: `Due today${timeSuffix}`, color: '#d73e3e' };
 		if (diffDays === 1) return { label: `Due tomorrow${timeSuffix}`, color: '#e5a000' };
 		if (diffDays <= 3) return { label: `Due in ${diffDays}d`, color: '#e5a000' };
@@ -657,7 +673,7 @@
 
 	let pendingAssignments = $derived(studentAssignments.filter((a) => a.completedAt === null));
 	let showAssignmentsPanel = $derived(
-		user !== null && studentAssignments.length > 0 && !assignmentLoading
+		user !== null && pendingAssignments.length > 0 && !assignmentLoading
 	);
 	// When an assignment becomes active, auto-collapse the Your Assignments panel
 	// so it condenses to a single framed row showing the focused assignment.
@@ -672,14 +688,16 @@
 		expectedForm: string,
 		givenAnswer: string,
 		caseKey: string,
-		numberKey: string
+		numberKey: string,
+		sentence?: string
 	): void {
 		const mistake: AssignmentMistake = {
 			word,
 			expectedForm,
 			givenAnswer,
 			case: caseKey,
-			number: numberKey
+			number: numberKey,
+			...(sentence ? { sentence } : {})
 		};
 		// Keep only the last 20 mistakes
 		assignmentMistakes = [...assignmentMistakes, mistake].slice(-20);
@@ -698,8 +716,13 @@
 		})
 			.then((res) => res.json())
 			.then((data: unknown) => {
+				console.log('[assignment-progress] response:', data);
+				console.log('[assignment-progress] assignmentInfo before:', assignmentInfo);
 				if (assignmentInfo && isRecord(data) && typeof data.questions_attempted === 'number') {
 					const wasCompleted = assignmentInfo.completedAt !== null;
+					const newCompletedAt = typeof data.completed_at === 'string' ? data.completed_at : null;
+					console.log('[assignment-progress] wasCompleted:', wasCompleted);
+					console.log('[assignment-progress] newCompletedAt:', newCompletedAt);
 					assignmentInfo = {
 						...assignmentInfo,
 						attempted: data.questions_attempted,
@@ -707,10 +730,11 @@
 							typeof data.questions_correct === 'number'
 								? data.questions_correct
 								: assignmentInfo.correct,
-						completedAt: typeof data.completed_at === 'string' ? data.completed_at : null
+						completedAt: newCompletedAt
 					};
 					// Show completion modal when assignment just became completed
 					if (!wasCompleted && assignmentInfo.completedAt !== null) {
+						console.log('[completion] PATH 2: POST response');
 						showCompletionModal = true;
 					}
 					// Also update the student assignments panel if it's showing
@@ -1124,6 +1148,7 @@
 	// Settings expanded state
 	let settingsExpanded = $state(false);
 	let caseFilterExpanded = $state(false);
+	let showExitAssignmentConfirm = $state(false);
 	let chapterPickerOpen = $state(false);
 	let practicingMistakes = $state(false);
 	let lastMistakeIndex = $state(-1);
@@ -1285,8 +1310,14 @@
 						selectedCase = 'all';
 						chapterBook = null;
 						chapterSelection = null;
-						generateNextQuestion();
-						showAppliedToast(data.title);
+						if (data.completedAt !== null && !suppressCompletionModal) {
+							showCompletionModal = true;
+						} else {
+							if (!suppressCompletionModal) generateNextQuestion();
+							suppressCompletionModal = false;
+						}
+						const isReviewMode = page.url.searchParams.get('mode') === 'review';
+						showAppliedToast(data.title, isReviewMode);
 					}
 				})
 				.catch(() => {
@@ -1305,6 +1336,98 @@
 			assignmentInfo = null;
 		}
 	});
+
+	// Activate assignment-specific mistake review from API data
+	async function activateAssignmentMistakeReview(aId: string): Promise<boolean> {
+		try {
+			const res = await fetch(`/api/assignment-progress?assignmentId=${aId}`);
+			if (!res.ok) return false;
+			const data: unknown = await res.json();
+			if (!isRecord(data) || !Array.isArray(data.mistakes)) return false;
+
+			// Determine the assignment's drill types to generate matching questions
+			const assignmentDrillTypes = Array.isArray(data.selectedDrillTypes)
+				? data.selectedDrillTypes.filter((v: unknown): v is string => typeof v === 'string')
+				: [];
+			const needsTemplates =
+				assignmentDrillTypes.includes('case_identification') ||
+				assignmentDrillTypes.includes('sentence_fill_in');
+
+			const wordBank = loadWordBank();
+			const pronounBank = loadPronounBank();
+			const templates = needsTemplates ? loadTemplates() : [];
+			const generatedMistakes: DrillResult[] = [];
+			const seen: Record<string, true> = {};
+			for (const m of data.mistakes) {
+				if (
+					!isRecord(m) ||
+					typeof m.word !== 'string' ||
+					typeof m.case !== 'string' ||
+					typeof m.number !== 'string'
+				)
+					continue;
+				const key = `${m.word}|${m.case}|${m.number}`;
+				if (seen[key]) continue;
+				seen[key] = true;
+				const targetCase = m.case;
+				const targetNumber = m.number;
+				if (!isCaseValue(targetCase) || (targetNumber !== 'sg' && targetNumber !== 'pl')) continue;
+				const word = wordBank.find((w) => w.lemma === m.word);
+				if (word) {
+					// Pick a random drill type from the assignment's types
+					const drillType =
+						assignmentDrillTypes.length > 0
+							? assignmentDrillTypes[Math.floor(Math.random() * assignmentDrillTypes.length)]
+							: 'form_production';
+					let q: DrillQuestion | null = null;
+					if (drillType === 'case_identification' || drillType === 'sentence_fill_in') {
+						const matching = templates.filter(
+							(t) => t.requiredCase === targetCase && t.number === targetNumber
+						);
+						if (matching.length > 0) {
+							const template = matching[Math.floor(Math.random() * matching.length)];
+							q =
+								drillType === 'case_identification'
+									? generateCaseIdentification(template, word)
+									: generateSentenceDrill(template, word);
+						}
+					}
+					// Fall back to form production
+					if (!q) q = generateFormProduction(word, targetCase, targetNumber);
+					if (q)
+						generatedMistakes.push({
+							question: q,
+							userAnswer: '',
+							correct: false,
+							nearMiss: false
+						});
+				} else {
+					const pronoun = pronounBank.find((p) => p.lemma === m.word);
+					if (pronoun) {
+						const q = generatePronounFormProduction(pronoun, targetCase, targetNumber);
+						if (q)
+							generatedMistakes.push({
+								question: q,
+								userAnswer: '',
+								correct: false,
+								nearMiss: false
+							});
+					}
+				}
+			}
+			if (generatedMistakes.length === 0) return false;
+			mistakes = generatedMistakes;
+			practicingMistakes = true;
+			lastMistakeIndex = -1;
+			chapterBook = null;
+			chapterSelection = null;
+			saveChapterToStorage();
+			generateNextQuestion();
+			return true;
+		} catch {
+			return false;
+		}
+	}
 
 	// Activate stored-mistake review mode (reused by ?mode=review and the review button)
 	function activateStoredMistakeReview(): boolean {
@@ -1421,10 +1544,18 @@
 			}
 		}
 
-		// ?mode=review — auto-activate review mistakes mode if there are stored mistakes
+		// ?mode=review — auto-activate review mistakes mode
+		// Suppress the completion modal so navigating here from the class
+		// assignment page doesn't pop the celebration overlay.
 		const modeParam = params.get('mode');
 		if (modeParam === 'review') {
-			activateStoredMistakeReview();
+			suppressCompletionModal = true;
+			const reviewAssignment = params.get('assignment');
+			if (reviewAssignment) {
+				void activateAssignmentMistakeReview(reviewAssignment);
+			} else {
+				activateStoredMistakeReview();
+			}
 		}
 
 		// Hydrate progress from server-loaded Supabase data (available before mount)
@@ -2567,16 +2698,24 @@
 		trackSessionStats(result);
 		recordSessionActivity(result.correct);
 		if (!result.correct && assignmentId) {
-			const lemma =
-				result.question.wordCategory === 'pronoun' && result.question.pronoun
-					? result.question.pronoun.lemma
-					: result.question.word.lemma;
+			const q = result.question;
+			const lemma = q.wordCategory === 'pronoun' && q.pronoun ? q.pronoun.lemma : q.word.lemma;
+			let sentence: string | undefined;
+			if (
+				q.template &&
+				q.template.id !== '_form_production' &&
+				q.template.id !== '_pronoun_form_production'
+			) {
+				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+				sentence = applyPrepositionVoicing(q.template.template, form).replace('___', form);
+			}
 			collectAssignmentMistake(
 				lemma,
-				result.question.correctAnswer,
+				q.correctAnswer,
 				result.userAnswer,
-				result.question.case,
-				result.question.number
+				q.case,
+				q.number,
+				sentence
 			);
 		}
 		recordAssignmentProgress(result.correct);
@@ -2663,12 +2802,21 @@
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
 		recordSessionActivity(allCorrect);
 		if (!allCorrect && assignmentId) {
+			let msSentence: string | undefined;
+			if (result.question.template) {
+				const form = result.question.correctForm;
+				msSentence = applyPrepositionVoicing(result.question.template.template, form).replace(
+					'___',
+					form
+				);
+			}
 			collectAssignmentMistake(
 				result.question.word.lemma,
 				result.question.correctForm,
 				result.userForm,
 				result.question.case,
-				result.question.number
+				result.question.number,
+				msSentence
 			);
 		}
 		recordAssignmentProgress(allCorrect);
@@ -2710,6 +2858,10 @@
 	}
 
 	function handleCaseSelect(selected: Case | 'all'): void {
+		if (assignmentInfo) {
+			showExitAssignmentConfirm = true;
+			return;
+		}
 		selectedCase = selected;
 		generateNextQuestion();
 	}
@@ -3016,7 +3168,7 @@
 				{/if}
 				{#if assignmentsPanelExpanded}
 					<div transition:slide={{ duration: 200 }} class="flex flex-col gap-2 px-4 pb-3">
-						{#each studentAssignments as assignment (assignment.id)}
+						{#each pendingAssignments as assignment (assignment.id)}
 							{@const urgency = getDueDateUrgency(assignment.dueDate, assignment.completedAt)}
 							{@const progressPct =
 								assignment.targetQuestions > 0
@@ -3304,6 +3456,10 @@
 				{#if chapterBook === null && selectedCase === 'all'}
 					<button
 						onclick={() => {
+							if (assignmentInfo) {
+								showExitAssignmentConfirm = true;
+								return;
+							}
 							caseFilterExpanded = !caseFilterExpanded;
 							if (caseFilterExpanded) settingsExpanded = false;
 						}}
@@ -3363,6 +3519,10 @@
 				<button
 					type="button"
 					onclick={() => {
+						if (assignmentInfo) {
+							showExitAssignmentConfirm = true;
+							return;
+						}
 						settingsExpanded = !settingsExpanded;
 						if (settingsExpanded) caseFilterExpanded = false;
 					}}
@@ -3487,7 +3647,7 @@
 					result={lastResult}
 					onSubmit={handleSubmit}
 					onSpeak={ttsAvailable ? handleSpeak : null}
-					selectedCases={ALL_CASES}
+					selectedCases={assignmentInfo ? effectiveEnabledCases : ALL_CASES}
 					{paradigmNotes}
 					onWordClick={handleWordClick}
 					{streak}
@@ -3573,7 +3733,8 @@
 	>
 		<div class="rounded-xl bg-emphasis px-5 py-2.5 shadow-lg">
 			<p class="text-sm font-medium text-text-inverted">
-				Now practicing <span class="font-semibold">{appliedToastName}</span>
+				{appliedToastReview ? 'Now reviewing mistakes for' : 'Now practicing'}
+				<span class="font-semibold">{appliedToastName}</span>
 			</p>
 		</div>
 	</div>
@@ -3616,16 +3777,68 @@
 
 <AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />
 
+{#if showExitAssignmentConfirm && assignmentInfo}
+	<div
+		class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+		transition:fade={{ duration: 150 }}
+	>
+		<div
+			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+		>
+			<h2 class="text-lg font-semibold text-text-default">Exit {assignmentInfo.title}?</h2>
+			<p class="mt-2 text-sm text-text-subtitle">
+				Changing settings will exit assignment mode. Your progress is saved.
+			</p>
+			<div class="mt-5 flex gap-3">
+				<button
+					type="button"
+					onclick={() => {
+						showExitAssignmentConfirm = false;
+						exitAssignmentMode();
+						drillSettings = loadSettingsFromStorage();
+						settingsExpanded = true;
+					}}
+					class="flex-1 cursor-pointer rounded-xl border border-card-stroke px-4 py-2.5 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				>
+					Exit
+				</button>
+				<button
+					type="button"
+					onclick={() => (showExitAssignmentConfirm = false)}
+					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+				>
+					Stay
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
 {#if showCompletionModal && assignmentInfo}
 	{@const accuracyPct =
 		assignmentInfo.attempted > 0
 			? Math.round((assignmentInfo.correct / assignmentInfo.attempted) * 100)
 			: 0}
 
-	<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50">
+	<Confetti />
+	<div
+		class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+		transition:fade={{ duration: 200 }}
+	>
 		<div
-			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+			class="completion-modal-enter relative mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
 		>
+			<button
+				type="button"
+				onclick={() => {
+					showCompletionModal = false;
+					mistakesExpanded = false;
+				}}
+				class="absolute right-3 top-3 flex size-8 cursor-pointer items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+				aria-label="Close"
+			>
+				<X class="size-4" aria-hidden="true" />
+			</button>
 			<div class="mb-4 text-center">
 				<div
 					class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full {accuracyPct >=
@@ -3686,8 +3899,11 @@
 						<div class="mt-2 space-y-1.5">
 							{#each displayMistakes as mistake (mistake.word + mistake.expectedForm + mistake.case)}
 								<div
-									class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-1.5 text-xs"
+									class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2 text-xs"
 								>
+									{#if mistake.sentence}
+										<p class="mb-1 text-text-subtitle italic">{mistake.sentence}</p>
+									{/if}
 									<div class="flex items-baseline justify-between gap-2">
 										<span class="font-medium text-text-default"
 											>{mistake.word} &rarr; {mistake.expectedForm}</span
@@ -3711,17 +3927,19 @@
 					{/if}
 				</div>
 			{/if}
-			<a
-				href={resolve(`/classes/${assignmentInfo.classId}/assignments/${assignmentId}`)}
-				class="block w-full cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-center text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
-			>
-				Back to Assignment
-			</a>
 			<button
 				type="button"
 				onclick={() => {
+					// Preserve current assignment drill settings so the user keeps
+					// practicing with the same filters after exiting assignment mode
+					const preservedSettings = { ...drillSettings };
+					const preservedCases = [...enabledCases];
+
 					showCompletionModal = false;
 					mistakesExpanded = false;
+					// Suppress the "matches your settings" toast for this assignment
+					if (assignmentId) dismissedAssignmentToasts.add(assignmentId);
+					assignmentToastMatch = null;
 					assignmentId = null;
 					assignmentInfo = null;
 					// Clean URL
@@ -3729,13 +3947,60 @@
 					cleanUrl.searchParams.delete('assignment');
 					// eslint-disable-next-line svelte/no-navigation-without-resolve -- using constructed URL path
 					replaceState(cleanUrl.pathname + cleanUrl.search, {});
-					// Restore settings from localStorage
-					drillSettings = loadSettingsFromStorage();
+					// Retain assignment filters instead of restoring from localStorage
+					drillSettings = preservedSettings;
+					enabledCases = preservedCases;
+					generateNextQuestion();
+				}}
+				class="block w-full cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-center text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+			>
+				Done
+			</button>
+			<button
+				type="button"
+				onclick={() => {
+					const aId = assignmentId;
+					showCompletionModal = false;
+					suppressCompletionModal = true;
+					mistakesExpanded = false;
+					if (aId) {
+						dismissedAssignmentToasts.add(aId);
+					}
+					assignmentToastMatch = null;
+					// Clear URL FIRST to prevent the URL $effect from re-fetching and
+					// showing the completion modal again for a completed assignment
+					const cleanUrl = new URL(page.url);
+					cleanUrl.searchParams.delete('assignment');
+					// eslint-disable-next-line svelte/no-navigation-without-resolve -- using constructed URL path
+					replaceState(cleanUrl.pathname + cleanUrl.search, {});
+					assignmentId = null;
+					assignmentInfo = null;
+					assignmentMistakes = [];
+					if (aId) {
+						void activateAssignmentMistakeReview(aId);
+					}
 				}}
 				class="mt-2 block w-full cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-center text-sm text-text-subtitle transition-colors hover:text-text-default"
 			>
-				Continue Practicing
+				Review Mistakes
 			</button>
 		</div>
 	</div>
 {/if}
+
+<style>
+	.completion-modal-enter {
+		animation: modal-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+	}
+
+	@keyframes modal-pop {
+		0% {
+			opacity: 0;
+			transform: scale(0.8) translateY(10px);
+		}
+		100% {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
+	}
+</style>

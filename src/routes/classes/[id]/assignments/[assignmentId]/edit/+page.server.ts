@@ -34,7 +34,6 @@ interface AssignmentData {
 	numberMode: string;
 	contentMode: string;
 	targetQuestions: number;
-	minAccuracy: number | null;
 	dueDate: string | null;
 }
 
@@ -51,7 +50,7 @@ export const load: PageServerLoad = async ({ locals, params, parent, url }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, min_accuracy, due_date'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, target_questions, due_date'
 		)
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
@@ -94,8 +93,6 @@ export const load: PageServerLoad = async ({ locals, params, parent, url }) => {
 			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
 		targetQuestions:
 			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 20,
-		minAccuracy:
-			typeof assignmentData.min_accuracy === 'number' ? assignmentData.min_accuracy : null,
 		dueDate: typeof assignmentData.due_date === 'string' ? assignmentData.due_date : null
 	};
 
@@ -125,7 +122,6 @@ export const actions: Actions = {
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
 		const targetQuestionsRaw = (formData.get('target_questions') ?? '20').toString();
-		const minAccuracyRaw = (formData.get('min_accuracy') ?? '').toString().trim();
 		const dueDateRaw = (formData.get('due_date') ?? '').toString();
 
 		if (title.length === 0 || title.length > 200) {
@@ -184,15 +180,6 @@ export const actions: Actions = {
 			return fail(400, { message: 'Target questions must be between 1 and 200.' });
 		}
 
-		let minAccuracy: number | null = null;
-		if (minAccuracyRaw.length > 0) {
-			const parsed = parseInt(minAccuracyRaw, 10);
-			if (isNaN(parsed) || parsed < 0 || parsed > 100) {
-				return fail(400, { message: 'Minimum accuracy must be between 0 and 100.' });
-			}
-			minAccuracy = parsed;
-		}
-
 		let dueDate: string | null = null;
 		if (dueDateRaw) {
 			// datetime-local gives "YYYY-MM-DDTHH:MM" with no timezone info.
@@ -247,7 +234,6 @@ export const actions: Actions = {
 				number_mode: numberMode,
 				content_mode: contentMode,
 				target_questions: targetQuestions,
-				min_accuracy: minAccuracy,
 				due_date: dueDate,
 				updated_at: new Date().toISOString()
 			})

@@ -18,7 +18,6 @@
 		numberMode: string;
 		contentMode: string;
 		targetQuestions: number;
-		minAccuracy: number | null;
 		dueDate: string | null;
 	}
 
@@ -62,6 +61,10 @@
 	});
 
 	let submitting = $state(false);
+	let editDueDateValue = $state('');
+	$effect(() => {
+		if (assignment?.dueDate) editDueDateValue = formatDateForInput(assignment.dueDate);
+	});
 
 	function formatDateForInput(isoDate: string): string {
 		const d = new Date(isoDate);
@@ -304,27 +307,6 @@
 					/>
 				</div>
 
-				<!-- Minimum Accuracy -->
-				<div class="mb-4">
-					<label for="min_accuracy" class="mb-1 block text-sm font-medium text-text-default">
-						Minimum Accuracy to Complete (%)
-						<span class="text-text-subtitle">(optional)</span>
-					</label>
-					<input
-						type="number"
-						id="min_accuracy"
-						name="min_accuracy"
-						min={0}
-						max={100}
-						value={assignment.minAccuracy ?? ''}
-						placeholder="e.g. 70"
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
-					/>
-					<p class="mt-1 text-xs text-text-subtitle">
-						If set, students must also reach this accuracy to complete the assignment.
-					</p>
-				</div>
-
 				<!-- Due Date -->
 				<div class="mb-6">
 					<label for="due_date" class="mb-1 block text-sm font-medium text-text-default">
@@ -334,9 +316,14 @@
 						type="datetime-local"
 						id="due_date"
 						name="due_date"
-						value={assignment.dueDate ? formatDateForInput(assignment.dueDate) : ''}
+						bind:value={editDueDateValue}
 						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
 					/>
+					{#if editDueDateValue && new Date(editDueDateValue) < new Date()}
+						<p class="mt-1 text-xs text-warning-text">
+							This due date is in the past. Students may see it as overdue.
+						</p>
+					{/if}
 				</div>
 
 				<!-- Notify Students -->
