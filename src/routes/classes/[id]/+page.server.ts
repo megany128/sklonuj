@@ -99,6 +99,8 @@ interface AssignmentRow {
 	createdAt: string;
 	completedCount: number;
 	totalStudents: number;
+	avgAccuracy: number | null;
+	totalAttempted: number;
 }
 
 interface MistakeEntry {
@@ -107,6 +109,16 @@ interface MistakeEntry {
 	givenAnswer: string;
 	case: string;
 	number: string;
+	sentence?: string;
+	drillType?: string;
+	prompt?: string;
+	correctParadigm?: string;
+	userParadigm?: string;
+	correctCase?: string;
+	userCase?: string | null;
+	paradigmCorrect?: boolean;
+	caseCorrect?: boolean | null;
+	formCorrect?: boolean;
 }
 
 interface AggregatedMistake {
@@ -129,13 +141,26 @@ function parseMistakes(raw: unknown): MistakeEntry[] {
 			typeof m.case === 'string' &&
 			typeof m.number === 'string'
 		) {
-			result.push({
+			const entry: MistakeEntry = {
 				word: m.word,
 				expectedForm: m.expectedForm,
 				givenAnswer: m.givenAnswer,
 				case: m.case,
 				number: m.number
-			});
+			};
+			if (typeof m.sentence === 'string') entry.sentence = m.sentence;
+			if (typeof m.drillType === 'string') entry.drillType = m.drillType;
+			if (typeof m.prompt === 'string') entry.prompt = m.prompt;
+			if (typeof m.correctParadigm === 'string') entry.correctParadigm = m.correctParadigm;
+			if (typeof m.userParadigm === 'string') entry.userParadigm = m.userParadigm;
+			if (typeof m.correctCase === 'string') entry.correctCase = m.correctCase;
+			if (typeof m.userCase === 'string') entry.userCase = m.userCase;
+			else if (m.userCase === null) entry.userCase = null;
+			if (typeof m.paradigmCorrect === 'boolean') entry.paradigmCorrect = m.paradigmCorrect;
+			if (typeof m.caseCorrect === 'boolean') entry.caseCorrect = m.caseCorrect;
+			else if (m.caseCorrect === null) entry.caseCorrect = null;
+			if (typeof m.formCorrect === 'boolean') entry.formCorrect = m.formCorrect;
+			result.push(entry);
 		}
 	}
 	return result;
@@ -229,18 +254,20 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Fetch assignment progress (including mistakes) for all students in this class
+	// Fetch assignment progress (including mistakes and case_scores) for all students in this class
 	const progressByStudentAssignment = new Map<string, Map<string, AssignmentStatus>>();
 	const mistakesByStudent = new Map<string, MistakeEntry[]>();
+	let allProgressData: unknown[] = [];
 	if (assignmentIds.length > 0) {
 		const { data: progressData } = await supabase
 			.from('assignment_progress')
 			.select(
-				'assignment_id, student_id, questions_attempted, questions_correct, completed_at, mistakes'
+				'assignment_id, student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
 			)
 			.in('assignment_id', assignmentIds);
 
 		if (Array.isArray(progressData)) {
+			allProgressData = progressData;
 			for (const p of progressData) {
 				if (
 					isRecord(p) &&
@@ -275,34 +302,63 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Fetch user_progress (case_scores, paradigm_scores) for each student using admin client
-	// (RLS prevents teacher from reading other users' progress)
-	const userProgressMap = new Map<
+	// Aggregate case_scores from assignment_progress per student (class-scoped accuracy)
+	const assignmentCaseScoresMap = new Map<
 		string,
 		{ overallAccuracy: number | null; totalAttempts: number; caseScores: CaseAccuracy[] }
 	>();
+	{
+		// Build a merged raw case_scores map per student from all assignment_progress rows
+		const rawByStudent = new Map<string, Record<string, { attempts: number; correct: number }>>();
+		for (const p of allProgressData) {
+			if (isRecord(p) && typeof p.student_id === 'string' && isRecord(p.case_scores)) {
+				let merged = rawByStudent.get(p.student_id);
+				if (!merged) {
+					merged = {};
+					rawByStudent.set(p.student_id, merged);
+				}
+				for (const key of Object.keys(p.case_scores)) {
+					const entry = p.case_scores[key];
+					if (!isScoreEntry(entry)) continue;
+					const existing = merged[key];
+					if (existing) {
+						existing.attempts += entry.attempts;
+						existing.correct += entry.correct;
+					} else {
+						merged[key] = { attempts: entry.attempts, correct: entry.correct };
+					}
+				}
+			}
+		}
+		for (const [sid, raw] of rawByStudent) {
+			const { perCase, totalAttempts, totalCorrect } = aggregateCaseScores(raw);
+			assignmentCaseScoresMap.set(sid, {
+				overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null,
+				totalAttempts,
+				caseScores: perCase
+			});
+		}
+	}
+
+	// Fetch user_progress (paradigm_scores only) for each student using admin client
+	// (RLS prevents teacher from reading other users' progress)
 	const classParadigmScores: Record<string, { attempts: number; correct: number }> = {};
-	if (adminClient && studentIds.length > 0) {
+	const paradigmStudentBreakdown: Record<
+		string,
+		{ struggling: string[]; ok: string[]; strong: string[] }
+	> = {};
+	if (adminClient && studentIds.length > 0 && role === 'teacher') {
 		const { data: userProgressData } = await adminClient
 			.from('user_progress')
-			.select('user_id, case_scores, paradigm_scores')
+			.select('user_id, paradigm_scores')
 			.in('user_id', studentIds);
 
 		if (Array.isArray(userProgressData)) {
 			for (const up of userProgressData) {
 				if (isRecord(up) && typeof up.user_id === 'string') {
-					const caseScores = up.case_scores;
-					const { perCase, totalAttempts, totalCorrect } = isRecord(caseScores)
-						? aggregateCaseScores(caseScores)
-						: { perCase: [], totalAttempts: 0, totalCorrect: 0 };
-					userProgressMap.set(up.user_id, {
-						overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null,
-						totalAttempts,
-						caseScores: perCase
-					});
-
+					const studentName = profileMap.get(up.user_id) ?? emailMap.get(up.user_id) ?? 'Unknown';
 					// Aggregate paradigm_scores across all students
-					if (role === 'teacher' && isRecord(up.paradigm_scores)) {
+					if (isRecord(up.paradigm_scores)) {
 						for (const key of Object.keys(up.paradigm_scores)) {
 							const entry = up.paradigm_scores[key];
 							if (!isScoreEntry(entry)) continue;
@@ -315,6 +371,26 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 									attempts: entry.attempts,
 									correct: entry.correct
 								};
+							}
+
+							// Per-student breakdown by accuracy bucket
+							if (entry.attempts > 0) {
+								const pct = (entry.correct / entry.attempts) * 100;
+								if (!paradigmStudentBreakdown[key]) {
+									paradigmStudentBreakdown[key] = {
+										struggling: [],
+										ok: [],
+										strong: []
+									};
+								}
+								const bucket = paradigmStudentBreakdown[key];
+								if (pct < 50) {
+									bucket.struggling.push(studentName);
+								} else if (pct < 80) {
+									bucket.ok.push(studentName);
+								} else {
+									bucket.strong.push(studentName);
+								}
 							}
 						}
 					}
@@ -329,7 +405,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		for (const m of memberships) {
 			if (isRecord(m) && typeof m.student_id === 'string' && typeof m.joined_at === 'string') {
 				const sid = m.student_id;
-				const progress = userProgressMap.get(sid);
+				const progress = assignmentCaseScoresMap.get(sid);
 				const studentAssignmentMap = progressByStudentAssignment.get(sid);
 
 				// Build assignment statuses for all assignments (including ones not started)
@@ -369,12 +445,19 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Build assignments list with completion counts
+	// Build assignments list with completion counts and average accuracy
 	const completionMap = new Map<string, number>();
+	const accuracyMap = new Map<string, { totalAttempted: number; totalCorrect: number }>();
 	for (const [, studentMap] of progressByStudentAssignment) {
 		for (const [aId, status] of studentMap) {
 			if (status.completed) {
 				completionMap.set(aId, (completionMap.get(aId) ?? 0) + 1);
+			}
+			if (status.attempted > 0) {
+				const existing = accuracyMap.get(aId) ?? { totalAttempted: 0, totalCorrect: 0 };
+				existing.totalAttempted += status.attempted;
+				existing.totalCorrect += status.correct;
+				accuracyMap.set(aId, existing);
 			}
 		}
 	}
@@ -396,7 +479,13 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					dueDate: typeof a.due_date === 'string' ? a.due_date : null,
 					createdAt: typeof a.created_at === 'string' ? a.created_at : '',
 					completedCount: completionMap.get(a.id) ?? 0,
-					totalStudents
+					totalStudents,
+					avgAccuracy: accuracyMap.has(a.id)
+						? Math.round(
+								(accuracyMap.get(a.id)!.totalCorrect / accuracyMap.get(a.id)!.totalAttempted) * 100
+							)
+						: null,
+					totalAttempted: accuracyMap.get(a.id)?.totalAttempted ?? 0
 				});
 			}
 		}
@@ -414,20 +503,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	if (role === 'student' && locals.user) {
 		const userId = locals.user.id;
 
-		// Fetch student's own user_progress (RLS allows reading own data)
-		const { data: ownProgress } = await supabase
-			.from('user_progress')
-			.select('case_scores')
-			.eq('user_id', userId)
-			.maybeSingle();
-
-		const {
-			perCase: perCaseScores,
-			totalAttempts,
-			totalCorrect
-		} = isRecord(ownProgress) && isRecord(ownProgress.case_scores)
-			? aggregateCaseScores(ownProgress.case_scores)
-			: { perCase: [], totalAttempts: 0, totalCorrect: 0 };
+		// Use assignment-scoped case_scores aggregated from assignment_progress
+		const ownProgress = assignmentCaseScoresMap.get(userId);
 
 		// Count completed assignments for this student
 		let assignmentsCompleted = 0;
@@ -441,9 +518,9 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 
 		studentStats = {
-			overallAccuracy: totalAttempts > 0 ? (totalCorrect / totalAttempts) * 100 : null,
-			totalAttempts,
-			caseScores: perCaseScores,
+			overallAccuracy: ownProgress?.overallAccuracy ?? null,
+			totalAttempts: ownProgress?.totalAttempts ?? 0,
+			caseScores: ownProgress?.caseScores ?? [],
 			assignmentsCompleted,
 			assignmentsTotal: assignmentIds.length
 		};
@@ -545,9 +622,9 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const todaySnapshots: ProgressSnapshot[] = [];
 
 	if (role === 'teacher') {
-		// Create a today data point for each student from userProgressMap
+		// Create a today data point for each student from assignmentCaseScoresMap
 		for (const sid of studentIds) {
-			const progress = userProgressMap.get(sid);
+			const progress = assignmentCaseScoresMap.get(sid);
 			if (progress && progress.totalAttempts > 0) {
 				todaySnapshots.push(
 					caseAccuracyToSnapshot(
@@ -605,7 +682,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		role,
 		studentStats,
 		progressSnapshots: allSnapshots,
-		...(role === 'teacher' ? { classParadigmScores, commonMistakes } : {})
+		...(role === 'teacher' ? { classParadigmScores, paradigmStudentBreakdown, commonMistakes } : {})
 	};
 };
 

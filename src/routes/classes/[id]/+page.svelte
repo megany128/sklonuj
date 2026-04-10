@@ -13,7 +13,7 @@
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import ProgressChart from '$lib/components/ui/ProgressChart.svelte';
 	import { CASE_LABELS, DRILL_TYPE_LABELS, ALL_DRILL_TYPES } from '$lib/types';
-	import type { Case, DrillType } from '$lib/types';
+	import type { Case } from '$lib/types';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import GuidedTour from '$lib/components/ui/GuidedTour.svelte';
@@ -58,6 +58,16 @@
 		givenAnswer: string;
 		case: string;
 		number: string;
+		sentence?: string;
+		drillType?: string;
+		prompt?: string;
+		correctParadigm?: string;
+		userParadigm?: string;
+		correctCase?: string;
+		userCase?: string | null;
+		paradigmCorrect?: boolean;
+		caseCorrect?: boolean | null;
+		formCorrect?: boolean;
 	}
 
 	interface StudentRow {
@@ -85,6 +95,8 @@
 		createdAt: string;
 		completedCount: number;
 		totalStudents: number;
+		avgAccuracy: number | null;
+		totalAttempted: number;
 	}
 
 	function isClassData(v: unknown): v is ClassData {
@@ -152,22 +164,6 @@
 
 	function isCaseKey(v: string): v is Case {
 		return v in CASE_LABELS;
-	}
-
-	function isDrillTypeKey(v: string): v is DrillType {
-		return v in DRILL_TYPE_LABELS;
-	}
-
-	function formatNumberMode(mode: string): string {
-		if (mode === 'sg') return 'Singular only';
-		if (mode === 'pl') return 'Plural only';
-		return 'Both (singular + plural)';
-	}
-
-	function formatContentMode(mode: string): string {
-		if (mode === 'nouns') return 'Nouns only';
-		if (mode === 'pronouns') return 'Pronouns only';
-		return 'Both (nouns + pronouns)';
 	}
 
 	let classData = $derived.by(() => {
@@ -267,6 +263,32 @@
 		Object.keys(classParadigmScores).filter((k) => !k.startsWith('pronoun_')).length > 0
 	);
 
+	// Per-cell student breakdown (teacher only)
+	interface StudentBreakdownEntry {
+		struggling: string[];
+		ok: string[];
+		strong: string[];
+	}
+	function isStringArray(v: unknown): v is string[] {
+		return Array.isArray(v) && v.every((x) => typeof x === 'string');
+	}
+	function isBreakdownEntry(v: unknown): v is StudentBreakdownEntry {
+		return (
+			isRecord(v) && isStringArray(v.struggling) && isStringArray(v.ok) && isStringArray(v.strong)
+		);
+	}
+	let paradigmStudentBreakdown = $derived.by(() => {
+		const val: unknown = page.data.paradigmStudentBreakdown;
+		const result: Record<string, StudentBreakdownEntry> = {};
+		if (!isRecord(val)) return result;
+		for (const [key, entry] of Object.entries(val)) {
+			if (isBreakdownEntry(entry)) {
+				result[key] = entry;
+			}
+		}
+		return result;
+	});
+
 	// Paradigm heatmap constants
 	const CASE_META: Array<{ key: string; label: string; abbrev: string; hex: string }> = [
 		{ key: 'nom', label: 'Nominative', abbrev: 'Nom', hex: '#8f7e86' },
@@ -347,6 +369,11 @@
 		hoveredCell = null;
 	}
 
+	function truncateNames(names: string[], max: number): { shown: string[]; extra: number } {
+		if (names.length <= max) return { shown: names, extra: 0 };
+		return { shown: names.slice(0, max), extra: names.length - max };
+	}
+
 	let hoveredCellScore = $derived.by(() => {
 		if (!hoveredCell) return null;
 		const score = getParadigmCaseNumberScore(
@@ -356,10 +383,13 @@
 		);
 		const pct = score.attempts > 0 ? Math.round((score.correct / score.attempts) * 100) : -1;
 		const caseMeta = CASE_META.find((c) => c.key === hoveredCell!.caseKey);
+		const breakdownKey = `${hoveredCell!.paradigm}_${hoveredCell!.caseKey}_${hoveredCell!.num}`;
+		const breakdown = paradigmStudentBreakdown[breakdownKey] ?? null;
 		return {
 			label: `${caseMeta?.abbrev ?? hoveredCell!.caseKey} ${hoveredCell!.num}`,
 			pct,
-			attempts: score.attempts
+			attempts: score.attempts,
+			breakdown
 		};
 	});
 
@@ -540,19 +570,21 @@
 			});
 		}
 
-		// For students, surface the most urgent assignments first so they can see
-		// at a glance what's due soon: incomplete items ordered by earliest due
-		// date, then undated items, then completed items at the bottom.
-		if (role === 'student') {
-			result = [...result].sort((a, b) => {
-				const aDone = studentCompletionMap.get(a.id) === true;
-				const bDone = studentCompletionMap.get(b.id) === true;
-				if (aDone !== bDone) return aDone ? 1 : -1;
-				const aTime = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
-				const bTime = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
-				return aTime - bTime;
-			});
-		}
+		// Completed assignments at the bottom, then sorted by creation date (newest first).
+		result = [...result].sort((a, b) => {
+			const aDone =
+				role === 'teacher'
+					? a.totalStudents > 0 && a.completedCount >= a.totalStudents
+					: studentCompletionMap.get(a.id) === true;
+			const bDone =
+				role === 'teacher'
+					? b.totalStudents > 0 && b.completedCount >= b.totalStudents
+					: studentCompletionMap.get(b.id) === true;
+			if (aDone !== bDone) return aDone ? 1 : -1;
+			const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+			const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+			return bCreated - aCreated;
+		});
 
 		return result;
 	});
@@ -873,6 +905,50 @@
 		showInviteModal = true;
 	}
 
+	function exportStudentsCsv(): void {
+		if (!classData) return;
+		const headers = [
+			'Name',
+			'Email',
+			'Overall Accuracy',
+			'Total Attempts',
+			'Assignments Completed'
+		];
+		// Add per-assignment columns
+		const assignmentTitles = assignments.map((a) => a.title);
+		const allHeaders = [...headers, ...assignmentTitles.map((t) => `${t} (accuracy)`)];
+
+		const rows = students.map((s) => {
+			const name = s.displayName ?? 'Anonymous';
+			const email = s.email ?? '';
+			const acc = s.overallAccuracy !== null ? `${Math.round(s.overallAccuracy)}%` : '';
+			const completedCount = s.assignmentStatuses.filter((a) => a.completed).length;
+			const perAssignment = assignments.map((a) => {
+				const status = s.assignmentStatuses.find((st) => st.assignmentId === a.id);
+				if (!status || status.attempted === 0) return '';
+				return `${Math.round((status.correct / status.attempted) * 100)}%`;
+			});
+			return [name, email, acc, String(s.totalAttempts), String(completedCount), ...perAssignment];
+		});
+
+		const escapeCsv = (val: string) =>
+			val.includes(',') || val.includes('"') || val.includes('\n')
+				? `"${val.replace(/"/g, '""')}"`
+				: val;
+		const csv = [
+			allHeaders.map(escapeCsv).join(','),
+			...rows.map((r) => r.map(escapeCsv).join(','))
+		].join('\n');
+
+		const blob = new Blob([csv], { type: 'text/csv' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${classData.name.replace(/[^a-zA-Z0-9]/g, '_')}_progress.csv`;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
 	function openCreateAssignmentModal(e?: MouseEvent) {
 		assignmentError = null;
 		casesError = null;
@@ -924,20 +1000,6 @@
 		setTimeout(() => {
 			modalCodeCopied = false;
 		}, 2000);
-	}
-
-	function formatDueDate(dateStr: string): string {
-		const date = new Date(dateStr);
-		const now = new Date();
-		const isPast = date < now;
-		const formatted = date.toLocaleDateString('en-US', {
-			timeZone: 'UTC',
-			month: 'short',
-			day: 'numeric',
-			year: date.getUTCFullYear() !== now.getUTCFullYear() ? 'numeric' : undefined
-		});
-		const timeSuffix = formatTimeSuffix(date);
-		return isPast ? `Overdue (${formatted}${timeSuffix})` : `Due ${formatted}${timeSuffix}`;
 	}
 
 	type DueUrgency = 'overdue' | 'soon' | 'later';
@@ -1133,9 +1195,9 @@
 
 {#if classData}
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<!-- Back link -->
+		<!-- Back link (use ?list to bypass single-class auto-redirect) -->
 		<a
-			href={resolve('/classes')}
+			href="{resolve('/classes')}?list"
 			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to Classes
@@ -1411,14 +1473,24 @@
 								<p class="text-[10px] text-text-subtitle">Includes student names and emails.</p>
 							</div>
 						{:else if activeTab === 'students'}
-							<button
-								type="button"
-								onclick={openInviteModal}
-								data-tour="teacher-invite"
-								class="cursor-pointer rounded-lg bg-emphasis px-2.5 py-1 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90"
-							>
-								Invite
-							</button>
+							<div class="flex items-center gap-2">
+								<button
+									type="button"
+									onclick={exportStudentsCsv}
+									title="Download class progress as a CSV file"
+									class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+								>
+									Export Progress (CSV)
+								</button>
+								<button
+									type="button"
+									onclick={openInviteModal}
+									data-tour="teacher-invite"
+									class="cursor-pointer rounded-lg bg-emphasis px-2.5 py-1 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90"
+								>
+									Invite
+								</button>
+							</div>
 						{:else if activeTab === 'assignments'}
 							<button
 								type="button"
@@ -1747,8 +1819,14 @@
 										</thead>
 										<tbody>
 											{#each filteredStudents as student (student.studentId)}
+												{@const isStruggling =
+													student.overallAccuracy !== null &&
+													student.overallAccuracy < 50 &&
+													student.totalAttempts > 0}
 												<tr
-													class="cursor-pointer border-b border-card-stroke transition-colors last:border-b-0 hover:bg-shaded-background/50"
+													class="cursor-pointer border-b transition-colors last:border-b-0 {isStruggling
+														? 'border-negative-stroke/40 bg-negative-background/50 hover:bg-negative-background/70'
+														: 'border-card-stroke hover:bg-shaded-background/50'}"
 													role="button"
 													tabindex={0}
 													aria-expanded={expandedStudents.has(student.studentId)}
@@ -1772,7 +1850,16 @@
 														</span>
 													</td>
 													<td class="px-4 py-3 text-text-default">
-														{studentDisplayName(student)}
+														<span class="inline-flex items-center gap-2">
+															{studentDisplayName(student)}
+															{#if student.overallAccuracy !== null && student.overallAccuracy < 50 && student.totalAttempts > 0}
+																<span
+																	class="shrink-0 rounded-full bg-negative-background px-2 py-0.5 text-[10px] font-semibold text-negative-stroke"
+																>
+																	Struggling
+																</span>
+															{/if}
+														</span>
 													</td>
 													<td class="px-4 py-3 text-text-subtitle">
 														{new Date(student.joinedAt).toLocaleDateString()}
@@ -1900,47 +1987,139 @@
 																		>
 																			Recent Mistakes
 																		</h4>
-																		<div
-																			class="overflow-hidden rounded-lg border border-card-stroke bg-card-bg"
-																		>
-																			<table class="w-full text-xs">
-																				<thead>
-																					<tr
-																						class="border-b border-card-stroke text-left text-text-subtitle"
-																					>
-																						<th class="px-2 py-1.5 font-medium">Word</th>
-																						<th class="px-2 py-1.5 font-medium">Correct form</th>
-																						<th class="px-2 py-1.5 font-medium">Student answered</th
+																		<div class="space-y-2">
+																			{#each student.recentMistakes as mistake (mistake.word + mistake.expectedForm + mistake.givenAnswer + mistake.case)}
+																				{@const isCaseId = isCaseKey(mistake.expectedForm)}
+																				{@const isMultiStep = mistake.drillType === 'multi_step'}
+																				{@const mistakeCaseLabel = isCaseKey(mistake.case)
+																					? CASE_LABELS[mistake.case]
+																					: mistake.case}
+																				<div
+																					class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
+																				>
+																					{#if mistake.prompt}
+																						<p
+																							class="mb-2 text-[15px] font-medium text-text-default"
 																						>
-																						<th class="px-2 py-1.5 font-medium">Case</th>
-																					</tr>
-																				</thead>
-																				<tbody>
-																					{#each student.recentMistakes as mistake (mistake.word + mistake.expectedForm + mistake.givenAnswer + mistake.case)}
-																						{@const mistakeCaseLabel = isCaseKey(mistake.case)
-																							? CASE_LABELS[mistake.case]
-																							: mistake.case}
-																						<tr
-																							class="border-b border-card-stroke/50 last:border-b-0"
-																						>
-																							<td class="px-2 py-1.5 text-text-default"
-																								>{mistake.word}</td
+																							{mistake.prompt}
+																						</p>
+																					{:else if mistake.sentence}
+																						<p class="mb-1.5 text-sm text-text-default italic">
+																							{mistake.sentence}
+																						</p>
+																					{/if}
+																					{#if isMultiStep}
+																						{#if !mistake.prompt}
+																							<p class="mb-1 text-sm font-medium text-text-default">
+																								{mistake.word}
+																								<span class="font-normal text-text-subtitle"
+																									>&rarr;</span
+																								>
+																								<span class="text-positive-stroke"
+																									>{mistake.expectedForm}</span
+																								>
+																								<span class="text-xs font-normal text-text-subtitle"
+																									>({mistakeCaseLabel}
+																									{mistake.number === 'sg' ? 'Sg' : 'Pl'})</span
+																								>
+																							</p>
+																						{/if}
+																						<div class="mt-1 space-y-0.5 text-xs">
+																							{#if mistake.paradigmCorrect === false}
+																								<p>
+																									<span class="text-text-subtitle"
+																										>Paradigm: they said</span
+																									>
+																									<span class="text-negative-stroke"
+																										>{mistake.userParadigm}</span
+																									>
+																									<span class="text-text-subtitle">· correct:</span>
+																									<span class="text-positive-stroke"
+																										>{mistake.correctParadigm}</span
+																									>
+																								</p>
+																							{/if}
+																							{#if mistake.caseCorrect === false}
+																								<p>
+																									<span class="text-text-subtitle"
+																										>Case: they said</span
+																									>
+																									<span class="text-negative-stroke"
+																										>{mistake.userCase
+																											? isCaseKey(mistake.userCase)
+																												? CASE_LABELS[mistake.userCase]
+																												: mistake.userCase
+																											: '\u2014'}</span
+																									>
+																									<span class="text-text-subtitle">· correct:</span>
+																									<span class="text-positive-stroke"
+																										>{mistake.correctCase
+																											? isCaseKey(mistake.correctCase)
+																												? CASE_LABELS[mistake.correctCase]
+																												: mistake.correctCase
+																											: ''}</span
+																									>
+																								</p>
+																							{/if}
+																							{#if mistake.formCorrect === false}
+																								<p>
+																									<span class="text-text-subtitle"
+																										>Form: they said</span
+																									>
+																									<span class="text-negative-stroke"
+																										>{mistake.givenAnswer}</span
+																									>
+																									<span class="text-text-subtitle">· correct:</span>
+																									<span class="text-positive-stroke"
+																										>{mistake.expectedForm}</span
+																									>
+																								</p>
+																							{/if}
+																						</div>
+																					{:else if mistake.prompt}
+																						<p class="text-xs text-text-subtitle">
+																							correct: <span class="text-positive-stroke"
+																								>{isCaseId
+																									? isCaseKey(mistake.expectedForm)
+																										? CASE_LABELS[mistake.expectedForm]
+																										: mistake.expectedForm
+																									: mistake.expectedForm}</span
 																							>
-																							<td
-																								class="px-2 py-1.5 font-medium text-positive-stroke"
-																								>{mistake.expectedForm}</td
+																							· their answer:
+																							<span class="text-negative-stroke"
+																								>{isCaseId
+																									? isCaseKey(mistake.givenAnswer)
+																										? CASE_LABELS[mistake.givenAnswer]
+																										: mistake.givenAnswer
+																									: mistake.givenAnswer}</span
 																							>
-																							<td
-																								class="px-2 py-1.5 font-medium text-negative-stroke"
-																								>{mistake.givenAnswer}</td
+																						</p>
+																					{:else}
+																						<p class="text-xs text-text-subtitle">
+																							correct:
+																							<span class="font-medium text-positive-stroke"
+																								>{isCaseId
+																									? isCaseKey(mistake.expectedForm)
+																										? CASE_LABELS[mistake.expectedForm]
+																										: mistake.expectedForm
+																									: mistake.expectedForm}</span
 																							>
-																							<td class="px-2 py-1.5 text-text-subtitle"
-																								>{mistakeCaseLabel}</td
+																							· their answer:
+																							<span class="text-negative-stroke"
+																								>{isCaseId
+																									? isCaseKey(mistake.givenAnswer)
+																										? CASE_LABELS[mistake.givenAnswer]
+																										: mistake.givenAnswer
+																									: mistake.givenAnswer}</span
 																							>
-																						</tr>
-																					{/each}
-																				</tbody>
-																			</table>
+																							<span class="text-text-subtitle"
+																								>({mistakeCaseLabel}
+																								{mistake.number === 'sg' ? 'Sg' : 'Pl'})</span
+																							>
+																						</p>
+																					{/if}
+																				</div>
+																			{/each}
 																		</div>
 																	</div>
 																{/if}
@@ -2101,72 +2280,93 @@
 						{:else}
 							<div class="space-y-3">
 								{#each visibleAssignments as assignment (assignment.id)}
+									{@const allDone =
+										assignment.totalStudents > 0 &&
+										assignment.completedCount >= assignment.totalStudents}
+									{@const dueInfo = getDueInfo(assignment.dueDate, allDone)}
+									{@const completionPct =
+										assignment.totalStudents > 0
+											? Math.round((assignment.completedCount / assignment.totalStudents) * 100)
+											: 0}
 									<a
 										href={resolve(`/classes/${classData.id}/assignments/${assignment.id}`)}
-										class="block rounded-2xl border border-card-stroke bg-card-bg p-4 transition-colors hover:border-emphasis"
+										class="block rounded-2xl border p-4 transition-colors {allDone
+											? 'border-card-stroke bg-card-bg opacity-60 hover:opacity-100'
+											: dueInfo?.urgency === 'overdue'
+												? 'border-negative-stroke bg-negative-background hover:opacity-90'
+												: 'border-card-stroke bg-card-bg hover:border-emphasis'}"
 									>
 										<div class="flex items-start justify-between gap-3">
 											<div class="min-w-0 flex-1">
-												<h3 class="font-semibold text-text-default">
-													{assignment.title}
-												</h3>
+												<div class="flex flex-wrap items-center gap-2">
+													<h3 class="font-semibold text-text-default">
+														{assignment.title}
+													</h3>
+													{#if allDone}
+														<span
+															class="shrink-0 rounded-full bg-positive-background px-2 py-0.5 text-[11px] font-semibold text-positive-stroke"
+														>
+															All completed
+														</span>
+													{:else if dueInfo}
+														<span
+															class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {dueInfo.pillClass}"
+														>
+															{dueInfo.label}
+														</span>
+													{/if}
+												</div>
 												{#if assignment.description}
 													<p class="mt-0.5 text-sm text-text-subtitle">
 														{assignment.description}
 													</p>
 												{/if}
-												<dl
-													class="mt-2 grid grid-cols-[max-content_1fr] items-start gap-x-3 gap-y-1.5 text-xs"
-												>
-													<dt class="pt-0.5 text-text-subtitle">Cases</dt>
-													<dd class="flex flex-wrap gap-1">
-														{#each assignment.selectedCases as c (c)}
-															{#if isCaseKey(c)}
-																<span
-																	class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
-																>
-																	{CASE_LABELS[c]}
-																</span>
-															{/if}
-														{/each}
-													</dd>
-													<dt class="pt-0.5 text-text-subtitle">Drill types</dt>
-													<dd class="flex flex-wrap gap-1">
-														{#each assignment.selectedDrillTypes as dt (dt)}
-															{#if isDrillTypeKey(dt)}
-																<span
-																	class="rounded-full bg-shaded-background px-2 py-0.5 text-xs text-text-subtitle"
-																>
-																	{DRILL_TYPE_LABELS[dt]}
-																</span>
-															{/if}
-														{/each}
-													</dd>
-													<dt class="text-text-subtitle">Number</dt>
-													<dd class="text-text-default">
-														{formatNumberMode(assignment.numberMode)}
-													</dd>
-													<dt class="text-text-subtitle">Content</dt>
-													<dd class="text-text-default">
-														{formatContentMode(assignment.contentMode)}
-													</dd>
-													<dt class="text-text-subtitle">Questions</dt>
-													<dd class="text-text-default">{assignment.targetQuestions}</dd>
-												</dl>
-											</div>
-											<div class="flex flex-col items-end gap-1">
-												{#if assignment.dueDate}
-													<span
-														class="text-xs {new Date(assignment.dueDate) < new Date()
-															? 'text-negative-stroke'
-															: 'text-text-subtitle'}"
-													>
-														{formatDueDate(assignment.dueDate)}
+												<div class="mt-2 flex flex-wrap gap-1">
+													{#each assignment.selectedCases as c (c)}
+														{#if isCaseKey(c)}
+															<span
+																class="rounded-full px-2 py-0.5 text-xs {dueInfo?.urgency ===
+																'overdue'
+																	? 'bg-negative-stroke/15 text-negative-stroke'
+																	: 'bg-shaded-background text-text-subtitle'}"
+															>
+																{CASE_LABELS[c]}
+															</span>
+														{/if}
+													{/each}
+												</div>
+												<div class="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+													<div class="flex items-center gap-2">
+														<div
+															class="h-1.5 w-20 overflow-hidden rounded-full {dueInfo?.urgency ===
+															'overdue'
+																? 'bg-negative-stroke/20'
+																: 'bg-card-stroke/40'}"
+														>
+															<div
+																class="h-full rounded-full transition-all {allDone
+																	? 'bg-positive-stroke'
+																	: dueInfo?.urgency === 'overdue'
+																		? 'bg-negative-stroke'
+																		: 'bg-emphasis'}"
+																style="width: {completionPct}%"
+															></div>
+														</div>
+														<span class="text-xs tabular-nums text-text-subtitle">
+															{assignment.completedCount}/{assignment.totalStudents} completed
+														</span>
+													</div>
+													{#if assignment.avgAccuracy !== null}
+														<span class="text-xs text-text-subtitle">
+															<span class="font-medium text-text-default"
+																>{assignment.avgAccuracy}%</span
+															> avg accuracy
+														</span>
+													{/if}
+													<span class="text-xs text-text-subtitle">
+														{assignment.targetQuestions} questions
 													</span>
-												{/if}
-												<span class="text-xs text-text-subtitle">
-													{assignment.completedCount}/{assignment.totalStudents} completed
-												</span>
+												</div>
 											</div>
 										</div>
 									</a>
@@ -2297,11 +2497,18 @@
 											<span class="text-xs font-medium tabular-nums text-text-default">
 												{Math.min(status.attempted, status.target)}/{status.target}
 											</span>
-											<div class="h-1.5 w-16 overflow-hidden rounded-full bg-card-stroke/40">
+											<div
+												class="h-1.5 w-16 overflow-hidden rounded-full {dueInfo?.urgency ===
+												'overdue'
+													? 'bg-negative-stroke/20'
+													: 'bg-card-stroke/40'}"
+											>
 												<div
 													class="h-full rounded-full {isDone
 														? 'bg-positive-stroke'
-														: 'bg-emphasis'}"
+														: dueInfo?.urgency === 'overdue'
+															? 'bg-negative-stroke'
+															: 'bg-emphasis'}"
 													style="width: {progressPct}%"
 												></div>
 											</div>
@@ -2939,8 +3146,9 @@
 
 <!-- Paradigm heatmap tooltip -->
 {#if hoveredCell && hoveredCellScore}
+	{@const bd = hoveredCellScore.breakdown}
 	<div
-		class="pointer-events-none fixed z-50 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-lg"
+		class="pointer-events-none fixed z-50 max-w-xs rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-lg"
 		style="left: {hoveredCell.x}px; top: {hoveredCell.y - 8}px; transform: translate(-50%, -100%);"
 	>
 		<p class="font-medium text-text-default">{hoveredCellScore.label}</p>
@@ -2948,6 +3156,29 @@
 			<p style="color: {accuracyColor(hoveredCellScore.pct)}">
 				{hoveredCellScore.pct}% ({attemptLabel(hoveredCellScore.attempts)})
 			</p>
+			{#if bd}
+				{#if bd.struggling.length > 0}
+					{@const t = truncateNames(bd.struggling, 5)}
+					<p class="mt-1" style="color: #ef4444">
+						<span class="font-medium">Struggling:</span>
+						{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}
+					</p>
+				{/if}
+				{#if bd.ok.length > 0}
+					{@const t = truncateNames(bd.ok, 5)}
+					<p class="mt-1" style="color: #f59e0b">
+						<span class="font-medium">Needs work:</span>
+						{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}
+					</p>
+				{/if}
+				{#if bd.strong.length > 0}
+					{@const t = truncateNames(bd.strong, 5)}
+					<p class="mt-1" style="color: #22c55e">
+						<span class="font-medium">Strong:</span>
+						{t.shown.join(', ')}{t.extra > 0 ? ` +${t.extra} more` : ''}
+					</p>
+				{/if}
+			{/if}
 		{:else}
 			<p class="text-text-subtitle">No data</p>
 		{/if}

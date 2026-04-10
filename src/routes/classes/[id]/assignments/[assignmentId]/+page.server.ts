@@ -49,6 +49,16 @@ interface MistakeEntry {
 	givenAnswer: string;
 	case: string;
 	number: string;
+	sentence?: string;
+	drillType?: string;
+	correctParadigm?: string;
+	userParadigm?: string;
+	correctCase?: string;
+	userCase?: string | null;
+	paradigmCorrect?: boolean;
+	caseCorrect?: boolean | null;
+	formCorrect?: boolean;
+	prompt?: string;
 }
 
 interface StudentProgress {
@@ -73,13 +83,26 @@ function parseMistakes(raw: unknown): MistakeEntry[] {
 			typeof m.case === 'string' &&
 			typeof m.number === 'string'
 		) {
-			result.push({
+			const entry: MistakeEntry = {
 				word: m.word,
 				expectedForm: m.expectedForm,
 				givenAnswer: m.givenAnswer,
 				case: m.case,
 				number: m.number
-			});
+			};
+			if (typeof m.sentence === 'string') entry.sentence = m.sentence;
+			if (typeof m.drillType === 'string') entry.drillType = m.drillType;
+			if (typeof m.correctParadigm === 'string') entry.correctParadigm = m.correctParadigm;
+			if (typeof m.userParadigm === 'string') entry.userParadigm = m.userParadigm;
+			if (typeof m.correctCase === 'string') entry.correctCase = m.correctCase;
+			if (typeof m.userCase === 'string') entry.userCase = m.userCase;
+			else if (m.userCase === null) entry.userCase = null;
+			if (typeof m.paradigmCorrect === 'boolean') entry.paradigmCorrect = m.paradigmCorrect;
+			if (typeof m.caseCorrect === 'boolean') entry.caseCorrect = m.caseCorrect;
+			else if (m.caseCorrect === null) entry.caseCorrect = null;
+			if (typeof m.formCorrect === 'boolean') entry.formCorrect = m.formCorrect;
+			if (typeof m.prompt === 'string') entry.prompt = m.prompt;
+			result.push(entry);
 		}
 	}
 	return result;
@@ -196,40 +219,23 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			}
 		}
 
-		// Fetch case_scores for students (using admin client for RLS bypass)
-		const studentCaseScoresMap = new Map<string, CaseAccuracy[]>();
-		if (adminClient && studentIds.length > 0) {
-			const { data: userProgressData } = await adminClient
-				.from('user_progress')
-				.select('user_id, case_scores')
-				.in('user_id', studentIds);
-
-			if (Array.isArray(userProgressData)) {
-				for (const up of userProgressData) {
-					if (isRecord(up) && typeof up.user_id === 'string') {
-						studentCaseScoresMap.set(
-							up.user_id,
-							parseCaseScores(up.case_scores, assignment.selectedCases)
-						);
-					}
-				}
-			}
-		}
-
-		// Fetch assignment progress
+		// Fetch assignment progress (includes per-assignment case_scores)
 		const progressMap = new Map<
 			string,
 			{
 				questionsAttempted: number;
 				questionsCorrect: number;
 				completedAt: string | null;
+				caseScores: CaseAccuracy[];
 				mistakes: MistakeEntry[];
 			}
 		>();
 		if (studentIds.length > 0) {
 			const { data: progressData } = await supabase
 				.from('assignment_progress')
-				.select('student_id, questions_attempted, questions_correct, completed_at, mistakes')
+				.select(
+					'student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
+				)
 				.eq('assignment_id', assignmentId)
 				.in('student_id', studentIds);
 
@@ -241,6 +247,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 								typeof p.questions_attempted === 'number' ? p.questions_attempted : 0,
 							questionsCorrect: typeof p.questions_correct === 'number' ? p.questions_correct : 0,
 							completedAt: typeof p.completed_at === 'string' ? p.completed_at : null,
+							caseScores: parseCaseScores(p.case_scores, assignment.selectedCases),
 							mistakes: parseMistakes(p.mistakes)
 						});
 					}
@@ -256,7 +263,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 				questionsAttempted: prog?.questionsAttempted ?? 0,
 				questionsCorrect: prog?.questionsCorrect ?? 0,
 				completedAt: prog?.completedAt ?? null,
-				caseScores: studentCaseScoresMap.get(sid) ?? [],
+				caseScores: prog?.caseScores ?? [],
 				mistakes: prog?.mistakes ?? []
 			});
 		}
@@ -266,22 +273,12 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 		if (user) {
 			const { data: ownProgress } = await supabase
 				.from('assignment_progress')
-				.select('student_id, questions_attempted, questions_correct, completed_at, mistakes')
+				.select(
+					'student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
+				)
 				.eq('assignment_id', assignmentId)
 				.eq('student_id', user.id)
 				.maybeSingle();
-
-			// Fetch student's own case scores from user_progress
-			let studentCaseScores: CaseAccuracy[] = [];
-			const { data: userProgressRow } = await supabase
-				.from('user_progress')
-				.select('case_scores')
-				.eq('user_id', user.id)
-				.maybeSingle();
-
-			if (isRecord(userProgressRow)) {
-				studentCaseScores = parseCaseScores(userProgressRow.case_scores, assignment.selectedCases);
-			}
 
 			if (isRecord(ownProgress) && typeof ownProgress.student_id === 'string') {
 				studentProgress.push({
@@ -295,7 +292,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 						typeof ownProgress.questions_correct === 'number' ? ownProgress.questions_correct : 0,
 					completedAt:
 						typeof ownProgress.completed_at === 'string' ? ownProgress.completed_at : null,
-					caseScores: studentCaseScores,
+					caseScores: parseCaseScores(ownProgress.case_scores, assignment.selectedCases),
 					mistakes: parseMistakes(ownProgress.mistakes)
 				});
 			}
@@ -439,6 +436,7 @@ export const actions: Actions = {
 				questions_correct: 0,
 				completed_at: null,
 				mistakes: [],
+				case_scores: {},
 				updated_at: new Date().toISOString()
 			})
 			.eq('assignment_id', assignmentId)
@@ -448,6 +446,6 @@ export const actions: Actions = {
 			return fail(500, { message: 'Failed to reset assignment progress.' });
 		}
 
-		return { success: true };
+		redirect(303, `${resolve('/')}?assignment=${assignmentId}`);
 	}
 };

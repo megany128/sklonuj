@@ -361,8 +361,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		archivedClasses.length === 0 &&
 		studentClasses.length === 1
 	) {
-		// Skip redirect when special query params are present (e.g. ?joined welcome modal)
-		const hasSpecialParams = url.searchParams.has('joined');
+		// Skip redirect when special query params are present (e.g. ?joined welcome modal,
+		// or ?list when navigating back from a class page)
+		const hasSpecialParams = url.searchParams.has('joined') || url.searchParams.has('list');
 		if (!hasSpecialParams) {
 			redirect(302, `/classes/${studentClasses[0].classId}`);
 		}

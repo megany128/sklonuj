@@ -2,13 +2,14 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
 
@@ -43,6 +44,15 @@
 		case: string;
 		number: string;
 		sentence?: string;
+		drillType?: string;
+		correctParadigm?: string;
+		userParadigm?: string;
+		correctCase?: string;
+		userCase?: string | null;
+		paradigmCorrect?: boolean;
+		caseCorrect?: boolean | null;
+		formCorrect?: boolean;
+		prompt?: string;
 	}
 
 	interface StudentProgress {
@@ -151,7 +161,29 @@
 	let confirmingDuplicate = $state(false);
 	let duplicating = $state(false);
 	let retrying = $state(false);
+	let confirmingRetry = $state(false);
 	let showMistakes = $state(false);
+
+	async function retryAssignment(): Promise<void> {
+		if (!assignment) return;
+		retrying = true;
+		try {
+			const formData = new FormData();
+			const response = await fetch('?/retry', {
+				method: 'POST',
+				body: formData
+			});
+			if (response.ok || response.redirected) {
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- path uses resolve('/')
+				await goto(resolve('/') + `?assignment=${assignment.id}`);
+			} else {
+				await invalidateAll();
+			}
+		} finally {
+			retrying = false;
+			confirmingRetry = false;
+		}
+	}
 
 	function caseLabelFromKey(key: string): string {
 		if (isCaseKey(key)) return CASE_LABELS[key];
@@ -188,6 +220,109 @@
 	let hasProgress = $derived.by(() => {
 		return studentProgress.some((sp) => sp.questionsAttempted > 0);
 	});
+
+	// --- Aggregate stats for teacher overview ---
+	let completedCount = $derived(studentProgress.filter((sp) => sp.completedAt).length);
+	let studentsStarted = $derived(studentProgress.filter((sp) => sp.questionsAttempted > 0));
+
+	let classAccuracy = $derived.by(() => {
+		const totalAttempted = studentsStarted.reduce((s, sp) => s + sp.questionsAttempted, 0);
+		const totalCorrect = studentsStarted.reduce((s, sp) => s + sp.questionsCorrect, 0);
+		if (totalAttempted === 0) return '-';
+		return `${Math.round((totalCorrect / totalAttempted) * 100)}%`;
+	});
+
+	let avgQuestions = $derived.by(() => {
+		if (studentsStarted.length === 0) return 0;
+		return Math.round(
+			studentsStarted.reduce((s, sp) => s + sp.questionsAttempted, 0) / studentsStarted.length
+		);
+	});
+
+	/** Aggregate case scores across all students */
+	let classCaseScores = $derived.by(
+		(): SvelteMap<string, { attempts: number; correct: number }> => {
+			const map = new SvelteMap<string, { attempts: number; correct: number }>();
+			for (const sp of studentProgress) {
+				for (const cs of sp.caseScores) {
+					const existing = map.get(cs.case);
+					if (existing) {
+						existing.attempts += cs.attempts;
+						existing.correct += cs.correct;
+					} else {
+						map.set(cs.case, { attempts: cs.attempts, correct: cs.correct });
+					}
+				}
+			}
+			return map;
+		}
+	);
+
+	interface AggregatedMistake {
+		word: string;
+		expectedForm: string;
+		givenAnswer: string;
+		case: string;
+		number: string;
+		count: number;
+		sentence?: string;
+		drillType?: string;
+		correctParadigm?: string;
+		userParadigm?: string;
+		correctCase?: string;
+		userCase?: string | null;
+		paradigmCorrect?: boolean;
+		caseCorrect?: boolean | null;
+		formCorrect?: boolean;
+		prompt?: string;
+	}
+
+	let topMistakes = $derived.by((): AggregatedMistake[] => {
+		const counts = new SvelteMap<string, AggregatedMistake>();
+		for (const sp of studentProgress) {
+			for (const m of sp.mistakes) {
+				const key = `${m.word}|${m.expectedForm}|${m.givenAnswer}|${m.case}`;
+				const existing = counts.get(key);
+				if (existing) {
+					existing.count++;
+				} else {
+					counts.set(key, {
+						word: m.word,
+						expectedForm: m.expectedForm,
+						givenAnswer: m.givenAnswer,
+						case: m.case,
+						number: m.number,
+						count: 1,
+						sentence: m.sentence,
+						drillType: m.drillType,
+						correctParadigm: m.correctParadigm,
+						userParadigm: m.userParadigm,
+						correctCase: m.correctCase,
+						userCase: m.userCase,
+						paradigmCorrect: m.paradigmCorrect,
+						caseCorrect: m.caseCorrect,
+						formCorrect: m.formCorrect,
+						prompt: m.prompt
+					});
+				}
+			}
+		}
+		return Array.from(counts.values())
+			.sort((a, b) => b.count - a.count)
+			.slice(0, 5);
+	});
+
+	let expandedStudentMistakes = $state(new Set<string>());
+	let studentSearch = $state('');
+	let filteredStudentProgress = $derived.by(() => {
+		const query = studentSearch.toLowerCase().trim();
+		if (!query) return studentProgress;
+		return studentProgress.filter((sp) => {
+			const name = (sp.displayName ?? '').toLowerCase();
+			return name.includes(query);
+		});
+	});
+	let teacherTab = $state<'overview' | 'students'>('overview');
 
 	// ---------- Edit Assignment Modal ----------
 	let showEditModal = $state(false);
@@ -469,97 +604,497 @@
 		</div>
 
 		{#if role === 'teacher'}
-			<!-- Teacher: student progress table with per-case breakdown -->
-			<div>
-				<h2 class="mb-3 text-lg font-semibold text-text-default">
-					Student Progress ({studentProgress.length})
-				</h2>
-				{#if studentProgress.length === 0}
-					<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
-						<p class="text-sm text-text-subtitle">No students in this class yet.</p>
-					</div>
-				{:else}
-					<div class="space-y-3">
-						{#each studentProgress as sp (sp.studentId)}
-							{@const pct = Math.min(
-								100,
-								Math.round((sp.questionsAttempted / Math.max(1, assignment.targetQuestions)) * 100)
-							)}
-							<div class="rounded-xl border border-card-stroke bg-card-bg p-4">
-								<div class="flex items-center justify-between gap-3">
-									<span class="font-medium text-text-default">
-										{sp.displayName ?? 'Anonymous'}
-									</span>
-									{#if sp.completedAt}
-										<span
-											class="shrink-0 rounded-full bg-positive-background px-2 py-0.5 text-xs font-medium text-positive-stroke"
-										>
-											Completed
-										</span>
-									{:else if sp.questionsAttempted > 0}
-										<span
-											class="shrink-0 rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
-										>
-											In Progress
-										</span>
-									{:else}
-										<span
-											class="shrink-0 rounded-full bg-shaded-background px-2 py-0.5 text-xs font-medium text-text-subtitle"
-										>
-											Not Started
-										</span>
-									{/if}
-								</div>
-								<div class="mt-2 flex items-center gap-3">
-									<div class="h-1.5 flex-1 overflow-hidden rounded-full bg-shaded-background">
+			<!-- Teacher tabs -->
+			<div class="flex border-b border-card-stroke" role="tablist">
+				<button
+					type="button"
+					role="tab"
+					aria-selected={teacherTab === 'overview'}
+					onclick={() => (teacherTab = 'overview')}
+					class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {teacherTab ===
+					'overview'
+						? 'border-emphasis text-text-default'
+						: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+				>
+					Overview
+				</button>
+				<button
+					type="button"
+					role="tab"
+					aria-selected={teacherTab === 'students'}
+					onclick={() => (teacherTab = 'students')}
+					class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {teacherTab ===
+					'students'
+						? 'border-emphasis text-text-default'
+						: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+				>
+					Students ({studentProgress.length})
+				</button>
+			</div>
+
+			<!-- Overview tab -->
+			{#if teacherTab === 'overview'}
+				{#if studentProgress.length > 0}
+					<div class="mt-6 space-y-4">
+						<!-- Stat cards grid -->
+						<div class="grid grid-cols-3 gap-3">
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-4 text-center">
+								<p class="text-2xl font-bold text-text-default">
+									{completedCount}/{studentProgress.length}
+								</p>
+								<p class="text-xs text-text-subtitle">completed</p>
+							</div>
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-4 text-center">
+								<p class="text-2xl font-bold text-text-default">{classAccuracy}</p>
+								<p class="text-xs text-text-subtitle">class accuracy</p>
+							</div>
+							<div class="rounded-xl border border-card-stroke bg-card-bg p-4 text-center">
+								<p class="text-2xl font-bold text-text-default">{avgQuestions}</p>
+								<p class="text-xs text-text-subtitle">avg questions</p>
+							</div>
+						</div>
+
+						<!-- Class-wide case accuracy -->
+						{#if classCaseScores.size > 0}
+							<div>
+								<h3 class="mb-2 text-sm font-medium text-text-default">Class Case Accuracy</h3>
+								<div
+									class="grid gap-1.5"
+									style="grid-template-columns: repeat({assignmentCases.length}, minmax(0, 1fr));"
+								>
+									{#each assignmentCases as c (c)}
+										{@const agg = classCaseScores.get(c)}
+										{@const pct =
+											agg && agg.attempts > 0 ? (agg.correct / agg.attempts) * 100 : null}
 										<div
-											class="h-full rounded-full transition-all {sp.completedAt
-												? 'bg-positive-stroke'
-												: 'bg-emphasis'}"
-											style="width: {pct}%"
-										></div>
-									</div>
-									<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
-										{cappedAttempted(sp.questionsAttempted)}/{assignment.targetQuestions}
-									</span>
-									{#if sp.questionsAttempted > 0}
-										<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
-											{accuracy(sp.questionsAttempted, sp.questionsCorrect)}
-										</span>
-									{/if}
+											class="rounded-lg p-2 text-center {pct !== null
+												? caseAccuracyColor(pct)
+												: 'bg-shaded-background text-text-subtitle'}"
+										>
+											<p class="text-[10px] font-medium uppercase">
+												{CASE_LABELS[c].slice(0, 3)}
+											</p>
+											<p class="text-sm font-bold">
+												{pct !== null ? `${Math.round(pct)}%` : '--'}
+											</p>
+											{#if agg && agg.attempts > 0}
+												<p class="text-[9px] opacity-70">
+													{agg.correct}/{agg.attempts}
+												</p>
+											{/if}
+										</div>
+									{/each}
 								</div>
-								{#if sp.questionsAttempted > 0 && sp.caseScores.length > 0}
-									<div
-										class="mt-3 grid gap-1.5"
-										style="grid-template-columns: repeat({assignmentCases.length}, minmax(0, 1fr));"
-									>
-										{#each assignmentCases as c (c)}
-											{@const score = findCaseScore(sp.caseScores, c)}
-											<div
-												class="rounded-lg p-2 text-center {score
-													? caseAccuracyColor(score.accuracy)
-													: 'bg-shaded-background text-text-subtitle'}"
-											>
-												<p class="text-[10px] font-medium uppercase">
-													{CASE_LABELS[c].slice(0, 3)}
+							</div>
+						{/if}
+
+						<!-- Common mistakes -->
+						{#if topMistakes.length > 0}
+							<div>
+								<h3 class="mb-2 text-sm font-medium text-text-default">Common Mistakes</h3>
+								<div class="space-y-2">
+									{#each topMistakes as mistake, i (i)}
+										{@const isCaseId = isCaseKey(mistake.expectedForm)}
+										{@const isMultiStep = mistake.drillType === 'multi_step'}
+										<div
+											class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
+										>
+											{#if mistake.prompt}
+												<p class="mb-2 text-[15px] font-medium text-text-default">
+													{mistake.prompt}
 												</p>
-												<p class="text-sm font-bold">
-													{score ? `${Math.round(score.accuracy)}%` : '--'}
+											{:else if mistake.sentence}
+												<p class="mb-1.5 text-sm text-text-default italic">
+													{mistake.sentence}
 												</p>
-												{#if score}
-													<p class="text-[9px] opacity-70">
-														{score.correct}/{score.attempts}
+											{/if}
+											{#if isMultiStep}
+												{#if !mistake.prompt}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														{mistake.word}
+														<span class="font-normal text-text-subtitle">&rarr;</span>
+														<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														<span class="text-xs font-normal text-text-subtitle">
+															({caseLabelFromKey(mistake.case)}
+															{numberLabel(mistake.number)})
+														</span>
 													</p>
 												{/if}
+												<div class="mt-1 space-y-0.5 text-xs">
+													{#if mistake.paradigmCorrect === false}
+														<p>
+															<span class="text-text-subtitle">Paradigm: they said</span>
+															<span class="text-negative-stroke">{mistake.userParadigm}</span>
+															<span class="text-text-subtitle">· correct:</span>
+															<span class="text-positive-stroke">{mistake.correctParadigm}</span>
+														</p>
+													{/if}
+													{#if mistake.caseCorrect === false}
+														<p>
+															<span class="text-text-subtitle">Case: they said</span>
+															<span class="text-negative-stroke"
+																>{mistake.userCase ? caseLabelFromKey(mistake.userCase) : '—'}</span
+															>
+															<span class="text-text-subtitle">· correct:</span>
+															<span class="text-positive-stroke"
+																>{mistake.correctCase
+																	? caseLabelFromKey(mistake.correctCase)
+																	: ''}</span
+															>
+														</p>
+													{/if}
+													{#if mistake.formCorrect === false}
+														<p>
+															<span class="text-text-subtitle">Form: they said</span>
+															<span class="text-negative-stroke">{mistake.givenAnswer}</span>
+															<span class="text-text-subtitle">· correct:</span>
+															<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														</p>
+													{/if}
+												</div>
+											{:else if mistake.prompt}
+												<p class="text-xs text-text-subtitle">
+													correct: <span class="text-positive-stroke">{mistake.expectedForm}</span>
+													· their answer:
+													<span class="text-negative-stroke"
+														>{isCaseId
+															? caseLabelFromKey(mistake.givenAnswer)
+															: mistake.givenAnswer}</span
+													>
+												</p>
+											{:else}
+												<div class="flex items-baseline justify-between gap-2">
+													{#if isCaseId}
+														<span class="text-sm text-text-subtitle">
+															<span class="font-medium text-text-default">{mistake.word}</span>
+															— correct:
+															<span class="font-medium text-positive-stroke"
+																>{caseLabelFromKey(mistake.expectedForm)}</span
+															>
+														</span>
+													{:else}
+														<span class="text-sm font-medium text-text-default">
+															{mistake.word}
+															<span class="font-normal text-text-subtitle">&rarr;</span>
+															<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														</span>
+													{/if}
+													<span class="shrink-0 text-xs text-text-subtitle">
+														{caseLabelFromKey(mistake.case)}
+														({numberLabel(mistake.number)})
+													</span>
+												</div>
+												<p class="mt-0.5 text-xs text-text-subtitle">
+													their answer: <span class="text-negative-stroke"
+														>{isCaseId
+															? caseLabelFromKey(mistake.givenAnswer)
+															: mistake.givenAnswer}</span
+													>
+												</p>
+											{/if}
+											<div class="mt-1 flex justify-end">
+												<span
+													class="rounded-full bg-shaded-background px-2 py-0.5 text-[10px] font-medium text-text-subtitle"
+												>
+													{mistake.count} student{mistake.count === 1 ? '' : 's'}
+												</span>
 											</div>
-										{/each}
-									</div>
-								{/if}
+										</div>
+									{/each}
+								</div>
 							</div>
-						{/each}
+						{/if}
+					</div>
+				{:else}
+					<div class="mt-6 rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
+						<p class="text-sm text-text-subtitle">No student data yet.</p>
 					</div>
 				{/if}
-			</div>
+			{/if}
+
+			<!-- Students tab -->
+			{#if teacherTab === 'students'}
+				<div class="mt-6">
+					{#if studentProgress.length === 0}
+						<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
+							<p class="text-sm text-text-subtitle">No students in this class yet.</p>
+						</div>
+					{:else}
+						<div class="mb-3">
+							<input
+								type="text"
+								placeholder="Search students..."
+								bind:value={studentSearch}
+								class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis sm:ml-auto sm:w-48"
+							/>
+						</div>
+						<div class="space-y-3">
+							{#each filteredStudentProgress as sp (sp.studentId)}
+								{@const pct = Math.min(
+									100,
+									Math.round(
+										(sp.questionsAttempted / Math.max(1, assignment.targetQuestions)) * 100
+									)
+								)}
+								{@const accuracyPct =
+									sp.questionsAttempted > 0
+										? Math.round((sp.questionsCorrect / sp.questionsAttempted) * 100)
+										: null}
+								{@const isLowAccuracy = accuracyPct !== null && accuracyPct < 50}
+								<div
+									class="rounded-xl border p-4 {isLowAccuracy
+										? 'border-negative-stroke/40 bg-negative-background/50'
+										: 'border-card-stroke bg-card-bg'}"
+								>
+									<div class="flex items-center justify-between gap-3">
+										<div class="flex items-center gap-2">
+											<span class="font-medium text-text-default">
+												{sp.displayName ?? 'Anonymous'}
+											</span>
+											{#if isLowAccuracy}
+												<span
+													class="shrink-0 rounded-full bg-negative-background px-2 py-0.5 text-[10px] font-semibold text-negative-stroke"
+												>
+													Struggling
+												</span>
+											{/if}
+										</div>
+										{#if sp.completedAt}
+											<span
+												class="shrink-0 rounded-full bg-positive-background px-2 py-0.5 text-xs font-medium text-positive-stroke"
+											>
+												Completed
+											</span>
+										{:else if sp.questionsAttempted > 0}
+											<span
+												class="shrink-0 rounded-full bg-warning-background px-2 py-0.5 text-xs font-medium text-warning-text"
+											>
+												In Progress
+											</span>
+										{:else}
+											<span
+												class="shrink-0 rounded-full bg-shaded-background px-2 py-0.5 text-xs font-medium text-text-subtitle"
+											>
+												Not Started
+											</span>
+										{/if}
+									</div>
+									<div class="mt-2 flex items-center gap-3">
+										<div
+											class="h-1.5 flex-1 overflow-hidden rounded-full {isLowAccuracy
+												? 'bg-negative-stroke/20'
+												: 'bg-shaded-background'}"
+										>
+											<div
+												class="h-full rounded-full transition-all {sp.completedAt
+													? 'bg-positive-stroke'
+													: isLowAccuracy
+														? 'bg-negative-stroke'
+														: 'bg-emphasis'}"
+												style="width: {pct}%"
+											></div>
+										</div>
+										<span class="shrink-0 text-xs tabular-nums text-text-subtitle">
+											{cappedAttempted(sp.questionsAttempted)}/{assignment.targetQuestions}
+										</span>
+										{#if accuracyPct !== null}
+											<span
+												class="shrink-0 text-xs font-medium tabular-nums {accuracyPct >= 70
+													? 'text-positive-stroke'
+													: accuracyPct >= 50
+														? 'text-warning-text'
+														: 'text-negative-stroke'}"
+											>
+												{accuracyPct}% accuracy
+											</span>
+										{/if}
+									</div>
+									{#if sp.questionsAttempted > 0 && sp.caseScores.length > 0}
+										<div
+											class="mt-3 grid gap-1.5"
+											style="grid-template-columns: repeat({assignmentCases.length}, minmax(0, 1fr));"
+										>
+											{#each assignmentCases as c (c)}
+												{@const score = findCaseScore(sp.caseScores, c)}
+												<div
+													class="rounded-lg p-2 text-center {score
+														? caseAccuracyColor(score.accuracy)
+														: isLowAccuracy
+															? 'bg-negative-stroke/10 text-text-subtitle'
+															: 'bg-shaded-background text-text-subtitle'}"
+												>
+													<p class="text-[10px] font-medium uppercase">
+														{CASE_LABELS[c].slice(0, 3)}
+													</p>
+													<p class="text-sm font-bold">
+														{score ? `${Math.round(score.accuracy)}%` : '--'}
+													</p>
+													{#if score}
+														<p class="text-[9px] opacity-70">
+															{score.correct}/{score.attempts}
+														</p>
+													{/if}
+												</div>
+											{/each}
+										</div>
+									{/if}
+									{#if sp.mistakes.length > 0}
+										<div class="mt-3">
+											<button
+												type="button"
+												onclick={() => {
+													const next = new Set(expandedStudentMistakes);
+													if (next.has(sp.studentId)) {
+														next.delete(sp.studentId);
+													} else {
+														next.add(sp.studentId);
+													}
+													expandedStudentMistakes = next;
+												}}
+												class="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm text-text-subtitle transition-colors {isLowAccuracy
+													? 'bg-negative-stroke/10 hover:bg-negative-stroke/15'
+													: 'bg-shaded-background hover:bg-shaded-background/80'}"
+											>
+												<span>Mistakes ({sp.mistakes.length})</span>
+												<ChevronDown
+													class="size-4 transition-transform {expandedStudentMistakes.has(
+														sp.studentId
+													)
+														? 'rotate-180'
+														: ''}"
+													aria-hidden="true"
+												/>
+											</button>
+											{#if expandedStudentMistakes.has(sp.studentId)}
+												<div class="mt-2 space-y-2">
+													{#each sp.mistakes as mistake, i (i)}
+														{@const isCaseId = isCaseKey(mistake.expectedForm)}
+														{@const isMultiStep = mistake.drillType === 'multi_step'}
+														<div
+															class="rounded-lg border px-3 py-2.5 {isLowAccuracy
+																? 'border-negative-stroke/20 bg-negative-stroke/5'
+																: 'border-card-stroke bg-shaded-background/50'}"
+														>
+															{#if mistake.prompt}
+																<p class="mb-2 text-[15px] font-medium text-text-default">
+																	{mistake.prompt}
+																</p>
+															{:else if mistake.sentence}
+																<p class="mb-1.5 text-sm text-text-default italic">
+																	{mistake.sentence}
+																</p>
+															{/if}
+															{#if isMultiStep}
+																{#if !mistake.prompt}
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		{mistake.word}
+																		<span class="font-normal text-text-subtitle">&rarr;</span>
+																		<span class="text-positive-stroke">{mistake.expectedForm}</span>
+																		<span class="text-xs font-normal text-text-subtitle">
+																			({caseLabelFromKey(mistake.case)}
+																			{numberLabel(mistake.number)})
+																		</span>
+																	</p>
+																{/if}
+																<div class="mt-1 space-y-0.5 text-xs">
+																	{#if mistake.paradigmCorrect === false}
+																		<p>
+																			<span class="text-text-subtitle">Paradigm: they said</span>
+																			<span class="text-negative-stroke"
+																				>{mistake.userParadigm}</span
+																			>
+																			<span class="text-text-subtitle">· correct:</span>
+																			<span class="text-positive-stroke"
+																				>{mistake.correctParadigm}</span
+																			>
+																		</p>
+																	{/if}
+																	{#if mistake.caseCorrect === false}
+																		<p>
+																			<span class="text-text-subtitle">Case: they said</span>
+																			<span class="text-negative-stroke"
+																				>{mistake.userCase
+																					? caseLabelFromKey(mistake.userCase)
+																					: '—'}</span
+																			>
+																			<span class="text-text-subtitle">· correct:</span>
+																			<span class="text-positive-stroke"
+																				>{mistake.correctCase
+																					? caseLabelFromKey(mistake.correctCase)
+																					: ''}</span
+																			>
+																		</p>
+																	{/if}
+																	{#if mistake.formCorrect === false}
+																		<p>
+																			<span class="text-text-subtitle">Form: they said</span>
+																			<span class="text-negative-stroke">{mistake.givenAnswer}</span
+																			>
+																			<span class="text-text-subtitle">· correct:</span>
+																			<span class="text-positive-stroke"
+																				>{mistake.expectedForm}</span
+																			>
+																		</p>
+																	{/if}
+																</div>
+															{:else if mistake.prompt}
+																<p class="text-xs text-text-subtitle">
+																	correct: <span class="text-positive-stroke"
+																		>{mistake.expectedForm}</span
+																	>
+																	· their answer:
+																	<span class="text-negative-stroke"
+																		>{isCaseId
+																			? caseLabelFromKey(mistake.givenAnswer)
+																			: mistake.givenAnswer}</span
+																	>
+																</p>
+															{:else}
+																<div class="flex items-baseline justify-between gap-2">
+																	{#if isCaseId}
+																		<span class="text-sm text-text-subtitle">
+																			<span class="font-medium text-text-default"
+																				>{mistake.word}</span
+																			>
+																			— correct:
+																			<span class="font-medium text-positive-stroke"
+																				>{caseLabelFromKey(mistake.expectedForm)}</span
+																			>
+																		</span>
+																	{:else}
+																		<span class="text-sm font-medium text-text-default">
+																			{mistake.word}
+																			<span class="font-normal text-text-subtitle">&rarr;</span>
+																			<span class="text-positive-stroke"
+																				>{mistake.expectedForm}</span
+																			>
+																		</span>
+																	{/if}
+																	<span class="shrink-0 text-xs text-text-subtitle">
+																		{caseLabelFromKey(mistake.case)}
+																		({numberLabel(mistake.number)})
+																	</span>
+																</div>
+																<p class="mt-0.5 text-xs text-text-subtitle">
+																	their answer: <span class="text-negative-stroke"
+																		>{isCaseId
+																			? caseLabelFromKey(mistake.givenAnswer)
+																			: mistake.givenAnswer}</span
+																	>
+																</p>
+															{/if}
+														</div>
+													{/each}
+												</div>
+											{/if}
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
 		{:else}
 			<!-- Student: own progress -->
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6">
@@ -598,8 +1133,8 @@
 						{/if}
 					</div>
 
-					<!-- Student case scores -->
-					{#if myProgress.caseScores.length > 0}
+					<!-- Student case scores (only show when student has attempted questions) -->
+					{#if myProgress.questionsAttempted > 0 && myProgress.caseScores.length > 0}
 						<div class="mb-4">
 							<h3 class="mb-2 text-sm font-medium text-text-default">Case Accuracy</h3>
 							<div
@@ -647,42 +1182,103 @@
 								<div class="mt-2 space-y-2">
 									{#each myProgress.mistakes as mistake, i (i)}
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
+										{@const isMultiStep = mistake.drillType === 'multi_step'}
 										<div
 											class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2.5"
 										>
-											{#if mistake.sentence}
+											{#if mistake.prompt}
+												<p class="mb-2 text-[15px] font-medium text-text-default">
+													{mistake.prompt}
+												</p>
+											{:else if mistake.sentence}
 												<p class="mb-1.5 text-sm text-text-default italic">
 													{mistake.sentence}
 												</p>
 											{/if}
-											<div class="flex items-baseline justify-between gap-2">
-												{#if isCaseId}
-													<span class="text-sm text-text-subtitle">
-														<span class="font-medium text-text-default">{mistake.word}</span>
-														— correct:
-														<span class="font-medium text-positive-stroke"
-															>{caseLabelFromKey(mistake.expectedForm)}</span
-														>
-													</span>
-												{:else}
-													<span class="text-sm font-medium text-text-default">
+											{#if isMultiStep}
+												{#if !mistake.prompt}
+													<p class="mb-1 text-sm font-medium text-text-default">
 														{mistake.word}
 														<span class="font-normal text-text-subtitle">&rarr;</span>
 														<span class="text-positive-stroke">{mistake.expectedForm}</span>
-													</span>
+														<span class="text-xs font-normal text-text-subtitle">
+															({caseLabelFromKey(mistake.case)}
+															{numberLabel(mistake.number)})
+														</span>
+													</p>
 												{/if}
-												<span class="shrink-0 text-xs text-text-subtitle">
-													{caseLabelFromKey(mistake.case)}
-													({numberLabel(mistake.number)})
-												</span>
-											</div>
-											<p class="mt-0.5 text-xs text-text-subtitle">
-												your answer: <span class="text-negative-stroke"
-													>{isCaseId
-														? caseLabelFromKey(mistake.givenAnswer)
-														: mistake.givenAnswer}</span
-												>
-											</p>
+												<div class="mt-1 space-y-0.5 text-xs">
+													{#if mistake.paradigmCorrect === false}
+														<p>
+															<span class="text-text-subtitle">Paradigm: you said</span>
+															<span class="text-negative-stroke">{mistake.userParadigm}</span>
+															<span class="text-text-subtitle">· correct:</span>
+															<span class="text-positive-stroke">{mistake.correctParadigm}</span>
+														</p>
+													{/if}
+													{#if mistake.caseCorrect === false}
+														<p>
+															<span class="text-text-subtitle">Case: you said</span>
+															<span class="text-negative-stroke"
+																>{mistake.userCase ? caseLabelFromKey(mistake.userCase) : '—'}</span
+															>
+															<span class="text-text-subtitle">· correct:</span>
+															<span class="text-positive-stroke"
+																>{mistake.correctCase
+																	? caseLabelFromKey(mistake.correctCase)
+																	: ''}</span
+															>
+														</p>
+													{/if}
+													{#if mistake.formCorrect === false}
+														<p>
+															<span class="text-text-subtitle">Form: you said</span>
+															<span class="text-negative-stroke">{mistake.givenAnswer}</span>
+															<span class="text-text-subtitle">· correct:</span>
+															<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														</p>
+													{/if}
+												</div>
+											{:else if mistake.prompt}
+												<p class="text-xs text-text-subtitle">
+													correct: <span class="text-positive-stroke">{mistake.expectedForm}</span>
+													· your answer:
+													<span class="text-negative-stroke"
+														>{isCaseId
+															? caseLabelFromKey(mistake.givenAnswer)
+															: mistake.givenAnswer}</span
+													>
+												</p>
+											{:else}
+												<div class="flex items-baseline justify-between gap-2">
+													{#if isCaseId}
+														<span class="text-sm text-text-subtitle">
+															<span class="font-medium text-text-default">{mistake.word}</span>
+															— correct:
+															<span class="font-medium text-positive-stroke"
+																>{caseLabelFromKey(mistake.expectedForm)}</span
+															>
+														</span>
+													{:else}
+														<span class="text-sm font-medium text-text-default">
+															{mistake.word}
+															<span class="font-normal text-text-subtitle">&rarr;</span>
+															<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														</span>
+													{/if}
+													<span class="shrink-0 text-xs text-text-subtitle">
+														{caseLabelFromKey(mistake.case)}
+														({numberLabel(mistake.number)})
+													</span>
+												</div>
+												<p class="mt-0.5 text-xs text-text-subtitle">
+													your answer: <span class="text-negative-stroke"
+														>{isCaseId
+															? caseLabelFromKey(mistake.givenAnswer)
+															: mistake.givenAnswer}</span
+													>
+												</p>
+											{/if}
 										</div>
 									{/each}
 								</div>
@@ -712,32 +1308,41 @@
 					{/if}
 
 					{#if studentProgress.length > 0 && studentProgress[0].completedAt}
-						<form
-							method="POST"
-							action="?/retry"
-							use:enhance={() => {
-								retrying = true;
-								return async ({ update }) => {
-									retrying = false;
-									await update();
-								};
-							}}
-						>
+						<div class="relative">
+							{#if confirmingRetry}
+								<div
+									class="absolute bottom-full left-0 z-10 mb-1 w-56 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
+								>
+									<p class="mb-2 text-xs text-text-subtitle">
+										This will reset your progress. Are you sure?
+									</p>
+									<div class="flex items-center gap-2">
+										<button
+											type="button"
+											disabled={retrying}
+											onclick={retryAssignment}
+											class="cursor-pointer rounded-lg border border-emphasis bg-emphasis px-2.5 py-1 text-xs font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+										>
+											{retrying ? 'Resetting...' : 'Yes, reset'}
+										</button>
+										<button
+											type="button"
+											onclick={() => (confirmingRetry = false)}
+											class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							{/if}
 							<button
-								type="submit"
-								disabled={retrying}
-								onclick={(e: MouseEvent) => {
-									if (
-										!confirm('This will reset your progress for this assignment. Are you sure?')
-									) {
-										e.preventDefault();
-									}
-								}}
-								class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default disabled:opacity-50"
+								type="button"
+								onclick={() => (confirmingRetry = !confirmingRetry)}
+								class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 							>
-								{retrying ? 'Resetting...' : 'Retry Assignment'}
+								Retry Assignment
 							</button>
-						</form>
+						</div>
 					{/if}
 				</div>
 			</div>

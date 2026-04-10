@@ -353,6 +353,17 @@
 		case: string;
 		number: string;
 		sentence?: string;
+		// Task context
+		drillType?: string;
+		prompt?: string;
+		// Multi-step (full analysis) details
+		correctParadigm?: string;
+		userParadigm?: string;
+		correctCase?: string;
+		userCase?: string | null;
+		paradigmCorrect?: boolean;
+		caseCorrect?: boolean | null;
+		formCorrect?: boolean;
 	}
 	let assignmentMistakes = $state<AssignmentMistake[]>([]);
 
@@ -647,12 +658,14 @@
 		);
 	}
 
+	type PracticeUrgency = 'overdue' | 'soon' | 'later' | 'done' | 'none';
+
 	function getDueDateUrgency(
 		dueDate: string | null,
 		completedAt: string | null
-	): { label: string; color: string } {
-		if (completedAt !== null) return { label: 'Done', color: 'var(--color-positive-stroke)' };
-		if (dueDate === null) return { label: 'No due date', color: 'var(--color-text-subtitle)' };
+	): { label: string; urgency: PracticeUrgency } {
+		if (completedAt !== null) return { label: 'Done', urgency: 'done' };
+		if (dueDate === null) return { label: 'No due date', urgency: 'none' };
 
 		const due = new Date(dueDate);
 		const now = new Date();
@@ -662,13 +675,13 @@
 		const diffDays = Math.round((dueDay - today) / msPerDay);
 		const timeSuffix = formatTimeSuffix(due);
 
-		if (diffDays < 0) return { label: `${Math.abs(diffDays)}d overdue`, color: '#d73e3e' };
+		if (diffDays < 0) return { label: `${Math.abs(diffDays)}d overdue`, urgency: 'overdue' };
 		if (diffDays === 0 && due.getTime() < now.getTime())
-			return { label: `Overdue${timeSuffix}`, color: '#d73e3e' };
-		if (diffDays === 0) return { label: `Due today${timeSuffix}`, color: '#d73e3e' };
-		if (diffDays === 1) return { label: `Due tomorrow${timeSuffix}`, color: '#e5a000' };
-		if (diffDays <= 3) return { label: `Due in ${diffDays}d`, color: '#e5a000' };
-		return { label: `Due in ${diffDays}d`, color: '#40c607' };
+			return { label: `Overdue${timeSuffix}`, urgency: 'overdue' };
+		if (diffDays === 0) return { label: `Due today${timeSuffix}`, urgency: 'soon' };
+		if (diffDays === 1) return { label: `Due tomorrow${timeSuffix}`, urgency: 'soon' };
+		if (diffDays <= 3) return { label: `Due in ${diffDays}d`, urgency: 'soon' };
+		return { label: `Due in ${diffDays}d`, urgency: 'later' };
 	}
 
 	let pendingAssignments = $derived(studentAssignments.filter((a) => a.completedAt === null));
@@ -689,7 +702,9 @@
 		givenAnswer: string,
 		caseKey: string,
 		numberKey: string,
-		sentence?: string
+		sentence?: string,
+		drillType?: string,
+		prompt?: string
 	): void {
 		const mistake: AssignmentMistake = {
 			word,
@@ -697,13 +712,15 @@
 			givenAnswer,
 			case: caseKey,
 			number: numberKey,
-			...(sentence ? { sentence } : {})
+			...(sentence ? { sentence } : {}),
+			...(drillType ? { drillType } : {}),
+			...(prompt ? { prompt } : {})
 		};
 		// Keep only the last 20 mistakes
 		assignmentMistakes = [...assignmentMistakes, mistake].slice(-20);
 	}
 
-	function recordAssignmentProgress(correct: boolean): void {
+	function recordAssignmentProgress(correct: boolean, caseKey?: string, numberKey?: string): void {
 		if (!assignmentId) return;
 		fetch('/api/assignment-progress', {
 			method: 'POST',
@@ -711,6 +728,8 @@
 			body: JSON.stringify({
 				assignmentId,
 				correct,
+				caseKey,
+				numberKey,
 				recentMistakes: assignmentMistakes.length > 0 ? assignmentMistakes : undefined
 			})
 		})
@@ -2635,7 +2654,7 @@
 			scheduleSyncToSupabase();
 			trackSessionStats(result);
 			recordSessionActivity(false);
-			recordAssignmentProgress(false);
+			recordAssignmentProgress(false, question?.case, question?.number);
 			checkAssignmentMatchToast();
 			streak = 0;
 			if (question.wordCategory === 'pronoun' && question.pronoun) {
@@ -2701,13 +2720,26 @@
 			const q = result.question;
 			const lemma = q.wordCategory === 'pronoun' && q.pronoun ? q.pronoun.lemma : q.word.lemma;
 			let sentence: string | undefined;
+			let prompt: string | undefined;
 			if (
 				q.template &&
 				q.template.id !== '_form_production' &&
 				q.template.id !== '_pronoun_form_production'
 			) {
 				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
-				sentence = applyPrepositionVoicing(q.template.template, form).replace('___', form);
+				const voiced = applyPrepositionVoicing(q.template.template, form);
+				if (q.drillType === 'case_identification') {
+					sentence = voiced.replace('___', `[${form}]`);
+					prompt = `Identify the case: ${sentence}`;
+				} else if (q.drillType === 'sentence_fill_in') {
+					sentence = voiced.replace('___', form);
+					prompt = `Fill in [${lemma}]: ${voiced}`;
+				} else {
+					sentence = voiced.replace('___', form);
+				}
+			}
+			if (!prompt) {
+				prompt = `Decline "${lemma}" \u2192 ${CASE_LABELS[q.case]} ${q.number === 'sg' ? 'Sg' : 'Pl'}`;
 			}
 			collectAssignmentMistake(
 				lemma,
@@ -2715,10 +2747,12 @@
 				result.userAnswer,
 				q.case,
 				q.number,
-				sentence
+				sentence,
+				q.drillType,
+				prompt
 			);
 		}
-		recordAssignmentProgress(result.correct);
+		recordAssignmentProgress(result.correct, result.question.case, result.question.number);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: result.correct,
@@ -2803,23 +2837,33 @@
 		recordSessionActivity(allCorrect);
 		if (!allCorrect && assignmentId) {
 			let msSentence: string | undefined;
+			let msPrompt: string | undefined;
 			if (result.question.template) {
 				const form = result.question.correctForm;
-				msSentence = applyPrepositionVoicing(result.question.template.template, form).replace(
-					'___',
-					form
-				);
+				const voiced = applyPrepositionVoicing(result.question.template.template, form);
+				msSentence = voiced.replace('___', `[${form}]`);
+				msPrompt = `Full analysis [${result.question.word.lemma}]: ${voiced}`;
 			}
-			collectAssignmentMistake(
-				result.question.word.lemma,
-				result.question.correctForm,
-				result.userForm,
-				result.question.case,
-				result.question.number,
-				msSentence
-			);
+			const msMistake: AssignmentMistake = {
+				word: result.question.word.lemma,
+				expectedForm: result.question.correctForm,
+				givenAnswer: result.userForm,
+				case: result.question.case,
+				number: result.question.number,
+				drillType: 'multi_step',
+				correctParadigm: result.question.correctParadigm,
+				userParadigm: result.userParadigm,
+				correctCase: result.question.correctCase,
+				userCase: result.userCase,
+				paradigmCorrect: result.paradigmCorrect,
+				caseCorrect: result.caseCorrect,
+				formCorrect: result.formCorrect,
+				...(msSentence ? { sentence: msSentence } : {}),
+				...(msPrompt ? { prompt: msPrompt } : {})
+			};
+			assignmentMistakes = [...assignmentMistakes, msMistake].slice(-20);
 		}
-		recordAssignmentProgress(allCorrect);
+		recordAssignmentProgress(allCorrect, result.question.case, result.question.number);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: allCorrect,
@@ -3096,10 +3140,14 @@
 											In progress
 										</span>
 									{/if}
-									{#if activeDueUrgency && activeDueUrgency.label !== 'Done'}
+									{#if activeDueUrgency && activeDueUrgency.urgency !== 'done'}
 										<span
-											class="shrink-0 text-[10px] font-semibold"
-											style="color: {activeDueUrgency.color}"
+											class="shrink-0 text-[10px] font-semibold {activeDueUrgency.urgency ===
+											'overdue'
+												? 'text-negative-stroke'
+												: activeDueUrgency.urgency === 'soon'
+													? 'text-orange-500'
+													: 'text-text-subtitle'}"
 										>
 											{activeDueUrgency.label}
 										</span>
@@ -3182,7 +3230,9 @@
 							<div
 								class="rounded-xl border px-3 py-2.5 transition-colors {isActive
 									? 'border-emphasis bg-emphasis/5 ring-1 ring-emphasis/20'
-									: 'border-card-stroke bg-shaded-background/50'}"
+									: urgency.urgency === 'overdue'
+										? 'border-negative-stroke bg-negative-background'
+										: 'border-card-stroke bg-shaded-background/50'}"
 							>
 								<div class="flex items-start justify-between gap-2">
 									<div class="min-w-0 flex-1">
@@ -3193,10 +3243,20 @@
 										</div>
 										<div class="mt-0.5 flex items-center gap-2 text-xs text-text-subtitle">
 											<span
-												class="truncate rounded-full border border-card-stroke bg-card-bg px-2 py-0.5"
-												>{assignment.className}</span
+												class="truncate rounded-full border px-2 py-0.5 {urgency.urgency ===
+												'overdue'
+													? 'border-negative-stroke/30 bg-negative-stroke/15'
+													: 'border-card-stroke bg-card-bg'}">{assignment.className}</span
 											>
-											<span style="color: {urgency.color}" class="shrink-0 font-medium">
+											<span
+												class="shrink-0 font-medium {urgency.urgency === 'overdue'
+													? 'text-negative-stroke'
+													: urgency.urgency === 'soon'
+														? 'text-orange-500'
+														: urgency.urgency === 'done'
+															? 'text-positive-stroke'
+															: 'text-text-subtitle'}"
+											>
 												{urgency.label}
 											</span>
 											{#if isActive}
@@ -3898,21 +3958,66 @@
 					{#if mistakesExpanded}
 						<div class="mt-2 space-y-1.5">
 							{#each displayMistakes as mistake (mistake.word + mistake.expectedForm + mistake.case)}
+								{@const isMultiStep = mistake.drillType === 'multi_step'}
 								<div
 									class="rounded-lg border border-card-stroke bg-shaded-background/50 px-3 py-2 text-xs"
 								>
-									{#if mistake.sentence}
+									{#if mistake.prompt}
+										<p class="mb-1.5 text-[15px] font-medium text-text-default">{mistake.prompt}</p>
+									{:else if mistake.sentence}
 										<p class="mb-1 text-text-subtitle italic">{mistake.sentence}</p>
 									{/if}
-									<div class="flex items-baseline justify-between gap-2">
-										<span class="font-medium text-text-default"
-											>{mistake.word} &rarr; {mistake.expectedForm}</span
-										>
-										<span class="shrink-0 text-text-subtitle">{mistake.case} {mistake.number}</span>
-									</div>
-									<p class="mt-0.5 text-text-subtitle">
-										your answer: <span class="text-negative-stroke">{mistake.givenAnswer}</span>
-									</p>
+									{#if isMultiStep}
+										{#if !mistake.prompt}
+											<p class="font-medium text-text-default">
+												{mistake.word} &rarr;
+												<span class="text-positive-stroke">{mistake.expectedForm}</span>
+											</p>
+										{/if}
+										<div class="mt-1 space-y-0.5">
+											{#if mistake.paradigmCorrect === false}
+												<p>
+													<span class="text-text-subtitle">Paradigm: you said</span>
+													<span class="text-negative-stroke">{mistake.userParadigm}</span>
+													<span class="text-text-subtitle">· correct:</span>
+													<span class="text-positive-stroke">{mistake.correctParadigm}</span>
+												</p>
+											{/if}
+											{#if mistake.caseCorrect === false}
+												<p>
+													<span class="text-text-subtitle">Case: you said</span>
+													<span class="text-negative-stroke">{mistake.userCase ?? '—'}</span>
+													<span class="text-text-subtitle">· correct:</span>
+													<span class="text-positive-stroke">{mistake.correctCase ?? ''}</span>
+												</p>
+											{/if}
+											{#if mistake.formCorrect === false}
+												<p>
+													<span class="text-text-subtitle">Form: you said</span>
+													<span class="text-negative-stroke">{mistake.givenAnswer}</span>
+													<span class="text-text-subtitle">· correct:</span>
+													<span class="text-positive-stroke">{mistake.expectedForm}</span>
+												</p>
+											{/if}
+										</div>
+									{:else if mistake.prompt}
+										<p class="text-text-subtitle">
+											correct: <span class="text-positive-stroke">{mistake.expectedForm}</span>
+											· your answer: <span class="text-negative-stroke">{mistake.givenAnswer}</span>
+										</p>
+									{:else}
+										<div class="flex items-baseline justify-between gap-2">
+											<span class="font-medium text-text-default"
+												>{mistake.word} &rarr; {mistake.expectedForm}</span
+											>
+											<span class="shrink-0 text-text-subtitle"
+												>{mistake.case} {mistake.number}</span
+											>
+										</div>
+										<p class="mt-0.5 text-text-subtitle">
+											your answer: <span class="text-negative-stroke">{mistake.givenAnswer}</span>
+										</p>
+									{/if}
 								</div>
 							{/each}
 							{#if hasMore}

@@ -142,6 +142,8 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	const assignmentId = body['assignmentId'];
 	const correct = body['correct'];
 	const recentMistakes = body['recentMistakes'];
+	const caseKey = body['caseKey'];
+	const numberKey = body['numberKey'];
 
 	if (typeof assignmentId !== 'string' || assignmentId.length === 0) {
 		return json({ error: 'assignmentId is required and must be a string' }, { status: 400 });
@@ -151,6 +153,9 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		return json({ error: 'correct is required and must be a boolean' }, { status: 400 });
 	}
 
+	const validCaseKey = typeof caseKey === 'string' ? caseKey : null;
+	const validNumberKey = typeof numberKey === 'string' ? numberKey : null;
+
 	// Validate recentMistakes if provided: must be an array of mistake objects (max 20)
 	let validatedMistakes: Array<{
 		word: string;
@@ -159,6 +164,15 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		case: string;
 		number: string;
 		sentence?: string;
+		drillType?: string;
+		correctParadigm?: string;
+		userParadigm?: string;
+		correctCase?: string;
+		userCase?: string | null;
+		paradigmCorrect?: boolean;
+		caseCorrect?: boolean | null;
+		formCorrect?: boolean;
+		prompt?: string;
 	}> | null = null;
 
 	if (Array.isArray(recentMistakes)) {
@@ -180,6 +194,17 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 					number: m.number
 				};
 				if (typeof m.sentence === 'string') entry.sentence = m.sentence;
+				if (typeof m.drillType === 'string') entry.drillType = m.drillType;
+				if (typeof m.correctParadigm === 'string') entry.correctParadigm = m.correctParadigm;
+				if (typeof m.userParadigm === 'string') entry.userParadigm = m.userParadigm;
+				if (typeof m.correctCase === 'string') entry.correctCase = m.correctCase;
+				if (typeof m.userCase === 'string') entry.userCase = m.userCase;
+				else if (m.userCase === null) entry.userCase = null;
+				if (typeof m.paradigmCorrect === 'boolean') entry.paradigmCorrect = m.paradigmCorrect;
+				if (typeof m.caseCorrect === 'boolean') entry.caseCorrect = m.caseCorrect;
+				else if (m.caseCorrect === null) entry.caseCorrect = null;
+				if (typeof m.formCorrect === 'boolean') entry.formCorrect = m.formCorrect;
+				if (typeof m.prompt === 'string') entry.prompt = m.prompt;
 				validatedMistakes.push(entry);
 			}
 		}
@@ -218,7 +243,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	// Get existing progress
 	const { data: existingData } = await supabase
 		.from('assignment_progress')
-		.select('questions_attempted, questions_correct, completed_at')
+		.select('questions_attempted, questions_correct, completed_at, case_scores')
 		.eq('assignment_id', assignmentId)
 		.eq('student_id', user.id)
 		.maybeSingle();
@@ -226,6 +251,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	let existingAttempted = 0;
 	let existingCorrect = 0;
 	let existingCompletedAt: string | null = null;
+	const existingCaseScores: Record<string, { attempts: number; correct: number }> = {};
 
 	if (isRecord(existingData)) {
 		existingAttempted =
@@ -234,10 +260,27 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			typeof existingData.questions_correct === 'number' ? existingData.questions_correct : 0;
 		existingCompletedAt =
 			typeof existingData.completed_at === 'string' ? existingData.completed_at : null;
+		if (isRecord(existingData.case_scores)) {
+			for (const [key, val] of Object.entries(existingData.case_scores)) {
+				if (isRecord(val) && typeof val.attempts === 'number' && typeof val.correct === 'number') {
+					existingCaseScores[key] = { attempts: val.attempts, correct: val.correct };
+				}
+			}
+		}
 	}
 
 	const newAttempted = existingAttempted + 1;
 	const newCorrect = existingCorrect + (correct ? 1 : 0);
+
+	// Update per-case scores if case info was provided
+	if (validCaseKey) {
+		const scoreKey = validNumberKey ? `${validCaseKey}_${validNumberKey}` : validCaseKey;
+		const existing = existingCaseScores[scoreKey] ?? { attempts: 0, correct: 0 };
+		existingCaseScores[scoreKey] = {
+			attempts: existing.attempts + 1,
+			correct: existing.correct + (correct ? 1 : 0)
+		};
+	}
 
 	// Check completion: requires enough attempts
 	const isCompleted = newAttempted >= assignmentData.target_questions;
@@ -249,6 +292,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		student_id: user.id,
 		questions_attempted: newAttempted,
 		questions_correct: newCorrect,
+		case_scores: existingCaseScores,
 		completed_at: isCompleted ? (existingCompletedAt ?? now) : null,
 		updated_at: now
 	};
