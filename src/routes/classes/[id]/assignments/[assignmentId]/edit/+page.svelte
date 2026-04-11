@@ -99,7 +99,7 @@
 	}
 
 	type LevelMode = 'student' | 'cefr' | 'kzk';
-	const initialCl = assignment?.contentLevel ?? '';
+	const initialCl = (() => assignment?.contentLevel ?? '')();
 	const initialLevelMode: LevelMode = /^(A1|A2|B1)$/.test(initialCl)
 		? 'cefr'
 		: /^kzk[12]_\d{2}$/.test(initialCl)
