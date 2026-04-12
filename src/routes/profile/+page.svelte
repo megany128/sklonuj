@@ -285,7 +285,7 @@
 		'var(--color-case-loc)',
 		'var(--color-case-ins)'
 	];
-	let avatarInitial = $derived((user?.email?.[0] ?? '?').toUpperCase());
+	let avatarInitial = $derived((displayName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase());
 	let avatarColor = $derived.by(() => {
 		if (!user?.id) return AVATAR_COLORS[0];
 		let hash = 0;
