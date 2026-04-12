@@ -370,9 +370,12 @@
 						type="button"
 						onclick={() => toggleStudent(student.id)}
 						class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all"
-						style="color: var(--color-text-default); box-shadow: inset 0 0 0 1.5px {color}; opacity: {active
+						style="color: var(--color-text-default); box-shadow: inset 0 0 0 {hoveredLineLabel ===
+						student.name
+							? '2.5px'
+							: '1.5px'} {color}; opacity: {active
 							? 1
-							: 0.25}; transition: opacity 0.15s;"
+							: 0.25}; transition: box-shadow 0.15s, opacity 0.15s;"
 						onmouseenter={() => (hoveredLineLabel = student.name)}
 						onmouseleave={() => (hoveredLineLabel = null)}
 					>

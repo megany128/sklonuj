@@ -197,6 +197,10 @@
 		return n;
 	}
 
+	function sentenceWithBlank(sentence: string, form: string, lemma: string): string {
+		return sentence.replace(form, `[${lemma}]`);
+	}
+
 	function cappedAttempted(attempted: number): number {
 		if (!assignment) return attempted;
 		return Math.min(attempted, assignment.targetQuestions);
@@ -721,16 +725,25 @@
 									{#each topMistakes as mistake, i (i)}
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
 										{@const isMultiStep = mistake.drillType === 'multi_step'}
-										<div
-											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5 shadow-sm"
-										>
-											{#if mistake.prompt}
+										<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+											{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
 												<p class="mb-2 text-[15px] font-medium text-text-default">
-													{mistake.prompt}
+													Identify the case: <span class="italic">{mistake.sentence}</span>
 												</p>
 											{:else if mistake.sentence}
-												<p class="mb-1.5 text-sm text-text-default italic">
-													{mistake.sentence}
+												<p class="mb-2 text-[15px] font-medium text-text-default">
+													Decline "{mistake.word}":
+													<span class="italic"
+														>{sentenceWithBlank(
+															mistake.sentence,
+															mistake.expectedForm,
+															mistake.word
+														)}</span
+													>
+												</p>
+											{:else if mistake.prompt}
+												<p class="mb-2 text-[15px] font-medium text-text-default">
+													{mistake.prompt}
 												</p>
 											{:else if mistake.word && !isMultiStep}
 												<p class="mb-1.5 text-sm font-medium text-text-default">
@@ -785,44 +798,22 @@
 														</p>
 													{/if}
 												</div>
-											{:else if mistake.prompt}
+											{:else}
 												<p class="text-xs text-text-subtitle">
-													correct: <span class="text-positive-stroke">{mistake.expectedForm}</span>
+													correct:
+													<span class="text-positive-stroke"
+														>{isCaseId
+															? caseLabelFromKey(mistake.expectedForm)
+															: mistake.expectedForm}</span
+													>
 													· their answer:
 													<span class="text-negative-stroke"
 														>{isCaseId
 															? caseLabelFromKey(mistake.givenAnswer)
 															: mistake.givenAnswer}</span
 													>
-												</p>
-											{:else}
-												<div class="flex items-baseline justify-between gap-2">
-													{#if isCaseId}
-														<span class="text-sm text-text-subtitle">
-															<span class="font-medium text-text-default">{mistake.word}</span>
-															— correct:
-															<span class="font-medium text-positive-stroke"
-																>{caseLabelFromKey(mistake.expectedForm)}</span
-															>
-														</span>
-													{:else}
-														<span class="text-sm font-medium text-text-default">
-															{mistake.word}
-															<span class="font-normal text-text-subtitle">&rarr;</span>
-															<span class="text-positive-stroke">{mistake.expectedForm}</span>
-														</span>
-													{/if}
-													<span class="shrink-0 text-xs text-text-subtitle">
-														{caseLabelFromKey(mistake.case)}
-														({numberLabel(mistake.number)})
-													</span>
-												</div>
-												<p class="mt-0.5 text-xs text-text-subtitle">
-													their answer: <span class="text-negative-stroke"
-														>{isCaseId
-															? caseLabelFromKey(mistake.givenAnswer)
-															: mistake.givenAnswer}</span
-													>
+													({caseLabelFromKey(mistake.case)}
+													{numberLabel(mistake.number)})
 												</p>
 											{/if}
 											<div class="mt-1 flex justify-end">
@@ -1017,13 +1008,24 @@
 																? 'border-negative-stroke/20 bg-negative-stroke/5'
 																: 'border-card-stroke bg-shaded-background/50'}"
 														>
-															{#if mistake.prompt}
+															{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
 																<p class="mb-2 text-[15px] font-medium text-text-default">
-																	{mistake.prompt}
+																	Identify the case: <span class="italic">{mistake.sentence}</span>
 																</p>
 															{:else if mistake.sentence}
-																<p class="mb-1.5 text-sm text-text-default italic">
-																	{mistake.sentence}
+																<p class="mb-2 text-[15px] font-medium text-text-default">
+																	Decline "{mistake.word}":
+																	<span class="italic"
+																		>{sentenceWithBlank(
+																			mistake.sentence,
+																			mistake.expectedForm,
+																			mistake.word
+																		)}</span
+																	>
+																</p>
+															{:else if mistake.prompt}
+																<p class="mb-2 text-[15px] font-medium text-text-default">
+																	{mistake.prompt}
 																</p>
 															{/if}
 															{#if isMultiStep}
@@ -1079,10 +1081,13 @@
 																		</p>
 																	{/if}
 																</div>
-															{:else if mistake.prompt}
+															{:else}
 																<p class="text-xs text-text-subtitle">
-																	correct: <span class="text-positive-stroke"
-																		>{mistake.expectedForm}</span
+																	correct:
+																	<span class="text-positive-stroke"
+																		>{isCaseId
+																			? caseLabelFromKey(mistake.expectedForm)
+																			: mistake.expectedForm}</span
 																	>
 																	· their answer:
 																	<span class="text-negative-stroke"
@@ -1090,39 +1095,8 @@
 																			? caseLabelFromKey(mistake.givenAnswer)
 																			: mistake.givenAnswer}</span
 																	>
-																</p>
-															{:else}
-																<div class="flex items-baseline justify-between gap-2">
-																	{#if isCaseId}
-																		<span class="text-sm text-text-subtitle">
-																			<span class="font-medium text-text-default"
-																				>{mistake.word}</span
-																			>
-																			— correct:
-																			<span class="font-medium text-positive-stroke"
-																				>{caseLabelFromKey(mistake.expectedForm)}</span
-																			>
-																		</span>
-																	{:else}
-																		<span class="text-sm font-medium text-text-default">
-																			{mistake.word}
-																			<span class="font-normal text-text-subtitle">&rarr;</span>
-																			<span class="text-positive-stroke"
-																				>{mistake.expectedForm}</span
-																			>
-																		</span>
-																	{/if}
-																	<span class="shrink-0 text-xs text-text-subtitle">
-																		{caseLabelFromKey(mistake.case)}
-																		({numberLabel(mistake.number)})
-																	</span>
-																</div>
-																<p class="mt-0.5 text-xs text-text-subtitle">
-																	their answer: <span class="text-negative-stroke"
-																		>{isCaseId
-																			? caseLabelFromKey(mistake.givenAnswer)
-																			: mistake.givenAnswer}</span
-																	>
+																	({caseLabelFromKey(mistake.case)}
+																	{numberLabel(mistake.number)})
 																</p>
 															{/if}
 														</div>
@@ -1225,16 +1199,25 @@
 									{#each myProgress.mistakes as mistake, i (i)}
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
 										{@const isMultiStep = mistake.drillType === 'multi_step'}
-										<div
-											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5 shadow-sm"
-										>
-											{#if mistake.prompt}
+										<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+											{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
 												<p class="mb-2 text-[15px] font-medium text-text-default">
-													{mistake.prompt}
+													Identify the case: <span class="italic">{mistake.sentence}</span>
 												</p>
 											{:else if mistake.sentence}
-												<p class="mb-1.5 text-sm text-text-default italic">
-													{mistake.sentence}
+												<p class="mb-2 text-[15px] font-medium text-text-default">
+													Decline "{mistake.word}":
+													<span class="italic"
+														>{sentenceWithBlank(
+															mistake.sentence,
+															mistake.expectedForm,
+															mistake.word
+														)}</span
+													>
+												</p>
+											{:else if mistake.prompt}
+												<p class="mb-2 text-[15px] font-medium text-text-default">
+													{mistake.prompt}
 												</p>
 											{:else if mistake.word && !isMultiStep}
 												<p class="mb-1.5 text-sm font-medium text-text-default">
@@ -1289,44 +1272,22 @@
 														</p>
 													{/if}
 												</div>
-											{:else if mistake.prompt}
+											{:else}
 												<p class="text-xs text-text-subtitle">
-													correct: <span class="text-positive-stroke">{mistake.expectedForm}</span>
+													correct:
+													<span class="text-positive-stroke"
+														>{isCaseId
+															? caseLabelFromKey(mistake.expectedForm)
+															: mistake.expectedForm}</span
+													>
 													· your answer:
 													<span class="text-negative-stroke"
 														>{isCaseId
 															? caseLabelFromKey(mistake.givenAnswer)
 															: mistake.givenAnswer}</span
 													>
-												</p>
-											{:else}
-												<div class="flex items-baseline justify-between gap-2">
-													{#if isCaseId}
-														<span class="text-sm text-text-subtitle">
-															<span class="font-medium text-text-default">{mistake.word}</span>
-															— correct:
-															<span class="font-medium text-positive-stroke"
-																>{caseLabelFromKey(mistake.expectedForm)}</span
-															>
-														</span>
-													{:else}
-														<span class="text-sm font-medium text-text-default">
-															{mistake.word}
-															<span class="font-normal text-text-subtitle">&rarr;</span>
-															<span class="text-positive-stroke">{mistake.expectedForm}</span>
-														</span>
-													{/if}
-													<span class="shrink-0 text-xs text-text-subtitle">
-														{caseLabelFromKey(mistake.case)}
-														({numberLabel(mistake.number)})
-													</span>
-												</div>
-												<p class="mt-0.5 text-xs text-text-subtitle">
-													your answer: <span class="text-negative-stroke"
-														>{isCaseId
-															? caseLabelFromKey(mistake.givenAnswer)
-															: mistake.givenAnswer}</span
-													>
+													({caseLabelFromKey(mistake.case)}
+													{numberLabel(mistake.number)})
 												</p>
 											{/if}
 										</div>

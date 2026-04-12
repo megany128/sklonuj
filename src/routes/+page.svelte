@@ -3538,7 +3538,7 @@
 		{/if}
 
 		<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings -->
-		<div class="relative z-30 mb-2 grid grid-cols-[1fr_auto_1fr] items-center">
+		<div class="relative z-30 mb-2 grid min-h-[44px] grid-cols-[1fr_auto_1fr] items-center gap-3">
 			<div></div>
 			<div class="flex min-w-0 justify-center">
 				{#if chapterBook !== null}
@@ -3704,12 +3704,12 @@
 							lastMistakeIndex = -1;
 							generateNextQuestion();
 						}}
-						class="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors
+						class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors
 							{practicingMistakes
 							? 'border-negative-stroke bg-negative-background text-negative-stroke'
 							: 'border-negative-stroke/30 bg-card-bg text-negative-stroke hover:border-negative-stroke hover:bg-negative-background'}"
 					>
-						<RefreshCcw class="size-4" aria-hidden="true" />
+						<RefreshCcw class="size-3.5" aria-hidden="true" />
 						{#if practicingMistakes}
 							Reviewing {relevantMistakeCount}
 							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}

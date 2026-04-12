@@ -1138,6 +1138,10 @@
 		return 'Anonymous';
 	}
 
+	function sentenceWithBlank(sentence: string, form: string, lemma: string): string {
+		return sentence.replace(form, `[${lemma}]`);
+	}
+
 	function formatAccuracy(accuracy: number | null): string {
 		if (accuracy === null) return 'No data';
 		return `${Math.round(accuracy)}%`;
@@ -1584,13 +1588,13 @@
 								<button
 									type="button"
 									onclick={() => (chartMetric = 'overall')}
-									class="flex flex-col justify-center rounded-xl p-3 text-center transition-shadow sm:mr-2 {avgClassAccuracy !==
+									class="flex flex-col justify-center rounded-xl p-3 text-center transition-shadow hover:shadow-[inset_0_0_0_2px_currentColor] sm:mr-2 {avgClassAccuracy !==
 									null
 										? caseAccuracyColor(avgClassAccuracy)
 										: 'bg-card-bg text-text-subtitle'}"
-									style="box-shadow: inset 0 0 0 {chartMetric === 'overall'
-										? '2.5px currentColor'
-										: '1px var(--color-card-stroke)'};"
+									style="box-shadow: {chartMetric === 'overall'
+										? 'inset 0 0 0 2.5px currentColor'
+										: ''};"
 									onmouseenter={(e) => handleCaseBoxEnter(e, 'overall')}
 									onmouseleave={handleCaseBoxLeave}
 								>
@@ -1608,12 +1612,11 @@
 										type="button"
 										onclick={() =>
 											(chartMetric = isCaseKey(caseItem.case) ? caseItem.case : 'overall')}
-										class="rounded-xl p-3 text-center transition-shadow {caseItem.accuracy !== null
+										class="rounded-xl p-3 text-center transition-shadow hover:shadow-[inset_0_0_0_2px_currentColor] {caseItem.accuracy !==
+										null
 											? caseAccuracyColor(caseItem.accuracy)
 											: 'bg-card-bg text-text-subtitle'}"
-										style="box-shadow: inset 0 0 0 {isSelected
-											? '2.5px currentColor'
-											: '1px var(--color-card-stroke)'};"
+										style="box-shadow: {isSelected ? 'inset 0 0 0 2.5px currentColor' : ''};"
 										onmouseenter={(e) => handleCaseBoxEnter(e, caseItem.case)}
 										onmouseleave={handleCaseBoxLeave}
 									>
@@ -2062,17 +2065,34 @@
 																					? CASE_LABELS[mistake.case]
 																					: mistake.case}
 																				<div
-																					class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5 shadow-sm"
+																					class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
 																				>
-																					{#if mistake.prompt}
+																					{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
+																						<p
+																							class="mb-2 text-[15px] font-medium text-text-default"
+																						>
+																							Identify the case: <span class="italic"
+																								>{mistake.sentence}</span
+																							>
+																						</p>
+																					{:else if mistake.sentence}
+																						<p
+																							class="mb-2 text-[15px] font-medium text-text-default"
+																						>
+																							Decline "{mistake.word}":
+																							<span class="italic"
+																								>{sentenceWithBlank(
+																									mistake.sentence,
+																									mistake.expectedForm,
+																									mistake.word
+																								)}</span
+																							>
+																						</p>
+																					{:else if mistake.prompt}
 																						<p
 																							class="mb-2 text-[15px] font-medium text-text-default"
 																						>
 																							{mistake.prompt}
-																						</p>
-																					{:else if mistake.sentence}
-																						<p class="mb-1.5 text-sm text-text-default italic">
-																							{mistake.sentence}
 																						</p>
 																					{:else if mistake.word}
 																						<p class="mb-1.5 text-sm font-medium text-text-default">
@@ -2151,28 +2171,10 @@
 																								</p>
 																							{/if}
 																						</div>
-																					{:else if mistake.prompt}
-																						<p class="text-xs text-text-subtitle">
-																							correct: <span class="text-positive-stroke"
-																								>{isCaseId
-																									? isCaseKey(mistake.expectedForm)
-																										? CASE_LABELS[mistake.expectedForm]
-																										: mistake.expectedForm
-																									: mistake.expectedForm}</span
-																							>
-																							· their answer:
-																							<span class="text-negative-stroke"
-																								>{isCaseId
-																									? isCaseKey(mistake.givenAnswer)
-																										? CASE_LABELS[mistake.givenAnswer]
-																										: mistake.givenAnswer
-																									: mistake.givenAnswer}</span
-																							>
-																						</p>
 																					{:else}
 																						<p class="text-xs text-text-subtitle">
 																							correct:
-																							<span class="font-medium text-positive-stroke"
+																							<span class="text-positive-stroke"
 																								>{isCaseId
 																									? isCaseKey(mistake.expectedForm)
 																										? CASE_LABELS[mistake.expectedForm]
@@ -2187,10 +2189,8 @@
 																										: mistake.givenAnswer
 																									: mistake.givenAnswer}</span
 																							>
-																							<span class="text-text-subtitle"
-																								>({mistakeCaseLabel}
-																								{mistake.number === 'sg' ? 'Sg' : 'Pl'})</span
-																							>
+																							({mistakeCaseLabel}
+																							{mistake.number === 'sg' ? 'Sg' : 'Pl'})
 																						</p>
 																					{/if}
 																				</div>

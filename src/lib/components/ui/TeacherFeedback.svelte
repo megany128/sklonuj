@@ -19,7 +19,7 @@
 		class="inline-flex items-center gap-1.5 text-xs text-text-subtitle transition-colors hover:text-text-default"
 	>
 		<MessageSquare size={14} />
-		Have feedback or a feature request? I'll get back to you within a day
+		Have feedback or a feature request? Let me know!
 	</a>
 </div>
 <!-- eslint-enable svelte/no-navigation-without-resolve -->
