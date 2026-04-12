@@ -13,7 +13,7 @@
 	import { onMount } from 'svelte';
 	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
 	import Pencil from '@lucide/svelte/icons/pencil';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+
 	import { BADGE_ICONS } from '$lib/data/badge-icons';
 
 	function focusOnMount(node: HTMLElement) {
@@ -275,60 +275,6 @@
 	let daysPracticed = $derived(serverSessions.length);
 
 	// Weakest area: find the paradigm+case combination with lowest accuracy (min 5 attempts)
-	let weakestArea = $derived.by<{
-		paradigm: string;
-		isPronoun: boolean;
-		caseLabel: string;
-		number: string;
-		accuracy: number;
-		attempts: number;
-	} | null>(() => {
-		if (totalAttempts < 20) return null;
-		let worst: {
-			paradigm: string;
-			isPronoun: boolean;
-			caseLabel: string;
-			number: string;
-			accuracy: number;
-			attempts: number;
-		} | null = null;
-		for (const [key, score] of Object.entries(paradigmScores)) {
-			if (score.attempts < 5) continue;
-			const pct = Math.round((score.correct / score.attempts) * 100);
-			if (worst === null || pct < worst.accuracy) {
-				const parts = key.split('_');
-				let paradigm: string;
-				let caseKey: string;
-				let num: string;
-				let isPronoun = false;
-
-				if (parts[0] === 'pronoun' && parts.length >= 4) {
-					// pronoun_LEMMA_case_number
-					isPronoun = true;
-					paradigm = parts[1]; // the lemma
-					caseKey = parts[2];
-					num = parts[3];
-				} else {
-					// paradigm_case_number (paradigm may contain underscores)
-					num = parts[parts.length - 1];
-					caseKey = parts[parts.length - 2];
-					paradigm = parts.slice(0, parts.length - 2).join('_');
-				}
-
-				const caseMeta = CASE_META.find((c) => c.key === caseKey);
-				worst = {
-					paradigm,
-					isPronoun,
-					caseLabel: caseMeta?.label ?? caseKey,
-					number: num === 'sg' ? 'singular' : 'plural',
-					accuracy: pct,
-					attempts: score.attempts
-				};
-			}
-		}
-		return worst;
-	});
-
 	let userDisplayLabel = $derived(displayName || user?.email?.split('@')[0] || 'User');
 
 	// Combine sg+pl for each case
@@ -814,6 +760,9 @@
 						</div>
 					</div>
 					<div class="mt-1">
+						{#if user.email}
+							<p class="text-sm text-text-subtitle">{user.email}</p>
+						{/if}
 						<span class="text-sm text-text-subtitle">Member since {memberSince}</span>
 					</div>
 					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtitle">
@@ -929,7 +878,7 @@
 					aria-labelledby="profile-tab-progress"
 					tabindex={0}
 				>
-					{#if !weakestArea && serverSessions.length === 0}
+					{#if totalAttempts === 0 && serverSessions.length === 0}
 						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
 							<p class="text-sm text-text-subtitle">No activity yet.</p>
 							<p class="mt-1 text-sm text-text-subtitle">
@@ -938,36 +887,78 @@
 						</div>
 					{/if}
 
-					<!-- Weakest area callout -->
-					{#if weakestArea}
-						<section class="mb-6">
-							<div
-								class="flex items-start gap-3 rounded-xl border border-card-stroke bg-card-bg px-4 py-3"
-							>
-								<TriangleAlert
-									class="mt-0.5 size-4 shrink-0 text-warning-text"
-									aria-hidden="true"
-								/>
-								<div class="min-w-0">
-									<p class="text-xs font-semibold text-text-default">Focus area</p>
-									<p class="text-xs text-text-subtitle">
-										{weakestArea.caseLabel}
-										{weakestArea.number} in
-										{#if weakestArea.isPronoun}
-											pronoun <span class="font-medium text-text-default"
-												>{weakestArea.paradigm}</span
+					<!-- Activity heatmap -->
+					{#if serverSessions.length > 0}
+						<section class="mb-6 overflow-hidden">
+							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Activity
+							</h2>
+							<div class="-mx-4 overflow-x-auto px-4">
+								<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+									<!-- Month labels -->
+									<div class="mb-1 flex" style="padding-left: 28px;">
+										{#each heatmapMonthLabels as ml (ml.weekIndex)}
+											<span
+												class="text-xs text-text-subtitle"
+												style="position: relative; left: {ml.weekIndex *
+													13}px; width: 0; white-space: nowrap;"
 											>
-										{:else}
-											<span class="font-medium text-text-default"
-												>{PARADIGM_NAMES[weakestArea.paradigm] ?? weakestArea.paradigm}</span
-											>
-											paradigm
-										{/if}
-										({weakestArea.accuracy}% accuracy, {attemptLabel(weakestArea.attempts)})
-									</p>
+												{ml.label}
+											</span>
+										{/each}
+									</div>
+									<!-- Grid -->
+									<div class="flex items-start gap-0.5">
+										<!-- Day labels -->
+										<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
+											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
+										</div>
+										<!-- Weeks -->
+										{#each heatmapWeeks as week, weekIdx (weekIdx)}
+											<div class="flex flex-col gap-0.5">
+												{#each week as day (day.date)}
+													<div
+														role="img"
+														class="h-[11px] w-[11px] rounded-[2px]"
+														style="background-color: {heatmapColor(day.count)};"
+														aria-label="{formatHeatmapDay(day.date)}{day.count > 0
+															? ` · ${day.count} question${day.count === 1 ? '' : 's'}`
+															: ' · no practice'}"
+														onmouseenter={(e) => handleHeatmapDayEnter(e, day.date, day.count)}
+														onmouseleave={handleHeatmapDayLeave}
+													></div>
+												{/each}
+											</div>
+										{/each}
+									</div>
 								</div>
 							</div>
 						</section>
+
+						{#if hoveredHeatmapDay}
+							<div
+								class="pointer-events-none fixed z-50 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
+								style="left: {hoveredHeatmapDay.x}px; top: {hoveredHeatmapDay.y -
+									8}px; transform: translate(-50%, -100%);"
+							>
+								<p class="font-medium text-text-default">
+									{formatHeatmapDay(hoveredHeatmapDay.date)}
+								</p>
+								{#if hoveredHeatmapDay.count > 0}
+									<p class="text-text-subtitle">
+										{hoveredHeatmapDay.count} question{hoveredHeatmapDay.count === 1 ? '' : 's'}
+									</p>
+								{:else}
+									<p class="text-text-subtitle">No practice</p>
+								{/if}
+							</div>
+						{/if}
 					{/if}
 
 					<!-- 4. Case & Paradigm breakdown with tabs -->
@@ -1032,7 +1023,7 @@
 										onclick={() => (expandedCase = null)}
 										onmouseenter={(e: MouseEvent) => handleCaseCardEnter(e, '_overall', 'Overall')}
 										onmouseleave={handleCaseCardLeave}
-										class="flex cursor-pointer flex-col justify-center rounded-xl border-2 border-current p-3 text-center transition-opacity sm:mr-2 {overallPct !==
+										class="flex cursor-pointer flex-col justify-center rounded-xl p-3 text-center transition-shadow hover:shadow-[inset_0_0_0_2px_currentColor] sm:mr-2 {overallPct !==
 										null
 											? overallPct >= 70
 												? 'bg-positive-background text-positive-stroke'
@@ -1040,6 +1031,7 @@
 													? 'bg-warning-background text-warning-text'
 													: 'bg-negative-background text-negative-stroke'
 											: 'bg-card-bg text-text-subtitle'}"
+										style="box-shadow: inset 0 0 0 2.5px currentColor;"
 									>
 										<p class="text-xs font-bold uppercase tracking-wide">Avg</p>
 										<p class="text-xl font-extrabold">
@@ -1059,17 +1051,15 @@
 											onmouseenter={(e: MouseEvent) =>
 												handleCaseCardEnter(e, caseMeta.key, caseMeta.label)}
 											onmouseleave={handleCaseCardLeave}
-											class="cursor-pointer rounded-xl border p-3 text-center transition-colors {isSelected
-												? 'ring-2 ring-emphasis/40'
-												: ''} {pct !== null
+											class="cursor-pointer rounded-xl p-3 text-center transition-shadow hover:shadow-[inset_0_0_0_2px_currentColor] {pct !==
+											null
 												? pct >= 70
 													? 'bg-positive-background text-positive-stroke'
 													: pct >= 40
 														? 'bg-warning-background text-warning-text'
 														: 'bg-negative-background text-negative-stroke'
-												: 'bg-card-bg text-text-subtitle'} {isSelected
-												? 'border-emphasis/40'
-												: 'border-card-stroke'}"
+												: 'bg-card-bg text-text-subtitle'}"
+											style="box-shadow: {isSelected ? 'inset 0 0 0 2.5px currentColor' : ''};"
 										>
 											<p class="text-xs font-medium uppercase">
 												{caseMeta.abbrev}
@@ -1583,7 +1573,7 @@
 											<circle
 												cx={accXScale(i, dailyAccuracy.length)}
 												cy={accYScale(point.accuracy)}
-												r="14"
+												r="20"
 												fill="transparent"
 												role="img"
 												aria-label="{formatAccDate(point.date)}: {point.accuracy}% accuracy"
@@ -1611,80 +1601,6 @@
 								</div>
 							</div>
 						</section>
-					{/if}
-
-					<!-- Activity heatmap -->
-					{#if serverSessions.length > 0}
-						<section class="mb-6 overflow-hidden">
-							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-								Activity
-							</h2>
-							<div class="-mx-4 overflow-x-auto px-4">
-								<div class="min-w-0 rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-									<!-- Month labels -->
-									<div class="mb-1 flex" style="padding-left: 28px;">
-										{#each heatmapMonthLabels as ml (ml.weekIndex)}
-											<span
-												class="text-xs text-text-subtitle"
-												style="position: relative; left: {ml.weekIndex *
-													13}px; width: 0; white-space: nowrap;"
-											>
-												{ml.label}
-											</span>
-										{/each}
-									</div>
-									<!-- Grid -->
-									<div class="flex items-start gap-0.5">
-										<!-- Day labels -->
-										<div class="mr-1 flex flex-col gap-0.5" style="min-width: 22px;">
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle">Mon</span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle">Wed</span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle">Fri</span>
-											<span class="h-3 text-xs leading-3 text-text-subtitle"></span>
-										</div>
-										<!-- Weeks -->
-										{#each heatmapWeeks as week, weekIdx (weekIdx)}
-											<div class="flex flex-col gap-0.5">
-												{#each week as day (day.date)}
-													<div
-														role="img"
-														class="h-[11px] w-[11px] rounded-[2px]"
-														style="background-color: {heatmapColor(day.count)};"
-														aria-label="{formatHeatmapDay(day.date)}{day.count > 0
-															? ` · ${day.count} question${day.count === 1 ? '' : 's'}`
-															: ' · no practice'}"
-														onmouseenter={(e) => handleHeatmapDayEnter(e, day.date, day.count)}
-														onmouseleave={handleHeatmapDayLeave}
-													></div>
-												{/each}
-											</div>
-										{/each}
-									</div>
-								</div>
-							</div>
-						</section>
-
-						{#if hoveredHeatmapDay}
-							<div
-								class="pointer-events-none fixed z-50 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
-								style="left: {hoveredHeatmapDay.x}px; top: {hoveredHeatmapDay.y -
-									8}px; transform: translate(-50%, -100%);"
-							>
-								<p class="font-medium text-text-default">
-									{formatHeatmapDay(hoveredHeatmapDay.date)}
-								</p>
-								{#if hoveredHeatmapDay.count > 0}
-									<p class="text-text-subtitle">
-										{hoveredHeatmapDay.count} question{hoveredHeatmapDay.count === 1 ? '' : 's'}
-									</p>
-								{:else}
-									<p class="text-text-subtitle">No practice</p>
-								{/if}
-							</div>
-						{/if}
 					{/if}
 				</div>
 			{/if}
