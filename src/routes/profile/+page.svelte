@@ -277,6 +277,25 @@
 	// Weakest area: find the paradigm+case combination with lowest accuracy (min 5 attempts)
 	let userDisplayLabel = $derived(displayName || user?.email?.split('@')[0] || 'User');
 
+	const AVATAR_COLORS = [
+		'var(--color-case-gen)',
+		'var(--color-case-dat)',
+		'var(--color-case-acc)',
+		'var(--color-case-voc)',
+		'var(--color-case-loc)',
+		'var(--color-case-ins)'
+	];
+	let avatarInitial = $derived((user?.email?.[0] ?? '?').toUpperCase());
+	let avatarColor = $derived.by(() => {
+		if (!user?.id) return AVATAR_COLORS[0];
+		let hash = 0;
+		for (let i = 0; i < user.id.length; i++) {
+			hash = (hash * 31 + user.id.charCodeAt(i)) | 0;
+		}
+		return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+	});
+	let avatarUrl = $derived(user?.user_metadata?.avatar_url);
+
 	// Combine sg+pl for each case
 	function getCaseTotals(caseKey: string): { attempts: number; correct: number } {
 		const sg = caseScores[`${caseKey}_sg`] ?? { attempts: 0, correct: 0 };
@@ -744,26 +763,36 @@
 			<!-- 1. User info -->
 			<section class="mb-8">
 				{#if user}
-					<div class="flex items-center justify-between gap-2">
-						<div class="flex min-w-0 flex-wrap items-center gap-2">
-							<h1 class="truncate text-lg font-semibold text-text-default sm:text-xl">
-								{userDisplayLabel}
-							</h1>
-							<button
-								type="button"
-								onclick={openNameModal}
-								class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-								aria-label="Edit display name"
+					<div class="flex items-center gap-3">
+						{#if avatarUrl}
+							<img src={avatarUrl} alt="" class="size-12 shrink-0 rounded-full object-cover" />
+						{:else}
+							<span
+								class="flex size-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
+								style="background-color: {avatarColor}"
 							>
-								<Pencil class="size-3.5" aria-hidden="true" />
-							</button>
-						</div>
-					</div>
-					<div class="mt-1">
-						{#if user.email}
-							<p class="text-sm text-text-subtitle">{user.email}</p>
+								{avatarInitial}
+							</span>
 						{/if}
-						<span class="text-sm text-text-subtitle">Member since {memberSince}</span>
+						<div class="min-w-0">
+							<div class="flex items-center gap-2">
+								<h1 class="truncate text-lg font-semibold text-text-default sm:text-xl">
+									{userDisplayLabel}
+								</h1>
+								<button
+									type="button"
+									onclick={openNameModal}
+									class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+									aria-label="Edit display name"
+								>
+									<Pencil class="size-3.5" aria-hidden="true" />
+								</button>
+							</div>
+							{#if user.email}
+								<p class="text-sm text-text-subtitle">{user.email}</p>
+							{/if}
+							<p class="text-sm text-text-subtitle">Member since {memberSince}</p>
+						</div>
 					</div>
 					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtitle">
 						<span
