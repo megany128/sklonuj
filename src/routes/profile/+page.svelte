@@ -1217,7 +1217,7 @@
 														{group.label}
 													</p>
 												</div>
-												<div class="overflow-x-auto pb-2">
+												<div class="overflow-x-auto pb-3">
 													<!-- Case header labels -->
 													<div class="mb-1 flex items-center">
 														<div class="w-28 shrink-0"></div>
@@ -1394,7 +1394,7 @@
 												</div>
 
 												<!-- Mini heatmap: 7 cases x 2 rows (sg, pl) -->
-												<div class="overflow-x-auto pb-1">
+												<div class="overflow-x-auto pb-3">
 													<!-- Case header labels -->
 													<div class="mb-1 flex items-center">
 														<div class="w-7 shrink-0"></div>
@@ -1708,53 +1708,50 @@
 											</h3>
 											<span class="text-xs text-text-subtitle">({group.mistakes.length})</span>
 										</div>
-										<div class="overflow-hidden rounded-xl border border-card-stroke bg-card-bg">
-											<table class="w-full text-left text-xs">
-												<thead>
-													<tr class="border-b border-card-stroke bg-shaded-background/50">
-														<th class="px-3 py-2 font-medium text-text-subtitle">Word</th>
-														<th class="px-3 py-2 font-medium text-text-subtitle">Number</th>
-														<th class="px-3 py-2 font-medium text-text-subtitle">Your answer</th>
-														<th class="px-3 py-2 font-medium text-text-subtitle">Correct</th>
-														<th
-															class="hidden px-3 py-2 font-medium text-text-subtitle sm:table-cell"
-															>When</th
+										<div class="space-y-2">
+											{#each group.mistakes as mistake (mistake.timestamp + mistake.lemma)}
+												{@const isCaseId = mistake.drillType === 'case_identification'}
+												{@const caseLabel = CASE_LABELS[mistake.targetCase]}
+												<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+													<div class="flex items-start justify-between gap-2">
+														<p class="mb-1 text-sm font-medium text-text-default">
+															{#if isCaseId}
+																Identify the case of "{mistake.lemma}"
+															{:else if mistake.drillType === 'multi_step'}
+																"{mistake.lemma}" &rarr; {caseLabel}
+																{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
+															{:else}
+																Decline "{mistake.lemma}" &rarr; {caseLabel}
+																{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
+															{/if}
+														</p>
+														<span class="shrink-0 text-xs text-text-subtitle">
+															{formatRelativeTime(mistake.timestamp)}
+														</span>
+													</div>
+													{#if mistake.translation}
+														<p class="mb-1 text-xs text-text-subtitle">{mistake.translation}</p>
+													{/if}
+													<p class="text-xs text-text-subtitle">
+														correct:
+														<span class="text-positive-stroke"
+															>{isCaseId && isCase(mistake.correctAnswer)
+																? CASE_LABELS[mistake.correctAnswer]
+																: mistake.correctAnswer}</span
 														>
-													</tr>
-												</thead>
-												<tbody>
-													{#each group.mistakes as mistake, i (mistake.timestamp + mistake.lemma)}
-														<tr
-															class={i < group.mistakes.length - 1
-																? 'border-b border-card-stroke'
-																: ''}
-														>
-															<td class="px-3 py-2">
-																<span class="font-medium text-text-default">{mistake.lemma}</span>
-																<span class="ml-1 text-text-subtitle">{mistake.translation}</span>
-															</td>
-															<td class="px-3 py-2 text-text-subtitle">
-																{mistake.targetNumber === 'sg' ? 'singular' : 'plural'}
-															</td>
-															<td class="px-3 py-2">
-																{#if mistake.userAnswer}
-																	<span class="text-negative-stroke">{mistake.userAnswer}</span>
-																{:else}
-																	<span class="italic text-text-subtitle">skipped</span>
-																{/if}
-															</td>
-															<td class="px-3 py-2">
-																<span class="font-medium text-positive-stroke"
-																	>{mistake.correctAnswer}</span
-																>
-															</td>
-															<td class="hidden px-3 py-2 text-text-subtitle sm:table-cell">
-																{formatRelativeTime(mistake.timestamp)}
-															</td>
-														</tr>
-													{/each}
-												</tbody>
-											</table>
+														· your answer:
+														{#if mistake.userAnswer}
+															<span class="text-negative-stroke"
+																>{isCaseId && isCase(mistake.userAnswer)
+																	? CASE_LABELS[mistake.userAnswer]
+																	: mistake.userAnswer}</span
+															>
+														{:else}
+															<span class="italic text-text-subtitle">skipped</span>
+														{/if}
+													</p>
+												</div>
+											{/each}
 										</div>
 									</div>
 								{/each}
@@ -2187,7 +2184,6 @@
 	.paradigm-cell:hover,
 	.paradigm-cell:focus {
 		transform: scale(1.2);
-		outline: 2px solid var(--color-emphasis);
-		outline-offset: 1px;
+		box-shadow: 0 0 0 2px var(--color-emphasis);
 	}
 </style>
