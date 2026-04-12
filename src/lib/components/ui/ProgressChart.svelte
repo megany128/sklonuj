@@ -265,6 +265,34 @@
 
 	let hasData = $derived(dates.length > 0 && chartLines.some((l) => l.points.length > 0));
 
+	// Identify enabled students who have no data for the selected metric
+	let studentIdsWithNoData = $derived.by(() => {
+		if (mode !== 'teacher') return new SvelteSet<string>();
+		const isCase = selectedMetric !== 'overall';
+		const caseKey = isCase ? (selectedMetric as Case) : null;
+		const ids = new SvelteSet<string>();
+		for (const student of students) {
+			const hasSnapshots = snapshots.some((s) => {
+				if (s.studentId !== student.id) return false;
+				return isCase ? getCaseAccuracy(s, caseKey!) !== null : s.overallAccuracy !== null;
+			});
+			if (!hasSnapshots) ids.add(student.id);
+		}
+		return ids;
+	});
+
+	// Track which no-data student is currently "focused" (clicked/enabled and visible)
+	let focusedNoDataStudent = $derived.by(() => {
+		if (mode !== 'teacher') return null;
+		// Show message for the most recently toggled-on student that has no data
+		for (const student of students) {
+			if (enabledStudentIds.has(student.id) && studentIdsWithNoData.has(student.id)) {
+				if (hoveredLineLabel === student.name) return student;
+			}
+		}
+		return null;
+	});
+
 	function handlePointHover(event: MouseEvent, date: string, label: string, value: number): void {
 		const target = event.currentTarget;
 		if (target instanceof SVGElement) {
@@ -343,9 +371,7 @@
 						onclick={() => toggleStudent(student.id)}
 						class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all"
 						style="color: var(--color-text-default); box-shadow: inset 0 0 0 1.5px {color}; opacity: {active
-							? hoveredLineLabel !== null && hoveredLineLabel !== student.name
-								? 0.35
-								: 1
+							? 1
 							: 0.25}; transition: opacity 0.15s;"
 						onmouseenter={() => (hoveredLineLabel = student.name)}
 						onmouseleave={() => (hoveredLineLabel = null)}
@@ -363,9 +389,13 @@
 
 	{#if !hasData}
 		<div class="py-12 text-center text-sm text-text-subtitle">
-			{mode === 'student'
-				? 'Your progress chart will fill in as you practice — it updates once a day.'
-				: 'Your class progress chart will fill in as students practice — it updates once a day.'}
+			{#if mode === 'teacher' && focusedNoDataStudent}
+				{focusedNoDataStudent.name} hasn't completed any assignments yet.
+			{:else if mode === 'student'}
+				Your progress chart will fill in as you practice — it updates once a day.
+			{:else}
+				Your class progress chart will fill in as students practice — it updates once a day.
+			{/if}
 		</div>
 	{:else}
 		<div class="relative w-full overflow-x-auto">
@@ -478,6 +508,15 @@
 					<p class="font-medium text-text-default">{hoveredPoint.label}</p>
 					<p class="text-text-subtitle">
 						{formatDateLabel(hoveredPoint.date)}: {Math.round(hoveredPoint.value)}%
+					</p>
+				</div>
+			{/if}
+			{#if focusedNoDataStudent}
+				<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+					<p
+						class="rounded-lg border border-card-stroke bg-card-bg/90 px-4 py-2 text-sm text-text-subtitle shadow-sm backdrop-blur-sm"
+					>
+						{focusedNoDataStudent.name} hasn't completed any assignments yet.
 					</p>
 				</div>
 			{/if}
