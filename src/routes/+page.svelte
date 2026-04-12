@@ -1,5 +1,10 @@
 <script lang="ts">
 	import ListChecks from '@lucide/svelte/icons/list-checks';
+	import Trophy from '@lucide/svelte/icons/trophy';
+	import Flame from '@lucide/svelte/icons/flame';
+	import PartyPopper from '@lucide/svelte/icons/party-popper';
+	import Target from '@lucide/svelte/icons/target';
+	import Brain from '@lucide/svelte/icons/brain';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -798,8 +803,11 @@
 		emoji: string;
 	}
 	let leaderboardData = $state<LeaderboardEntry[]>([]);
+	let leaderboardTotalStudents = $state(0);
+	let leaderboardPointsDelta = $state(0);
 	let leaderboardSentToday = $state<string[]>([]);
 	let leaderboardClassId = $state<string | null>(null);
+	let showLeaderboardConfetti = $state(false);
 	let leaderboardRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
 	function loadLeaderboard(): void {
@@ -867,6 +875,9 @@
 					}
 					leaderboardData = entries;
 				}
+				if (typeof data.totalStudents === 'number') {
+					leaderboardTotalStudents = data.totalStudents;
+				}
 				if (Array.isArray(data.sentToday)) {
 					leaderboardSentToday = data.sentToday.filter(
 						(v: unknown): v is string => typeof v === 'string'
@@ -900,12 +911,78 @@
 
 	function showReactionToasts(reactions: UnreadReaction[]): void {
 		for (const reaction of reactions) {
-			addToast(`${reaction.fromName} sent you ${reaction.emoji}`, reaction.emoji);
+			const isFlame = reaction.emoji === '\u{1F525}';
+			const msg = isFlame
+				? `${reaction.fromName}: Watch out!`
+				: `${reaction.fromName}: Keep it up!`;
+			addToast(msg, '', {
+				icon: isFlame ? Flame : PartyPopper,
+				iconColor: isFlame ? 'text-orange-500' : 'text-teal-500'
+			});
 		}
 	}
 
 	function handleLeaderboardReactionSent(toUserId: string): void {
 		leaderboardSentToday = [...leaderboardSentToday, toUserId];
+	}
+
+	function updateLeaderboardAfterAnswer(correct: boolean): void {
+		if (!user || leaderboardData.length === 0) return;
+
+		const myEntry = leaderboardData.find((e) => e.userId === user!.id);
+		if (!myEntry) return;
+
+		const pointsGained = correct ? 5 : 1;
+		const newScore = myEntry.score + pointsGained;
+		leaderboardPointsDelta += pointsGained;
+
+		// Check if we passed the person directly above
+		const personAbove = leaderboardData
+			.filter((e) => e.rank < myEntry.rank)
+			.sort((a, b) => b.rank - a.rank)[0];
+
+		const passed = personAbove && newScore > personAbove.score;
+
+		// Update my entry in-place with a new array reference
+		leaderboardData = leaderboardData.map((e) => {
+			if (e.userId !== user!.id) {
+				if (passed && e.userId === personAbove.userId) {
+					return { ...e, rank: e.rank + 1 };
+				}
+				return e;
+			}
+			return {
+				...e,
+				score: newScore,
+				questionsAnswered: e.questionsAnswered + 1,
+				correctAnswers: e.correctAnswers + (correct ? 1 : 0),
+				rank: passed ? myEntry.rank - 1 : myEntry.rank
+			};
+		});
+
+		if (passed) {
+			const newRank = myEntry.rank - 1;
+			if (newRank === 1) {
+				addToast(`You're #1 this week!`, '', {
+					icon: Trophy,
+					iconColor: 'text-amber-500'
+				});
+				showLeaderboardConfetti = true;
+				setTimeout(() => {
+					showLeaderboardConfetti = false;
+				}, 4000);
+			} else {
+				addToast(`You passed ${personAbove.firstName} — now #${newRank}!`, '', {
+					icon: Trophy,
+					iconColor: 'text-amber-500'
+				});
+			}
+			// Re-fetch after a delay so the sync has time to reach the server
+			if (leaderboardClassId) {
+				const classId = leaderboardClassId;
+				setTimeout(() => fetchLeaderboardData(classId), 5000);
+			}
+		}
 	}
 
 	let showLeaderboard = $derived(
@@ -927,6 +1004,7 @@
 		message: string;
 		emoji?: string;
 		icon?: Component;
+		iconColor?: string;
 		onClick?: () => void;
 	}
 	let toasts = $state<MilestoneToast_[]>([]);
@@ -2584,10 +2662,20 @@
 	function addToast(
 		message: string,
 		emoji: string,
-		options?: { icon?: Component; onClick?: () => void }
+		options?: { icon?: Component; iconColor?: string; onClick?: () => void }
 	): void {
 		const id = toastIdCounter++;
-		toasts = [...toasts, { id, message, emoji, icon: options?.icon, onClick: options?.onClick }];
+		toasts = [
+			...toasts,
+			{
+				id,
+				message,
+				emoji,
+				icon: options?.icon,
+				iconColor: options?.iconColor,
+				onClick: options?.onClick
+			}
+		];
 	}
 
 	function removeToast(id: number): void {
@@ -2595,7 +2683,12 @@
 	}
 
 	function checkMilestones(result: DrillResult): void {
-		const candidates: { message: string; emoji: string; priority: number }[] = [];
+		const candidates: {
+			message: string;
+			icon: Component;
+			iconColor: string;
+			priority: number;
+		}[] = [];
 
 		// Streak milestones (only toast for 10+)
 		if (result.correct && streak >= 10 && [10, 25, 50].includes(streak)) {
@@ -2604,7 +2697,8 @@
 				celebratedMilestones = new Set([...celebratedMilestones, key]);
 				candidates.push({
 					message: `${streak} in a row!`,
-					emoji: streak >= 25 ? '🏆' : '🔥',
+					icon: streak >= 25 ? Trophy : Flame,
+					iconColor: streak >= 25 ? 'text-amber-500' : 'text-orange-500',
 					priority: streak
 				});
 			}
@@ -2626,7 +2720,8 @@
 						};
 						candidates.push({
 							message: messages[milestone] ?? `${milestone} questions!`,
-							emoji: milestone >= 50 ? '🎉' : '👏',
+							icon: milestone >= 50 ? Star : Target,
+							iconColor: milestone >= 50 ? 'text-amber-500' : 'text-blue-500',
 							priority: milestone / 10
 						});
 					}
@@ -2645,7 +2740,8 @@
 						celebratedMilestones = new Set([...celebratedMilestones, key]);
 						candidates.push({
 							message: `You're mastering ${CASE_LABELS[c]}!`,
-							emoji: '🧠',
+							icon: Brain,
+							iconColor: 'text-violet-500',
 							priority: 5
 						});
 					}
@@ -2656,7 +2752,10 @@
 		// Pick the most impressive milestone
 		if (candidates.length > 0) {
 			candidates.sort((a, b) => b.priority - a.priority);
-			addToast(candidates[0].message, candidates[0].emoji);
+			addToast(candidates[0].message, '', {
+				icon: candidates[0].icon,
+				iconColor: candidates[0].iconColor
+			});
 		}
 
 		// Check achievement badges
@@ -2673,8 +2772,9 @@
 		};
 		const newBadges = checkAndAwardBadges(badgeContext);
 		for (const badge of newBadges) {
-			addToast(`${badge.name} — Achievement unlocked!`, badge.icon, {
+			addToast(`${badge.name} — Achievement unlocked!`, '', {
 				icon: BADGE_ICONS[badge.id],
+				iconColor: 'text-amber-500',
 				onClick: () => goto(resolve('/profile'))
 			});
 		}
@@ -2802,6 +2902,7 @@
 			);
 		}
 		recordAssignmentProgress(result.correct, result.question.case, result.question.number);
+		updateLeaderboardAfterAnswer(result.correct);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: result.correct,
@@ -2913,6 +3014,7 @@
 			assignmentMistakes = [...assignmentMistakes, msMistake].slice(-20);
 		}
 		recordAssignmentProgress(allCorrect, result.question.case, result.question.number);
+		updateLeaderboardAfterAnswer(allCorrect);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: allCorrect,
@@ -3416,11 +3518,17 @@
 			</div>
 		{/if}
 
+		{#if showLeaderboardConfetti}
+			<Confetti />
+		{/if}
+
 		<!-- Leaderboard banner -->
 		{#if showLeaderboard && leaderboardClassId}
 			<div class="mb-3">
 				<LeaderboardBanner
 					leaderboard={leaderboardData}
+					totalStudents={leaderboardTotalStudents}
+					pointsDelta={leaderboardPointsDelta}
 					currentUserId={user?.id ?? ''}
 					classId={leaderboardClassId}
 					sentToday={leaderboardSentToday}
@@ -3773,11 +3881,13 @@
 		{/if}
 
 		<!-- Milestone toasts -->
-		{#each toasts as toast (toast.id)}
+		{#each toasts as toast, i (toast.id)}
 			<MilestoneToast
 				message={toast.message}
 				emoji={toast.emoji}
 				icon={toast.icon}
+				iconColor={toast.iconColor}
+				index={i}
 				onClick={toast.onClick}
 				onDismiss={() => removeToast(toast.id)}
 			/>

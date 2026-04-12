@@ -249,7 +249,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	// Build leaderboard entries
 	const entries: LeaderboardEntry[] = [];
 	for (const [userId, stats] of scoreMap) {
-		const score = stats.correct * 3 + stats.attempted * 0.1;
+		const score = stats.correct * 5 + (stats.attempted - stats.correct);
 		const displayName = nameMap.get(userId) ?? 'Student';
 		const firstName = displayName.split(' ')[0];
 		entries.push({
@@ -331,23 +331,61 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		}
 	}
 
-	// Students only see a windowed view: top 3 + themselves. Teachers see all.
-	// The client (LeaderboardBanner.svelte) re-applies the same windowing with a
-	// "…" separator; we window here too so the endpoint never leaks the full
+	// Students see a windowed view: 1st place + one above + self + one below.
+	// Teachers see all. We window here so the endpoint never leaks the full
 	// roster to students who call it directly.
 	let leaderboardToReturn = entries;
 	if (!isTeacher) {
-		const top = entries.slice(0, 3);
-		const windowed: LeaderboardEntry[] = [...top];
-		const selfEntry = entries.find((e) => e.userId === user.id);
-		if (selfEntry && !top.some((e) => e.userId === selfEntry.userId)) {
-			windowed.push(selfEntry);
+		const selfIdx = entries.findIndex((e) => e.userId === user.id);
+		const seen = new Set<string>();
+		const windowed: LeaderboardEntry[] = [];
+
+		const addEntry = (entry: LeaderboardEntry) => {
+			if (!seen.has(entry.userId)) {
+				seen.add(entry.userId);
+				windowed.push(entry);
+			}
+		};
+
+		// Always include 1st place
+		if (entries.length > 0) {
+			addEntry(entries[0]);
 		}
-		leaderboardToReturn = windowed;
+
+		if (selfIdx >= 0) {
+			// Include one person above and one below the student
+			if (selfIdx >= 1) addEntry(entries[selfIdx - 1]);
+			addEntry(entries[selfIdx]);
+			if (selfIdx < entries.length - 1) addEntry(entries[selfIdx + 1]);
+		}
+
+		// Sort by original order (rank)
+		windowed.sort((a, b) => a.rank - b.rank);
+
+		// Fill single-rank gaps — if exactly one person is hidden between
+		// two visible entries, show them instead of dots
+		const filled: LeaderboardEntry[] = [];
+		for (let i = 0; i < windowed.length; i++) {
+			filled.push(windowed[i]);
+			if (i < windowed.length - 1) {
+				const gap = windowed[i + 1].rank - windowed[i].rank;
+				if (gap === 2) {
+					const missingRank = windowed[i].rank + 1;
+					const missing = entries.find((e) => e.rank === missingRank);
+					if (missing && !seen.has(missing.userId)) {
+						seen.add(missing.userId);
+						filled.push(missing);
+					}
+				}
+			}
+		}
+
+		leaderboardToReturn = filled;
 	}
 
 	return json({
 		leaderboard: leaderboardToReturn,
+		totalStudents: entries.length,
 		unreadReactions,
 		sentToday,
 		leaderboardEnabled

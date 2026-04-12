@@ -2477,7 +2477,9 @@
 				</div>
 				{#if assignments.length === 0}
 					<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
-						<p class="text-sm text-text-subtitle">No assignments yet.</p>
+						<p class="text-sm text-text-subtitle">
+							No assignments yet. They'll appear here when your teacher creates them.
+						</p>
 					</div>
 				{:else}
 					<!-- Filter bar -->

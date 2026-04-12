@@ -236,9 +236,9 @@
 					submitted = true;
 					showFeedback = true;
 					onSubmit('__skip__');
-					enableAdvance();
+					enableAdvance(true);
 				} else {
-					handleSubmit();
+					handleSubmit(true);
 				}
 			}
 		}
@@ -269,44 +269,45 @@
 				const matchedCase = caseOptions.find((c) => CASE_NUMBER[c] === keyNum);
 				if (matchedCase) {
 					e.preventDefault();
-					handleCaseSelect(matchedCase);
+					handleCaseSelect(matchedCase, true);
 				}
 			}
 		}
 	}
 
-	function enableAdvance() {
-		// Wait for the submitting key to be fully released before allowing advance
-		// This prevents the same keypress from both submitting and advancing
-		if (pendingKeyUpHandler) {
-			window.removeEventListener('keyup', pendingKeyUpHandler);
-		}
-		function onKeyUp() {
-			pendingKeyUpHandler = null;
-			// Use requestAnimationFrame to ensure the advance isn't possible
-			// until the next frame after the key is released
-			requestAnimationFrame(() => {
+	function enableAdvance(fromKeyboard = false) {
+		if (fromKeyboard) {
+			// Wait for the submitting key to be fully released before allowing advance
+			// This prevents the same keypress from both submitting and advancing
+			if (pendingKeyUpHandler) {
+				window.removeEventListener('keyup', pendingKeyUpHandler);
+			}
+			function onKeyUp() {
+				pendingKeyUpHandler = null;
 				canAdvance = true;
-			});
+			}
+			pendingKeyUpHandler = onKeyUp;
+			window.addEventListener('keyup', onKeyUp, { once: true });
+		} else {
+			// Mouse click: no key to wait for, allow advance immediately
+			canAdvance = true;
 		}
-		pendingKeyUpHandler = onKeyUp;
-		window.addEventListener('keyup', onKeyUp, { once: true });
 	}
 
-	function handleSubmit() {
+	function handleSubmit(fromKeyboard = false) {
 		if (!question || submitted || userInput.trim() === '') return;
 		submitted = true;
 		showFeedback = true;
 		onSubmit(userInput);
-		enableAdvance();
+		enableAdvance(fromKeyboard);
 	}
 
-	function handleCaseSelect(caseKey: Case) {
+	function handleCaseSelect(caseKey: Case, fromKeyboard = false) {
 		if (!question || submitted) return;
 		submitted = true;
 		showFeedback = true;
 		onSubmit(caseKey);
-		enableAdvance();
+		enableAdvance(fromKeyboard);
 	}
 
 	function getPronounForm(q: DrillQuestion): string {

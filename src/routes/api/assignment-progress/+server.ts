@@ -245,7 +245,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	// Get existing progress
 	const { data: existingData } = await supabase
 		.from('assignment_progress')
-		.select('questions_attempted, questions_correct, completed_at, case_scores')
+		.select('questions_attempted, questions_correct, completed_at, case_scores, mistakes')
 		.eq('assignment_id', assignmentId)
 		.eq('student_id', user.id)
 		.maybeSingle();
@@ -299,9 +299,12 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		updated_at: now
 	};
 
-	// Include mistakes if provided (overwrite with latest snapshot from client)
-	if (validatedMistakes !== null) {
-		upsertPayload.mistakes = validatedMistakes;
+	// Append new mistakes to existing ones (keep last 50)
+	if (validatedMistakes !== null && validatedMistakes.length > 0) {
+		const existingMistakes: unknown[] =
+			isRecord(existingData) && Array.isArray(existingData.mistakes) ? existingData.mistakes : [];
+		const merged = [...existingMistakes, ...validatedMistakes].slice(-50);
+		upsertPayload.mistakes = merged;
 	}
 
 	const { error: upsertError } = await supabase

@@ -1,23 +1,27 @@
 <script lang="ts">
-	import { fly } from 'svelte/transition';
+	import { fly, fade } from 'svelte/transition';
 	import type { Component } from 'svelte';
 
 	let {
 		message,
 		emoji,
 		icon,
+		iconColor,
+		index = 0,
 		onClick,
 		onDismiss
 	}: {
 		message: string;
 		emoji?: string;
 		icon?: Component;
+		iconColor?: string;
+		index?: number;
 		onClick?: () => void;
 		onDismiss: () => void;
 	} = $props();
 
 	$effect(() => {
-		const timer = setTimeout(onDismiss, 3000);
+		const timer = setTimeout(onDismiss, 3000 + index * 400);
 		return () => clearTimeout(timer);
 	});
 
@@ -32,7 +36,9 @@
 {#snippet body()}
 	<p class="flex items-center gap-2 text-sm font-semibold text-emphasis">
 		{#if Icon}
-			<Icon class="size-4" aria-hidden="true" />
+			<span class={iconColor ?? ''}>
+				<Icon class="size-4" aria-hidden="true" />
+			</span>
 		{:else if emoji}
 			<span>{emoji}</span>
 		{/if}
@@ -41,9 +47,10 @@
 {/snippet}
 
 <div
-	transition:fly={{ y: -20, duration: 300 }}
+	in:fly={{ y: -20, duration: 300 }}
+	out:fade={{ duration: 400 }}
 	class="toast-slide-in fixed left-1/2 z-50 -translate-x-1/2"
-	style="top: 80px"
+	style="top: {80 + index * 52}px"
 	role="status"
 	aria-live="polite"
 >
