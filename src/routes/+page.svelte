@@ -317,7 +317,8 @@
 			addToast('First Steps — Achievement unlocked!', '', {
 				icon: BADGE_ICONS['first_steps'],
 				iconColor: BADGE_COLORS['first_steps'],
-				onClick: () => goto(resolve('/profile?tab=achievements'))
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() is used inside the template literal
+				onClick: () => goto(`${resolve('/profile')}?tab=achievements`)
 			});
 		}
 	});
@@ -2802,7 +2803,8 @@
 			addToast(`${badge.name} — Achievement unlocked!`, '', {
 				icon: BADGE_ICONS[badge.id],
 				iconColor: BADGE_COLORS[badge.id] ?? 'text-amber-500',
-				onClick: () => goto(resolve('/profile?tab=achievements'))
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() is used inside the template literal
+				onClick: () => goto(`${resolve('/profile')}?tab=achievements`)
 			});
 		}
 	}
