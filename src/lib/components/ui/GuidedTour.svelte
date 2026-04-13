@@ -33,7 +33,41 @@
 		return document.querySelector(`[data-tour="${target}"]`);
 	}
 
-	function computePositions(): void {
+	function scrollIntoViewAndWait(el: HTMLElement): Promise<void> {
+		return new Promise((resolve) => {
+			const rect = el.getBoundingClientRect();
+			const inView =
+				rect.top >= 0 &&
+				rect.bottom <= window.innerHeight &&
+				rect.left >= 0 &&
+				rect.right <= window.innerWidth;
+			if (inView) {
+				resolve();
+				return;
+			}
+			el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+			// Wait for scroll to settle by checking when the element position stabilizes
+			let lastTop = rect.top;
+			let stableFrames = 0;
+			function check() {
+				const newTop = el.getBoundingClientRect().top;
+				if (Math.abs(newTop - lastTop) < 1) {
+					stableFrames++;
+					if (stableFrames >= 3) {
+						resolve();
+						return;
+					}
+				} else {
+					stableFrames = 0;
+				}
+				lastTop = newTop;
+				requestAnimationFrame(check);
+			}
+			requestAnimationFrame(check);
+		});
+	}
+
+	async function computePositions(): Promise<void> {
 		const step = steps[currentStep];
 
 		// Intro step (no target) — center the tooltip
@@ -52,6 +86,9 @@
 			spotlightRect = null;
 			return;
 		}
+
+		// Ensure the target is visible before measuring its position
+		await scrollIntoViewAndWait(el);
 
 		const rect = el.getBoundingClientRect();
 		const padding = 8;
@@ -129,8 +166,8 @@
 		transitioning = true;
 		currentStep++;
 		steps[currentStep].setup?.();
-		waitForElement(currentStep).then(() => {
-			computePositions();
+		waitForElement(currentStep).then(async () => {
+			await computePositions();
 			transitioning = false;
 		});
 	}

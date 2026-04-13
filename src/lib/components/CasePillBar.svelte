@@ -47,31 +47,34 @@
 		{@const accColor = strength.attempts > 0 ? accuracyColor(strength.accuracy) : null}
 		<button
 			aria-pressed={isSelected}
-			class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-all duration-200 ease-out sm:px-2 sm:py-2
+			class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-[background-color,border-color] duration-200 ease-out sm:px-2 sm:py-2
 				{accColor && !isSelected ? '' : 'border-card-stroke'}"
 			style={isSelected
-				? `background-color: color-mix(in oklch, ${hex} 10%, var(--color-card-bg)); border-color: ${hex}; box-shadow: 0 0 0 3px color-mix(in oklch, ${hex} 15%, transparent); --case-color: ${hex}`
+				? `background-color: ${hex}; border-color: ${hex}; --case-color: ${hex}`
 				: `--case-color: ${hex}; ${accColor ? `background-color: ${accColor}18; border-color: ${accColor}70` : ''}`}
 			onclick={() => handleCaseClick(c)}
 		>
-			<span class="flex items-center gap-1" style="color: {hex}">
+			<span class="flex items-center gap-1" style="color: {isSelected ? 'white' : hex}">
 				<span
-					class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-					style="background-color: {hex}"
+					class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+					style="background-color: {isSelected ? 'rgba(255,255,255,0.25)' : hex}; color: white"
 				>
 					{CASE_NUMBER[c]}
 				</span>
 				<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[c]}</span>
 			</span>
 			{#if accuracyPct !== null && accColor}
-				<span class="text-xs font-bold" style="color: {accColor}">{accuracyPct}%</span>
+				<span
+					class="text-xs font-bold"
+					style="color: {isSelected ? 'rgba(255,255,255,0.85)' : accColor}">{accuracyPct}%</span
+				>
 			{/if}
 		</button>
 	{/each}
 </div>
 
 <style>
-	.case-pill:hover {
+	.case-pill:not([aria-pressed='true']):hover {
 		border-color: var(--case-color) !important;
 		background-color: color-mix(in oklch, var(--case-color) 10%, var(--color-card-bg)) !important;
 	}

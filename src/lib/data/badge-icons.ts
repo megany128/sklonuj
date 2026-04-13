@@ -26,3 +26,16 @@ export const BADGE_ICONS: Record<string, Component> = {
 	night_owl: Moon,
 	perfectionist: Star
 };
+
+export const BADGE_COLORS: Record<string, string> = {
+	first_steps: 'text-green-500',
+	centurion: 'text-amber-500',
+	thousand_strong: 'text-amber-500',
+	sharp_shooter: 'text-red-500',
+	case_cracker: 'text-purple-500',
+	polyglot_cases: 'text-blue-500',
+	week_warrior: 'text-orange-500',
+	speed_demon: 'text-yellow-500',
+	night_owl: 'text-indigo-500',
+	perfectionist: 'text-amber-500'
+};

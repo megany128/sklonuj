@@ -124,7 +124,7 @@
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import posthog from '$lib/posthog';
-	import { BADGE_ICONS } from '$lib/data/badge-icons';
+	import { BADGE_ICONS, BADGE_COLORS } from '$lib/data/badge-icons';
 	import type { Component } from 'svelte';
 
 	let user = $derived(page.data.user);
@@ -298,6 +298,29 @@
 	let sessionCount = $state(0);
 	let signupPromptDismissed = $state(false);
 	let authModalOpen = $state(false);
+	let authModalInitialMode = $derived<'login' | 'signup' | 'forgot' | 'welcome'>(
+		page.url.searchParams.get('modal') === 'welcome' ? 'welcome' : 'login'
+	);
+
+	// Auto-open modal when ?modal= query param is present (dev convenience)
+	$effect(() => {
+		if (page.url.searchParams.has('modal')) {
+			authModalOpen = true;
+		}
+	});
+
+	// Simulate achievement toast when ?toast=achievement is present (dev convenience)
+	let devToastShown = $state(false);
+	$effect(() => {
+		if (!devToastShown && page.url.searchParams.get('toast') === 'achievement') {
+			devToastShown = true;
+			addToast('First Steps — Achievement unlocked!', '', {
+				icon: BADGE_ICONS['first_steps'],
+				iconColor: BADGE_COLORS['first_steps'],
+				onClick: () => goto(resolve('/profile?tab=achievements'))
+			});
+		}
+	});
 	let showOnboarding = $state(true);
 
 	const practiceOnboardingSteps = [
@@ -2139,6 +2162,10 @@
 	}
 
 	function generateNextQuestionInner(): void {
+		// Clear both question types before generating to prevent stacking
+		question = null;
+		multiStepQuestion = null;
+
 		// Practice mistakes mode: only serve from mistakes list
 		if (practicingMistakes) {
 			if (mistakes.length === 0) {
@@ -2774,8 +2801,8 @@
 		for (const badge of newBadges) {
 			addToast(`${badge.name} — Achievement unlocked!`, '', {
 				icon: BADGE_ICONS[badge.id],
-				iconColor: 'text-amber-500',
-				onClick: () => goto(resolve('/profile'))
+				iconColor: BADGE_COLORS[badge.id] ?? 'text-amber-500',
+				onClick: () => goto(resolve('/profile?tab=achievements'))
 			});
 		}
 	}
@@ -3994,7 +4021,11 @@
 	</div>
 {/if}
 
-<AuthModal open={authModalOpen} onClose={() => (authModalOpen = false)} />
+<AuthModal
+	open={authModalOpen}
+	onClose={() => (authModalOpen = false)}
+	initialMode={authModalInitialMode}
+/>
 
 {#if showExitAssignmentConfirm && assignmentInfo}
 	<div

@@ -1,13 +1,28 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
+	import PartyPopper from '@lucide/svelte/icons/party-popper';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
+	import Confetti from '$lib/components/ui/Confetti.svelte';
 	import posthog from '$lib/posthog';
 
-	let { open = false, onClose }: { open: boolean; onClose: () => void } = $props();
+	type Mode = 'login' | 'signup' | 'forgot' | 'welcome';
 
-	let mode = $state<'login' | 'signup' | 'forgot'>('login');
+	let {
+		open = false,
+		onClose,
+		initialMode = 'login'
+	}: { open: boolean; onClose: () => void; initialMode?: Mode } = $props();
+
+	let mode = $state<Mode>('login');
+
+	// Sync mode when modal opens
+	$effect(() => {
+		if (open) {
+			mode = initialMode;
+		}
+	});
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);
@@ -109,8 +124,7 @@
 				error = err.message;
 			} else if (data.session) {
 				posthog.capture('signed_up', { method: 'email' });
-				handleClose();
-				goto(resolve('/'));
+				mode = 'welcome';
 			} else {
 				posthog.capture('signed_up', { method: 'email' });
 				confirmationSent = true;
@@ -187,7 +201,11 @@
 			class="relative z-10 w-full max-w-sm"
 			role="dialog"
 			aria-modal="true"
-			aria-label={mode === 'signup' ? 'Create your account' : 'Sign in'}
+			aria-label={mode === 'welcome'
+				? 'Welcome'
+				: mode === 'signup'
+					? 'Create your account'
+					: 'Sign in'}
 		>
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl">
 				<!-- Close button -->
@@ -200,7 +218,32 @@
 					<X class="size-5" aria-hidden="true" />
 				</button>
 
-				{#if confirmationSent}
+				{#if mode === 'welcome'}
+					<Confetti />
+					<div class="text-center">
+						<div class="mb-3 flex justify-center">
+							<div
+								class="flex size-12 items-center justify-center rounded-full bg-positive-background"
+							>
+								<PartyPopper class="size-6 text-positive-stroke" aria-hidden="true" />
+							</div>
+						</div>
+						<p class="mb-2 text-lg font-semibold text-text-default">Welcome to Skloňuj!</p>
+						<p class="mb-5 text-sm text-text-subtitle">
+							Your account is all set. Time to master Czech declension!
+						</p>
+						<button
+							type="button"
+							onclick={() => {
+								handleClose();
+								goto(resolve('/'));
+							}}
+							class="rounded-xl bg-emphasis px-6 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
+						>
+							Let's go
+						</button>
+					</div>
+				{:else if confirmationSent}
 					<div class="text-center">
 						<p class="mb-2 text-lg font-semibold text-text-default">Check your email</p>
 						<p class="mb-4 text-sm text-text-subtitle">

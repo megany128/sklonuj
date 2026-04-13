@@ -4,12 +4,12 @@
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
-	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER, isCase } from '$lib/types';
+	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_HEX, CASE_NUMBER, isCase } from '$lib/types';
 	import { applyPrepositionVoicing } from '$lib/engine/drill';
 	import { playClinkSound, prepareSentenceForTTS } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
-	import CaseBadge from '$lib/components/ui/CaseBadge.svelte';
+
 	import DottedUnderline from '$lib/components/ui/DottedUnderline.svelte';
 	import WrongAnswerDisplay from '$lib/components/ui/WrongAnswerDisplay.svelte';
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
@@ -386,7 +386,14 @@
 							question.wordCategory === 'pronoun'
 								? (question.pronoun?.lemma ?? question.word.lemma)
 								: question.word.lemma}
-						<p class="text-sm text-text-subtitle">Decline</p>
+						<p class="-ml-3 text-center text-sm font-medium text-text-default">
+							<span
+								class="mr-1 inline-flex size-5 translate-y-[1px] items-center justify-center rounded-full text-xs font-bold text-white"
+								style="background-color: {CASE_HEX[question.case]}"
+								>{CASE_NUMBER[question.case]}</span
+							><span class="{CASE_COLORS[question.case].text} font-semibold">{prompt.caseName}</span
+							>{prompt.isPlural ? ' plural' : ''} of
+						</p>
 						<div class="mt-2 flex items-center justify-center gap-2">
 							<div class="relative flex flex-col items-center">
 								{#if showCheers}
@@ -445,16 +452,11 @@
 								</button>
 							{/if}
 						</div>
-						<div class="mt-3 flex items-center justify-center gap-2">
-							<CaseBadge case_={question.case} size="sm" />
-							{#if prompt.isPlural}
-								<span
-									class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-normal text-text-subtitle"
-								>
-									plural
-								</span>
-							{/if}
-						</div>
+						<p class="mt-2 text-sm text-text-subtitle">
+							{question.wordCategory === 'pronoun'
+								? (question.pronoun?.translation ?? question.word.translation)
+								: question.word.translation}
+						</p>
 					{:else if question.drillType === 'case_identification'}
 						{@const caseIdLemma =
 							question.wordCategory === 'pronoun'
@@ -594,7 +596,7 @@
 							autocapitalize="off"
 							spellcheck="false"
 							placeholder="Type your answer..."
-							class="w-full rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
+							class="w-full rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal caret-emphasis outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
 								{submitted && result?.correct
 								? 'border-positive-stroke bg-positive-background text-positive-stroke'
 								: submitted && result && !result.correct
@@ -609,6 +611,10 @@
 							<DiacriticsBar {inputEl} inputValue={userInput} />
 						</div>
 					{/if}
+
+					<p class="mt-2 text-center text-xs text-text-subtitle">
+						{submitted ? 'Press enter to continue' : 'Press enter to submit'}
+					</p>
 				{/if}
 
 				<!-- Feedback after submission -->

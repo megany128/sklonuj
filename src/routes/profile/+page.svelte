@@ -14,7 +14,7 @@
 	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
 	import Pencil from '@lucide/svelte/icons/pencil';
 
-	import { BADGE_ICONS } from '$lib/data/badge-icons';
+	import { BADGE_ICONS, BADGE_COLORS } from '$lib/data/badge-icons';
 
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
@@ -106,7 +106,11 @@
 	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun'>('case');
 
 	type ProfileTab = 'progress' | 'mistakes' | 'achievements';
-	let profileTab = $state<ProfileTab>('progress');
+	const VALID_TABS: ProfileTab[] = ['progress', 'mistakes', 'achievements'];
+	const tabParam = page.url.searchParams.get('tab');
+	let profileTab = $state<ProfileTab>(
+		VALID_TABS.includes(tabParam as ProfileTab) ? (tabParam as ProfileTab) : 'progress'
+	);
 	const PROFILE_TAB_ORDER: ProfileTab[] = ['progress', 'mistakes', 'achievements'];
 
 	function focusProfileTab(tab: ProfileTab): void {
@@ -1839,7 +1843,11 @@
 										? 'bg-card-bg'
 										: 'bg-shaded-background opacity-50'}"
 								>
-									<div class="mb-1.5 {badge.earned ? 'text-emphasis' : 'text-text-subtitle'}">
+									<div
+										class="mb-1.5 {badge.earned
+											? (BADGE_COLORS[badge.id] ?? 'text-emphasis')
+											: 'text-text-subtitle'}"
+									>
 										{#if BadgeIcon}
 											<BadgeIcon class="size-6" aria-hidden="true" />
 										{:else}

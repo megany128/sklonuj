@@ -19,7 +19,7 @@
 		onSignIn,
 		isHomePage = false
 	}: {
-		user?: { id: string; email?: string } | null;
+		user?: { id: string; email?: string; display_name?: string | null } | null;
 		onSignIn?: () => void;
 		isHomePage?: boolean;
 	} = $props();
@@ -39,7 +39,7 @@
 		'var(--color-case-ins)'
 	];
 
-	let initial = $derived((user?.email?.[0] ?? '?').toUpperCase());
+	let initial = $derived((user?.display_name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase());
 	let avatarColor = $derived.by(() => {
 		if (!user?.id) return AVATAR_COLORS[0];
 		let hash = 0;

@@ -136,24 +136,6 @@
 	let formInputEl: HTMLInputElement | undefined = $state(undefined);
 
 	let canAdvance = $state(false);
-	let pendingKeyUpHandler: (() => void) | null = null;
-
-	// Track active timers for cleanup
-	let activeTimers: ReturnType<typeof setTimeout>[] = [];
-
-	// Clean up on teardown
-	$effect(() => {
-		return () => {
-			for (const id of activeTimers) {
-				clearTimeout(id);
-			}
-			activeTimers = [];
-			if (pendingKeyUpHandler) {
-				window.removeEventListener('keyup', pendingKeyUpHandler);
-				pendingKeyUpHandler = null;
-			}
-		};
-	});
 
 	// Reset on question change
 	$effect(() => {
@@ -175,17 +157,11 @@
 	});
 
 	function enableAdvance() {
-		if (pendingKeyUpHandler) {
-			window.removeEventListener('keyup', pendingKeyUpHandler);
-		}
-		function onKeyUp() {
-			pendingKeyUpHandler = null;
-			requestAnimationFrame(() => {
-				canAdvance = true;
-			});
-		}
-		pendingKeyUpHandler = onKeyUp;
-		window.addEventListener('keyup', onKeyUp, { once: true });
+		// Defer by one frame to prevent the same keypress that triggered
+		// submission from also advancing (e.g. Enter on the form input)
+		requestAnimationFrame(() => {
+			canAdvance = true;
+		});
 	}
 
 	const GENDER_OPTIONS: { value: 'm' | 'f' | 'n'; label: string }[] = [
@@ -528,6 +504,7 @@
 						>
 							Continue &rarr;
 						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
 					{/if}
 				</div>
 
@@ -593,6 +570,7 @@
 						>
 							Continue &rarr;
 						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
 					{/if}
 				</div>
 
@@ -658,6 +636,7 @@
 						>
 							Check
 						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
 					{:else}
 						<!-- Form feedback -->
 						{#if formCorrect}
@@ -726,6 +705,7 @@
 						>
 							See Summary &rarr;
 						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
 					{/if}
 				</div>
 
@@ -827,6 +807,7 @@
 					>
 						Next &rarr;
 					</button>
+					<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
 				</div>
 			{/if}
 		</div>

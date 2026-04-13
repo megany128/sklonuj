@@ -42,6 +42,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 	let savedProgress: SavedProgress | null = null;
 	let pendingAssignmentCount = 0;
+	let displayName: string | null = null;
 
 	if (user) {
 		const supabase = locals.supabase;
@@ -50,6 +51,12 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			.from('user_progress')
 			.select('level, case_scores, paradigm_scores, last_session')
 			.eq('user_id', user.id)
+			.maybeSingle();
+
+		const profilePromise = supabase
+			.from('user_profiles')
+			.select('display_name')
+			.eq('id', user.id)
 			.maybeSingle();
 
 		// Count pending (incomplete) assignments for this student
@@ -103,13 +110,26 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			return assignmentIds.filter((id) => !completedIds.has(id)).length;
 		})();
 
-		const [progressResult, pending] = await Promise.all([progressPromise, pendingPromise]);
+		const [progressResult, pending, profileResult] = await Promise.all([
+			progressPromise,
+			pendingPromise,
+			profilePromise
+		]);
 
 		if (!progressResult.error && progressResult.data) {
 			savedProgress = parseSavedProgress(progressResult.data);
 		}
 
 		pendingAssignmentCount = pending;
+
+		if (
+			!profileResult.error &&
+			profileResult.data &&
+			isRecord(profileResult.data) &&
+			typeof profileResult.data.display_name === 'string'
+		) {
+			displayName = profileResult.data.display_name;
+		}
 	}
 
 	return {
@@ -117,6 +137,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			? {
 					id: user.id,
 					email: user.email,
+					display_name: displayName,
 					user_metadata: { avatar_url: user.user_metadata?.avatar_url }
 				}
 			: null,
