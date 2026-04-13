@@ -303,7 +303,10 @@
 		}
 		return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 	});
-	let avatarUrl = $derived(user?.user_metadata?.avatar_url);
+	let avatarUrl = $derived.by(() => {
+		const url = user?.user_metadata?.avatar_url;
+		return typeof url === 'string' && url.startsWith('http') ? url : null;
+	});
 
 	// Combine sg+pl for each case
 	function getCaseTotals(caseKey: string): { attempts: number; correct: number } {

@@ -138,7 +138,13 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 					id: user.id,
 					email: user.email,
 					display_name: displayName,
-					user_metadata: { avatar_url: user.user_metadata?.avatar_url }
+					user_metadata: {
+						avatar_url:
+							typeof user.user_metadata?.avatar_url === 'string' &&
+							user.user_metadata.avatar_url.startsWith('http')
+								? user.user_metadata.avatar_url
+								: undefined
+					}
 				}
 			: null,
 		savedProgress,
