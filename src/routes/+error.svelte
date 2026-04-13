@@ -41,7 +41,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
-	<NavBar {user} onSignIn={() => goto(resolve('/'))} />
+	<NavBar {user} onSignIn={() => goto(resolve('/auth'))} />
 
 	<main class="flex flex-1 flex-col items-center justify-center px-4 text-center">
 		<div class="mx-auto max-w-md">

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -189,7 +190,7 @@
 	<title>New Assignment - Sklonuj</title>
 </svelte:head>
 
-<NavBar user={page.data.user} />
+<NavBar user={page.data.user} onSignIn={() => goto(resolve('/auth'))} />
 
 {#if classData}
 	<div class="mx-auto max-w-lg px-4 py-8">

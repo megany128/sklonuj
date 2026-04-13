@@ -457,7 +457,7 @@
 	<title>{assignment?.title ?? 'Assignment'} - Sklonuj</title>
 </svelte:head>
 
-<NavBar user={page.data.user} />
+<NavBar user={page.data.user} onSignIn={() => goto(resolve('/auth'))} />
 
 {#if classData && assignment}
 	<div class="mx-auto max-w-4xl px-4 py-8">

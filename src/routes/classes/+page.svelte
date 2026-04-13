@@ -3,7 +3,7 @@
 	import Info from '@lucide/svelte/icons/info';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import { resolve } from '$app/paths';
-	import { replaceState } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
@@ -254,7 +254,7 @@
 	<title>Classes - Skloňuj</title>
 </svelte:head>
 
-<NavBar user={page.data.user} />
+<NavBar user={page.data.user} onSignIn={() => goto(resolve('/auth'))} />
 
 <div class="mx-auto max-w-3xl px-4 py-8">
 	{#if !user}

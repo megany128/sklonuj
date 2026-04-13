@@ -60,7 +60,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">
-	<NavBar {user} onSignIn={() => goto(resolve('/'))} />
+	<NavBar {user} onSignIn={() => goto(resolve('/auth'))} />
 
 	<main class="mx-auto w-full max-w-xl flex-1 px-4 py-10">
 		<!-- Header -->

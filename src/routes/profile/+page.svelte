@@ -732,7 +732,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-page-background">
-	<NavBar {user} onSignIn={() => goto(resolve('/'))} />
+	<NavBar {user} onSignIn={() => goto(resolve('/auth'))} />
 
 	<main class="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
 		{#if user && !loaded}
