@@ -13,7 +13,7 @@
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import type { Case } from '$lib/types';
-	import { CASE_LABELS, isCase } from '$lib/types';
+	import { ALL_CASES, CASE_LABELS, isCase } from '$lib/types';
 	import { progress as progressStore } from '$lib/engine/progress';
 	import { onMount } from 'svelte';
 	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
@@ -45,6 +45,7 @@
 		session_date: string;
 		questions_attempted: number;
 		questions_correct: number;
+		case_scores: Record<string, { attempted: number; correct: number }> | null;
 	}
 
 	let user = $derived(page.data.user);
@@ -77,7 +78,8 @@
 				isRecord(item) &&
 				typeof item.session_date === 'string' &&
 				typeof item.questions_attempted === 'number' &&
-				typeof item.questions_correct === 'number'
+				typeof item.questions_correct === 'number' &&
+				(item.case_scores === null || item.case_scores === undefined || isRecord(item.case_scores))
 		);
 	}
 
@@ -107,8 +109,8 @@
 		serverProgress?.paradigm_scores ?? (user ? emptyScores : $progressStore.paradigmScores)
 	);
 
-	let expandedCase = $state<string | null>(null);
 	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun'>('case');
+	let accuracyCaseFilter = $state<'all' | Case>('all');
 
 	type ProfileTab = 'progress' | 'mistakes' | 'achievements';
 	const VALID_TABS: ProfileTab[] = ['progress', 'mistakes', 'achievements'];
@@ -162,7 +164,7 @@
 		return PRONOUN_ORDER.filter((l) => l in lemmas);
 	});
 
-	const CASE_META: Array<{ key: string; label: string; abbrev: string; hex: string }> = [
+	const CASE_META: Array<{ key: Case; label: string; abbrev: string; hex: string }> = [
 		{ key: 'nom', label: 'Nominative', abbrev: 'Nom', hex: '#8f7e86' },
 		{ key: 'gen', label: 'Genitive', abbrev: 'Gen', hex: '#5d8cdc' },
 		{ key: 'dat', label: 'Dative', abbrev: 'Dat', hex: '#e89a02' },
@@ -171,23 +173,6 @@
 		{ key: 'loc', label: 'Locative', abbrev: 'Loc', hex: '#da5e5e' },
 		{ key: 'ins', label: 'Instrumental', abbrev: 'Ins', hex: '#e34994' }
 	];
-
-	const PARADIGM_NAMES: Record<string, string> = {
-		pán: 'Hard Masc. Animate',
-		muž: 'Soft Masc. Animate',
-		předseda: 'Masc. Animate (-a)',
-		soudce: 'Masc. Animate (-e)',
-		hrad: 'Hard Masc. Inanimate',
-		stroj: 'Soft Masc. Inanimate',
-		žena: 'Feminine (-a)',
-		růže: 'Feminine (-e)',
-		píseň: 'Feminine (soft cons.)',
-		kost: 'Feminine (hard cons.)',
-		město: 'Neuter (-o)',
-		moře: 'Neuter (-e)',
-		kuře: 'Neuter (-e/-ě)',
-		stavení: 'Neuter (-í)'
-	};
 
 	const PARADIGM_DESC: Record<string, string> = {
 		pán: 'hard consonant ending',
@@ -205,23 +190,6 @@
 		kuře: 'vowel -e/-ě ending',
 		stavení: 'vowel -í ending'
 	};
-
-	const PARADIGM_ORDER = [
-		'pán',
-		'muž',
-		'předseda',
-		'soudce',
-		'hrad',
-		'stroj',
-		'žena',
-		'růže',
-		'píseň',
-		'kost',
-		'město',
-		'moře',
-		'kuře',
-		'stavení'
-	];
 
 	const PARADIGM_GROUPS: Array<{ label: string; paradigms: string[] }> = [
 		{ label: 'Masculine', paradigms: ['pán', 'muž', 'předseda', 'soudce', 'hrad', 'stroj'] },
@@ -295,6 +263,7 @@
 		'var(--color-case-ins)'
 	];
 	let avatarInitial = $derived((displayName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase());
+	let avatarLoadError = $state(false);
 	let avatarColor = $derived.by(() => {
 		if (!user?.id) return AVATAR_COLORS[0];
 		let hash = 0;
@@ -325,16 +294,6 @@
 		num: string
 	): { attempts: number; correct: number } {
 		return paradigmScores[`${paradigm}_${caseKey}_${num}`] ?? { attempts: 0, correct: 0 };
-	}
-
-	// Get paradigm scores for a specific case (sg+pl combined)
-	function getParadigmCaseScore(
-		paradigm: string,
-		caseKey: string
-	): { attempts: number; correct: number } {
-		const sg = getParadigmCaseNumberScore(paradigm, caseKey, 'sg');
-		const pl = getParadigmCaseNumberScore(paradigm, caseKey, 'pl');
-		return { attempts: sg.attempts + pl.attempts, correct: sg.correct + pl.correct };
 	}
 
 	// Aggregate paradigm scores
@@ -396,14 +355,35 @@
 		accuracy: number;
 	}
 
+	let accChartColor = $derived.by(() => {
+		if (accuracyCaseFilter === 'all') return 'var(--color-emphasis)';
+		const meta = CASE_META.find((c) => c.key === accuracyCaseFilter);
+		return meta?.hex ?? 'var(--color-emphasis)';
+	});
+
+	let hasEnoughOverallData = $derived(
+		serverSessions.filter((s) => s.questions_attempted > 0).length >= 2
+	);
+
 	let dailyAccuracy = $derived.by<DailyAccuracy[]>(() => {
+		const filter = accuracyCaseFilter;
 		const points: DailyAccuracy[] = [];
 		for (const s of serverSessions) {
-			if (s.questions_attempted > 0) {
-				points.push({
-					date: s.session_date,
-					accuracy: Math.round((s.questions_correct / s.questions_attempted) * 100)
-				});
+			if (filter === 'all') {
+				if (s.questions_attempted > 0) {
+					points.push({
+						date: s.session_date,
+						accuracy: Math.round((s.questions_correct / s.questions_attempted) * 100)
+					});
+				}
+			} else {
+				const caseData = s.case_scores?.[filter];
+				if (caseData && caseData.attempted > 0) {
+					points.push({
+						date: s.session_date,
+						accuracy: Math.round((caseData.correct / caseData.attempted) * 100)
+					});
+				}
 			}
 		}
 		// Sort by date ascending
@@ -461,6 +441,7 @@
 		date: string;
 		accuracy: number;
 	} | null>(null);
+	let accChartContainerWidth = $state(0);
 
 	function handleAccPointHover(event: MouseEvent, date: string, accuracy: number): void {
 		const target = event.currentTarget;
@@ -781,8 +762,13 @@
 			<section class="mb-8">
 				{#if user}
 					<div class="flex items-center gap-3">
-						{#if avatarUrl}
-							<img src={avatarUrl} alt="" class="size-12 shrink-0 rounded-full object-cover" />
+						{#if avatarUrl && !avatarLoadError}
+							<img
+								src={avatarUrl}
+								alt=""
+								class="size-12 shrink-0 rounded-full object-cover"
+								onerror={() => (avatarLoadError = true)}
+							/>
 						{:else}
 							<span
 								class="flex size-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
@@ -1066,7 +1052,7 @@
 								<div class="grid grid-cols-4 gap-2 sm:grid-cols-8">
 									<button
 										type="button"
-										onclick={() => (expandedCase = null)}
+										onclick={() => (accuracyCaseFilter = 'all')}
 										onmouseenter={(e: MouseEvent) => handleCaseCardEnter(e, '_overall', 'Overall')}
 										onmouseleave={handleCaseCardLeave}
 										class="flex cursor-pointer flex-col justify-center rounded-xl p-3 text-center transition-shadow hover:shadow-[inset_0_0_0_2px_currentColor] sm:mr-2 {overallPct !==
@@ -1077,7 +1063,9 @@
 													? 'bg-warning-background text-warning-text'
 													: 'bg-negative-background text-negative-stroke'
 											: 'bg-card-bg text-text-subtitle'}"
-										style="box-shadow: inset 0 0 0 2.5px currentColor;"
+										style="box-shadow: {accuracyCaseFilter === 'all'
+											? 'inset 0 0 0 2.5px currentColor'
+											: ''};"
 									>
 										<p class="text-xs font-bold uppercase tracking-wide">Avg</p>
 										<p class="text-xl font-extrabold">
@@ -1090,10 +1078,10 @@
 											totals.attempts > 0
 												? Math.round((totals.correct / totals.attempts) * 100)
 												: null}
-										{@const isSelected = expandedCase === caseMeta.key}
+										{@const isSelected = accuracyCaseFilter === caseMeta.key}
 										<button
 											type="button"
-											onclick={() => (expandedCase = isSelected ? null : caseMeta.key)}
+											onclick={() => (accuracyCaseFilter = isSelected ? 'all' : caseMeta.key)}
 											onmouseenter={(e: MouseEvent) =>
 												handleCaseCardEnter(e, caseMeta.key, caseMeta.label)}
 											onmouseleave={handleCaseCardLeave}
@@ -1121,101 +1109,6 @@
 										</button>
 									{/each}
 								</div>
-
-								<!-- Detail panel below grid -->
-								{#if expandedCase}
-									{@const meta = CASE_META.find((c) => c.key === expandedCase)}
-									{@const totals = getCaseTotals(expandedCase)}
-									{@const sg = caseScores[`${expandedCase}_sg`] ?? { attempts: 0, correct: 0 }}
-									{@const pl = caseScores[`${expandedCase}_pl`] ?? { attempts: 0, correct: 0 }}
-									{@const sgPct =
-										sg.attempts > 0 ? Math.round((sg.correct / sg.attempts) * 100) : 0}
-									{@const plPct =
-										pl.attempts > 0 ? Math.round((pl.correct / pl.attempts) * 100) : 0}
-									<div
-										class="case-detail-panel mt-3 overflow-hidden rounded-xl border border-card-stroke bg-card-bg"
-									>
-										<div
-											class="h-1"
-											style="background-color: {meta?.hex ?? 'var(--color-emphasis)'}"
-										></div>
-										<div class="p-4">
-											<div class="mb-3 flex items-center justify-between">
-												<h3 class="text-sm font-semibold text-text-default">{meta?.label}</h3>
-												<button
-													type="button"
-													class="text-xs text-text-subtitle hover:text-text-default"
-													onclick={() => (expandedCase = null)}
-												>
-													Close
-												</button>
-											</div>
-
-											{#if totals.attempts > 0}
-												<!-- Sg vs Pl -->
-												<div class="mb-4 grid grid-cols-2 gap-3">
-													<div class="rounded-lg bg-shaded-background p-3">
-														<p class="text-xs text-text-subtitle">Singular</p>
-														<p
-															class="mt-0.5 text-xl font-semibold"
-															style="color: {sg.attempts > 0
-																? accuracyColor(sgPct)
-																: 'var(--color-text-subtitle)'}"
-														>
-															{sg.attempts > 0 ? `${sgPct}%` : '--'}
-														</p>
-														<p class="text-xs text-text-subtitle">{attemptLabel(sg.attempts)}</p>
-													</div>
-													<div class="rounded-lg bg-shaded-background p-3">
-														<p class="text-xs text-text-subtitle">Plural</p>
-														<p
-															class="mt-0.5 text-xl font-semibold"
-															style="color: {pl.attempts > 0
-																? accuracyColor(plPct)
-																: 'var(--color-text-subtitle)'}"
-														>
-															{pl.attempts > 0 ? `${plPct}%` : '--'}
-														</p>
-														<p class="text-xs text-text-subtitle">{attemptLabel(pl.attempts)}</p>
-													</div>
-												</div>
-
-												<!-- Per paradigm -->
-												<p
-													class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-subtitle"
-												>
-													By paradigm
-												</p>
-												<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-													{#each PARADIGM_ORDER as paradigm (paradigm)}
-														{@const ps = getParadigmCaseScore(paradigm, expandedCase)}
-														{#if ps.attempts > 0}
-															{@const psPct = Math.round((ps.correct / ps.attempts) * 100)}
-															<div
-																class="flex items-center justify-between rounded-lg bg-shaded-background px-3 py-2"
-															>
-																<span class="text-xs text-text-default"
-																	>{PARADIGM_NAMES[paradigm] ?? paradigm}</span
-																>
-																<div class="flex items-center gap-2">
-																	<span class="text-xs text-text-subtitle">{ps.attempts} att.</span>
-																	<span
-																		class="text-xs font-semibold"
-																		style="color: {accuracyColor(psPct)}">{psPct}%</span
-																	>
-																</div>
-															</div>
-														{/if}
-													{/each}
-												</div>
-											{:else}
-												<p class="text-sm text-text-subtitle">
-													No practice data for this case yet.
-												</p>
-											{/if}
-										</div>
-									</div>
-								{/if}
 							{:else if breakdownTab === 'paradigm'}
 								<!-- By Paradigm view: grouped by gender -->
 								<div class="flex flex-col gap-4">
@@ -1545,98 +1438,129 @@
 					</section>
 
 					<!-- Accuracy Over Time chart -->
-					{#if dailyAccuracy.length >= 2}
+					{#if hasEnoughOverallData}
 						<section class="mb-8">
-							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-								Accuracy Over Time
-							</h2>
-							<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
-								<div class="relative w-full overflow-x-auto">
-									<svg
-										viewBox="0 0 {ACC_CHART_WIDTH} {ACC_CHART_HEIGHT}"
-										class="w-full"
-										style="min-width: 360px"
-										role="img"
-										aria-label="Daily accuracy over time chart"
-									>
-										<!-- Grid lines and Y-axis labels -->
-										{#each ACC_Y_TICKS as tick (tick)}
-											<line
-												x1={ACC_PAD_LEFT}
-												y1={accYScale(tick)}
-												x2={ACC_CHART_WIDTH - ACC_PAD_RIGHT}
-												y2={accYScale(tick)}
-												stroke="var(--color-card-stroke)"
-												stroke-width="1"
-												stroke-dasharray={tick === 0 ? 'none' : '4 2'}
-											/>
-											<text
-												x={ACC_PAD_LEFT - 8}
-												y={accYScale(tick) + 4}
-												text-anchor="end"
-												fill="var(--color-text-subtitle)"
-												font-size="11"
-											>
-												{tick}%
-											</text>
-										{/each}
+							<div class="mb-4 flex items-center justify-between">
+								<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+									Accuracy Over Time
+								</h2>
+								<select
+									bind:value={accuracyCaseFilter}
+									class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-xs text-text-default"
+								>
+									<option value="all">Overall</option>
+									{#each ALL_CASES as c (c)}
+										<option value={c}>{CASE_LABELS[c]}</option>
+									{/each}
+								</select>
+							</div>
+							{#if dailyAccuracy.length < 2}
+								<div class="rounded-xl border border-card-stroke bg-card-bg p-8 text-center">
+									<p class="text-sm text-text-subtitle">
+										Not enough {accuracyCaseFilter === 'all'
+											? 'overall'
+											: CASE_LABELS[accuracyCaseFilter].toLowerCase()} data yet.
+									</p>
+									<p class="mt-1 text-sm text-text-subtitle">
+										Practice more {accuracyCaseFilter === 'all'
+											? ''
+											: CASE_LABELS[accuracyCaseFilter].toLowerCase() + ' '} questions to see your accuracy
+										trend.
+									</p>
+								</div>
+							{:else}
+								<div
+									class="relative rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4"
+									bind:clientWidth={accChartContainerWidth}
+								>
+									<div class="w-full overflow-x-auto">
+										<svg
+											viewBox="0 0 {ACC_CHART_WIDTH} {ACC_CHART_HEIGHT}"
+											class="w-full"
+											style="min-width: 360px"
+											role="img"
+											aria-label="Daily accuracy over time chart"
+										>
+											<!-- Grid lines and Y-axis labels -->
+											{#each ACC_Y_TICKS as tick (tick)}
+												<line
+													x1={ACC_PAD_LEFT}
+													y1={accYScale(tick)}
+													x2={ACC_CHART_WIDTH - ACC_PAD_RIGHT}
+													y2={accYScale(tick)}
+													stroke="var(--color-card-stroke)"
+													stroke-width="1"
+													stroke-dasharray={tick === 0 ? 'none' : '4 2'}
+												/>
+												<text
+													x={ACC_PAD_LEFT - 8}
+													y={accYScale(tick) + 4}
+													text-anchor="end"
+													fill="var(--color-text-subtitle)"
+													font-size="11"
+												>
+													{tick}%
+												</text>
+											{/each}
 
-										<!-- X-axis date labels -->
-										{#each accXLabels as xl (xl.index)}
-											<text
-												x={accXScale(xl.index, dailyAccuracy.length)}
-												y={ACC_CHART_HEIGHT - 8}
-												text-anchor="middle"
-												fill="var(--color-text-subtitle)"
-												font-size="10"
-											>
-												{xl.label}
-											</text>
-										{/each}
+											<!-- X-axis date labels -->
+											{#each accXLabels as xl (xl.index)}
+												<text
+													x={accXScale(xl.index, dailyAccuracy.length)}
+													y={ACC_CHART_HEIGHT - 8}
+													text-anchor="middle"
+													fill="var(--color-text-subtitle)"
+													font-size="10"
+												>
+													{xl.label}
+												</text>
+											{/each}
 
-										<!-- Accuracy line -->
-										<polyline
-											points={accPolylinePoints}
-											fill="none"
-											stroke="var(--color-emphasis)"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-										/>
-
-										<!-- Data points -->
-										{#each dailyAccuracy as point, i (point.date)}
-											<circle
-												cx={accXScale(i, dailyAccuracy.length)}
-												cy={accYScale(point.accuracy)}
-												r="5"
-												fill="var(--color-emphasis)"
-												stroke="var(--color-card-bg)"
+											<!-- Accuracy line -->
+											<polyline
+												points={accPolylinePoints}
+												fill="none"
+												stroke={accChartColor}
 												stroke-width="2"
-												pointer-events="none"
+												stroke-linecap="round"
+												stroke-linejoin="round"
 											/>
-											<!-- Invisible hit-slop circle for hover -->
-											<circle
-												cx={accXScale(i, dailyAccuracy.length)}
-												cy={accYScale(point.accuracy)}
-												r="20"
-												fill="transparent"
-												role="img"
-												aria-label="{formatAccDate(point.date)}: {point.accuracy}% accuracy"
-												onmouseenter={(e) => handleAccPointHover(e, point.date, point.accuracy)}
-												onmouseleave={clearAccHover}
-											/>
-										{/each}
-									</svg>
 
-									<!-- Tooltip -->
+											<!-- Data points -->
+											{#each dailyAccuracy as point, i (point.date)}
+												<circle
+													cx={accXScale(i, dailyAccuracy.length)}
+													cy={accYScale(point.accuracy)}
+													r="5"
+													fill={accChartColor}
+													stroke="var(--color-card-bg)"
+													stroke-width="2"
+													pointer-events="none"
+												/>
+												<!-- Invisible hit-slop circle for hover -->
+												<circle
+													cx={accXScale(i, dailyAccuracy.length)}
+													cy={accYScale(point.accuracy)}
+													r="20"
+													fill="transparent"
+													role="img"
+													aria-label="{formatAccDate(point.date)}: {point.accuracy}% accuracy"
+													onmouseenter={(e) => handleAccPointHover(e, point.date, point.accuracy)}
+													onmouseleave={clearAccHover}
+												/>
+											{/each}
+										</svg>
+									</div>
+									<!-- Tooltip (outside overflow container so it isn't clipped) -->
 									{#if hoveredAccPoint}
 										<div
 											class="pointer-events-none absolute z-10 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
-											style="left: {Math.min(
-												hoveredAccPoint.x + 12,
-												ACC_CHART_WIDTH - 120
-											)}px; top: {hoveredAccPoint.y - 40}px"
+											style="{hoveredAccPoint.x > accChartContainerWidth - 140
+												? `right: ${accChartContainerWidth - hoveredAccPoint.x + 12}px`
+												: `left: ${hoveredAccPoint.x + 12}px`}; top: {Math.max(
+												4,
+												hoveredAccPoint.y - 40
+											)}px"
 										>
 											<p class="font-medium text-text-default">
 												{formatAccDate(hoveredAccPoint.date)}
@@ -1645,7 +1569,7 @@
 										</div>
 									{/if}
 								</div>
-							</div>
+							{/if}
 						</section>
 					{/if}
 				</div>
@@ -1660,7 +1584,7 @@
 					tabindex={0}
 				>
 					{#if storedMistakes.length === 0}
-						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+						<div class="mb-8 rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
 							<p class="text-sm text-text-subtitle">No mistakes recorded.</p>
 							<p class="mt-1 text-sm text-text-subtitle">Nice work — keep it up!</p>
 						</div>
@@ -1726,49 +1650,130 @@
 											<span class="text-xs text-text-subtitle">({group.mistakes.length})</span>
 										</div>
 										<div class="space-y-2">
-											{#each group.mistakes as mistake (mistake.timestamp + mistake.lemma)}
+											{#each group.mistakes.slice(0, 5) as mistake (mistake.timestamp + mistake.lemma)}
 												{@const isCaseId = mistake.drillType === 'case_identification'}
 												{@const caseLabel = CASE_LABELS[mistake.targetCase]}
-												<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
-													<div class="flex items-start justify-between gap-2">
-														<p class="mb-1 text-sm font-medium text-text-default">
-															{#if isCaseId}
-																Identify the case of "{mistake.lemma}"
-															{:else if mistake.drillType === 'multi_step'}
-																"{mistake.lemma}" &rarr; {caseLabel}
-																{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
-															{:else}
-																Decline "{mistake.lemma}" &rarr; {caseLabel}
-																{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
-															{/if}
-														</p>
-														<span class="shrink-0 text-xs text-text-subtitle">
-															{formatRelativeTime(mistake.timestamp)}
-														</span>
-													</div>
-													{#if mistake.translation}
-														<p class="mb-1 text-xs text-text-subtitle">{mistake.translation}</p>
-													{/if}
-													<p class="text-xs text-text-subtitle">
-														correct:
-														<span class="text-positive-stroke"
-															>{isCaseId && isCase(mistake.correctAnswer)
-																? CASE_LABELS[mistake.correctAnswer]
-																: mistake.correctAnswer}</span
-														>
-														· your answer:
-														{#if mistake.userAnswer}
-															<span class="text-negative-stroke"
-																>{isCaseId && isCase(mistake.userAnswer)
-																	? CASE_LABELS[mistake.userAnswer]
-																	: mistake.userAnswer}</span
+												{@const isMultiStep = mistake.drillType === 'multi_step'}
+												{@const isSentenceFillIn = mistake.drillType === 'sentence_fill_in'}
+												{@const hasParadigmError =
+													isMultiStep &&
+													!!mistake.correctParadigm &&
+													!!mistake.userParadigm &&
+													mistake.userParadigm !== mistake.correctParadigm}
+												{@const hasFormError =
+													isMultiStep && mistake.userAnswer !== mistake.correctAnswer}
+												{@const hasAnyError = !isMultiStep || hasParadigmError || hasFormError}
+
+												{#if hasAnyError}
+													{#if isMultiStep}
+														{#if hasParadigmError}
+															<div
+																class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
 															>
-														{:else}
-															<span class="italic text-text-subtitle">skipped</span>
+																<div class="flex items-start justify-between gap-2">
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		Identify paradigm of "{mistake.lemma}"
+																	</p>
+																	<span class="shrink-0 text-xs text-text-subtitle">
+																		{formatRelativeTime(mistake.timestamp)}
+																	</span>
+																</div>
+																<p class="text-xs text-text-subtitle">
+																	correct:
+																	<span class="text-positive-stroke">{mistake.correctParadigm}</span
+																	>
+																	· your answer:
+																	<span class="text-negative-stroke">{mistake.userParadigm}</span>
+																</p>
+															</div>
 														{/if}
-													</p>
-												</div>
+														{#if hasFormError}
+															<div
+																class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
+															>
+																<div class="flex items-start justify-between gap-2">
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		Decline "{mistake.lemma}" &rarr; {caseLabel}
+																		{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
+																	</p>
+																	<span class="shrink-0 text-xs text-text-subtitle">
+																		{formatRelativeTime(mistake.timestamp)}
+																	</span>
+																</div>
+																<p class="text-xs text-text-subtitle">
+																	correct:
+																	<span class="text-positive-stroke">{mistake.correctAnswer}</span>
+																	· your answer:
+																	{#if mistake.userAnswer}
+																		<span class="text-negative-stroke">{mistake.userAnswer}</span>
+																	{:else}
+																		<span class="italic text-text-subtitle">skipped</span>
+																	{/if}
+																</p>
+															</div>
+														{/if}
+													{:else}
+														<div
+															class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
+														>
+															<div class="flex items-start justify-between gap-2">
+																<p class="mb-1 text-sm font-medium text-text-default">
+																	{#if isCaseId}
+																		Identify the case of "{mistake.lemma}"{#if mistake.sentence}
+																			in:{/if}
+																	{:else if isSentenceFillIn}
+																		Fill in "{mistake.lemma}"
+																	{:else if mistake.drillType === 'form_production'}
+																		Decline "{mistake.lemma}" &rarr; {caseLabel}
+																		{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
+																	{:else}
+																		Decline "{mistake.lemma}" &rarr; {caseLabel}
+																		{mistake.targetNumber === 'sg' ? 'Sg' : 'Pl'}
+																	{/if}
+																</p>
+																<span class="shrink-0 text-xs text-text-subtitle">
+																	{formatRelativeTime(mistake.timestamp)}
+																</span>
+															</div>
+															{#if mistake.sentence && mistake.drillType !== 'form_production'}
+																<p class="mb-1 text-xs text-text-subtitle">
+																	{isCaseId
+																		? mistake.sentence.replace('___', `[${mistake.lemma}]`)
+																		: isSentenceFillIn
+																			? mistake.sentence.replace('___', '______')
+																			: mistake.sentence}
+																</p>
+															{/if}
+															<p class="text-xs text-text-subtitle">
+																correct:
+																<span class="text-positive-stroke"
+																	>{isCaseId && isCase(mistake.correctAnswer)
+																		? CASE_LABELS[mistake.correctAnswer]
+																		: mistake.correctAnswer}</span
+																>{#if isSentenceFillIn}<span class="text-text-subtitle"
+																		>&nbsp;({caseLabel}
+																		{mistake.targetNumber === 'sg' ? 'sg' : 'pl'})</span
+																	>{/if}
+																· your answer:
+																{#if mistake.userAnswer}
+																	<span class="text-negative-stroke"
+																		>{isCaseId && isCase(mistake.userAnswer)
+																			? CASE_LABELS[mistake.userAnswer]
+																			: mistake.userAnswer}</span
+																	>
+																{:else}
+																	<span class="italic text-text-subtitle">skipped</span>
+																{/if}
+															</p>
+														</div>
+													{/if}
+												{/if}
 											{/each}
+											{#if group.mistakes.length > 5}
+												<p class="pt-1 text-center text-xs text-text-subtitle">
+													showing 5 of {group.mistakes.length}
+												</p>
+											{/if}
 										</div>
 									</div>
 								{/each}

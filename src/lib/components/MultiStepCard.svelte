@@ -266,7 +266,7 @@
 
 	// Keyboard navigation
 	function handleWindowKeydown(e: KeyboardEvent) {
-		const target = e.target as HTMLElement | null;
+		const target = e.target instanceof HTMLElement ? e.target : null;
 		if (target?.closest('[data-modal]')) return;
 
 		if (e.key === 'Enter' || e.key === ' ') {

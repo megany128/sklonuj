@@ -114,7 +114,10 @@
 	function handleMenuKeydown(e: KeyboardEvent) {
 		if (!menuRef) return;
 		const items = menuRef.querySelectorAll<HTMLElement>('[role="menuitem"]');
-		const currentIndex = Array.from(items).indexOf(document.activeElement as HTMLElement);
+		const currentIndex =
+			document.activeElement instanceof HTMLElement
+				? Array.from(items).indexOf(document.activeElement)
+				: -1;
 
 		if (e.key === 'Escape') {
 			e.preventDefault();

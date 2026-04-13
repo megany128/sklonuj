@@ -158,6 +158,7 @@
 	// Practice session tracking (per-day upsert)
 	let todayAttempted = $state(0);
 	let todayCorrect = $state(0);
+	let todayCaseScores = $state<Record<string, { attempted: number; correct: number }>>({});
 	let sessionSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function getTodayDate(): string {
@@ -180,17 +181,24 @@
 					session: {
 						sessionDate: getTodayDate(),
 						questionsAttempted: todayAttempted,
-						questionsCorrect: todayCorrect
+						questionsCorrect: todayCorrect,
+						caseScores: todayCaseScores
 					}
 				})
 			}).catch(() => {});
 		}, 1000);
 	}
 
-	function recordSessionActivity(correct: boolean): void {
+	function recordSessionActivity(correct: boolean, caseKey?: string): void {
 		if (!user) return;
 		todayAttempted++;
 		if (correct) todayCorrect++;
+		if (caseKey) {
+			const existing = todayCaseScores[caseKey] ?? { attempted: 0, correct: 0 };
+			existing.attempted++;
+			if (correct) existing.correct++;
+			todayCaseScores = { ...todayCaseScores, [caseKey]: existing };
+		}
 		scheduleSessionSync();
 	}
 
@@ -200,10 +208,19 @@
 		fetch('/api/sync')
 			.then((res) => res.json())
 			.then(
-				(data: { todaySession?: { questions_attempted: number; questions_correct: number } }) => {
+				(data: {
+					todaySession?: {
+						questions_attempted: number;
+						questions_correct: number;
+						case_scores?: Record<string, { attempted: number; correct: number }>;
+					};
+				}) => {
 					if (data.todaySession) {
 						todayAttempted = data.todaySession.questions_attempted;
 						todayCorrect = data.todaySession.questions_correct;
+						if (data.todaySession.case_scores) {
+							todayCaseScores = data.todaySession.case_scores;
+						}
 					}
 				}
 			)
@@ -1761,7 +1778,8 @@
 							session: {
 								sessionDate: getTodayDate(),
 								questionsAttempted: todayAttempted,
-								questionsCorrect: todayCorrect
+								questionsCorrect: todayCorrect,
+								caseScores: todayCaseScores
 							}
 						})
 					],
@@ -2680,7 +2698,11 @@
 				targetNumber: result.question.number,
 				userAnswer: result.userAnswer,
 				correctAnswer: result.question.correctAnswer,
-				drillType: result.question.drillType
+				drillType: result.question.drillType,
+				sentence:
+					result.question.drillType !== 'form_production'
+						? result.question.template?.template
+						: undefined
 			});
 		}
 	}
@@ -2831,7 +2853,7 @@
 			if (chapterSelection) recordChapterResult(chapterSelection, false);
 			scheduleSyncToSupabase();
 			trackSessionStats(result);
-			recordSessionActivity(false);
+			recordSessionActivity(false, question?.case);
 			recordAssignmentProgress(false, question?.case, question?.number);
 			checkAssignmentMatchToast();
 			streak = 0;
@@ -2893,7 +2915,7 @@
 		if (chapterSelection) recordChapterResult(chapterSelection, result.correct);
 		scheduleSyncToSupabase();
 		trackSessionStats(result);
-		recordSessionActivity(result.correct);
+		recordSessionActivity(result.correct, result.question.case);
 		if (!result.correct && assignmentId) {
 			const q = result.question;
 			const lemma = q.wordCategory === 'pronoun' && q.pronoun ? q.pronoun.lemma : q.word.lemma;
@@ -3008,12 +3030,15 @@
 				targetNumber: result.question.number,
 				userAnswer: result.userForm,
 				correctAnswer: result.question.correctForm,
-				drillType: 'multi_step'
+				drillType: 'multi_step',
+				sentence: result.question.template?.template,
+				userParadigm: result.userParadigm,
+				correctParadigm: result.question.correctParadigm
 			});
 		}
 
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
-		recordSessionActivity(allCorrect);
+		recordSessionActivity(allCorrect, result.question.case);
 		if (!allCorrect && assignmentId) {
 			let msSentence: string | undefined;
 			let msPrompt: string | undefined;

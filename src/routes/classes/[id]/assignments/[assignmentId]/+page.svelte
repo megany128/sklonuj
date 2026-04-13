@@ -117,7 +117,12 @@
 	let classData = $derived.by(() => {
 		const val: unknown = page.data.classData;
 		if (isRecord(val) && typeof val.id === 'string') {
-			return { id: val.id, name: typeof val.name === 'string' ? val.name : '' };
+			return {
+				id: val.id,
+				name: typeof val.name === 'string' ? val.name : '',
+				struggling_threshold:
+					typeof val.struggling_threshold === 'number' ? val.struggling_threshold : 50
+			};
 		}
 		return null;
 	});
@@ -197,8 +202,12 @@
 		return n;
 	}
 
-	function sentenceWithBlank(sentence: string, form: string, lemma: string): string {
+	function sentenceWithBrackets(sentence: string, form: string, lemma: string): string {
 		return sentence.replace(form, `[${lemma}]`);
+	}
+
+	function sentenceWithBlank(sentence: string, form: string): string {
+		return sentence.replace(form, '______');
 	}
 
 	function cappedAttempted(attempted: number): number {
@@ -725,105 +734,127 @@
 									{#each topMistakes as mistake, i (i)}
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
 										{@const isMultiStep = mistake.drillType === 'multi_step'}
-										<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
-											{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
-												<p class="mb-2 text-[15px] font-medium text-text-default">
-													Identify the case: <span class="italic">{mistake.sentence}</span>
-												</p>
-											{:else if mistake.sentence}
-												<p class="mb-2 text-[15px] font-medium text-text-default">
-													Decline "{mistake.word}":
-													<span class="italic"
-														>{sentenceWithBlank(
-															mistake.sentence,
-															mistake.expectedForm,
-															mistake.word
-														)}</span
-													>
-												</p>
-											{:else if mistake.prompt}
-												<p class="mb-2 text-[15px] font-medium text-text-default">
-													{mistake.prompt}
-												</p>
-											{:else if mistake.word && !isMultiStep}
-												<p class="mb-1.5 text-sm font-medium text-text-default">
-													{mistake.drillType === 'form_production'
-														? `Decline "${mistake.word}" → ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`
-														: mistake.drillType === 'case_identification'
-															? `Identify the case of "${mistake.word}"`
-															: `"${mistake.word}" — ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`}
-												</p>
-											{/if}
-											{#if isMultiStep}
-												{#if !mistake.prompt}
+										{@const isSentenceFillIn = mistake.drillType === 'sentence_fill_in'}
+										{@const hasParadigmError =
+											isMultiStep &&
+											mistake.paradigmCorrect === false &&
+											!!mistake.userParadigm &&
+											!!mistake.correctParadigm}
+										{@const hasFormError = isMultiStep && mistake.formCorrect === false}
+										{#if isMultiStep}
+											<!-- Paradigm error card -->
+											{#if hasParadigmError}
+												<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
 													<p class="mb-1 text-sm font-medium text-text-default">
-														{mistake.word}
-														<span class="font-normal text-text-subtitle">&rarr;</span>
-														<span class="text-positive-stroke">{mistake.expectedForm}</span>
-														<span class="text-xs font-normal text-text-subtitle">
-															({caseLabelFromKey(mistake.case)}
-															{numberLabel(mistake.number)})
-														</span>
+														Identify paradigm of "{mistake.word}"
 													</p>
-												{/if}
-												<div class="mt-1 space-y-0.5 text-xs">
-													{#if mistake.paradigmCorrect === false}
-														<p>
-															<span class="text-text-subtitle">Paradigm: they said</span>
-															<span class="text-negative-stroke">{mistake.userParadigm}</span>
-															<span class="text-text-subtitle">· correct:</span>
-															<span class="text-positive-stroke">{mistake.correctParadigm}</span>
-														</p>
-													{/if}
-													{#if mistake.caseCorrect === false}
-														<p>
-															<span class="text-text-subtitle">Case: they said</span>
-															<span class="text-negative-stroke"
-																>{mistake.userCase ? caseLabelFromKey(mistake.userCase) : '—'}</span
-															>
-															<span class="text-text-subtitle">· correct:</span>
-															<span class="text-positive-stroke"
-																>{mistake.correctCase
-																	? caseLabelFromKey(mistake.correctCase)
-																	: ''}</span
-															>
-														</p>
-													{/if}
-													{#if mistake.formCorrect === false}
-														<p>
-															<span class="text-text-subtitle">Form: they said</span>
-															<span class="text-negative-stroke">{mistake.givenAnswer}</span>
-															<span class="text-text-subtitle">· correct:</span>
-															<span class="text-positive-stroke">{mistake.expectedForm}</span>
-														</p>
-													{/if}
+													<p class="text-xs text-text-subtitle">
+														correct:
+														<span class="text-positive-stroke">{mistake.correctParadigm}</span>
+														· their answer:
+														<span class="text-negative-stroke">{mistake.userParadigm}</span>
+													</p>
+													<div class="mt-1 flex justify-end">
+														<span
+															class="rounded-full bg-shaded-background px-2 py-0.5 text-[10px] font-medium text-text-subtitle"
+														>
+															{mistake.count} student{mistake.count === 1 ? '' : 's'}
+														</span>
+													</div>
 												</div>
-											{:else}
+											{/if}
+											<!-- Form error card -->
+											{#if hasFormError}
+												<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Decline "{mistake.word}" &rarr; {caseLabelFromKey(mistake.case)}
+														{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+													</p>
+													<p class="text-xs text-text-subtitle">
+														correct:
+														<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														· their answer:
+														<span class="text-negative-stroke">{mistake.givenAnswer}</span>
+													</p>
+													<div class="mt-1 flex justify-end">
+														<span
+															class="rounded-full bg-shaded-background px-2 py-0.5 text-[10px] font-medium text-text-subtitle"
+														>
+															{mistake.count} student{mistake.count === 1 ? '' : 's'}
+														</span>
+													</div>
+												</div>
+											{/if}
+										{:else}
+											<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+												{#if mistake.drillType === 'case_identification'}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Identify the case of "{mistake.word}"{#if mistake.sentence}
+															in:{/if}
+													</p>
+													{#if mistake.sentence}
+														<p class="mb-1 text-xs italic text-text-subtitle">
+															{sentenceWithBrackets(
+																mistake.sentence,
+																mistake.expectedForm,
+																mistake.word
+															)}
+														</p>
+													{/if}
+												{:else if isSentenceFillIn}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Fill in "{mistake.word}"
+													</p>
+													{#if mistake.sentence}
+														<p class="mb-1 text-xs italic text-text-subtitle">
+															{sentenceWithBlank(mistake.sentence, mistake.expectedForm)}
+														</p>
+													{/if}
+												{:else if mistake.drillType === 'form_production'}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Decline "{mistake.word}" &rarr; {caseLabelFromKey(mistake.case)}
+														{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+													</p>
+												{:else}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														"{mistake.word}" &mdash;
+														{caseLabelFromKey(mistake.case)}
+														{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+													</p>
+													{#if mistake.sentence}
+														<p class="mb-1 text-xs italic text-text-subtitle">
+															{mistake.sentence}
+														</p>
+													{/if}
+												{/if}
 												<p class="text-xs text-text-subtitle">
 													correct:
 													<span class="text-positive-stroke"
 														>{isCaseId
 															? caseLabelFromKey(mistake.expectedForm)
 															: mistake.expectedForm}</span
-													>
+													>{#if isSentenceFillIn}&nbsp;<span class="text-text-subtitle"
+															>({caseLabelFromKey(mistake.case)}
+															{numberLabel(mistake.number)})</span
+														>{/if}
 													· their answer:
 													<span class="text-negative-stroke"
 														>{isCaseId
 															? caseLabelFromKey(mistake.givenAnswer)
 															: mistake.givenAnswer}</span
 													>
-													({caseLabelFromKey(mistake.case)}
-													{numberLabel(mistake.number)})
+													{#if !isSentenceFillIn}({caseLabelFromKey(mistake.case)}
+														{numberLabel(mistake.number)}){/if}
 												</p>
-											{/if}
-											<div class="mt-1 flex justify-end">
-												<span
-													class="rounded-full bg-shaded-background px-2 py-0.5 text-[10px] font-medium text-text-subtitle"
-												>
-													{mistake.count} student{mistake.count === 1 ? '' : 's'}
-												</span>
+												<div class="mt-1 flex justify-end">
+													<span
+														class="rounded-full bg-shaded-background px-2 py-0.5 text-[10px] font-medium text-text-subtitle"
+													>
+														{mistake.count} student{mistake.count === 1 ? '' : 's'}
+													</span>
+												</div>
 											</div>
-										</div>
+										{/if}
 									{/each}
 								</div>
 							</div>
@@ -1003,103 +1034,109 @@
 													{#each sp.mistakes as mistake, i (i)}
 														{@const isCaseId = isCaseKey(mistake.expectedForm)}
 														{@const isMultiStep = mistake.drillType === 'multi_step'}
-														<div
-															class="rounded-lg border px-3 py-2.5 {isLowAccuracy
-																? 'border-negative-stroke/20 bg-negative-stroke/5'
-																: 'border-card-stroke bg-shaded-background/50'}"
-														>
-															{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
-																<p class="mb-2 text-[15px] font-medium text-text-default">
-																	Identify the case: <span class="italic">{mistake.sentence}</span>
-																</p>
-															{:else if mistake.sentence}
-																<p class="mb-2 text-[15px] font-medium text-text-default">
-																	Decline "{mistake.word}":
-																	<span class="italic"
-																		>{sentenceWithBlank(
-																			mistake.sentence,
-																			mistake.expectedForm,
-																			mistake.word
-																		)}</span
-																	>
-																</p>
-															{:else if mistake.prompt}
-																<p class="mb-2 text-[15px] font-medium text-text-default">
-																	{mistake.prompt}
-																</p>
-															{/if}
-															{#if isMultiStep}
-																{#if !mistake.prompt}
+														{@const isSentenceFillIn = mistake.drillType === 'sentence_fill_in'}
+														{@const cardClass = isLowAccuracy
+															? 'border-negative-stroke/20 bg-negative-stroke/5'
+															: 'border-card-stroke bg-shaded-background/50'}
+														{@const hasParadigmError =
+															isMultiStep &&
+															mistake.paradigmCorrect === false &&
+															!!mistake.userParadigm &&
+															!!mistake.correctParadigm}
+														{@const hasFormError = isMultiStep && mistake.formCorrect === false}
+														{#if isMultiStep}
+															{#if hasParadigmError}
+																<div class="rounded-lg border px-3 py-2.5 {cardClass}">
 																	<p class="mb-1 text-sm font-medium text-text-default">
-																		{mistake.word}
-																		<span class="font-normal text-text-subtitle">&rarr;</span>
-																		<span class="text-positive-stroke">{mistake.expectedForm}</span>
-																		<span class="text-xs font-normal text-text-subtitle">
-																			({caseLabelFromKey(mistake.case)}
-																			{numberLabel(mistake.number)})
-																		</span>
+																		Identify paradigm of "{mistake.word}"
 																	</p>
-																{/if}
-																<div class="mt-1 space-y-0.5 text-xs">
-																	{#if mistake.paradigmCorrect === false}
-																		<p>
-																			<span class="text-text-subtitle">Paradigm: they said</span>
-																			<span class="text-negative-stroke"
-																				>{mistake.userParadigm}</span
-																			>
-																			<span class="text-text-subtitle">· correct:</span>
-																			<span class="text-positive-stroke"
-																				>{mistake.correctParadigm}</span
-																			>
-																		</p>
-																	{/if}
-																	{#if mistake.caseCorrect === false}
-																		<p>
-																			<span class="text-text-subtitle">Case: they said</span>
-																			<span class="text-negative-stroke"
-																				>{mistake.userCase
-																					? caseLabelFromKey(mistake.userCase)
-																					: '—'}</span
-																			>
-																			<span class="text-text-subtitle">· correct:</span>
-																			<span class="text-positive-stroke"
-																				>{mistake.correctCase
-																					? caseLabelFromKey(mistake.correctCase)
-																					: ''}</span
-																			>
-																		</p>
-																	{/if}
-																	{#if mistake.formCorrect === false}
-																		<p>
-																			<span class="text-text-subtitle">Form: they said</span>
-																			<span class="text-negative-stroke">{mistake.givenAnswer}</span
-																			>
-																			<span class="text-text-subtitle">· correct:</span>
-																			<span class="text-positive-stroke"
-																				>{mistake.expectedForm}</span
-																			>
-																		</p>
-																	{/if}
+																	<p class="text-xs text-text-subtitle">
+																		correct:
+																		<span class="text-positive-stroke"
+																			>{mistake.correctParadigm}</span
+																		>
+																		· their answer:
+																		<span class="text-negative-stroke">{mistake.userParadigm}</span>
+																	</p>
 																</div>
-															{:else}
+															{/if}
+															{#if hasFormError}
+																<div class="rounded-lg border px-3 py-2.5 {cardClass}">
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		Decline "{mistake.word}" &rarr; {caseLabelFromKey(mistake.case)}
+																		{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+																	</p>
+																	<p class="text-xs text-text-subtitle">
+																		correct:
+																		<span class="text-positive-stroke">{mistake.expectedForm}</span>
+																		· their answer:
+																		<span class="text-negative-stroke">{mistake.givenAnswer}</span>
+																	</p>
+																</div>
+															{/if}
+														{:else}
+															<div class="rounded-lg border px-3 py-2.5 {cardClass}">
+																{#if mistake.drillType === 'case_identification'}
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		Identify the case of "{mistake.word}"{#if mistake.sentence}
+																			in:{/if}
+																	</p>
+																	{#if mistake.sentence}
+																		<p class="mb-1 text-xs italic text-text-subtitle">
+																			{sentenceWithBrackets(
+																				mistake.sentence,
+																				mistake.expectedForm,
+																				mistake.word
+																			)}
+																		</p>
+																	{/if}
+																{:else if isSentenceFillIn}
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		Fill in "{mistake.word}"
+																	</p>
+																	{#if mistake.sentence}
+																		<p class="mb-1 text-xs italic text-text-subtitle">
+																			{sentenceWithBlank(mistake.sentence, mistake.expectedForm)}
+																		</p>
+																	{/if}
+																{:else if mistake.drillType === 'form_production'}
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		Decline "{mistake.word}" &rarr; {caseLabelFromKey(mistake.case)}
+																		{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+																	</p>
+																{:else}
+																	<p class="mb-1 text-sm font-medium text-text-default">
+																		"{mistake.word}" &mdash;
+																		{caseLabelFromKey(mistake.case)}
+																		{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+																	</p>
+																	{#if mistake.sentence}
+																		<p class="mb-1 text-xs italic text-text-subtitle">
+																			{mistake.sentence}
+																		</p>
+																	{/if}
+																{/if}
 																<p class="text-xs text-text-subtitle">
 																	correct:
 																	<span class="text-positive-stroke"
 																		>{isCaseId
 																			? caseLabelFromKey(mistake.expectedForm)
 																			: mistake.expectedForm}</span
-																	>
+																	>{#if isSentenceFillIn}&nbsp;<span class="text-text-subtitle"
+																			>({caseLabelFromKey(mistake.case)}
+																			{numberLabel(mistake.number)})</span
+																		>{/if}
 																	· their answer:
 																	<span class="text-negative-stroke"
 																		>{isCaseId
 																			? caseLabelFromKey(mistake.givenAnswer)
 																			: mistake.givenAnswer}</span
 																	>
-																	({caseLabelFromKey(mistake.case)}
-																	{numberLabel(mistake.number)})
+																	{#if !isSentenceFillIn}({caseLabelFromKey(mistake.case)}
+																		{numberLabel(mistake.number)}){/if}
 																</p>
-															{/if}
-														</div>
+															</div>
+														{/if}
 													{/each}
 												</div>
 											{/if}
@@ -1199,98 +1236,104 @@
 									{#each myProgress.mistakes as mistake, i (i)}
 										{@const isCaseId = isCaseKey(mistake.expectedForm)}
 										{@const isMultiStep = mistake.drillType === 'multi_step'}
-										<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
-											{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
-												<p class="mb-2 text-[15px] font-medium text-text-default">
-													Identify the case: <span class="italic">{mistake.sentence}</span>
-												</p>
-											{:else if mistake.sentence}
-												<p class="mb-2 text-[15px] font-medium text-text-default">
-													Decline "{mistake.word}":
-													<span class="italic"
-														>{sentenceWithBlank(
-															mistake.sentence,
-															mistake.expectedForm,
-															mistake.word
-														)}</span
-													>
-												</p>
-											{:else if mistake.prompt}
-												<p class="mb-2 text-[15px] font-medium text-text-default">
-													{mistake.prompt}
-												</p>
-											{:else if mistake.word && !isMultiStep}
-												<p class="mb-1.5 text-sm font-medium text-text-default">
-													{mistake.drillType === 'form_production'
-														? `Decline "${mistake.word}" → ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`
-														: mistake.drillType === 'case_identification'
-															? `Identify the case of "${mistake.word}"`
-															: `"${mistake.word}" — ${caseLabelFromKey(mistake.case)} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`}
-												</p>
-											{/if}
-											{#if isMultiStep}
-												{#if !mistake.prompt}
+										{@const isSentenceFillIn = mistake.drillType === 'sentence_fill_in'}
+										{@const hasParadigmError =
+											isMultiStep &&
+											mistake.paradigmCorrect === false &&
+											!!mistake.userParadigm &&
+											!!mistake.correctParadigm}
+										{@const hasFormError = isMultiStep && mistake.formCorrect === false}
+										{#if isMultiStep}
+											{#if hasParadigmError}
+												<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
 													<p class="mb-1 text-sm font-medium text-text-default">
-														{mistake.word}
-														<span class="font-normal text-text-subtitle">&rarr;</span>
-														<span class="text-positive-stroke">{mistake.expectedForm}</span>
-														<span class="text-xs font-normal text-text-subtitle">
-															({caseLabelFromKey(mistake.case)}
-															{numberLabel(mistake.number)})
-														</span>
+														Identify paradigm of "{mistake.word}"
 													</p>
-												{/if}
-												<div class="mt-1 space-y-0.5 text-xs">
-													{#if mistake.paradigmCorrect === false}
-														<p>
-															<span class="text-text-subtitle">Paradigm: you said</span>
-															<span class="text-negative-stroke">{mistake.userParadigm}</span>
-															<span class="text-text-subtitle">· correct:</span>
-															<span class="text-positive-stroke">{mistake.correctParadigm}</span>
-														</p>
-													{/if}
-													{#if mistake.caseCorrect === false}
-														<p>
-															<span class="text-text-subtitle">Case: you said</span>
-															<span class="text-negative-stroke"
-																>{mistake.userCase ? caseLabelFromKey(mistake.userCase) : '—'}</span
-															>
-															<span class="text-text-subtitle">· correct:</span>
-															<span class="text-positive-stroke"
-																>{mistake.correctCase
-																	? caseLabelFromKey(mistake.correctCase)
-																	: ''}</span
-															>
-														</p>
-													{/if}
-													{#if mistake.formCorrect === false}
-														<p>
-															<span class="text-text-subtitle">Form: you said</span>
-															<span class="text-negative-stroke">{mistake.givenAnswer}</span>
-															<span class="text-text-subtitle">· correct:</span>
-															<span class="text-positive-stroke">{mistake.expectedForm}</span>
-														</p>
-													{/if}
+													<p class="text-xs text-text-subtitle">
+														correct:
+														<span class="text-positive-stroke">{mistake.correctParadigm}</span>
+														· your answer:
+														<span class="text-negative-stroke">{mistake.userParadigm}</span>
+													</p>
 												</div>
-											{:else}
+											{/if}
+											{#if hasFormError}
+												<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Decline "{mistake.word}" &rarr; {caseLabelFromKey(mistake.case)}
+														{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+													</p>
+													<p class="text-xs text-text-subtitle">
+														correct:
+														<span class="text-positive-stroke">{mistake.expectedForm}</span>
+														· your answer:
+														<span class="text-negative-stroke">{mistake.givenAnswer}</span>
+													</p>
+												</div>
+											{/if}
+										{:else}
+											<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
+												{#if mistake.drillType === 'case_identification'}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Identify the case of "{mistake.word}"{#if mistake.sentence}
+															in:{/if}
+													</p>
+													{#if mistake.sentence}
+														<p class="mb-1 text-xs italic text-text-subtitle">
+															{sentenceWithBrackets(
+																mistake.sentence,
+																mistake.expectedForm,
+																mistake.word
+															)}
+														</p>
+													{/if}
+												{:else if isSentenceFillIn}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Fill in "{mistake.word}"
+													</p>
+													{#if mistake.sentence}
+														<p class="mb-1 text-xs italic text-text-subtitle">
+															{sentenceWithBlank(mistake.sentence, mistake.expectedForm)}
+														</p>
+													{/if}
+												{:else if mistake.drillType === 'form_production'}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														Decline "{mistake.word}" &rarr; {caseLabelFromKey(mistake.case)}
+														{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+													</p>
+												{:else}
+													<p class="mb-1 text-sm font-medium text-text-default">
+														"{mistake.word}" &mdash;
+														{caseLabelFromKey(mistake.case)}
+														{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+													</p>
+													{#if mistake.sentence}
+														<p class="mb-1 text-xs italic text-text-subtitle">
+															{mistake.sentence}
+														</p>
+													{/if}
+												{/if}
 												<p class="text-xs text-text-subtitle">
 													correct:
 													<span class="text-positive-stroke"
 														>{isCaseId
 															? caseLabelFromKey(mistake.expectedForm)
 															: mistake.expectedForm}</span
-													>
+													>{#if isSentenceFillIn}&nbsp;<span class="text-text-subtitle"
+															>({caseLabelFromKey(mistake.case)}
+															{numberLabel(mistake.number)})</span
+														>{/if}
 													· your answer:
 													<span class="text-negative-stroke"
 														>{isCaseId
 															? caseLabelFromKey(mistake.givenAnswer)
 															: mistake.givenAnswer}</span
 													>
-													({caseLabelFromKey(mistake.case)}
-													{numberLabel(mistake.number)})
+													{#if !isSentenceFillIn}({caseLabelFromKey(mistake.case)}
+														{numberLabel(mistake.number)}){/if}
 												</p>
-											{/if}
-										</div>
+											</div>
+										{/if}
 									{/each}
 								</div>
 							{/if}
@@ -1408,7 +1451,7 @@
 
 				<form
 					method="POST"
-					action={resolve(`/classes/${classData.id}/assignments/${assignment.id}/edit`)}
+					action="?/edit"
 					onsubmit={(e: SubmitEvent) => {
 						if (hasProgress) {
 							if (
@@ -1424,16 +1467,12 @@
 					use:enhance={() => {
 						editSubmitting = true;
 						editError = null;
-						return async ({ result, update }) => {
+						return async ({ result }) => {
 							editSubmitting = false;
-							if (result.type === 'redirect') {
+							if (result.type === 'success') {
 								showEditModal = false;
 								editOpenerEl = null;
 								await invalidateAll();
-							} else if (result.type === 'success') {
-								showEditModal = false;
-								editOpenerEl = null;
-								await update();
 							} else if (result.type === 'failure') {
 								const data: unknown = result.data;
 								if (isRecord(data) && typeof data.message === 'string') {
@@ -1630,6 +1669,35 @@
 							/>
 							Notify students of this change
 						</label>
+					</div>
+
+					<!-- Struggling Threshold -->
+					<div class="mb-6">
+						<label
+							for="edit-struggling_threshold"
+							class="mb-1 block text-sm font-medium text-text-default"
+						>
+							Struggling threshold
+						</label>
+						<p class="mb-2 text-xs text-text-subtitle">
+							Students below this accuracy are flagged as struggling
+						</p>
+						<div class="relative">
+							<input
+								type="number"
+								id="edit-struggling_threshold"
+								name="struggling_threshold"
+								value={classData.struggling_threshold}
+								min={0}
+								max={100}
+								required
+								class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-sm text-text-default focus:border-emphasis focus:outline-none"
+							/>
+							<span
+								class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-text-subtitle"
+								>%</span
+							>
+						</div>
 					</div>
 
 					<div class="flex gap-3">

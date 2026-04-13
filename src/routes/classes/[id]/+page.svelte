@@ -34,6 +34,7 @@
 		level: string;
 		archived: boolean;
 		leaderboard_enabled: boolean;
+		struggling_threshold: number;
 		created_at: string;
 	}
 
@@ -172,6 +173,8 @@
 		return isClassData(val) ? val : null;
 	});
 
+	let strugglingThreshold = $derived(classData?.struggling_threshold ?? 50);
+
 	// Local override for freshly regenerated code so the header pill updates
 	// immediately without waiting for a full reload.
 	let overriddenClassCode = $state<string | null>(null);
@@ -260,9 +263,7 @@
 		}
 		return result;
 	});
-	let hasParadigmData = $derived(
-		Object.keys(classParadigmScores).filter((k) => !k.startsWith('pronoun_')).length > 0
-	);
+	let hasParadigmData = $derived(Object.keys(classParadigmScores).length > 0);
 
 	// Per-cell student breakdown (teacher only)
 	interface StudentBreakdownEntry {
@@ -315,14 +316,42 @@
 		město: 'vowel -o ending',
 		moře: 'vowel -e ending',
 		kuře: 'vowel -e/-ě ending',
-		stavení: 'vowel -í ending'
+		stavení: 'vowel -í ending',
+		pronoun_já: 'I',
+		pronoun_ty: 'you (sg.)',
+		pronoun_on: 'he',
+		pronoun_ona: 'she',
+		pronoun_ono: 'it',
+		pronoun_my: 'we',
+		pronoun_vy: 'you (pl.)',
+		pronoun_oni: 'they',
+		pronoun_se: 'self'
 	};
 
 	const PARADIGM_GROUPS: Array<{ label: string; paradigms: string[] }> = [
 		{ label: 'Masculine', paradigms: ['pán', 'muž', 'předseda', 'soudce', 'hrad', 'stroj'] },
 		{ label: 'Feminine', paradigms: ['žena', 'růže', 'píseň', 'kost'] },
-		{ label: 'Neuter', paradigms: ['město', 'moře', 'kuře', 'stavení'] }
+		{ label: 'Neuter', paradigms: ['město', 'moře', 'kuře', 'stavení'] },
+		{
+			label: 'Pronouns',
+			paradigms: [
+				'pronoun_já',
+				'pronoun_ty',
+				'pronoun_on',
+				'pronoun_ona',
+				'pronoun_ono',
+				'pronoun_my',
+				'pronoun_vy',
+				'pronoun_oni',
+				'pronoun_se'
+			]
+		}
 	];
+
+	function paradigmDisplayName(key: string): string {
+		if (key.startsWith('pronoun_')) return key.slice('pronoun_'.length);
+		return key;
+	}
 
 	function getParadigmCaseNumberScore(paradigm: string, caseKey: string, num: string): ScoreEntry {
 		return classParadigmScores[`${paradigm}_${caseKey}_${num}`] ?? { attempts: 0, correct: 0 };
@@ -333,6 +362,11 @@
 		if (pct >= 60) return '#eab308';
 		if (pct >= 40) return '#f97316';
 		return '#ef4444';
+	}
+
+	function cellTextColor(pct: number): string {
+		if (pct >= 60) return '#000';
+		return '#fff';
 	}
 
 	function attemptLabel(n: number): string {
@@ -501,7 +535,7 @@
 				const bucket = breakdown[score.case];
 				if (!bucket || score.attempts === 0) continue;
 				const pct = (score.correct / score.attempts) * 100;
-				if (pct < 50) bucket.struggling.push(name);
+				if (pct < strugglingThreshold) bucket.struggling.push(name);
 				else if (pct < 80) bucket.ok.push(name);
 				else bucket.strong.push(name);
 			}
@@ -511,11 +545,15 @@
 
 	// Overall student breakdown for avg box tooltip
 	let overallStudentBreakdown = $derived.by(() => {
-		const bd = { struggling: [] as string[], ok: [] as string[], strong: [] as string[] };
+		const bd: { struggling: string[]; ok: string[]; strong: string[] } = {
+			struggling: [],
+			ok: [],
+			strong: []
+		};
 		for (const student of rosterStudents) {
 			if (student.overallAccuracy === null || student.totalAttempts === 0) continue;
 			const name = student.displayName ?? 'Anonymous';
-			if (student.overallAccuracy < 50) bd.struggling.push(name);
+			if (student.overallAccuracy < strugglingThreshold) bd.struggling.push(name);
 			else if (student.overallAccuracy < 80) bd.ok.push(name);
 			else bd.strong.push(name);
 		}
@@ -1138,8 +1176,23 @@
 		return 'Anonymous';
 	}
 
-	function sentenceWithBlank(sentence: string, form: string, lemma: string): string {
+	function caseLabelFromKey(key: string): string {
+		if (isCaseKey(key)) return CASE_LABELS[key];
+		return key;
+	}
+
+	function numberLabel(n: string): string {
+		if (n === 'sg') return 'Singular';
+		if (n === 'pl') return 'Plural';
+		return n;
+	}
+
+	function sentenceWithBrackets(sentence: string, form: string, lemma: string): string {
 		return sentence.replace(form, `[${lemma}]`);
+	}
+
+	function sentenceWithBlank(sentence: string, form: string): string {
+		return sentence.replace(form, '______');
 	}
 
 	function formatAccuracy(accuracy: number | null): string {
@@ -1649,7 +1702,7 @@
 							<div class="mb-6">
 								<h2 class="mb-3 text-lg font-semibold text-text-default">Paradigm Accuracy</h2>
 								<div class="flex flex-col gap-4">
-									{#each PARADIGM_GROUPS as group (group.label)}
+									{#each PARADIGM_GROUPS.filter((g) => g.label !== 'Pronouns') as group (group.label)}
 										{@const groupParadigms = group.paradigms}
 										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
 											<p
@@ -1679,7 +1732,7 @@
 													<div class="flex items-center">
 														<div class="w-28 shrink-0 pr-2">
 															<p class="text-xs font-medium leading-tight text-text-default">
-																{paradigm}
+																{paradigmDisplayName(paradigm)}
 															</p>
 															<p class="text-xs leading-tight text-text-subtitle">
 																{PARADIGM_DESC[paradigm] ?? ''}
@@ -1711,7 +1764,9 @@
 																				: 1};"
 																			role="gridcell"
 																			tabindex="0"
-																			aria-label="{paradigm} {cm.label} singular: {pct >= 0
+																			aria-label="{paradigmDisplayName(
+																				paradigm
+																			)} {cm.label} singular: {pct >= 0
 																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
 																				: 'no data'}"
 																			onmouseenter={(e: MouseEvent) =>
@@ -1749,7 +1804,9 @@
 																				: 1};"
 																			role="gridcell"
 																			tabindex="0"
-																			aria-label="{paradigm} {cm.label} plural: {pct >= 0
+																			aria-label="{paradigmDisplayName(
+																				paradigm
+																			)} {cm.label} plural: {pct >= 0
 																				? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
 																				: 'no data'}"
 																			onmouseenter={(e: MouseEvent) =>
@@ -1768,32 +1825,111 @@
 											</div>
 										</div>
 									{/each}
+								</div>
 
-									<!-- Legend -->
-									<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
-										<div class="flex items-center gap-1">
-											<div
-												class="h-3 w-3 rounded-[2px]"
-												style="background-color: var(--color-shaded-background);"
-											></div>
-											No data
+								<h2 class="mb-3 mt-6 text-lg font-semibold text-text-default">Pronoun Accuracy</h2>
+								<div class="flex flex-col gap-4">
+									{#each PARADIGM_GROUPS.filter((g) => g.label === 'Pronouns') as group (group.label)}
+										{@const groupParadigms = group.paradigms}
+										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+											<div class="overflow-x-auto pb-2">
+												<div class="mb-1 flex items-center">
+													<div class="w-28 shrink-0"></div>
+													<div class="w-5 shrink-0"></div>
+													{#each CASE_META as cm (cm.key)}
+														<div class="flex w-16 shrink-0 flex-col items-center">
+															<span class="text-[10px] font-semibold uppercase text-text-subtitle"
+																>{cm.abbrev}</span
+															>
+														</div>
+													{/each}
+												</div>
+												{#each groupParadigms as paradigm (paradigm)}
+													{@const hasAnyData = CASE_META.some(
+														(cm) =>
+															(classParadigmScores[`${paradigm}_${cm.key}_sg`]?.attempts ?? 0) >
+																0 ||
+															(classParadigmScores[`${paradigm}_${cm.key}_pl`]?.attempts ?? 0) > 0
+													)}
+													{#if hasAnyData}
+														<div class="flex items-center">
+															<div
+																class="w-28 shrink-0 truncate pr-2 text-xs font-medium text-text-default"
+																title={PARADIGM_DESC[paradigm] ?? paradigm}
+															>
+																{paradigmDisplayName(paradigm)}
+															</div>
+															<div class="w-5 shrink-0"></div>
+															{#each CASE_META as cm (cm.key)}
+																{@const sgScore = classParadigmScores[`${paradigm}_${cm.key}_sg`]}
+																{@const plScore = classParadigmScores[`${paradigm}_${cm.key}_pl`]}
+																{@const totalAttempts =
+																	(sgScore?.attempts ?? 0) + (plScore?.attempts ?? 0)}
+																{@const totalCorrect =
+																	(sgScore?.correct ?? 0) + (plScore?.correct ?? 0)}
+																{@const pct =
+																	totalAttempts > 0
+																		? Math.round((totalCorrect / totalAttempts) * 100)
+																		: -1}
+																<div class="flex w-16 shrink-0 justify-center p-0.5">
+																	<div
+																		class="flex h-6 w-12 cursor-default items-center justify-center rounded-[4px] text-[10px] font-semibold"
+																		style="background-color: {pct >= 0
+																			? accuracyColor(pct)
+																			: 'var(--color-shaded-background)'}; color: {pct >= 0
+																			? cellTextColor(pct)
+																			: 'var(--color-text-subtitle)'};"
+																		aria-label="{paradigmDisplayName(paradigm)} {cm.label}: {pct >=
+																		0
+																			? `${pct}% accuracy`
+																			: 'no data'}"
+																		role="gridcell"
+																		tabindex="0"
+																		onmouseenter={(e: MouseEvent) =>
+																			handleCellEnter(e, paradigm, cm.key, 'sg')}
+																		onmouseleave={handleCellLeave}
+																		onfocus={(e: FocusEvent) =>
+																			handleCellEnter(e, paradigm, cm.key, 'sg')}
+																		onblur={handleCellLeave}
+																	>
+																		{pct >= 0 ? `${pct}%` : '–'}
+																	</div>
+																</div>
+															{/each}
+														</div>
+													{/if}
+												{/each}
+											</div>
 										</div>
-										<div class="flex items-center gap-1">
-											<div class="h-3 w-3 rounded-[2px]" style="background-color: #ef4444;"></div>
-											&lt;40%
-										</div>
-										<div class="flex items-center gap-1">
-											<div class="h-3 w-3 rounded-[2px]" style="background-color: #f97316;"></div>
-											40–59%
-										</div>
-										<div class="flex items-center gap-1">
-											<div class="h-3 w-3 rounded-[2px]" style="background-color: #eab308;"></div>
-											60–79%
-										</div>
-										<div class="flex items-center gap-1">
-											<div class="h-3 w-3 rounded-[2px]" style="background-color: #22c55e;"></div>
-											≥80%
-										</div>
+									{/each}
+								</div>
+
+								<!-- Legend -->
+								<div
+									class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-text-subtitle"
+								>
+									<div class="flex items-center gap-1">
+										<div
+											class="h-3 w-3 rounded-[2px]"
+											style="background-color: var(--color-shaded-background);"
+										></div>
+										No data
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #ef4444;"></div>
+										&lt;40%
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #f97316;"></div>
+										40–59%
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #eab308;"></div>
+										60–79%
+									</div>
+									<div class="flex items-center gap-1">
+										<div class="h-3 w-3 rounded-[2px]" style="background-color: #22c55e;"></div>
+										≥80%
 									</div>
 								</div>
 							</div>
@@ -1891,7 +2027,7 @@
 											{#each filteredStudents as student (student.studentId)}
 												{@const isStruggling =
 													student.overallAccuracy !== null &&
-													student.overallAccuracy < 50 &&
+													student.overallAccuracy < strugglingThreshold &&
 													student.totalAttempts > 0}
 												<tr
 													class="cursor-pointer border-b transition-colors last:border-b-0 {isStruggling
@@ -1922,7 +2058,7 @@
 													<td class="px-4 py-3 text-text-default">
 														<span class="inline-flex items-center gap-2">
 															{studentDisplayName(student)}
-															{#if student.overallAccuracy !== null && student.overallAccuracy < 50 && student.totalAttempts > 0}
+															{#if student.overallAccuracy !== null && student.overallAccuracy < strugglingThreshold && student.totalAttempts > 0}
 																<span
 																	class="shrink-0 rounded-full bg-negative-background px-2 py-0.5 text-[10px] font-semibold text-negative-stroke"
 																>
@@ -2061,139 +2197,130 @@
 																			{#each student.recentMistakes as mistake (mistake.word + mistake.expectedForm + mistake.givenAnswer + mistake.case)}
 																				{@const isCaseId = isCaseKey(mistake.expectedForm)}
 																				{@const isMultiStep = mistake.drillType === 'multi_step'}
-																				{@const mistakeCaseLabel = isCaseKey(mistake.case)
-																					? CASE_LABELS[mistake.case]
-																					: mistake.case}
-																				<div
-																					class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
-																				>
-																					{#if mistake.sentence && (mistake.drillType === 'case_identification' || isCaseId)}
-																						<p
-																							class="mb-2 text-[15px] font-medium text-text-default"
+																				{@const isSentenceFillIn =
+																					mistake.drillType === 'sentence_fill_in'}
+																				{@const hasParadigmError =
+																					isMultiStep &&
+																					mistake.paradigmCorrect === false &&
+																					!!mistake.userParadigm &&
+																					!!mistake.correctParadigm}
+																				{@const hasFormError =
+																					isMultiStep && mistake.formCorrect === false}
+																				{#if isMultiStep}
+																					{#if hasParadigmError}
+																						<div
+																							class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
 																						>
-																							Identify the case: <span class="italic"
-																								>{mistake.sentence}</span
-																							>
-																						</p>
-																					{:else if mistake.sentence}
-																						<p
-																							class="mb-2 text-[15px] font-medium text-text-default"
-																						>
-																							Decline "{mistake.word}":
-																							<span class="italic"
-																								>{sentenceWithBlank(
-																									mistake.sentence,
-																									mistake.expectedForm,
-																									mistake.word
-																								)}</span
-																							>
-																						</p>
-																					{:else if mistake.prompt}
-																						<p
-																							class="mb-2 text-[15px] font-medium text-text-default"
-																						>
-																							{mistake.prompt}
-																						</p>
-																					{:else if mistake.word}
-																						<p class="mb-1.5 text-sm font-medium text-text-default">
-																							{mistake.drillType === 'form_production'
-																								? `Decline "${mistake.word}" → ${mistakeCaseLabel} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`
-																								: mistake.drillType === 'case_identification'
-																									? `Identify the case of "${mistake.word}"`
-																									: `"${mistake.word}" — ${mistakeCaseLabel} ${mistake.number === 'sg' ? 'Sg' : 'Pl'}`}
-																						</p>
-																					{/if}
-																					{#if isMultiStep}
-																						{#if !mistake.prompt}
 																							<p class="mb-1 text-sm font-medium text-text-default">
-																								{mistake.word}
-																								<span class="font-normal text-text-subtitle"
-																									>&rarr;</span
+																								Identify paradigm of "{mistake.word}"
+																							</p>
+																							<p class="text-xs text-text-subtitle">
+																								correct:
+																								<span class="text-positive-stroke"
+																									>{mistake.correctParadigm}</span
 																								>
+																								&middot; their answer:
+																								<span class="text-negative-stroke"
+																									>{mistake.userParadigm}</span
+																								>
+																							</p>
+																						</div>
+																					{/if}
+																					{#if hasFormError}
+																						<div
+																							class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
+																						>
+																							<p class="mb-1 text-sm font-medium text-text-default">
+																								Decline "{mistake.word}" &rarr; {caseLabelFromKey(
+																									mistake.case
+																								)}
+																								{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+																							</p>
+																							<p class="text-xs text-text-subtitle">
+																								correct:
 																								<span class="text-positive-stroke"
 																									>{mistake.expectedForm}</span
 																								>
-																								<span class="text-xs font-normal text-text-subtitle"
-																									>({mistakeCaseLabel}
-																									{mistake.number === 'sg' ? 'Sg' : 'Pl'})</span
+																								&middot; their answer:
+																								<span class="text-negative-stroke"
+																									>{mistake.givenAnswer}</span
 																								>
 																							</p>
-																						{/if}
-																						<div class="mt-1 space-y-0.5 text-xs">
-																							{#if mistake.paradigmCorrect === false}
-																								<p>
-																									<span class="text-text-subtitle"
-																										>Paradigm: they said</span
-																									>
-																									<span class="text-negative-stroke"
-																										>{mistake.userParadigm}</span
-																									>
-																									<span class="text-text-subtitle">· correct:</span>
-																									<span class="text-positive-stroke"
-																										>{mistake.correctParadigm}</span
-																									>
-																								</p>
-																							{/if}
-																							{#if mistake.caseCorrect === false}
-																								<p>
-																									<span class="text-text-subtitle"
-																										>Case: they said</span
-																									>
-																									<span class="text-negative-stroke"
-																										>{mistake.userCase
-																											? isCaseKey(mistake.userCase)
-																												? CASE_LABELS[mistake.userCase]
-																												: mistake.userCase
-																											: '\u2014'}</span
-																									>
-																									<span class="text-text-subtitle">· correct:</span>
-																									<span class="text-positive-stroke"
-																										>{mistake.correctCase
-																											? isCaseKey(mistake.correctCase)
-																												? CASE_LABELS[mistake.correctCase]
-																												: mistake.correctCase
-																											: ''}</span
-																									>
-																								</p>
-																							{/if}
-																							{#if mistake.formCorrect === false}
-																								<p>
-																									<span class="text-text-subtitle"
-																										>Form: they said</span
-																									>
-																									<span class="text-negative-stroke"
-																										>{mistake.givenAnswer}</span
-																									>
-																									<span class="text-text-subtitle">· correct:</span>
-																									<span class="text-positive-stroke"
-																										>{mistake.expectedForm}</span
-																									>
-																								</p>
-																							{/if}
 																						</div>
-																					{:else}
+																					{/if}
+																				{:else}
+																					<div
+																						class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5"
+																					>
+																						{#if mistake.drillType === 'case_identification'}
+																							<p class="mb-1 text-sm font-medium text-text-default">
+																								Identify the case of "{mistake.word}"{#if mistake.sentence}
+																									in:{/if}
+																							</p>
+																							{#if mistake.sentence}
+																								<p class="mb-1 text-xs italic text-text-subtitle">
+																									{sentenceWithBrackets(
+																										mistake.sentence,
+																										mistake.expectedForm,
+																										mistake.word
+																									)}
+																								</p>
+																							{/if}
+																						{:else if isSentenceFillIn}
+																							<p class="mb-1 text-sm font-medium text-text-default">
+																								Fill in "{mistake.word}"
+																							</p>
+																							{#if mistake.sentence}
+																								<p class="mb-1 text-xs italic text-text-subtitle">
+																									{sentenceWithBlank(
+																										mistake.sentence,
+																										mistake.expectedForm
+																									)}
+																								</p>
+																							{/if}
+																						{:else if mistake.drillType === 'form_production'}
+																							<p class="mb-1 text-sm font-medium text-text-default">
+																								Decline "{mistake.word}" &rarr; {caseLabelFromKey(
+																									mistake.case
+																								)}
+																								{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+																							</p>
+																						{:else}
+																							<p class="mb-1 text-sm font-medium text-text-default">
+																								"{mistake.word}" &mdash;
+																								{caseLabelFromKey(mistake.case)}
+																								{mistake.number === 'sg' ? 'Sg' : 'Pl'}
+																							</p>
+																							{#if mistake.sentence}
+																								<p class="mb-1 text-xs italic text-text-subtitle">
+																									{mistake.sentence}
+																								</p>
+																							{/if}
+																						{/if}
 																						<p class="text-xs text-text-subtitle">
 																							correct:
 																							<span class="text-positive-stroke"
 																								>{isCaseId
-																									? isCaseKey(mistake.expectedForm)
-																										? CASE_LABELS[mistake.expectedForm]
-																										: mistake.expectedForm
+																									? caseLabelFromKey(mistake.expectedForm)
 																									: mistake.expectedForm}</span
-																							>
-																							· their answer:
+																							>{#if isSentenceFillIn}&nbsp;<span
+																									class="text-text-subtitle"
+																									>{caseLabelFromKey(mistake.case)}
+																									{numberLabel(mistake.number)})</span
+																								>{/if}
+																							&middot; their answer:
 																							<span class="text-negative-stroke"
 																								>{isCaseId
-																									? isCaseKey(mistake.givenAnswer)
-																										? CASE_LABELS[mistake.givenAnswer]
-																										: mistake.givenAnswer
+																									? caseLabelFromKey(mistake.givenAnswer)
 																									: mistake.givenAnswer}</span
 																							>
-																							({mistakeCaseLabel}
-																							{mistake.number === 'sg' ? 'Sg' : 'Pl'})
+																							{#if !isSentenceFillIn}({caseLabelFromKey(
+																									mistake.case
+																								)}
+																								{numberLabel(mistake.number)}){/if}
 																						</p>
-																					{/if}
-																				</div>
+																					</div>
+																				{/if}
 																			{/each}
 																		</div>
 																	</div>
@@ -3103,17 +3230,16 @@
 					use:enhance={() => {
 						editClassSubmitting = true;
 						editClassError = null;
-						return async ({ result, update }) => {
+						return async ({ result }) => {
 							editClassSubmitting = false;
 							if (result.type === 'redirect') {
 								showEditClassModal = false;
 								editClassOpenerEl = null;
-								// eslint-disable-next-line svelte/no-navigation-without-resolve -- result.location is server-side resolved URL
-								goto(result.location);
+								await invalidateAll();
 							} else if (result.type === 'success') {
 								showEditClassModal = false;
 								editClassOpenerEl = null;
-								await update();
+								await invalidateAll();
 							} else if (result.type === 'failure') {
 								const data: unknown = result.data;
 								if (isRecord(data) && typeof data.message === 'string') {
@@ -3173,6 +3299,34 @@
 						</select>
 					</div>
 
+					<div class="mb-4">
+						<label
+							for="edit-struggling-threshold"
+							class="mb-1 block text-sm font-medium text-text-default"
+						>
+							Struggling threshold
+						</label>
+						<p class="mb-2 text-xs text-text-subtitle">
+							Students below this accuracy are flagged as struggling
+						</p>
+						<div class="relative">
+							<input
+								type="number"
+								id="edit-struggling-threshold"
+								name="struggling_threshold"
+								value={classData.struggling_threshold ?? 50}
+								min={0}
+								max={100}
+								required
+								class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-sm text-text-default focus:border-emphasis focus:outline-none"
+							/>
+							<span
+								class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-text-subtitle"
+								>%</span
+							>
+						</div>
+					</div>
+
 					<div class="mb-6">
 						<label
 							for="edit-leaderboard-enabled"
@@ -3183,7 +3337,7 @@
 									>Enable weekly leaderboard</span
 								>
 								<span class="text-xs text-text-subtitle"
-									>Students can see their rank and cheer each other</span
+									>Students can see their rank and cheer each other on</span
 								>
 							</div>
 							<div class="relative">

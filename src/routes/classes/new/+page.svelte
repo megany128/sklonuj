@@ -35,6 +35,13 @@
 		return 'A1';
 	});
 
+	let savedStrugglingThreshold = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.strugglingThreshold === 'number') {
+			return formResult.strugglingThreshold;
+		}
+		return 50;
+	});
+
 	let submitting = $state(false);
 </script>
 
@@ -104,7 +111,7 @@
 				></textarea>
 			</div>
 
-			<div class="mb-6">
+			<div class="mb-4">
 				<label for="level" class="mb-1 block text-sm font-medium text-text-default"> Level </label>
 				<select
 					id="level"
@@ -117,6 +124,31 @@
 					<option value="B1">B1 - Intermediate</option>
 					<option value="B2">B2 - Upper Intermediate</option>
 				</select>
+			</div>
+
+			<div class="mb-6">
+				<label for="struggling_threshold" class="mb-1 block text-sm font-medium text-text-default">
+					Struggling threshold
+				</label>
+				<p class="mb-2 text-xs text-text-subtitle">
+					Students below this accuracy are flagged as struggling
+				</p>
+				<div class="relative">
+					<input
+						type="number"
+						id="struggling_threshold"
+						name="struggling_threshold"
+						value={savedStrugglingThreshold}
+						min={0}
+						max={100}
+						required
+						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-sm text-text-default focus:border-emphasis focus:outline-none"
+					/>
+					<span
+						class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-text-subtitle"
+						>%</span
+					>
+				</div>
 			</div>
 
 			<button

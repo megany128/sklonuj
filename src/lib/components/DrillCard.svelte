@@ -106,14 +106,18 @@
 	function hideSystemCursor(node: HTMLElement) {
 		node.style.setProperty('cursor', 'none', 'important');
 		for (const el of node.querySelectorAll('*')) {
-			(el as HTMLElement).style.setProperty('cursor', 'none', 'important');
+			if (el instanceof HTMLElement) {
+				el.style.setProperty('cursor', 'none', 'important');
+			}
 		}
 	}
 
 	function restoreSystemCursor(node: HTMLElement) {
 		node.style.removeProperty('cursor');
 		for (const el of node.querySelectorAll('*')) {
-			(el as HTMLElement).style.removeProperty('cursor');
+			if (el instanceof HTMLElement) {
+				el.style.removeProperty('cursor');
+			}
 		}
 	}
 
@@ -248,7 +252,7 @@
 		if (!question) return;
 
 		// Don't intercept if focus is inside a modal or other overlay
-		const target = e.target as HTMLElement | null;
+		const target = e.target instanceof HTMLElement ? e.target : null;
 		if (target?.closest('[data-modal]')) return;
 
 		// Don't intercept if user is typing in the text input (Enter is handled by handleKeydown)

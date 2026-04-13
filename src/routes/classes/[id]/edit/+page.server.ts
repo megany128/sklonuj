@@ -76,6 +76,22 @@ export const actions: Actions = {
 		const leaderboardEnabledRaw = formData.get('leaderboard_enabled');
 		const leaderboardEnabled = leaderboardEnabledRaw === 'on';
 
+		const strugglingThresholdRaw = formData.get('struggling_threshold');
+		const strugglingThreshold = Number(strugglingThresholdRaw);
+		if (
+			!Number.isFinite(strugglingThreshold) ||
+			!Number.isInteger(strugglingThreshold) ||
+			strugglingThreshold < 0 ||
+			strugglingThreshold > 100
+		) {
+			return fail(400, {
+				message: 'Struggling threshold must be a whole number between 0 and 100.',
+				name,
+				description: description ?? '',
+				level
+			});
+		}
+
 		const { error: updateError } = await supabase
 			.from('classes')
 			.update({
@@ -83,6 +99,7 @@ export const actions: Actions = {
 				description,
 				level,
 				leaderboard_enabled: leaderboardEnabled,
+				struggling_threshold: strugglingThreshold,
 				updated_at: new Date().toISOString()
 			})
 			.eq('id', classId);

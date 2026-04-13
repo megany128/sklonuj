@@ -8,6 +8,7 @@
 	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
 	import { syncBadgesToSupabase, loadBadgesFromSupabase } from '$lib/engine/achievements';
 	import { syncStreakToSupabase, loadStreakFromSupabase } from '$lib/engine/streak';
+	import { syncMistakesToSupabase, loadMistakesFromSupabase } from '$lib/engine/mistakes';
 	import type { Progress, CaseScore, Difficulty } from '$lib/types';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
@@ -38,6 +39,8 @@
 				await syncBadgesToSupabase(client);
 				await loadStreakFromSupabase(client);
 				await syncStreakToSupabase(client);
+				await loadMistakesFromSupabase(client);
+				await syncMistakesToSupabase(client);
 				badgeStreakSyncedUserId = userId;
 			} catch (err) {
 				console.error('Error syncing badges/streaks:', err);

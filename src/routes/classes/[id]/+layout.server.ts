@@ -15,6 +15,7 @@ interface ClassData {
 	level: string;
 	archived: boolean;
 	leaderboard_enabled: boolean;
+	struggling_threshold: number;
 	created_at: string;
 }
 
@@ -46,7 +47,7 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 	const { data: classData, error: classError } = await supabase
 		.from('classes')
 		.select(
-			'id, teacher_id, name, description, class_code, level, archived, leaderboard_enabled, created_at'
+			'id, teacher_id, name, description, class_code, level, archived, leaderboard_enabled, struggling_threshold, created_at'
 		)
 		.eq('id', classId)
 		.maybeSingle();
@@ -66,7 +67,9 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
 		archived: classData.archived,
 		created_at: classData.created_at,
 		leaderboard_enabled:
-			typeof classData.leaderboard_enabled === 'boolean' ? classData.leaderboard_enabled : true
+			typeof classData.leaderboard_enabled === 'boolean' ? classData.leaderboard_enabled : true,
+		struggling_threshold:
+			typeof classData.struggling_threshold === 'number' ? classData.struggling_threshold : 50
 	};
 
 	let role: 'teacher' | 'student';

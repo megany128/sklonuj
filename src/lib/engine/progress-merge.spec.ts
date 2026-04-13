@@ -122,7 +122,7 @@ describe('mergeProgress', () => {
 		const local = {
 			level: 'A1' as const,
 			caseScores: { gen_sg: { attempts: 2, correct: 1 } },
-			paradigmScores: undefined as unknown as Record<string, { attempts: number; correct: number }>,
+			paradigmScores: {},
 			lastSession: ''
 		};
 		const remote = emptyProgress({

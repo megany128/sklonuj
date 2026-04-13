@@ -36,12 +36,16 @@ export const actions: Actions = {
 		const description = (formData.get('description') ?? '').toString().trim() || null;
 		const level = (formData.get('level') ?? '').toString();
 
+		const strugglingThresholdRaw = formData.get('struggling_threshold');
+		const strugglingThreshold = Number(strugglingThresholdRaw);
+
 		if (name.length === 0 || name.length > 100) {
 			return fail(400, {
 				message: 'Class name must be between 1 and 100 characters.',
 				name,
 				description: description ?? '',
-				level
+				level,
+				strugglingThreshold: Number.isFinite(strugglingThreshold) ? strugglingThreshold : 50
 			});
 		}
 
@@ -50,7 +54,8 @@ export const actions: Actions = {
 				message: 'Description must be 500 characters or fewer.',
 				name,
 				description,
-				level
+				level,
+				strugglingThreshold: Number.isFinite(strugglingThreshold) ? strugglingThreshold : 50
 			});
 		}
 
@@ -59,7 +64,23 @@ export const actions: Actions = {
 				message: 'Please select a valid level.',
 				name,
 				description: description ?? '',
-				level
+				level,
+				strugglingThreshold: Number.isFinite(strugglingThreshold) ? strugglingThreshold : 50
+			});
+		}
+
+		if (
+			!Number.isFinite(strugglingThreshold) ||
+			!Number.isInteger(strugglingThreshold) ||
+			strugglingThreshold < 0 ||
+			strugglingThreshold > 100
+		) {
+			return fail(400, {
+				message: 'Struggling threshold must be a whole number between 0 and 100.',
+				name,
+				description: description ?? '',
+				level,
+				strugglingThreshold: 50
 			});
 		}
 
@@ -77,7 +98,8 @@ export const actions: Actions = {
 				name,
 				description,
 				class_code: initialCode.code,
-				level
+				level,
+				struggling_threshold: strugglingThreshold
 			})
 			.select('id')
 			.single();
@@ -97,7 +119,8 @@ export const actions: Actions = {
 						name,
 						description,
 						class_code: retryCode.code,
-						level
+						level,
+						struggling_threshold: strugglingThreshold
 					})
 					.select('id')
 					.single();

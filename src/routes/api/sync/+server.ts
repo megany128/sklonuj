@@ -30,6 +30,33 @@ function isValidCaseScore(value: unknown): value is { attempts: number; correct:
 	);
 }
 
+function isValidSessionCaseScore(value: unknown): value is { attempted: number; correct: number } {
+	if (!isRecord(value)) return false;
+	const attempted = value['attempted'];
+	const correct = value['correct'];
+	return (
+		typeof attempted === 'number' &&
+		typeof correct === 'number' &&
+		Number.isFinite(attempted) &&
+		Number.isFinite(correct) &&
+		attempted >= 0 &&
+		correct >= 0 &&
+		attempted <= 1_000_000 &&
+		correct <= 1_000_000 &&
+		correct <= attempted
+	);
+}
+
+function isValidSessionCaseScoresRecord(
+	value: unknown
+): value is Record<string, { attempted: number; correct: number }> {
+	if (!isRecord(value)) return false;
+	for (const key of Object.keys(value)) {
+		if (!isValidSessionCaseScore(value[key])) return false;
+	}
+	return true;
+}
+
 function isValidScoresRecord(
 	value: unknown
 ): value is Record<string, { attempts: number; correct: number }> {
@@ -63,6 +90,7 @@ interface ValidatedSession {
 	sessionDate: string;
 	questionsAttempted: number;
 	questionsCorrect: number;
+	caseScores: Record<string, { attempted: number; correct: number }>;
 }
 
 function validateProgress(
@@ -140,12 +168,17 @@ function validateSession(
 				'session.questionsCorrect must be a non-negative number <= 1,000,000 and <= questionsAttempted'
 		};
 
+	const rawCaseScores = value['caseScores'];
+	const caseScores: Record<string, { attempted: number; correct: number }> =
+		isValidSessionCaseScoresRecord(rawCaseScores) ? rawCaseScores : {};
+
 	return {
 		valid: true,
 		data: {
 			sessionDate,
 			questionsAttempted,
-			questionsCorrect
+			questionsCorrect,
+			caseScores
 		}
 	};
 }
@@ -166,7 +199,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	const today = todayDate.toISOString().slice(0, 10);
 	const { data, error } = await locals.supabase
 		.from('practice_sessions')
-		.select('questions_attempted, questions_correct')
+		.select('questions_attempted, questions_correct, case_scores')
 		.eq('user_id', user.id)
 		.eq('session_date', today)
 		.maybeSingle();
@@ -250,7 +283,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			return json({ error: sessionResult.reason }, { status: 400 });
 		}
 
-		const { sessionDate, questionsAttempted, questionsCorrect } = sessionResult.data;
+		const { sessionDate, questionsAttempted, questionsCorrect, caseScores } = sessionResult.data;
 
 		const { error: upsertError } = await supabase.from('practice_sessions').upsert(
 			{
@@ -258,6 +291,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 				session_date: sessionDate,
 				questions_attempted: questionsAttempted,
 				questions_correct: questionsCorrect,
+				case_scores: caseScores,
 				updated_at: new Date().toISOString()
 			},
 			{ onConflict: 'user_id,session_date' }

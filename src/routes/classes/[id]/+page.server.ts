@@ -348,6 +348,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		string,
 		{ struggling: string[]; ok: string[]; strong: string[] }
 	> = {};
+	const strugglingThreshold = classData.struggling_threshold ?? 50;
+
 	if (adminClient && studentIds.length > 0 && role === 'teacher') {
 		const { data: userProgressData } = await adminClient
 			.from('user_progress')
@@ -385,7 +387,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 									};
 								}
 								const bucket = paradigmStudentBreakdown[key];
-								if (pct < 50) {
+								if (pct < strugglingThreshold) {
 									bucket.struggling.push(studentName);
 								} else if (pct < 80) {
 									bucket.ok.push(studentName);

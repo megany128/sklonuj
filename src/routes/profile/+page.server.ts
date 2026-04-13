@@ -25,26 +25,29 @@ interface SessionData {
 	session_date: string;
 	questions_attempted: number;
 	questions_correct: number;
+	case_scores: Record<string, { attempted: number; correct: number }> | null;
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+	return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
 function isProfileData(v: unknown): v is ProfileData {
-	if (typeof v !== 'object' || v === null) return false;
-	const obj = v as Record<string, unknown>;
+	if (!isRecord(v)) return false;
 	return (
-		(typeof obj.display_name === 'string' || obj.display_name === null) &&
-		typeof obj.created_at === 'string'
+		(typeof v.display_name === 'string' || v.display_name === null) &&
+		typeof v.created_at === 'string'
 	);
 }
 
 function isProgressData(v: unknown): v is ProgressData {
-	if (typeof v !== 'object' || v === null) return false;
-	const obj = v as Record<string, unknown>;
+	if (!isRecord(v)) return false;
 	return (
-		typeof obj.level === 'string' &&
-		typeof obj.case_scores === 'object' &&
-		obj.case_scores !== null &&
-		typeof obj.paradigm_scores === 'object' &&
-		obj.paradigm_scores !== null
+		typeof v.level === 'string' &&
+		typeof v.case_scores === 'object' &&
+		v.case_scores !== null &&
+		typeof v.paradigm_scores === 'object' &&
+		v.paradigm_scores !== null
 	);
 }
 
@@ -52,11 +55,10 @@ function isSessionArray(v: unknown): v is SessionData[] {
 	if (!Array.isArray(v)) return false;
 	return v.every(
 		(item) =>
-			typeof item === 'object' &&
-			item !== null &&
-			typeof (item as Record<string, unknown>).session_date === 'string' &&
-			typeof (item as Record<string, unknown>).questions_attempted === 'number' &&
-			typeof (item as Record<string, unknown>).questions_correct === 'number'
+			isRecord(item) &&
+			typeof item.session_date === 'string' &&
+			typeof item.questions_attempted === 'number' &&
+			typeof item.questions_correct === 'number'
 	);
 }
 
@@ -80,7 +82,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.maybeSingle(),
 		supabase
 			.from('practice_sessions')
-			.select('session_date, questions_attempted, questions_correct')
+			.select('session_date, questions_attempted, questions_correct, case_scores')
 			.eq('user_id', user.id)
 			.gte('session_date', sixMonthsAgoStr)
 			.order('session_date', { ascending: true })
@@ -100,7 +102,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const profile = isProfileData(profileResult.data) ? profileResult.data : null;
 	const progress = isProgressData(progressResult.data) ? progressResult.data : null;
-	const sessions = isSessionArray(sessionsResult.data) ? sessionsResult.data : [];
+	const rawSessions = isSessionArray(sessionsResult.data) ? sessionsResult.data : [];
+	// Normalize case_scores for rows that predate the column
+	const sessions = rawSessions.map((s) => {
+		const cs = s.case_scores;
+		const normalizedCs: Record<string, { attempted: number; correct: number }> =
+			cs !== null ? cs : {};
+		return { ...s, case_scores: normalizedCs };
+	});
 
 	return {
 		profile,

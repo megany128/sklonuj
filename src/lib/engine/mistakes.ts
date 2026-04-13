@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store';
-import type { Case, Number_, DrillType } from '../types';
-import { isCase, isNumber } from '../types';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Case, Number_, DrillType, Paradigm } from '../types';
+import { isCase, isNumber, ALL_PARADIGMS } from '../types';
 
 export interface MistakeRecord {
 	/** The lemma of the word (noun or pronoun) */
@@ -19,6 +20,12 @@ export interface MistakeRecord {
 	drillType: DrillType;
 	/** ISO timestamp of when the mistake happened */
 	timestamp: string;
+	/** The sentence context (for case_identification / sentence_fill_in drills) */
+	sentence?: string;
+	/** The paradigm the user selected (multi_step only) */
+	userParadigm?: Paradigm;
+	/** The correct paradigm (multi_step only) */
+	correctParadigm?: Paradigm;
 }
 
 const STORAGE_KEY = 'sklonuj_mistakes';
@@ -34,22 +41,38 @@ const VALID_DRILL_TYPES: ReadonlySet<string> = new Set([
 	'multi_step'
 ]);
 
+const VALID_PARADIGMS: ReadonlySet<string> = new Set(ALL_PARADIGMS);
+
+function isValidParadigm(value: unknown): value is Paradigm {
+	return typeof value === 'string' && VALID_PARADIGMS.has(value);
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+	return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
 function isValidMistakeRecord(value: unknown): value is MistakeRecord {
-	if (typeof value !== 'object' || value === null) return false;
-	const obj = value as Record<string, unknown>;
-	return (
-		typeof obj.lemma === 'string' &&
-		typeof obj.translation === 'string' &&
-		typeof obj.targetCase === 'string' &&
-		isCase(obj.targetCase) &&
-		typeof obj.targetNumber === 'string' &&
-		isNumber(obj.targetNumber) &&
-		typeof obj.userAnswer === 'string' &&
-		typeof obj.correctAnswer === 'string' &&
-		typeof obj.drillType === 'string' &&
-		VALID_DRILL_TYPES.has(obj.drillType) &&
-		typeof obj.timestamp === 'string'
-	);
+	if (!isRecord(value)) return false;
+	if (
+		typeof value.lemma !== 'string' ||
+		typeof value.translation !== 'string' ||
+		typeof value.targetCase !== 'string' ||
+		!isCase(value.targetCase) ||
+		typeof value.targetNumber !== 'string' ||
+		!isNumber(value.targetNumber) ||
+		typeof value.userAnswer !== 'string' ||
+		typeof value.correctAnswer !== 'string' ||
+		typeof value.drillType !== 'string' ||
+		!VALID_DRILL_TYPES.has(value.drillType) ||
+		typeof value.timestamp !== 'string'
+	)
+		return false;
+
+	// Validate optional paradigm fields
+	if (value.userParadigm !== undefined && !isValidParadigm(value.userParadigm)) return false;
+	if (value.correctParadigm !== undefined && !isValidParadigm(value.correctParadigm)) return false;
+
+	return true;
 }
 
 function loadFromStorage(): MistakeRecord[] {
@@ -149,4 +172,75 @@ export function getUniqueMistakeKeys(): Array<{
 		}
 	}
 	return results;
+}
+
+/**
+ * Upsert localStorage mistakes to the remote `user_mistakes` table.
+ */
+export async function syncMistakesToSupabase(supabase: SupabaseClient): Promise<void> {
+	const local = get(mistakeRecords);
+	if (local.length === 0) return;
+
+	const { data: userData } = await supabase.auth.getUser();
+	const userId = userData?.user?.id;
+	if (!userId) return;
+
+	// Strip sentence from form_production records before syncing
+	const cleaned: MistakeRecord[] = local.map((m) => {
+		if (m.drillType === 'form_production' && m.sentence) {
+			return { ...m, sentence: undefined };
+		}
+		return m;
+	});
+
+	const { error } = await supabase.from('user_mistakes').upsert(
+		{
+			user_id: userId,
+			mistakes: cleaned,
+			updated_at: new Date().toISOString()
+		},
+		{ onConflict: 'user_id' }
+	);
+
+	if (error) {
+		console.error('Failed to sync mistakes to Supabase:', error);
+	}
+}
+
+/**
+ * Fetch mistakes from `user_mistakes` and merge with localStorage (union of both).
+ */
+export async function loadMistakesFromSupabase(supabase: SupabaseClient): Promise<void> {
+	const { data: userData } = await supabase.auth.getUser();
+	const userId = userData?.user?.id;
+	if (!userId) return;
+
+	const { data, error } = await supabase
+		.from('user_mistakes')
+		.select('mistakes')
+		.eq('user_id', userId)
+		.maybeSingle();
+
+	if (error) {
+		console.error('Failed to load mistakes from Supabase:', error);
+		return;
+	}
+
+	if (!data) return;
+
+	const remoteMistakes: MistakeRecord[] = [];
+	const raw: unknown = data.mistakes;
+	if (Array.isArray(raw)) {
+		for (const entry of raw) {
+			if (isValidMistakeRecord(entry)) {
+				remoteMistakes.push(entry);
+			}
+		}
+	}
+
+	if (remoteMistakes.length === 0) return;
+
+	// For logged-in users, Supabase is the source of truth.
+	// Replace localStorage entirely so stale local records don't persist.
+	mistakeRecords.set(remoteMistakes);
 }
