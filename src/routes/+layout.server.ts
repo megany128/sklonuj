@@ -54,7 +54,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			.maybeSingle();
 
 		const profilePromise = supabase
-			.from('user_profiles')
+			.from('profiles')
 			.select('display_name')
 			.eq('id', user.id)
 			.maybeSingle();

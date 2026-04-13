@@ -4,9 +4,14 @@
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { buildHeatmapWeeks } from '$lib/utils/dates';
-	import { getAllBadges, type BadgeWithStatus } from '$lib/engine/achievements';
+	import {
+		getAllBadges,
+		recomputeProgressBasedBadges,
+		type BadgeWithStatus
+	} from '$lib/engine/achievements';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
+	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import type { Case } from '$lib/types';
 	import { CASE_LABELS, isCase } from '$lib/types';
 	import { progress as progressStore } from '$lib/engine/progress';
@@ -675,6 +680,11 @@
 
 	$effect(() => {
 		if (typeof window !== 'undefined') {
+			// Re-evaluate context-free badges from the current progress store
+			// (which may have been loaded from Supabase) so badges aren't lost
+			// when localStorage is empty on a new device/browser.
+			const supabase = user ? getSupabaseBrowserClient() : undefined;
+			recomputeProgressBasedBadges(supabase);
 			badges = getAllBadges();
 		}
 	});

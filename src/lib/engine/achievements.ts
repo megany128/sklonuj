@@ -131,7 +131,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 		description: 'Answer your first question correctly',
 		icon: '\u{1F331}',
 		condition: 'Get 1 correct answer',
-		check: (ctx) => ctx.wasCorrect && getTotalCorrect() >= 1
+		check: () => getTotalCorrect() >= 1
 	},
 	{
 		id: 'centurion',
@@ -334,6 +334,72 @@ export function checkAndAwardBadges(
 /** Get all earned badges with their earned dates. */
 export function getEarnedBadges(): Record<string, EarnedBadge> {
 	return loadEarnedBadges();
+}
+
+/**
+ * IDs of badges whose check functions depend only on persistent progress data
+ * (the progress store, practice days, etc.) and NOT on runtime context (streak,
+ * session count, wasCorrect, time of day). These can be re-evaluated at any
+ * time — e.g. on the profile page — to catch up badges that should have been
+ * earned based on the current progress store (which may have been loaded from
+ * Supabase rather than accumulated locally).
+ */
+const CONTEXT_FREE_BADGE_IDS: ReadonlySet<string> = new Set([
+	'first_steps',
+	'centurion',
+	'thousand_strong',
+	'case_cracker',
+	'polyglot_cases',
+	'week_warrior'
+]);
+
+/**
+ * Re-evaluate context-free badges and award any that are now met.
+ * Call this on pages that display badges (e.g. profile) after the progress
+ * store has been populated with server data, so badges aren't lost when
+ * localStorage is empty but server progress exists.
+ */
+export function recomputeProgressBasedBadges(supabase?: SupabaseClient): void {
+	const dummyCtx: BadgeCheckContext = {
+		wasCorrect: false,
+		streak: 0,
+		sessionQuestionCount: 0,
+		now: new Date()
+	};
+
+	const earned = loadEarnedBadges();
+	const newlyEarned: BadgeDefinition[] = [];
+
+	for (const badge of BADGE_DEFINITIONS) {
+		if (badge.id in earned) continue;
+		if (!CONTEXT_FREE_BADGE_IDS.has(badge.id)) continue;
+		if (badge.check(dummyCtx)) {
+			earned[badge.id] = { earnedAt: new Date().toISOString() };
+			newlyEarned.push(badge);
+		}
+	}
+
+	if (newlyEarned.length > 0) {
+		saveEarnedBadges(earned);
+
+		if (supabase) {
+			supabase.auth.getUser().then(({ data: userData }) => {
+				const userId = userData?.user?.id;
+				if (!userId) return;
+				const rows = newlyEarned.map((b) => ({
+					user_id: userId,
+					badge_id: b.id,
+					earned_at: earned[b.id].earnedAt
+				}));
+				supabase
+					.from('user_badges')
+					.upsert(rows, { onConflict: 'user_id,badge_id' })
+					.then(({ error }) => {
+						if (error) console.error('Failed to sync recomputed badges to Supabase:', error);
+					});
+			});
+		}
+	}
 }
 
 /** Get all badge definitions with their earned status. */
