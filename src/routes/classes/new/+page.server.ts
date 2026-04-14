@@ -37,7 +37,10 @@ export const actions: Actions = {
 		const level = (formData.get('level') ?? '').toString();
 
 		const strugglingThresholdRaw = formData.get('struggling_threshold');
-		const strugglingThreshold = Number(strugglingThresholdRaw);
+		const strugglingThreshold =
+			strugglingThresholdRaw === null || strugglingThresholdRaw === ''
+				? 50
+				: Number(strugglingThresholdRaw);
 
 		if (name.length === 0 || name.length > 100) {
 			return fail(400, {

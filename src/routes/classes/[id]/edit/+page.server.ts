@@ -77,7 +77,10 @@ export const actions: Actions = {
 		const leaderboardEnabled = leaderboardEnabledRaw === 'on';
 
 		const strugglingThresholdRaw = formData.get('struggling_threshold');
-		const strugglingThreshold = Number(strugglingThresholdRaw);
+		const strugglingThreshold =
+			strugglingThresholdRaw === null || strugglingThresholdRaw === ''
+				? 50
+				: Number(strugglingThresholdRaw);
 		if (
 			!Number.isFinite(strugglingThreshold) ||
 			!Number.isInteger(strugglingThreshold) ||
