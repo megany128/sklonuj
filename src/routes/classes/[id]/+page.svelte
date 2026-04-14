@@ -4,6 +4,7 @@
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import Archive from '@lucide/svelte/icons/archive';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import ChartPie from '@lucide/svelte/icons/chart-pie';
 	import X from '@lucide/svelte/icons/x';
 	import { resolve } from '$app/paths';
@@ -708,6 +709,7 @@
 	let codeCopied = $state(false);
 	let modalCodeCopied = $state(false);
 	let confirmingArchive = $state(false);
+	let confirmingDelete = $state(false);
 	let confirmingRemoveStudentId = $state<string | null>(null);
 	let confirmingLeave = $state(false);
 	let leaveError = $state<string | null>(null);
@@ -892,6 +894,32 @@
 		const onKeydown = (e: KeyboardEvent): void => {
 			if (e.key === 'Escape') {
 				confirmingRegenerate = false;
+			}
+		};
+		document.addEventListener('pointerdown', onPointerDown);
+		document.addEventListener('keydown', onKeydown);
+		return () => {
+			document.removeEventListener('pointerdown', onPointerDown);
+			document.removeEventListener('keydown', onKeydown);
+		};
+	});
+
+	$effect(() => {
+		if (!confirmingDelete && !confirmingArchive) return;
+		const onPointerDown = (e: PointerEvent): void => {
+			const target = e.target;
+			if (!(target instanceof Element)) return;
+			const archivePopover = document.getElementById('archive-popover');
+			const deletePopover = document.getElementById('delete-popover');
+			if (archivePopover && archivePopover.contains(target)) return;
+			if (deletePopover && deletePopover.contains(target)) return;
+			confirmingDelete = false;
+			confirmingArchive = false;
+		};
+		const onKeydown = (e: KeyboardEvent): void => {
+			if (e.key === 'Escape') {
+				confirmingDelete = false;
+				confirmingArchive = false;
 			}
 		};
 		document.addEventListener('pointerdown', onPointerDown);
@@ -1453,9 +1481,9 @@
 					{/if}
 				</div>
 
-				<!-- Right: archive/unarchive icon button -->
+				<!-- Right: archive/unarchive + delete icon buttons -->
 				{#if role === 'teacher'}
-					<div class="relative shrink-0">
+					<div id="archive-popover" class="relative shrink-0">
 						{#if classData.archived}
 							<form method="POST" action="?/unarchive" use:enhance>
 								<button
@@ -1502,6 +1530,43 @@
 								<Archive class="h-4 w-4" aria-hidden="true" />
 							</button>
 						{/if}
+					</div>
+					<div id="delete-popover" class="relative shrink-0">
+						{#if confirmingDelete}
+							<div
+								class="absolute right-0 top-full z-10 mt-1 w-56 rounded-xl border border-card-stroke bg-card-bg p-3 shadow-lg"
+							>
+								<p class="mb-2 text-xs text-text-subtitle">
+									Delete this class? All assignments and progress data will be permanently deleted.
+									This cannot be undone.
+								</p>
+								<div class="flex items-center gap-2">
+									<form method="POST" action="?/deleteClass" use:enhance>
+										<button
+											type="submit"
+											class="cursor-pointer rounded-lg border border-negative-stroke px-2.5 py-1 text-xs font-medium text-negative-stroke transition-colors hover:bg-negative-background"
+										>
+											Yes, delete
+										</button>
+									</form>
+									<button
+										type="button"
+										onclick={() => (confirmingDelete = false)}
+										class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+									>
+										Cancel
+									</button>
+								</div>
+							</div>
+						{/if}
+						<button
+							type="button"
+							title="Delete class"
+							onclick={() => (confirmingDelete = !confirmingDelete)}
+							class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-card-stroke p-2 text-text-subtitle transition-colors hover:border-negative-stroke hover:text-negative-stroke"
+						>
+							<Trash2 class="h-4 w-4" aria-hidden="true" />
+						</button>
 					</div>
 				{/if}
 			</div>

@@ -759,6 +759,36 @@ export const actions: Actions = {
 		return { success: true, action: 'unarchived' };
 	},
 
+	deleteClass: async ({ locals, params }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const supabase = locals.supabase;
+		const classId = params.id;
+
+		const { data: classData } = await supabase
+			.from('classes')
+			.select('teacher_id')
+			.eq('id', classId)
+			.single();
+
+		if (
+			!isRecord(classData) ||
+			typeof classData.teacher_id !== 'string' ||
+			classData.teacher_id !== user.id
+		) {
+			return fail(403, { message: 'Only the teacher can delete this class.' });
+		}
+
+		const { error: deleteError } = await supabase.from('classes').delete().eq('id', classId);
+
+		if (deleteError) {
+			return fail(500, { message: 'Failed to delete class.' });
+		}
+
+		redirect(303, resolve('/classes'));
+	},
+
 	removeStudent: async ({ request, locals, params }) => {
 		const user = locals.user;
 		if (!user) return fail(401, { message: 'Not authenticated' });
