@@ -1,9 +1,11 @@
 let speakTimer: number | null = null;
 let cachedVoice: SpeechSynthesisVoice | undefined;
 let voicesChangedRegistered = false;
+let voicesReadyCallbacks: (() => void)[] = [];
 
 function getCzechVoice(): SpeechSynthesisVoice | null {
 	if (cachedVoice) return cachedVoice;
+	if (typeof window === 'undefined' || !window.speechSynthesis) return null;
 	const voices = speechSynthesis.getVoices();
 	const czVoices = voices.filter((v) => v.lang.startsWith('cs'));
 	// Prefer enhanced/premium voices for better quality
@@ -19,6 +21,11 @@ function getCzechVoice(): SpeechSynthesisVoice | null {
 		voicesChangedRegistered = true;
 		speechSynthesis.addEventListener('voiceschanged', () => {
 			cachedVoice = undefined;
+			// Notify listeners that voices are now available
+			if (getCzechVoice()) {
+				for (const cb of voicesReadyCallbacks) cb();
+				voicesReadyCallbacks = [];
+			}
 		});
 	}
 	return null;
@@ -38,14 +45,16 @@ export function speak(text: string, lang = 'cs-CZ', rate = 0.92): void {
 
 	speakTimer = window.setTimeout(() => {
 		speakTimer = null;
+
+		const voice = getCzechVoice();
+		// Don't speak if no Czech voice is available — falling back to an
+		// English voice for Czech text is confusing and unhelpful.
+		if (!voice) return;
+
 		const utterance = new SpeechSynthesisUtterance(text);
 		utterance.lang = lang;
 		utterance.rate = rate;
-
-		const voice = getCzechVoice();
-		if (voice) {
-			utterance.voice = voice;
-		}
+		utterance.voice = voice;
 
 		speechSynthesis.speak(utterance);
 	}, 150);
@@ -225,7 +234,17 @@ export function prepareSentenceForTTS(text: string): string {
 
 export function isTTSAvailable(): boolean {
 	if (typeof window === 'undefined') return false;
-	return typeof window.speechSynthesis !== 'undefined';
+	if (typeof window.speechSynthesis === 'undefined') return false;
+	return getCzechVoice() !== null;
+}
+
+/** Register a callback for when Czech voices become available (async on Chrome). */
+export function onCzechVoiceReady(callback: () => void): void {
+	if (getCzechVoice()) {
+		callback();
+	} else {
+		voicesReadyCallbacks.push(callback);
+	}
 }
 
 /** Warm up voices so they're ready when needed. Call once on init. */
