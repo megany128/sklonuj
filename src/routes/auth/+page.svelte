@@ -142,8 +142,8 @@
 		const returnTo = page.url.searchParams.get('returnTo');
 		const recoveryRedirect =
 			returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')
-				? `${page.url.origin}/auth/confirm?returnTo=${encodeURIComponent(returnTo)}`
-				: `${page.url.origin}/auth/confirm`;
+				? `${page.url.origin}/auth/callback?type=recovery&returnTo=${encodeURIComponent(returnTo)}`
+				: `${page.url.origin}/auth/callback?type=recovery`;
 
 		const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
 			redirectTo: recoveryRedirect
