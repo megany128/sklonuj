@@ -132,6 +132,7 @@ export interface WordEntry {
 	difficulty: Difficulty;
 	categories: string[];
 	pluralOnly?: boolean;
+	irregular?: boolean;
 	forms: {
 		sg: CaseForms;
 		pl: CaseForms;
@@ -151,8 +152,11 @@ export interface SentenceTemplate {
 	number: Number_;
 	trigger: string;
 	requiredGender?: Gender;
+	requiredAnimate?: boolean;
 	why: string;
 	difficulty: Difficulty;
+	// Adjective template fields (optional)
+	adjectiveCategories?: string[];
 	// Pronoun template fields (optional)
 	pronounCategory?: string;
 	requiredPronoun?: string;
@@ -166,11 +170,14 @@ export interface DrillQuestion {
 	case: Case;
 	number: Number_;
 	drillType: DrillType;
+	// Word category — determines which answer checking path to use
+	wordCategory?: 'noun' | 'pronoun' | 'adjective';
 	// Pronoun fields (optional — only set for pronoun drills)
-	wordCategory?: 'noun' | 'pronoun';
 	pronoun?: PronounEntry;
 	acceptedAnswers?: string[];
 	expectedFormContext?: PronounFormContext;
+	// Adjective fields (optional — only set for adjective drills)
+	adjective?: AdjectiveEntry;
 }
 
 export interface DrillResult {
@@ -191,6 +198,12 @@ export interface MultiStepQuestion {
 	correctForm: string;
 	/** Whether case step should be shown (false when only 1 case enabled) */
 	showCaseStep: boolean;
+	/** Adjective to decline (optional — only present when adjective step is included) */
+	adjective?: AdjectiveEntry;
+	/** The primary correct adjective form */
+	correctAdjectiveForm?: string;
+	/** All accepted adjective forms (primary + variants) */
+	acceptedAdjectiveForms?: string[];
 }
 
 export interface MultiStepResult {
@@ -202,6 +215,10 @@ export interface MultiStepResult {
 	userParadigm: Paradigm;
 	userCase: Case | null;
 	userForm: string;
+	/** Whether adjective form was correct (null/undefined if no adjective step) */
+	adjectiveCorrect?: boolean | null;
+	adjectiveNearMiss?: boolean;
+	userAdjectiveForm?: string;
 }
 
 export interface DrillSettings {
@@ -209,6 +226,7 @@ export interface DrillSettings {
 	selectedDrillTypes: DrillType[];
 	numberMode: 'sg' | 'pl' | 'both';
 	contentMode?: ContentMode;
+	wordMode?: WordMode;
 }
 
 export type PronounFormContext = 'prep' | 'bare' | 'either';
@@ -234,6 +252,33 @@ export interface PronounEntry {
 }
 
 export type ContentMode = 'nouns' | 'pronouns' | 'both';
+
+export type WordMode = 'nouns' | 'adjectives' | 'both';
+
+// --- Adjective types ---
+
+export type AdjectiveGenderKey = 'm_anim' | 'm_inanim' | 'f' | 'n';
+
+export type AdjectiveParadigmType = 'hard' | 'soft';
+
+export interface AdjectiveEntry {
+	lemma: string;
+	translation: string;
+	difficulty: Difficulty;
+	paradigmType: AdjectiveParadigmType;
+	categories: string[];
+	forms: Record<AdjectiveGenderKey, { sg: CaseForms; pl: CaseForms }>;
+	variantForms?: Partial<Record<AdjectiveGenderKey, { sg?: VariantForms; pl?: VariantForms }>>;
+}
+
+export const ALL_ADJECTIVE_GENDER_KEYS: AdjectiveGenderKey[] = ['m_anim', 'm_inanim', 'f', 'n'];
+
+export const ADJECTIVE_GENDER_LABELS: Record<AdjectiveGenderKey, string> = {
+	m_anim: 'Masculine Animate',
+	m_inanim: 'Masculine Inanimate',
+	f: 'Feminine',
+	n: 'Neuter'
+};
 
 export const ALL_CASES: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 

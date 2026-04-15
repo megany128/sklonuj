@@ -6,6 +6,7 @@
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
 	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_HEX, CASE_NUMBER, isCase } from '$lib/types';
 	import { applyPrepositionVoicing } from '$lib/engine/drill';
+	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
 	import { playClinkSound, prepareSentenceForTTS } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
@@ -13,6 +14,8 @@
 	import DottedUnderline from '$lib/components/ui/DottedUnderline.svelte';
 	import WrongAnswerDisplay from '$lib/components/ui/WrongAnswerDisplay.svelte';
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
+	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
+	import FeedbackPronounDeclensionChart from '$lib/components/ui/FeedbackPronounDeclensionChart.svelte';
 	import NextButton from '$lib/components/ui/NextButton.svelte';
 
 	let {
@@ -329,7 +332,11 @@
 
 	function sentenceWithBlankAndLemma(q: DrillQuestion): { before: string; after: string } {
 		const form =
-			q.wordCategory === 'pronoun' ? getPronounForm(q) : q.word.forms[q.number][CASE_INDEX[q.case]];
+			q.wordCategory === 'adjective'
+				? q.correctAnswer
+				: q.wordCategory === 'pronoun'
+					? getPronounForm(q)
+					: q.word.forms[q.number][CASE_INDEX[q.case]];
 		const voiced = applyPrepositionVoicing(q.template.template, form);
 		const parts = voiced.split('___');
 		return {
@@ -338,29 +345,43 @@
 		};
 	}
 
-	/** Smart number display: only show "plural" when asking for plural forms */
+	/** Smart number display: show "plural" only when relevant.
+	 *  Skip for pronouns that only exist in one number (e.g. "vy" is always plural). */
 	function formatCasePrompt(q: DrillQuestion): { caseName: string; isPlural: boolean } {
-		return {
-			caseName: CASE_LABELS[q.case],
-			isPlural: q.number === 'pl'
-		};
+		let isPlural = q.number === 'pl';
+		if (isPlural && q.wordCategory === 'pronoun' && q.pronoun?.forms.sg === null) {
+			isPlural = false;
+		}
+		return { caseName: CASE_LABELS[q.case], isPlural };
 	}
 
 	function fullSentenceText(q: DrillQuestion): string {
 		const form =
-			q.wordCategory === 'pronoun' ? getPronounForm(q) : q.word.forms[q.number][CASE_INDEX[q.case]];
+			q.wordCategory === 'adjective'
+				? q.correctAnswer
+				: q.wordCategory === 'pronoun'
+					? getPronounForm(q)
+					: q.word.forms[q.number][CASE_INDEX[q.case]];
 		if (q.drillType === 'case_identification') {
 			if (submitted) {
 				return applyPrepositionVoicing(q.template.template, form).replace('___', form);
 			}
-			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? '') : q.word.forms[q.number][0];
+			return q.wordCategory === 'adjective'
+				? (q.adjective?.lemma ?? q.word.lemma)
+				: q.wordCategory === 'pronoun'
+					? (q.pronoun?.lemma ?? '')
+					: q.word.forms[q.number][0];
 		}
 		return applyPrepositionVoicing(q.template.template, form).replace('___', form);
 	}
 
 	function sentenceWithGap(q: DrillQuestion): string {
 		const form =
-			q.wordCategory === 'pronoun' ? getPronounForm(q) : q.word.forms[q.number][CASE_INDEX[q.case]];
+			q.wordCategory === 'adjective'
+				? q.correctAnswer
+				: q.wordCategory === 'pronoun'
+					? getPronounForm(q)
+					: q.word.forms[q.number][CASE_INDEX[q.case]];
 		const voiced = applyPrepositionVoicing(q.template.template, form);
 		return prepareSentenceForTTS(voiced);
 	}
@@ -387,9 +408,11 @@
 					{#if question.drillType === 'form_production'}
 						{@const prompt = formatCasePrompt(question)}
 						{@const displayLemma =
-							question.wordCategory === 'pronoun'
-								? (question.pronoun?.lemma ?? question.word.lemma)
-								: question.word.lemma}
+							question.wordCategory === 'adjective' && question.adjective
+								? question.adjective.lemma
+								: question.wordCategory === 'pronoun'
+									? (question.pronoun?.lemma ?? question.word.lemma)
+									: question.word.lemma}
 						<p class="-ml-3 text-center text-sm font-medium text-text-default">
 							<span
 								class="mr-1 inline-flex size-5 translate-y-[1px] items-center justify-center rounded-full text-xs font-bold text-white"
@@ -410,9 +433,11 @@
 										type="button"
 										onclick={() => {
 											onWordClick?.(
-												question!.wordCategory === 'pronoun'
-													? (question!.pronoun?.lemma ?? question!.word.lemma)
-													: question!.word.lemma
+												question!.wordCategory === 'adjective' && question!.adjective
+													? question!.adjective.lemma
+													: question!.wordCategory === 'pronoun'
+														? (question!.pronoun?.lemma ?? question!.word.lemma)
+														: question!.word.lemma
 											);
 											if (question!.word.lemma === 'pivo') triggerCheers();
 										}}
@@ -445,9 +470,11 @@
 									type="button"
 									onclick={() =>
 										onSpeak(
-											question!.wordCategory === 'pronoun'
-												? (question!.pronoun?.lemma ?? question!.word.lemma)
-												: question!.word.lemma
+											question!.wordCategory === 'adjective' && question!.adjective
+												? question!.adjective.lemma
+												: question!.wordCategory === 'pronoun'
+													? (question!.pronoun?.lemma ?? question!.word.lemma)
+													: question!.word.lemma
 										)}
 									class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
@@ -457,9 +484,11 @@
 							{/if}
 						</div>
 						<p class="mt-2 text-sm text-text-subtitle">
-							{question.wordCategory === 'pronoun'
-								? (question.pronoun?.translation ?? question.word.translation)
-								: question.word.translation}
+							{question.wordCategory === 'adjective' && question.adjective
+								? `${question.adjective.translation} (with ${question.word.lemma})`
+								: question.wordCategory === 'pronoun'
+									? (question.pronoun?.translation ?? question.word.translation)
+									: question.word.translation}
 						</p>
 					{:else if question.drillType === 'case_identification'}
 						{@const caseIdLemma =
@@ -491,7 +520,34 @@
 								>{/if}
 						</p>
 					{:else}
-						<p class="text-sm text-text-subtitle">Fill in the blank</p>
+						{#if question.wordCategory === 'adjective' && question.adjective}
+							<div class="flex items-center justify-center gap-2">
+								{#if onWordClick}
+									<button
+										type="button"
+										onclick={() => onWordClick?.(question!.adjective!.lemma)}
+										class="cursor-pointer text-lg font-semibold text-emphasis underline decoration-text-subtitle decoration-dotted underline-offset-2 transition-opacity hover:opacity-70 sm:text-xl"
+									>
+										{question.adjective.lemma}
+									</button>
+								{:else}
+									<p class="text-lg font-semibold text-emphasis sm:text-xl">
+										{question.adjective.lemma}
+									</p>
+								{/if}
+								{#if question.number === 'pl'}
+									<span
+										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
+										>plural</span
+									>
+								{/if}
+							</div>
+							<p class="mt-0.5 text-sm text-text-subtitle">
+								{question.adjective.translation}
+							</p>
+						{:else}
+							<p class="text-sm text-text-subtitle">Fill in the blank</p>
+						{/if}
 						{@const parts = sentenceWithBlankAndLemma(question)}
 						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 							{parts.before}<span
@@ -505,42 +561,39 @@
 									><Volume2 class="size-4" aria-hidden="true" /></button
 								>{/if}
 						</p>
-						<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
-							<span
-								>{question.wordCategory === 'pronoun'
-									? (question.pronoun?.translation ?? question.word.translation)
-									: question.word.translation}</span
-							>
-							<span class="group relative">
-								<CircleHelp class="h-4 w-4 text-text-subtitle" aria-hidden="true" />
+						{#if question.wordCategory !== 'adjective'}
+							<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
 								<span
-									class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+									>{question.wordCategory === 'pronoun'
+										? (question.pronoun?.translation ?? question.word.translation)
+										: question.word.translation}</span
 								>
-									{question.wordCategory === 'pronoun'
-										? (question.pronoun?.lemma ?? question.word.lemma)
-										: question.word.lemma}
-								</span>
-							</span>
-						</p>
-						{#if question.number === 'pl' || (question.wordCategory === 'pronoun' && question.expectedFormContext && question.expectedFormContext !== 'either')}
-							<div class="mt-3 flex flex-wrap items-center justify-center gap-2">
-								{#if question.number === 'pl'}
+								{#if question.number === 'pl' && !(question.wordCategory === 'pronoun' && question.pronoun?.forms.sg === null)}
 									<span
-										class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-normal text-text-subtitle"
+										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
+										>plural</span
 									>
-										plural
-									</span>
 								{/if}
 								{#if question.wordCategory === 'pronoun' && question.expectedFormContext && question.expectedFormContext !== 'either'}
 									<span
-										class="inline-block rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-normal text-text-subtitle"
+										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
 									>
 										{question.expectedFormContext === 'prep'
 											? 'after preposition'
 											: 'without preposition'}
 									</span>
 								{/if}
-							</div>
+								<span class="group relative">
+									<CircleHelp class="h-4 w-4 text-text-subtitle" aria-hidden="true" />
+									<span
+										class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+									>
+										{question.wordCategory === 'pronoun'
+											? (question.pronoun?.lemma ?? question.word.lemma)
+											: question.word.lemma}
+									</span>
+								</span>
+							</p>
 						{/if}
 					{/if}
 				</div>
@@ -616,9 +669,9 @@
 						</div>
 					{/if}
 
-					<p class="mt-2 text-center text-xs text-text-subtitle">
-						{submitted ? 'Press enter to continue' : 'Press enter to submit'}
-					</p>
+					{#if !submitted}
+						<p class="mt-2 text-center text-xs text-text-subtitle">Press enter to submit</p>
+					{/if}
 				{/if}
 
 				<!-- Feedback after submission -->
@@ -651,13 +704,17 @@
 								</div>
 							{/if}
 							{@const nomForm =
-								question.wordCategory === 'pronoun'
-									? (question.pronoun?.lemma ?? '')
-									: question.word.forms[question.number][0]}
+								question.wordCategory === 'adjective'
+									? (question.adjective?.lemma ?? question.word.lemma)
+									: question.wordCategory === 'pronoun'
+										? (question.pronoun?.lemma ?? '')
+										: question.word.forms[question.number][0]}
 							{@const targetForm =
-								question.wordCategory === 'pronoun'
-									? getPronounForm(question)
-									: question.word.forms[question.number][CASE_INDEX[question.case]]}
+								question.wordCategory === 'adjective'
+									? question.correctAnswer
+									: question.wordCategory === 'pronoun'
+										? getPronounForm(question)
+										: question.word.forms[question.number][CASE_INDEX[question.case]]}
 							{#if result.nearMiss}
 								<p class="text-center text-sm text-warning-text">
 									Almost! Check your diacritics: <span class="font-semibold"
@@ -687,7 +744,8 @@
 							{@const correctWhyNote = paradigmNotes?.[correctNoteKey] ?? null}
 							{@const correctTemplateWhy =
 								question.template.id !== '_form_production' &&
-								question.template.id !== '_pronoun_form_production'
+								question.template.id !== '_pronoun_form_production' &&
+								question.template.id !== '_adj_form_production'
 									? question.template.why
 									: null}
 							{#if correctTemplateWhy?.trim() || correctWhyNote?.trim()}
@@ -712,6 +770,25 @@
 									{/if}
 								</div>
 							{/if}
+							{#if question.wordCategory === 'adjective' && question.adjective}
+								<div class="w-full max-w-md">
+									<FeedbackAdjectiveDeclensionChart
+										lemma={question.adjective.lemma}
+										genderKey={getAdjectiveGenderKey(question.word)}
+										case_={question.case}
+										number_={question.number}
+									/>
+								</div>
+							{/if}
+							{#if question.wordCategory === 'pronoun' && question.pronoun}
+								<div class="w-full max-w-md">
+									<FeedbackPronounDeclensionChart
+										lemma={question.pronoun.lemma}
+										case_={question.case}
+										number_={question.number}
+									/>
+								</div>
+							{/if}
 						{:else}
 							<!-- Wrong answer display: only show for skipped answers since the input already shows wrong answers in red -->
 							{#if question.drillType !== 'case_identification' && result.userAnswer === ''}
@@ -720,10 +797,23 @@
 
 							<!-- Correct answer panel with explanation -->
 							{@const noteKey = `${question.case}_${question.number}`}
-							{@const whyNote = paradigmNotes?.[noteKey] ?? null}
+							{@const adjGenderNote =
+								question.wordCategory === 'adjective' && question.adjective
+									? `${question.adjective.paradigmType === 'hard' ? 'Hard' : 'Soft'} adjective, ${
+											question.word.gender === 'm'
+												? question.word.animate
+													? 'masculine animate'
+													: 'masculine inanimate'
+												: question.word.gender === 'f'
+													? 'feminine'
+													: 'neuter'
+										}`
+									: null}
+							{@const whyNote = adjGenderNote ?? paradigmNotes?.[noteKey] ?? null}
 							{@const templateWhy =
 								question.template.id !== '_form_production' &&
-								question.template.id !== '_pronoun_form_production'
+								question.template.id !== '_pronoun_form_production' &&
+								question.template.id !== '_adj_form_production'
 									? question.template.why
 									: null}
 							<CorrectAnswerPanel
@@ -731,15 +821,21 @@
 								isCase(question.correctAnswer)
 									? CASE_LABELS[question.correctAnswer]
 									: result.question.correctAnswer}
-								nominative={question.wordCategory === 'pronoun'
-									? (question.pronoun?.lemma ?? '')
-									: question.word.forms[question.number][0]}
-								targetForm={question.wordCategory === 'pronoun'
-									? getPronounForm(question)
-									: question.word.forms[question.number][CASE_INDEX[question.case]]}
-								translation={question.wordCategory === 'pronoun'
-									? (question.pronoun?.translation ?? question.word.translation)
-									: question.word.translation}
+								nominative={question.wordCategory === 'adjective'
+									? (question.adjective?.lemma ?? question.word.lemma)
+									: question.wordCategory === 'pronoun'
+										? (question.pronoun?.lemma ?? '')
+										: question.word.forms[question.number][0]}
+								targetForm={question.wordCategory === 'adjective'
+									? question.correctAnswer
+									: question.wordCategory === 'pronoun'
+										? getPronounForm(question)
+										: question.word.forms[question.number][CASE_INDEX[question.case]]}
+								translation={question.wordCategory === 'adjective'
+									? (question.adjective?.translation ?? question.word.translation)
+									: question.wordCategory === 'pronoun'
+										? (question.pronoun?.translation ?? question.word.translation)
+										: question.word.translation}
 								case_={question.case}
 								drillType={question.drillType}
 								nearMiss={result.nearMiss}
@@ -752,16 +848,29 @@
 								onWordClick={onWordClick
 									? () =>
 											onWordClick?.(
-												question!.wordCategory === 'pronoun'
-													? (question!.pronoun?.lemma ?? question!.word.lemma)
-													: question!.word.lemma
+												question!.wordCategory === 'adjective'
+													? (question!.adjective?.lemma ?? question!.word.lemma)
+													: question!.wordCategory === 'pronoun'
+														? (question!.pronoun?.lemma ?? question!.word.lemma)
+														: question!.word.lemma
 											)
+									: undefined}
+								adjectiveLemma={question.wordCategory === 'adjective' && question.adjective
+									? question.adjective.lemma
+									: undefined}
+								adjectiveGenderKey={question.wordCategory === 'adjective' && question.adjective
+									? getAdjectiveGenderKey(question.word)
+									: undefined}
+								pronounLemma={question.wordCategory === 'pronoun' && question.pronoun
+									? question.pronoun.lemma
 									: undefined}
 							/>
 						{/if}
 
 						<!-- Next button -->
 						<NextButton onclick={() => onSubmit('__advance__')} />
+
+						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
 					</div>
 				{/if}
 

@@ -8,9 +8,12 @@
 	import { applyPrepositionVoicing, checkMultiStepForm } from '$lib/engine/drill';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
-	import CaseBadge from '$lib/components/ui/CaseBadge.svelte';
+
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
+	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
+	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
+	import { stripDiacritics } from '$lib/utils/diacritics';
 	import paradigmsData from '$lib/data/paradigms.json';
 
 	interface ParadigmEntry {
@@ -95,7 +98,7 @@
 				return `"${lemma}" ends in the hard consonant -${lastChar} and is ${genderLabel} ${animateLabel}, so it follows the ${paradigm.exampleLemma} paradigm.`;
 			}
 			if (paradigm.gender === 'f') {
-				return `"${lemma}" ends in the consonant -${lastChar} and is feminine, so it follows the ${paradigm.exampleLemma} paradigm.`;
+				return `"${lemma}" ends in the hard consonant -${lastChar} and is feminine, so it follows the ${paradigm.exampleLemma} paradigm.`;
 			}
 		}
 
@@ -117,7 +120,7 @@
 		level?: Difficulty;
 	} = $props();
 
-	type Step = 'paradigm' | 'case' | 'form' | 'summary';
+	type Step = 'paradigm' | 'case' | 'form' | 'adjective' | 'summary';
 
 	let currentStep: Step = $state('paradigm');
 	let selectedGender: 'm' | 'f' | 'n' | '' = $state('');
@@ -134,6 +137,12 @@
 	let formCorrect = $state(false);
 	let formNearMiss = $state(false);
 	let formInputEl: HTMLInputElement | undefined = $state(undefined);
+
+	let adjFormInput = $state('');
+	let adjFormSubmitted = $state(false);
+	let adjFormCorrect = $state(false);
+	let adjFormNearMiss = $state(false);
+	let adjFormInputEl: HTMLInputElement | undefined = $state(undefined);
 
 	let canAdvance = $state(false);
 
@@ -152,6 +161,10 @@
 			formSubmitted = false;
 			formCorrect = false;
 			formNearMiss = false;
+			adjFormInput = '';
+			adjFormSubmitted = false;
+			adjFormCorrect = false;
+			adjFormNearMiss = false;
 			canAdvance = false;
 		}
 	});
@@ -195,6 +208,28 @@
 			after: parts[1] ?? ''
 		};
 	});
+
+	function checkAdjForm(): { correct: boolean; nearMiss: boolean } {
+		const accepted = question.acceptedAdjectiveForms ?? [];
+		const trimmed = adjFormInput.trim().toLowerCase();
+
+		// Exact match
+		for (const form of accepted) {
+			if (trimmed === form.trim().toLowerCase()) {
+				return { correct: true, nearMiss: false };
+			}
+		}
+
+		// Near-miss (diacritics only) — always accept but flag for adjectives
+		const stripped = stripDiacritics(trimmed);
+		for (const form of accepted) {
+			if (stripped === stripDiacritics(form.trim().toLowerCase())) {
+				return { correct: true, nearMiss: true };
+			}
+		}
+
+		return { correct: false, nearMiss: false };
+	}
 
 	// Paradigm notes for form step
 	let whyNoteKey = $derived(`${question.case}_${question.number}`);
@@ -246,9 +281,38 @@
 	}
 
 	function advanceFromForm() {
+		if (hasAdjectiveStep) {
+			currentStep = 'adjective';
+			canAdvance = false;
+			queueMicrotask(() => adjFormInputEl?.focus());
+		} else {
+			currentStep = 'summary';
+			canAdvance = false;
+			enableAdvance();
+		}
+	}
+
+	function handleAdjFormSubmit() {
+		if (adjFormSubmitted || adjFormInput.trim() === '') return;
+		adjFormSubmitted = true;
+		const result = checkAdjForm();
+		adjFormCorrect = result.correct;
+		adjFormNearMiss = result.nearMiss;
+		canAdvance = false;
+		enableAdvance();
+	}
+
+	function advanceFromAdjective() {
 		currentStep = 'summary';
 		canAdvance = false;
 		enableAdvance();
+	}
+
+	function handleAdjFormKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && !adjFormSubmitted) {
+			if (adjFormInput.trim() === '') return;
+			handleAdjFormSubmit();
+		}
 	}
 
 	function handleFinalAdvance() {
@@ -260,7 +324,10 @@
 			formNearMiss,
 			userParadigm: isParadigm(selectedParadigm) ? selectedParadigm : question.correctParadigm,
 			userCase: question.showCaseStep ? selectedCase : null,
-			userForm: formInput
+			userForm: formInput,
+			adjectiveCorrect: hasAdjectiveStep ? adjFormCorrect : null,
+			adjectiveNearMiss: adjFormNearMiss,
+			userAdjectiveForm: adjFormInput
 		});
 	}
 
@@ -283,6 +350,11 @@
 			if (currentStep === 'form' && formSubmitted && canAdvance) {
 				e.preventDefault();
 				advanceFromForm();
+				return;
+			}
+			if (currentStep === 'adjective' && adjFormSubmitted && canAdvance) {
+				e.preventDefault();
+				advanceFromAdjective();
 				return;
 			}
 			if (currentStep === 'summary' && canAdvance) {
@@ -313,12 +385,14 @@
 	}
 
 	// Step progress indicator
-	let totalSteps = $derived(question.showCaseStep ? 3 : 2);
+	let hasAdjectiveStep = $derived(!!question.adjective && !!question.correctAdjectiveForm);
+	let totalSteps = $derived((question.showCaseStep ? 3 : 2) + (hasAdjectiveStep ? 1 : 0));
 	let stepIndices = $derived(Array.from({ length: totalSteps }, (_, i) => i));
 	let currentStepNumber = $derived.by(() => {
 		if (currentStep === 'paradigm') return 1;
 		if (currentStep === 'case') return 2;
 		if (currentStep === 'form') return question.showCaseStep ? 3 : 2;
+		if (currentStep === 'adjective') return (question.showCaseStep ? 3 : 2) + 1;
 		return totalSteps;
 	});
 
@@ -356,25 +430,27 @@
 				</div>
 			{/if}
 
-			<!-- Word display (always shown) -->
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2">
-					<span class="text-3xl font-semibold text-text-default sm:text-4xl">
-						{question.word.lemma}
-					</span>
-					{#if onSpeak}
-						<button
-							type="button"
-							onclick={() => onSpeak?.(question.word.lemma)}
-							class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
-							aria-label="Listen to pronunciation"
-						>
-							<Volume2 class="size-4" aria-hidden="true" />
-						</button>
-					{/if}
+			<!-- Word display (shown for paradigm, case, adjective, and summary steps — hidden during form step) -->
+			{#if currentStep !== 'form' && currentStep !== 'adjective'}
+				<div class="text-center">
+					<div class="flex items-center justify-center gap-2">
+						<span class="text-3xl font-semibold text-text-default sm:text-4xl">
+							{question.word.lemma}
+						</span>
+						{#if onSpeak}
+							<button
+								type="button"
+								onclick={() => onSpeak?.(question.word.lemma)}
+								class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+								aria-label="Listen to pronunciation"
+							>
+								<Volume2 class="size-4" aria-hidden="true" />
+							</button>
+						{/if}
+					</div>
+					<p class="mt-1 text-sm text-text-subtitle">{question.word.translation}</p>
 				</div>
-				<p class="mt-1 text-sm text-text-subtitle">{question.word.translation}</p>
-			</div>
+			{/if}
 
 			<!-- STEP 1: PARADIGM IDENTIFICATION -->
 			{#if currentStep === 'paradigm'}
@@ -574,32 +650,41 @@
 					{/if}
 				</div>
 
-				<!-- STEP 3: FORM PRODUCTION -->
+				<!-- STEP 3: FORM PRODUCTION (sentence fill-in style) -->
 			{:else if currentStep === 'form'}
 				<div class="flex flex-col items-center gap-4">
-					<!-- Context badges -->
-					<div class="flex flex-wrap items-center justify-center gap-2">
-						<span
-							class="rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-medium text-text-subtitle"
+					<!-- Instruction -->
+					<p class="text-lg font-extrabold text-text-default">
+						Decline <span class="italic {CASE_COLORS[question.correctCase].text}"
+							>{question.word.lemma}</span
 						>
-							{correctParadigmEntry?.exampleLemma} paradigm
-						</span>
-						<CaseBadge case_={question.correctCase} size="sm" />
-						{#if question.number === 'pl'}
-							<span
-								class="rounded-full bg-shaded-background px-2.5 py-0.5 text-xs font-normal text-text-subtitle"
-							>
-								plural
-							</span>
-						{/if}
-					</div>
+						<span class="text-sm font-medium text-text-subtitle"
+							>({correctParadigmEntry?.exampleLemma} paradigm)</span
+						>
+						into
+						<span class={CASE_COLORS[question.correctCase].text}
+							>{CASE_LABELS[question.correctCase]}{#if question.number === 'pl'}
+								plural{/if}</span
+						>
+					</p>
 
 					<!-- Sentence with blank -->
 					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 						{sentenceParts.before}<span
-							class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-							>&nbsp;&nbsp;&nbsp;&nbsp;</span
-						>{sentenceParts.after}
+							class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+							title={question.word.lemma}
+							><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
+								>({question.word.lemma})</span
+							></span
+						>{sentenceParts.after}{#if onSpeak}<button
+								type="button"
+								onclick={() =>
+									onSpeak?.(sentenceParts.before + question.correctForm + sentenceParts.after)}
+								class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+								aria-label="Listen to pronunciation"
+							>
+								<Volume2 class="size-4" aria-hidden="true" />
+							</button>{/if}
 					</p>
 
 					<p class="text-sm text-text-subtitle">{question.word.translation}</p>
@@ -703,6 +788,144 @@
 							onclick={advanceFromForm}
 							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
 						>
+							{hasAdjectiveStep ? 'Continue' : 'See Summary'} &rarr;
+						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
+					{/if}
+				</div>
+
+				<!-- STEP: ADJECTIVE FORM -->
+			{:else if currentStep === 'adjective' && question.adjective && question.correctAdjectiveForm}
+				{@const voiced = applyPrepositionVoicing(question.template.template, question.correctForm)}
+				{@const adjSentenceParts = voiced.split('___')}
+				<div class="flex flex-col items-center gap-4">
+					<!-- Instruction -->
+					<p class="text-lg font-extrabold text-text-default">
+						Decline <span class="italic {CASE_COLORS[question.correctCase].text}"
+							>{question.adjective.lemma}</span
+						>
+						into
+						<span class={CASE_COLORS[question.correctCase].text}
+							>{CASE_LABELS[question.correctCase]}{#if question.number === 'pl'}
+								plural{/if}</span
+						>
+					</p>
+
+					<!-- Sentence with blank for adjective + noun filled in -->
+					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
+						{adjSentenceParts[0]}<span
+							class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+							title={question.adjective?.lemma}
+							><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
+								>({question.adjective?.lemma})</span
+							></span
+						>{question.correctForm}{adjSentenceParts[1] ?? ''}{#if onSpeak}<button
+								type="button"
+								onclick={() =>
+									onSpeak?.(
+										(adjSentenceParts[0] ?? '') +
+											(question.correctAdjectiveForm ?? '') +
+											' ' +
+											question.correctForm +
+											(adjSentenceParts[1] ?? '')
+									)}
+								class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+								aria-label="Listen to pronunciation"
+							>
+								<Volume2 class="size-4" aria-hidden="true" />
+							</button>{/if}
+					</p>
+
+					<p class="text-sm text-text-subtitle">{question.adjective.translation}</p>
+
+					<!-- Text input -->
+					<div class="flex w-full max-w-md flex-col gap-3">
+						<input
+							bind:this={adjFormInputEl}
+							bind:value={adjFormInput}
+							onkeydown={handleAdjFormKeydown}
+							disabled={adjFormSubmitted}
+							type="text"
+							autocomplete="off"
+							autocapitalize="none"
+							spellcheck="false"
+							placeholder="Type the adjective form..."
+							class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {adjFormSubmitted &&
+							!adjFormCorrect
+								? 'border-negative-stroke bg-negative-background text-negative-stroke'
+								: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
+						/>
+
+						{#if !adjFormSubmitted}
+							<DiacriticsBar inputEl={adjFormInputEl} inputValue={adjFormInput} />
+						{/if}
+					</div>
+
+					{#if !adjFormSubmitted}
+						<button
+							type="button"
+							onclick={handleAdjFormSubmit}
+							disabled={adjFormInput.trim() === ''}
+							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+						>
+							Check
+						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
+					{:else}
+						<!-- Adjective form feedback -->
+						{#if adjFormCorrect}
+							<div
+								class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
+							>
+								<p class="text-sm font-semibold text-positive-stroke">
+									{#if adjFormNearMiss}
+										Correct (watch the diacritics): <span class="font-semibold"
+											>{question.correctAdjectiveForm}</span
+										>
+									{:else}
+										Correct!
+									{/if}
+								</p>
+							</div>
+						{:else}
+							<div class="flex w-full max-w-md flex-col gap-3">
+								<div
+									class="rounded-[24px] border-2 border-negative-stroke bg-negative-background p-4 text-center"
+								>
+									<p class="text-sm font-semibold text-negative-stroke">
+										{#if adjFormNearMiss}
+											Close! Watch the diacritics.
+										{:else}
+											Not quite.
+										{/if}
+										The correct form is
+										<span class="font-bold">{question.correctAdjectiveForm}</span>
+									</p>
+									{#if adjFormInput.trim()}
+										<p class="mt-1 text-xs text-negative-stroke">
+											You wrote: <span class="font-semibold">{adjFormInput.trim()}</span>
+										</p>
+									{/if}
+								</div>
+							</div>
+						{/if}
+
+						{#if question.adjective}
+							<div class="w-full max-w-md">
+								<FeedbackAdjectiveDeclensionChart
+									lemma={question.adjective.lemma}
+									genderKey={getAdjectiveGenderKey(question.word)}
+									case_={question.correctCase}
+									number_={question.number}
+								/>
+							</div>
+						{/if}
+
+						<button
+							type="button"
+							onclick={advanceFromAdjective}
+							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
+						>
 							See Summary &rarr;
 						</button>
 						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
@@ -716,8 +939,11 @@
 
 					<!-- Full sentence revealed -->
 					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-						{sentenceParts.before}<span
-							class="font-semibold {CASE_COLORS[question.correctCase].text}"
+						{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
+								class="font-semibold {CASE_COLORS[question.correctCase].text}"
+								>{question.correctAdjectiveForm}</span
+							>
+						{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
 							>{question.correctForm}</span
 						>{sentenceParts.after}
 					</p>
@@ -798,6 +1024,33 @@
 								{/if}
 							</div>
 						</div>
+
+						<!-- Adjective form (if shown) -->
+						{#if hasAdjectiveStep && question.correctAdjectiveForm}
+							<div
+								class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {adjFormCorrect
+									? 'border-positive-stroke/30 bg-positive-background/50'
+									: 'border-negative-stroke/30 bg-negative-background/50'}"
+							>
+								{#if adjFormCorrect}
+									<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
+								{:else}
+									<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
+								{/if}
+								<div class="flex-1">
+									<p class="text-xs font-semibold text-text-subtitle">Adjective Form</p>
+									<p class="text-sm text-text-default">
+										{question.correctAdjectiveForm}
+										<span class="text-xs text-text-subtitle">({question.adjective?.lemma})</span>
+									</p>
+									{#if !adjFormCorrect && adjFormInput}
+										<p class="text-xs text-negative-stroke">
+											You typed: {adjFormInput}
+										</p>
+									{/if}
+								</div>
+							</div>
+						{/if}
 					</div>
 
 					<button

@@ -13,6 +13,7 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { ALL_CASES, CASE_LABELS, ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
 	import type { Case, DrillType } from '$lib/types';
+	import kzkChaptersJson from '$lib/data/kzk_chapters.json';
 
 	function isRecord(v: unknown): v is Record<string, unknown> {
 		return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -26,6 +27,8 @@
 		selectedDrillTypes: string[];
 		numberMode: string;
 		contentMode: string;
+		includeAdjectives: boolean;
+		contentLevel: string | null;
 		targetQuestions: number;
 		dueDate: string | null;
 		createdAt: string;
@@ -160,7 +163,19 @@
 	function contentModeLabel(mode: string): string {
 		if (mode === 'nouns') return 'Nouns';
 		if (mode === 'pronouns') return 'Pronouns';
-		return 'Both';
+		return 'Nouns & Pronouns';
+	}
+
+	function contentLevelLabel(level: string | null): string {
+		if (!level) return "Student's own level";
+		if (/^(A1|A2|B1)$/.test(level)) return `CEFR ${level}`;
+		if (/^kzk[12]_\d{2}$/.test(level)) {
+			const book = level.startsWith('kzk1') ? kzkChapters.kzk1 : kzkChapters.kzk2;
+			const ch = book.chapters.find((c: { id: string }) => c.id === level);
+			if (ch) return `${ch.label} — ${ch.subtitle}`;
+			return level;
+		}
+		return level;
 	}
 
 	let confirmingDelete = $state(false);
@@ -368,6 +383,73 @@
 	let editError = $state<string | null>(null);
 	let editModalEl = $state<HTMLDivElement | null>(null);
 	let editOpenerEl: HTMLElement | null = null;
+
+	const kzkChapters = kzkChaptersJson;
+
+	// Multi-select content toggles for inline edit (mirrors the new/edit page approach)
+	let editNounsSelected = $state(true);
+	let editPronounsSelected = $state(true);
+	let editAdjectivesSelected = $state(false);
+
+	$effect(() => {
+		if (assignment) {
+			editNounsSelected = assignment.contentMode === 'both' || assignment.contentMode === 'nouns';
+			editPronounsSelected =
+				assignment.contentMode === 'both' || assignment.contentMode === 'pronouns';
+			editAdjectivesSelected = assignment.includeAdjectives;
+		}
+	});
+
+	let editDerivedContentMode = $derived(
+		editNounsSelected && editPronounsSelected ? 'both' : editNounsSelected ? 'nouns' : 'pronouns'
+	);
+	let editDerivedIncludeAdjectives = $derived(editAdjectivesSelected);
+
+	function toggleEditContent(type: 'nouns' | 'pronouns' | 'adjectives') {
+		const total =
+			(editNounsSelected ? 1 : 0) +
+			(editPronounsSelected ? 1 : 0) +
+			(editAdjectivesSelected ? 1 : 0);
+		if (type === 'nouns') {
+			if (editNounsSelected && total <= 1) return;
+			if (editNounsSelected && !editPronounsSelected) return;
+			editNounsSelected = !editNounsSelected;
+		} else if (type === 'pronouns') {
+			if (editPronounsSelected && total <= 1) return;
+			if (editPronounsSelected && !editNounsSelected) return;
+			editPronounsSelected = !editPronounsSelected;
+		} else {
+			if (editAdjectivesSelected && total <= 1) return;
+			editAdjectivesSelected = !editAdjectivesSelected;
+		}
+	}
+
+	// Level mode for inline edit
+	type LevelMode = 'student' | 'cefr' | 'kzk';
+	let editLevelMode = $state<LevelMode>('student');
+	let editCefrLevel = $state('A1');
+	let editKzkChapter = $state('kzk1_01');
+
+	$effect(() => {
+		if (assignment) {
+			const cl = assignment.contentLevel ?? '';
+			if (/^(A1|A2|B1)$/.test(cl)) {
+				editLevelMode = 'cefr';
+				editCefrLevel = cl;
+			} else if (/^kzk[12]_\d{2}$/.test(cl)) {
+				editLevelMode = 'kzk';
+				editKzkChapter = cl;
+			} else {
+				editLevelMode = 'student';
+			}
+		}
+	});
+
+	let editContentLevelValue = $derived.by(() => {
+		if (editLevelMode === 'cefr') return editCefrLevel;
+		if (editLevelMode === 'kzk') return editKzkChapter;
+		return '';
+	});
 
 	function formatDateForInput(isoDate: string): string {
 		const d = new Date(isoDate);
@@ -621,7 +703,12 @@
 				<dt class="text-text-subtitle">Number</dt>
 				<dd class="text-text-default">{numberModeLabel(assignment.numberMode)}</dd>
 				<dt class="text-text-subtitle">Content</dt>
-				<dd class="text-text-default">{contentModeLabel(assignment.contentMode)}</dd>
+				<dd class="text-text-default">
+					{contentModeLabel(assignment.contentMode)}{#if assignment.includeAdjectives}
+						+ Adjectives{/if}
+				</dd>
+				<dt class="text-text-subtitle">Level</dt>
+				<dd class="text-text-default">{contentLevelLabel(assignment.contentLevel)}</dd>
 				<dt class="text-text-subtitle">Target</dt>
 				<dd class="text-text-default">{assignment.targetQuestions} questions</dd>
 				{#if assignment.dueDate}
@@ -789,7 +876,7 @@
 											<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
 												{#if mistake.drillType === 'case_identification'}
 													<p class="mb-1 text-sm font-medium text-text-default">
-														Identify the case of "{mistake.word}"{#if mistake.sentence}
+														Identify the case of "{mistake.word}" {#if mistake.sentence}
 															in:{/if}
 													</p>
 													{#if mistake.sentence}
@@ -1078,7 +1165,7 @@
 															<div class="rounded-lg border px-3 py-2.5 {cardClass}">
 																{#if mistake.drillType === 'case_identification'}
 																	<p class="mb-1 text-sm font-medium text-text-default">
-																		Identify the case of "{mistake.word}"{#if mistake.sentence}
+																		Identify the case of "{mistake.word}" {#if mistake.sentence}
 																			in:{/if}
 																	</p>
 																	{#if mistake.sentence}
@@ -1275,7 +1362,7 @@
 											<div class="rounded-lg border border-card-stroke bg-card-bg px-3 py-2.5">
 												{#if mistake.drillType === 'case_identification'}
 													<p class="mb-1 text-sm font-medium text-text-default">
-														Identify the case of "{mistake.word}"{#if mistake.sentence}
+														Identify the case of "{mistake.word}" {#if mistake.sentence}
 															in:{/if}
 													</p>
 													{#if mistake.sentence}
@@ -1604,25 +1691,117 @@
 						</div>
 					</div>
 
-					<!-- Content Mode -->
+					<!-- Content -->
 					<div class="mb-4">
 						<p class="mb-2 text-sm font-medium text-text-default">Content</p>
 						<div class="flex gap-2">
-							{#each [['both', 'Both'], ['nouns', 'Nouns Only'], ['pronouns', 'Pronouns Only']] as [value, label] (value)}
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
-								>
-									<input
-										type="radio"
-										name="content_mode"
-										{value}
-										checked={assignment.contentMode === value}
-										class="sr-only"
-									/>
-									{label}
-								</label>
-							{/each}
+							<button
+								type="button"
+								class="rounded-full border px-3 py-1.5 text-xs {editNounsSelected
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-default'}"
+								onclick={() => toggleEditContent('nouns')}
+							>
+								Nouns
+							</button>
+							<button
+								type="button"
+								class="rounded-full border px-3 py-1.5 text-xs {editPronounsSelected
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-default'}"
+								onclick={() => toggleEditContent('pronouns')}
+							>
+								Pronouns
+							</button>
+							<button
+								type="button"
+								class="rounded-full border px-3 py-1.5 text-xs {editAdjectivesSelected
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-default'}"
+								onclick={() => toggleEditContent('adjectives')}
+							>
+								Adjectives
+							</button>
 						</div>
+						<input type="hidden" name="content_mode" value={editDerivedContentMode} />
+						<input
+							type="hidden"
+							name="include_adjectives"
+							value={editDerivedIncludeAdjectives ? 'true' : 'false'}
+						/>
+					</div>
+
+					<!-- Level -->
+					<div class="mb-4">
+						<p class="mb-2 text-sm font-medium text-text-default">Level</p>
+						<div class="flex flex-wrap gap-2">
+							<label
+								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+							>
+								<input
+									type="radio"
+									name="edit_level_mode"
+									value="student"
+									checked={editLevelMode === 'student'}
+									onchange={() => (editLevelMode = 'student')}
+									class="sr-only"
+								/>
+								Student's own level
+							</label>
+							<label
+								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+							>
+								<input
+									type="radio"
+									name="edit_level_mode"
+									value="cefr"
+									checked={editLevelMode === 'cefr'}
+									onchange={() => (editLevelMode = 'cefr')}
+									class="sr-only"
+								/>
+								CEFR Level
+							</label>
+							<label
+								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
+							>
+								<input
+									type="radio"
+									name="edit_level_mode"
+									value="kzk"
+									checked={editLevelMode === 'kzk'}
+									onchange={() => (editLevelMode = 'kzk')}
+									class="sr-only"
+								/>
+								KZK Chapter
+							</label>
+						</div>
+						{#if editLevelMode === 'cefr'}
+							<select
+								bind:value={editCefrLevel}
+								class="mt-2 w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+							>
+								<option value="A1">A1</option>
+								<option value="A2">A2</option>
+								<option value="B1">B1</option>
+							</select>
+						{:else if editLevelMode === 'kzk'}
+							<select
+								bind:value={editKzkChapter}
+								class="mt-2 w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 text-sm text-text-default focus:border-emphasis focus:outline-none"
+							>
+								<optgroup label={kzkChapters.kzk1.label}>
+									{#each kzkChapters.kzk1.chapters as ch (ch.id)}
+										<option value={ch.id}>{ch.label} — {ch.subtitle}</option>
+									{/each}
+								</optgroup>
+								<optgroup label={kzkChapters.kzk2.label}>
+									{#each kzkChapters.kzk2.chapters as ch (ch.id)}
+										<option value={ch.id}>{ch.label} — {ch.subtitle}</option>
+									{/each}
+								</optgroup>
+							</select>
+						{/if}
+						<input type="hidden" name="content_level" value={editContentLevelValue} />
 					</div>
 
 					<!-- Target Questions -->

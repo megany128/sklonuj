@@ -35,6 +35,7 @@ interface AssignmentDetail {
 	selectedDrillTypes: string[];
 	numberMode: string;
 	contentMode: string;
+	includeAdjectives: boolean;
 	contentLevel: string | null;
 	targetQuestions: number;
 	dueDate: string | null;
@@ -157,7 +158,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	const { data: assignmentData, error: assignmentError } = await supabase
 		.from('assignments')
 		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, due_date, created_at'
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, include_adjectives, content_level, target_questions, due_date, created_at'
 		)
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
@@ -172,11 +173,22 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 		title: typeof assignmentData.title === 'string' ? assignmentData.title : '',
 		description: typeof assignmentData.description === 'string' ? assignmentData.description : null,
 		selectedCases: toStringArray(assignmentData.selected_cases),
-		selectedDrillTypes: toStringArray(assignmentData.selected_drill_types),
+		selectedDrillTypes: toStringArray(assignmentData.selected_drill_types).filter((dt) =>
+			VALID_DRILL_TYPES.has(dt)
+		),
 		numberMode:
 			typeof assignmentData.number_mode === 'string' ? assignmentData.number_mode : 'both',
-		contentMode:
-			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
+		contentMode: (() => {
+			const raw =
+				typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both';
+			// Normalize legacy values: 'adjectives' and 'all' are no longer valid content modes
+			if (raw === 'adjectives' || raw === 'all') return 'both';
+			return raw;
+		})(),
+		includeAdjectives:
+			assignmentData.include_adjectives === true ||
+			assignmentData.content_mode === 'adjectives' ||
+			assignmentData.content_mode === 'all',
 		contentLevel:
 			typeof assignmentData.content_level === 'string' ? assignmentData.content_level : null,
 		targetQuestions:
@@ -330,6 +342,7 @@ export const actions: Actions = {
 		const selectedDrillTypes = formData.getAll('selected_drill_types').map((v) => v.toString());
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
+		const includeAdjectives = formData.get('include_adjectives') === 'true';
 		const contentLevelRaw = (formData.get('content_level') ?? '').toString().trim();
 		const contentLevel =
 			contentLevelRaw &&
@@ -443,6 +456,7 @@ export const actions: Actions = {
 				selected_drill_types: selectedDrillTypes,
 				number_mode: numberMode,
 				content_mode: contentMode,
+				include_adjectives: includeAdjectives,
 				content_level: contentLevel,
 				target_questions: targetQuestions,
 				due_date: dueDate,
@@ -594,7 +608,7 @@ export const actions: Actions = {
 		const { data: original, error: fetchError } = await supabase
 			.from('assignments')
 			.select(
-				'title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions'
+				'title, description, selected_cases, selected_drill_types, number_mode, content_mode, include_adjectives, content_level, target_questions'
 			)
 			.eq('id', assignmentId)
 			.eq('class_id', classId)
@@ -612,10 +626,18 @@ export const actions: Actions = {
 				description: typeof original.description === 'string' ? original.description : null,
 				selected_cases: Array.isArray(original.selected_cases) ? original.selected_cases : [],
 				selected_drill_types: Array.isArray(original.selected_drill_types)
-					? original.selected_drill_types
+					? toStringArray(original.selected_drill_types).filter((dt) => VALID_DRILL_TYPES.has(dt))
 					: [],
 				number_mode: typeof original.number_mode === 'string' ? original.number_mode : 'both',
-				content_mode: typeof original.content_mode === 'string' ? original.content_mode : 'both',
+				content_mode: (() => {
+					const raw = typeof original.content_mode === 'string' ? original.content_mode : 'both';
+					if (raw === 'adjectives' || raw === 'all') return 'both';
+					return raw;
+				})(),
+				include_adjectives:
+					original.include_adjectives === true ||
+					original.content_mode === 'adjectives' ||
+					original.content_mode === 'all',
 				content_level: typeof original.content_level === 'string' ? original.content_level : null,
 				target_questions:
 					typeof original.target_questions === 'number' ? original.target_questions : 20,

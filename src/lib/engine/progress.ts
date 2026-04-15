@@ -7,6 +7,7 @@ import type {
 	CaseScore,
 	Case
 } from '../types.ts';
+import { getAdjectiveGenderKey } from './adjective-drill.ts';
 
 export const STORAGE_KEY = 'sklonuj_progress';
 export const STORAGE_USER_KEY = 'sklonuj_progress_user';
@@ -102,9 +103,11 @@ export function recordResult(result: DrillResult): void {
 		};
 
 		const paradigmKey =
-			result.question.wordCategory === 'pronoun' && result.question.pronoun
-				? `pronoun_${result.question.pronoun.lemma}_${result.question.case}_${result.question.number}`
-				: `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
+			result.question.wordCategory === 'adjective' && result.question.adjective
+				? `adj_${result.question.adjective.lemma}_${getAdjectiveGenderKey(result.question.word)}_${result.question.case}_${result.question.number}`
+				: result.question.wordCategory === 'pronoun' && result.question.pronoun
+					? `pronoun_${result.question.pronoun.lemma}_${result.question.case}_${result.question.number}`
+					: `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
 		const existingParadigm: CaseScore = current.paradigmScores[paradigmKey] ?? {
 			attempts: 0,
 			correct: 0
@@ -169,6 +172,23 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			attempts: existingParadigm.attempts + 1,
 			correct: existingParadigm.correct + (result.formCorrect ? 1 : 0)
 		};
+
+		// Record adjective form accuracy (if adjective step was present)
+		if (
+			result.question.adjective &&
+			result.adjectiveCorrect !== null &&
+			result.adjectiveCorrect !== undefined
+		) {
+			const adjKey = `adj_${result.question.adjective.lemma}_${getAdjectiveGenderKey(result.question.word)}_${result.question.case}_${result.question.number}`;
+			const existingAdj: CaseScore = current.paradigmScores[adjKey] ?? {
+				attempts: 0,
+				correct: 0
+			};
+			updates[adjKey] = {
+				attempts: existingAdj.attempts + 1,
+				correct: existingAdj.correct + (result.adjectiveCorrect ? 1 : 0)
+			};
+		}
 
 		return {
 			...current,

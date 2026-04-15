@@ -1,10 +1,12 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
-	import type { Case, DrillType, Number_ } from '$lib/types';
+	import type { AdjectiveGenderKey, Case, DrillType, Number_ } from '$lib/types';
 	import { CASE_COLORS, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import DottedUnderline from './DottedUnderline.svelte';
 	import FeedbackDeclensionChart from './FeedbackDeclensionChart.svelte';
+	import FeedbackAdjectiveDeclensionChart from './FeedbackAdjectiveDeclensionChart.svelte';
+	import FeedbackPronounDeclensionChart from './FeedbackPronounDeclensionChart.svelte';
 
 	let {
 		correctAnswer,
@@ -20,7 +22,10 @@
 		templateWhy,
 		whyNote,
 		onSpeak,
-		onWordClick
+		onWordClick,
+		adjectiveLemma = undefined,
+		adjectiveGenderKey = undefined,
+		pronounLemma = undefined
 	}: {
 		correctAnswer: string;
 		nominative?: string;
@@ -36,6 +41,9 @@
 		whyNote?: string | null;
 		onSpeak?: (text: string) => void;
 		onWordClick?: (lemma: string) => void;
+		adjectiveLemma?: string;
+		adjectiveGenderKey?: AdjectiveGenderKey;
+		pronounLemma?: string;
 	} = $props();
 
 	let hasWhy = $derived(!!templateWhy?.trim() || !!whyNote?.trim());
@@ -166,5 +174,18 @@
 
 	{#if nominative && number_}
 		<FeedbackDeclensionChart lemma={nominative} {case_} {number_} />
+	{/if}
+
+	{#if adjectiveLemma && adjectiveGenderKey && number_}
+		<FeedbackAdjectiveDeclensionChart
+			lemma={adjectiveLemma}
+			genderKey={adjectiveGenderKey}
+			{case_}
+			{number_}
+		/>
+	{/if}
+
+	{#if pronounLemma && number_}
+		<FeedbackPronounDeclensionChart lemma={pronounLemma} {case_} {number_} />
 	{/if}
 </div>

@@ -328,7 +328,7 @@
 	},
 	{
 		"id": "voc_ahoj_035",
-		"template": "Ahoj, ___!",
+		"template": "Ahoj, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -338,7 +338,7 @@
 	},
 	{
 		"id": "voc_prominte_036",
-		"template": "Promiňte, ___!",
+		"template": "Promiňte, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -348,7 +348,7 @@
 	},
 	{
 		"id": "voc_dekuji_037",
-		"template": "Děkuji, ___!",
+		"template": "Děkuji, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -359,7 +359,7 @@
 	},
 	{
 		"id": "voc_dobry_038",
-		"template": "Dobrý den, ___!",
+		"template": "Dobrý den, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1203,7 +1203,7 @@
 	},
 	{
 		"id": "voc_pojd_116",
-		"template": "Pojď sem, ___!",
+		"template": "Pojď sem, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1213,7 +1213,7 @@
 	},
 	{
 		"id": "voc_poslyste_117",
-		"template": "Poslyšte, ___!",
+		"template": "Poslyšte, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1223,7 +1223,7 @@
 	},
 	{
 		"id": "voc_nashledanou_118",
-		"template": "Na shledanou, ___!",
+		"template": "Na shledanou, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1233,7 +1233,7 @@
 	},
 	{
 		"id": "voc_prosim_119",
-		"template": "Prosím vás, ___!",
+		"template": "Prosím vás, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1243,7 +1243,7 @@
 	},
 	{
 		"id": "voc_pockejte_120",
-		"template": "Počkejte, ___!",
+		"template": "Počkejte, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1277,7 +1277,7 @@
 	},
 	{
 		"id": "voc_podivejte_122",
-		"template": "Podívejte se, ___!",
+		"template": "Podívejte se, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1287,7 +1287,7 @@
 	},
 	{
 		"id": "voc_pojdte_123",
-		"template": "Pojďte dál, ___!",
+		"template": "Pojďte dál, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -1298,7 +1298,7 @@
 	},
 	{
 		"id": "voc_pojd_124",
-		"template": "Pojď si sednout, ___!",
+		"template": "Pojď si sednout, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -1308,7 +1308,7 @@
 	},
 	{
 		"id": "voc_pomoc_125",
-		"template": "Pomoz mi, ___!",
+		"template": "Pomoz mi, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -1319,7 +1319,7 @@
 	},
 	{
 		"id": "voc_ahoj_126",
-		"template": "Čau, ___!",
+		"template": "Čau, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -1727,7 +1727,7 @@
 	},
 	{
 		"id": "voc_neboj_167",
-		"template": "Neboj se, ___!",
+		"template": "Neboj se, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -1788,7 +1788,7 @@
 	},
 	{
 		"id": "voc_dekuji_173",
-		"template": "Díky, ___!",
+		"template": "Díky, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -2325,7 +2325,7 @@
 	},
 	{
 		"id": "voc_ahoj_214",
-		"template": "Ahoj, ___!",
+		"template": "Ahoj, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -2336,7 +2336,7 @@
 	},
 	{
 		"id": "voc_dobryden_238",
-		"template": "Dobrý den, ___!",
+		"template": "Dobrý den, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "pl",
@@ -2346,7 +2346,7 @@
 	},
 	{
 		"id": "voc_pojdte_239",
-		"template": "Pojďte, ___!",
+		"template": "Pojďte, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -2357,7 +2357,7 @@
 	},
 	{
 		"id": "voc_diky_240",
-		"template": "Díky, ___!",
+		"template": "Díky, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "pl",
@@ -2575,7 +2575,7 @@
 	},
 	{
 		"id": "voc_proboha_248",
-		"template": "Pomoc, ___!",
+		"template": "Pomoc, ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -2585,7 +2585,7 @@
 	},
 	{
 		"id": "voc_maminko_249",
-		"template": "___, pojď sem!",
+		"template": "___, pojď sem.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -2596,7 +2596,7 @@
 	},
 	{
 		"id": "voc_pane_250",
-		"template": "Vážený ___!",
+		"template": "Vážený ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -2607,7 +2607,7 @@
 	},
 	{
 		"id": "voc_pani_251",
-		"template": "Vážená ___!",
+		"template": "Vážená ___.",
 		"lemmaCategory": "people",
 		"requiredCase": "voc",
 		"number": "sg",
@@ -2618,7 +2618,7 @@
 	},
 	{
 		"id": "voc_prosim_252",
-		"template": "Prosím tě, ___!",
+		"template": "Prosím tě, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -2629,7 +2629,7 @@
 	},
 	{
 		"id": "voc_pozor_254",
-		"template": "Pozor, ___!",
+		"template": "Pozor, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",
@@ -2640,7 +2640,7 @@
 	},
 	{
 		"id": "voc_neboj_255",
-		"template": "Neboj se, ___!",
+		"template": "Neboj se, ___.",
 		"lemmaCategory": "family",
 		"semanticTags": ["people"],
 		"requiredCase": "voc",

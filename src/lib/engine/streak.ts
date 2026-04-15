@@ -202,19 +202,12 @@ export async function loadStreakFromSupabase(supabase: SupabaseClient): Promise<
 	const remoteLongestStreak = data.longest_streak ?? 0;
 	const remoteLastPracticeDate = data.last_practice_date ?? '';
 
-	const local = get(streak);
-
-	// Use the larger value for streaks, and the more recent date
-	const mergedCurrentStreak = Math.max(local.currentStreak, remoteCurrentStreak);
-	const mergedLongestStreak = Math.max(local.longestStreak, remoteLongestStreak);
-	const mergedLastPracticeDate =
-		local.lastPracticeDate > remoteLastPracticeDate
-			? local.lastPracticeDate
-			: remoteLastPracticeDate;
-
+	// For logged-in users, Supabase is the source of truth.
+	// Replace localStorage entirely so stale local data from another account
+	// doesn't leak across users on the same device.
 	streak.set({
-		currentStreak: mergedCurrentStreak,
-		longestStreak: mergedLongestStreak,
-		lastPracticeDate: mergedLastPracticeDate
+		currentStreak: remoteCurrentStreak,
+		longestStreak: remoteLongestStreak,
+		lastPracticeDate: remoteLastPracticeDate
 	});
 }

@@ -38,6 +38,7 @@
 		PronounEntry,
 		Progress,
 		WordEntry,
+		WordMode,
 		SentenceTemplate
 	} from '$lib/types';
 	import {
@@ -86,8 +87,20 @@
 		makePlaceholderWord
 	} from '$lib/engine/pronoun-drill';
 	import {
+		getAdjectiveCandidates,
+		filterAdjectivesByTemplate,
+		weightedRandomAdjective,
+		loadAdjectiveTemplates,
+		generateAdjectiveSentenceDrill,
+		generateAdjectiveFormProduction,
+		getAdjectiveGenderKey,
+		getAdjectiveForm,
+		getAllAdjectiveAcceptedForms
+	} from '$lib/engine/adjective-drill';
+	import {
 		speak,
 		isTTSAvailable,
+		onCzechVoiceReady,
 		warmUpVoices,
 		playCorrectSound,
 		playStreakSound,
@@ -251,7 +264,8 @@
 				'multi_step'
 			],
 			numberMode: 'both',
-			contentMode: 'both'
+			contentMode: 'both',
+			wordMode: 'both'
 		};
 	}
 
@@ -284,8 +298,20 @@
 			obj.contentMode !== 'both'
 		)
 			return false;
+		if (
+			obj.wordMode !== undefined &&
+			obj.wordMode !== 'nouns' &&
+			obj.wordMode !== 'adjectives' &&
+			obj.wordMode !== 'both'
+		)
+			return false;
 		if (!obj.selectedCases.every((c: unknown) => isCaseValue(c))) return false;
-		if (!obj.selectedDrillTypes.every((dt: unknown) => isDrillType(dt))) return false;
+		if (!obj.selectedDrillTypes.every((dt: unknown) => isDrillType(dt))) {
+			// Some drill types may be legacy (e.g. adjective_agreement) - filter them
+			const filtered = obj.selectedDrillTypes.filter((dt: unknown) => isDrillType(dt));
+			if (filtered.length === 0) return false;
+			obj.selectedDrillTypes = filtered;
+		}
 		return true;
 	}
 
@@ -378,6 +404,7 @@
 		selectedDrillTypes: string[];
 		numberMode: 'sg' | 'pl' | 'both';
 		contentMode: string;
+		includeAdjectives?: boolean;
 		contentLevel: string | null;
 		targetQuestions: number;
 		attempted: number;
@@ -411,6 +438,10 @@
 		paradigmCorrect?: boolean;
 		caseCorrect?: boolean | null;
 		formCorrect?: boolean;
+		// Adjective step details
+		adjectiveCorrect?: boolean | null;
+		correctAdjectiveForm?: string;
+		userAdjectiveForm?: string;
 	}
 	let assignmentMistakes = $state<AssignmentMistake[]>([]);
 
@@ -450,6 +481,8 @@
 		selectedDrillTypes: string[];
 		numberMode: string;
 		contentMode: string;
+		includeAdjectives?: boolean;
+		wordMode?: WordMode;
 		contentLevel: string | null;
 		targetQuestions: number;
 		dueDate: string | null;
@@ -495,6 +528,7 @@
 								),
 								numberMode: typeof item.numberMode === 'string' ? item.numberMode : 'both',
 								contentMode: typeof item.contentMode === 'string' ? item.contentMode : 'both',
+								includeAdjectives: item.includeAdjectives === true,
 								contentLevel: typeof item.contentLevel === 'string' ? item.contentLevel : null,
 								targetQuestions: item.targetQuestions,
 								dueDate: typeof item.dueDate === 'string' ? item.dueDate : null,
@@ -642,6 +676,20 @@
 			completedAt: assignment.completedAt
 		};
 		const assignmentCases = assignment.selectedCases.filter(isCaseValue);
+		const assignmentWordMode: WordMode =
+			assignment.contentMode === 'adjectives'
+				? 'adjectives'
+				: assignment.contentMode === 'all' || assignment.includeAdjectives === true
+					? 'both'
+					: 'nouns';
+		const assignmentContentMode: ContentMode =
+			assignment.contentMode === 'nouns' ||
+			assignment.contentMode === 'pronouns' ||
+			assignment.contentMode === 'both'
+				? assignment.contentMode
+				: assignment.contentMode === 'adjectives'
+					? 'nouns'
+					: 'both';
 		drillSettings = {
 			selectedCases: assignmentCases,
 			selectedDrillTypes: assignment.selectedDrillTypes.filter(isDrillType),
@@ -649,12 +697,8 @@
 				assignment.numberMode === 'sg' || assignment.numberMode === 'pl'
 					? assignment.numberMode
 					: 'both',
-			contentMode:
-				assignment.contentMode === 'nouns' ||
-				assignment.contentMode === 'pronouns' ||
-				assignment.contentMode === 'both'
-					? assignment.contentMode
-					: 'both'
+			contentMode: assignmentContentMode,
+			wordMode: assignmentWordMode
 		};
 		enabledCases = assignmentCases.length > 0 ? [...assignmentCases] : [...ALL_CASES];
 		selectedCase = 'all';
@@ -1261,10 +1305,23 @@
 	// Derived: whether pronouns are unlocked at the current level
 	let pronounsUnlocked = $derived(curriculum[currentLevel]?.pronouns_unlocked ?? false);
 
-	// Derived: effective content mode (forced to nouns if pronouns not unlocked)
-	let effectiveContentMode: ContentMode = $derived(
-		pronounsUnlocked ? (drillSettings.contentMode ?? 'both') : 'nouns'
-	);
+	// Derived: whether adjectives are unlocked at the current level
+	let adjectivesUnlocked = $derived(curriculum[currentLevel]?.adjectives_unlocked ?? false);
+
+	// Derived: effective content mode (constrained by unlock state)
+	let effectiveContentMode: ContentMode = $derived.by(() => {
+		const mode = drillSettings.contentMode ?? 'both';
+		if (!pronounsUnlocked) {
+			if (mode === 'pronouns' || mode === 'both') return 'nouns';
+		}
+		return mode;
+	});
+
+	// Derived: effective word mode (constrained by unlock state)
+	let effectiveWordMode: WordMode = $derived.by(() => {
+		if (!adjectivesUnlocked) return 'nouns';
+		return drillSettings.wordMode ?? 'nouns';
+	});
 
 	// Derived: effective enabled cases (constrained by chapter if active)
 	let effectiveEnabledCases = $derived.by(() => {
@@ -1437,16 +1494,26 @@
 							return;
 						}
 						assignmentInfo = data;
+						const fetchedWordMode: WordMode =
+							data.contentMode === 'adjectives'
+								? 'adjectives'
+								: data.contentMode === 'all' || data.includeAdjectives === true
+									? 'both'
+									: 'nouns';
+						const fetchedContentMode: ContentMode =
+							data.contentMode === 'nouns' ||
+							data.contentMode === 'pronouns' ||
+							data.contentMode === 'both'
+								? data.contentMode
+								: data.contentMode === 'adjectives'
+									? 'nouns'
+									: 'both';
 						drillSettings = {
 							selectedCases: assignmentCases,
 							selectedDrillTypes: data.selectedDrillTypes.filter(isDrillType),
 							numberMode: data.numberMode,
-							contentMode:
-								data.contentMode === 'nouns' ||
-								data.contentMode === 'pronouns' ||
-								data.contentMode === 'both'
-									? data.contentMode
-									: 'both'
+							contentMode: fetchedContentMode,
+							wordMode: fetchedWordMode
 						};
 						enabledCases = [...assignmentCases];
 						selectedCase = 'all';
@@ -1622,9 +1689,13 @@
 		if (initialized) return;
 		initialized = true;
 		initDarkMode();
+		warmUpVoices();
 		ttsAvailable = isTTSAvailable();
-		if (ttsAvailable) {
-			warmUpVoices();
+		if (!ttsAvailable) {
+			// Chrome loads voices async — listen for when Czech voice becomes available
+			onCzechVoiceReady(() => {
+				ttsAvailable = true;
+			});
 		}
 		const storedAutoplay = localStorage.getItem('sklonuj_autoplay');
 		if (storedAutoplay !== null) {
@@ -1989,6 +2060,8 @@
 		}
 
 		const drillType = pickDrillType();
+		// multi_step is a noun-specific drill type (paradigm + case + form) — skip pronouns
+		if (drillType === 'multi_step') return null;
 		// Exclude vocative for pronoun drills (almost no pronoun has a vocative form)
 		const pronounCases: Case[] = (
 			selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]
@@ -2131,6 +2204,85 @@
 		}
 	}
 
+	function generateAdjectiveQuestion(requestedDrillType?: DrillType): DrillQuestion | null {
+		const prog = get(progress);
+		const levelConfig = curriculum[prog.level];
+		if (!levelConfig.adjectives_unlocked) return null;
+		const unlockedDifficulties = levelConfig.unlocked_difficulty;
+
+		// Get eligible adjectives
+		const adjCandidates = getAdjectiveCandidates(unlockedDifficulties);
+		if (adjCandidates.length === 0) return null;
+
+		// Get eligible nouns to pair with
+		const wordBank = loadWordBank();
+		const eligibleWords = wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty));
+		if (eligibleWords.length === 0) return null;
+
+		// Pick case
+		const activeCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+
+		// For form_production: pick a case/number directly and generate without a sentence template
+		if (requestedDrillType === 'form_production') {
+			const nonNomCases = activeCases.filter((c) => c !== 'nom');
+			if (nonNomCases.length === 0) return null;
+			const case_ = pickWeightedCase(nonNomCases);
+			let number_: Number_;
+			if (effectiveNumberMode === 'sg') number_ = 'sg';
+			else if (effectiveNumberMode === 'pl') number_ = 'pl';
+			else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+
+			// Find a noun to pair the adjective with (determines gender key)
+			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
+			if (validWords.length === 0) return null;
+			const word = weightedRandom(validWords, prog, case_, number_);
+			const genderKey = getAdjectiveGenderKey(word);
+
+			// Filter adjectives that have a valid form for this combination
+			const validAdjs = adjCandidates.filter(
+				(a) => getAdjectiveForm(a, genderKey, case_, number_) !== null
+			);
+			if (validAdjs.length === 0) return null;
+			const adj = weightedRandomAdjective(validAdjs, prog, case_, number_, word);
+			return generateAdjectiveFormProduction(adj, genderKey, case_, number_, word);
+		}
+
+		// For sentence_fill_in and case_identification: use sentence templates
+		const templates = loadAdjectiveTemplates();
+		const eligibleTemplates = templates.filter(
+			(t) =>
+				activeCases.includes(t.requiredCase) &&
+				matchesNumberMode(t.number) &&
+				unlockedDifficulties.includes(t.difficulty)
+		);
+		if (eligibleTemplates.length === 0) return null;
+
+		const template = pickTemplate(eligibleTemplates);
+		// Find a noun that matches template requirements
+		let templateWords = eligibleWords.filter((w) =>
+			hasValidForm(w, template.requiredCase, template.number)
+		);
+		if (template.requiredGender) {
+			templateWords = templateWords.filter((w) => w.gender === template.requiredGender);
+		}
+		if (typeof template.requiredAnimate === 'boolean') {
+			templateWords = templateWords.filter((w) => w.animate === template.requiredAnimate);
+		}
+		if (templateWords.length === 0) return null;
+
+		const word = weightedRandom(templateWords, prog, template.requiredCase, template.number);
+		const compatibleAdjs = filterAdjectivesByTemplate(adjCandidates, template);
+		if (compatibleAdjs.length === 0) return null;
+		const adj = weightedRandomAdjective(
+			compatibleAdjs,
+			prog,
+			template.requiredCase,
+			template.number,
+			word
+		);
+		return generateAdjectiveSentenceDrill(template, adj, word);
+	}
+
 	function generateFallbackQuestion(): DrillQuestion | null {
 		const wordBank = loadWordBank();
 		const prog = get(progress);
@@ -2211,15 +2363,17 @@
 			}
 		}
 
-		// Decide if this should be a pronoun question
-		const shouldDoPronoun = (() => {
-			if (effectiveContentMode === 'pronouns') return true;
-			if (effectiveContentMode === 'nouns') return false;
-			// 'both' mode: ~30% chance of pronoun
-			return Math.random() < 0.3;
+		// Decide content type for this question
+		const contentDecision = (() => {
+			if (effectiveWordMode === 'adjectives') return 'adjective' as const;
+			if (effectiveWordMode === 'both' && Math.random() < 0.3) return 'adjective' as const;
+			if (effectiveContentMode === 'pronouns') return 'pronoun' as const;
+			if (effectiveContentMode === 'nouns') return 'noun' as const;
+			// 'both': ~30% pronoun, ~70% noun
+			return Math.random() < 0.3 ? ('pronoun' as const) : ('noun' as const);
 		})();
 
-		if (shouldDoPronoun) {
+		if (contentDecision === 'pronoun') {
 			const pronounQ = generatePronounQuestion();
 			if (pronounQ) {
 				question = pronounQ;
@@ -2235,8 +2389,13 @@
 				autoPlayPrompt(pronounQ);
 				return;
 			}
-			// If pronoun generation failed, fall through to noun generation
+			// Fall through to noun generation if pronoun generation failed
 		}
+
+		// Adjective questions are handled in the main drill-type flow below:
+		// - multi_step: creates a multi-step question with adjective step attached
+		// - other types: generates an adjective sentence fill-in question
+		// So we don't short-circuit here — we fall through to pickDrillType().
 
 		const wordBank = loadWordBank();
 		const prog = get(progress);
@@ -2302,6 +2461,32 @@
 
 		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
+		// For adjective content with non-multi-step types, generate adjective drill
+		// form_production and sentence_fill_in are both supported; case_identification
+		// falls back to sentence_fill_in since adjective case ID is not yet implemented.
+		if (contentDecision === 'adjective' && drillType !== 'multi_step') {
+			const adjDrillType =
+				drillType === 'form_production' || drillType === 'sentence_fill_in'
+					? drillType
+					: 'sentence_fill_in';
+			const adjQ = generateAdjectiveQuestion(adjDrillType);
+			if (adjQ) {
+				question = adjQ;
+				multiStepQuestion = null;
+				lastResult = null;
+				paradigmNotes = null;
+				submitted = false;
+				lastTemplateId = adjQ.template.id;
+				if (advanceTimer !== null) {
+					clearTimeout(advanceTimer);
+					advanceTimer = null;
+				}
+				autoPlayPrompt(adjQ);
+				return;
+			}
+			// Fall through to noun generation if adjective generation failed
+		}
+
 		if (drillType === 'multi_step') {
 			// Multi-step: needs a template + word, produces a MultiStepQuestion
 			const templates = loadTemplates();
@@ -2312,7 +2497,11 @@
 					unlockedDifficulties.includes(t.difficulty)
 			);
 			if (msEligibleTemplates.length > 0) {
-				const template = pickTemplate(msEligibleTemplates);
+				// Prefer templates matching the weighted case pick to respect spaced repetition
+				const caseMatchTemplates = msEligibleTemplates.filter((t) => t.requiredCase === case_);
+				const template = pickTemplate(
+					caseMatchTemplates.length > 0 ? caseMatchTemplates : msEligibleTemplates
+				);
 				let candidates: WordEntry[];
 				if (isChapterMode) {
 					const diffFiltered = getCandidates(template, prog).filter((w) =>
@@ -2331,17 +2520,61 @@
 							w.categories.includes(template.lemmaCategory) &&
 							hasValidForm(w, template.requiredCase, template.number)
 					);
-					candidates = [...diffFiltered, ...chapterExtras];
+					candidates = [...diffFiltered, ...chapterExtras].filter((w) => !w.irregular);
 				} else {
-					candidates = getCandidates(template, prog).filter((w) =>
-						hasValidForm(w, template.requiredCase, template.number)
-					);
+					candidates = getCandidates(template, prog)
+						.filter((w) => hasValidForm(w, template.requiredCase, template.number))
+						.filter((w) => !w.irregular);
 				}
 				if (candidates.length > 0) {
 					const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
 					const showCaseStep = effectiveEnabledCases.length > 1;
 					const msq = generateMultiStepQuestion(word, template, showCaseStep);
 					if (msq) {
+						// Attach an adjective step if content decision was adjective, or randomly based on word mode
+						const wantAdj =
+							contentDecision === 'adjective' ||
+							effectiveWordMode === 'adjectives' ||
+							(effectiveWordMode === 'both' && Math.random() < 0.5);
+						if (wantAdj) {
+							const levelConfig = curriculum[prog.level];
+							if (levelConfig.adjectives_unlocked) {
+								const adjCands = getAdjectiveCandidates(levelConfig.unlocked_difficulty);
+								// Filter by semantic compatibility with the noun
+								const isPersonNoun = word.animate;
+								const compatAdjs = adjCands.filter((a) =>
+									a.categories.some(
+										(c) => c === 'universal' || (isPersonNoun ? c === 'person' : c === 'object')
+									)
+								);
+								if (compatAdjs.length > 0) {
+									const adj = weightedRandomAdjective(
+										compatAdjs,
+										prog,
+										template.requiredCase,
+										template.number,
+										word
+									);
+									const genderKey = getAdjectiveGenderKey(word);
+									const adjForm = getAdjectiveForm(
+										adj,
+										genderKey,
+										template.requiredCase,
+										template.number
+									);
+									if (adjForm) {
+										msq.adjective = adj;
+										msq.correctAdjectiveForm = adjForm;
+										msq.acceptedAdjectiveForms = getAllAdjectiveAcceptedForms(
+											adj,
+											genderKey,
+											template.requiredCase,
+											template.number
+										);
+									}
+								}
+							}
+						}
 						multiStepQuestion = msq;
 						question = null;
 						lastResult = null;
@@ -2647,6 +2880,7 @@
 	}
 
 	function lookupParadigmNotes(paradigmId: string, word: WordEntry): Record<string, string> | null {
+		if (word.irregular) return null;
 		const entry = paradigms.find((p) => p.id === paradigmId);
 		const notes: Record<string, string> = entry?.whyNotes ? { ...entry.whyNotes } : {};
 
@@ -2676,7 +2910,8 @@
 					m.question.word.lemma === result.question.word.lemma &&
 					m.question.case === result.question.case &&
 					m.question.number === result.question.number &&
-					m.question.drillType === result.question.drillType
+					m.question.drillType === result.question.drillType &&
+					(m.question.adjective?.lemma ?? null) === (result.question.adjective?.lemma ?? null)
 			);
 			if (!isReserved) {
 				mistakes = [...mistakes, result];
@@ -2684,13 +2919,17 @@
 
 			// Persist mistake to localStorage for review later
 			const lemma =
-				result.question.wordCategory === 'pronoun' && result.question.pronoun
-					? result.question.pronoun.lemma
-					: result.question.word.lemma;
+				result.question.wordCategory === 'adjective' && result.question.adjective
+					? result.question.adjective.lemma
+					: result.question.wordCategory === 'pronoun' && result.question.pronoun
+						? result.question.pronoun.lemma
+						: result.question.word.lemma;
 			const translation =
-				result.question.wordCategory === 'pronoun' && result.question.pronoun
-					? result.question.pronoun.translation
-					: result.question.word.translation;
+				result.question.wordCategory === 'adjective' && result.question.adjective
+					? result.question.adjective.translation
+					: result.question.wordCategory === 'pronoun' && result.question.pronoun
+						? result.question.pronoun.translation
+						: result.question.word.translation;
 			addMistake({
 				lemma,
 				translation,
@@ -2857,7 +3096,9 @@
 			recordAssignmentProgress(false, question?.case, question?.number);
 			checkAssignmentMatchToast();
 			streak = 0;
-			if (question.wordCategory === 'pronoun' && question.pronoun) {
+			if (question.wordCategory === 'adjective') {
+				paradigmNotes = null;
+			} else if (question.wordCategory === 'pronoun' && question.pronoun) {
 				paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
 			} else {
 				paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
@@ -2878,7 +3119,9 @@
 						m.question.word.lemma === lastResult!.question.word.lemma &&
 						m.question.case === lastResult!.question.case &&
 						m.question.number === lastResult!.question.number &&
-						m.question.drillType === lastResult!.question.drillType
+						m.question.drillType === lastResult!.question.drillType &&
+						(m.question.adjective?.lemma ?? null) ===
+							(lastResult!.question.adjective?.lemma ?? null)
 				);
 				if (idx !== -1) {
 					mistakes = mistakes.filter((_, i) => i !== idx);
@@ -2918,13 +3161,19 @@
 		recordSessionActivity(result.correct, result.question.case);
 		if (!result.correct && assignmentId) {
 			const q = result.question;
-			const lemma = q.wordCategory === 'pronoun' && q.pronoun ? q.pronoun.lemma : q.word.lemma;
+			const lemma =
+				q.wordCategory === 'adjective' && q.adjective
+					? q.adjective.lemma
+					: q.wordCategory === 'pronoun' && q.pronoun
+						? q.pronoun.lemma
+						: q.word.lemma;
 			let sentence: string | undefined;
 			let prompt: string | undefined;
 			if (
 				q.template &&
 				q.template.id !== '_form_production' &&
-				q.template.id !== '_pronoun_form_production'
+				q.template.id !== '_pronoun_form_production' &&
+				q.template.id !== '_adj_form_production'
 			) {
 				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
 				const voiced = applyPrepositionVoicing(q.template.template, form);
@@ -2980,7 +3229,9 @@
 		}
 
 		// Always populate paradigm notes so "Why?" explanations show for both correct and incorrect answers
-		if (question.wordCategory === 'pronoun' && question.pronoun) {
+		if (question.wordCategory === 'adjective') {
+			paradigmNotes = null;
+		} else if (question.wordCategory === 'pronoun' && question.pronoun) {
 			paradigmNotes = lookupPronounNotes(question.pronoun, question.case, question.number);
 		} else {
 			paradigmNotes = lookupParadigmNotes(question.word.paradigm, question.word);
@@ -3003,10 +3254,15 @@
 		scheduleSyncToSupabase();
 
 		// Count as correct only if all steps are correct
+		const adjectiveOk =
+			result.adjectiveCorrect === null ||
+			result.adjectiveCorrect === undefined ||
+			result.adjectiveCorrect;
 		const allCorrect =
 			result.paradigmCorrect &&
 			(result.caseCorrect === null || result.caseCorrect) &&
-			result.formCorrect;
+			result.formCorrect &&
+			adjectiveOk;
 
 		if (allCorrect) {
 			sessionCorrect++;
@@ -3062,6 +3318,9 @@
 				paradigmCorrect: result.paradigmCorrect,
 				caseCorrect: result.caseCorrect,
 				formCorrect: result.formCorrect,
+				adjectiveCorrect: result.adjectiveCorrect,
+				correctAdjectiveForm: result.question.correctAdjectiveForm,
+				userAdjectiveForm: result.userAdjectiveForm,
 				...(msSentence ? { sentence: msSentence } : {}),
 				...(msPrompt ? { prompt: msPrompt } : {})
 			};
@@ -3077,7 +3336,8 @@
 			level: currentLevel,
 			paradigmCorrect: result.paradigmCorrect,
 			caseCorrect: result.caseCorrect,
-			formCorrect: result.formCorrect
+			formCorrect: result.formCorrect,
+			adjectiveCorrect: result.adjectiveCorrect
 		});
 		if (sessionCount === 10) {
 			posthog.capture('ten_questions_completed', { level: currentLevel });
@@ -3100,6 +3360,7 @@
 		selectedDrillTypes: DrillType[];
 		numberMode: 'sg' | 'pl' | 'both';
 		contentMode?: ContentMode;
+		wordMode?: WordMode;
 	}): void {
 		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
@@ -3165,7 +3426,11 @@
 
 	function questionPromptText(q: DrillQuestion): string {
 		if (q.drillType === 'form_production') {
-			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? q.word.lemma) : q.word.lemma;
+			return q.wordCategory === 'adjective' && q.adjective
+				? q.adjective.lemma
+				: q.wordCategory === 'pronoun'
+					? (q.pronoun?.lemma ?? q.word.lemma)
+					: q.word.lemma;
 		} else if (q.drillType === 'sentence_fill_in') {
 			const form =
 				q.wordCategory === 'pronoun'
@@ -3850,7 +4115,9 @@
 					selectedDrillTypes={drillSettings.selectedDrillTypes}
 					numberMode={effectiveNumberMode}
 					contentMode={drillSettings.contentMode ?? 'nouns'}
+					wordMode={drillSettings.wordMode ?? 'nouns'}
 					{pronounsUnlocked}
+					{adjectivesUnlocked}
 					onSettingsChange={handleSettingsChange}
 					hiddenDrillTypes={(() => {
 						const hidden: DrillType[] = [];

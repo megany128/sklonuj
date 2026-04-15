@@ -124,6 +124,53 @@ function getTotalCorrect(): number {
 	return total;
 }
 
+/**
+ * Get adjective drill stats from paradigmScores.
+ * Adjective entries use keys prefixed with "adj_".
+ */
+function getAdjectiveStats(): { attempts: number; correct: number } {
+	const current = get(progress);
+	let attempts = 0;
+	let correct = 0;
+	for (const [key, score] of Object.entries(current.paradigmScores)) {
+		if (key.startsWith('adj_')) {
+			attempts += score.attempts;
+			correct += score.correct;
+		}
+	}
+	return { attempts, correct };
+}
+
+/**
+ * Check whether the user has practiced both hard and soft paradigm adjectives.
+ * Hard adjective lemmas end in -y (e.g. "velky"), soft in -i (e.g. "moderni").
+ * We infer paradigm type from the key format: adj_{lemma}_{genderKey}_{case}_{number}.
+ */
+function hasHardAndSoftAdjectiveAttempts(): boolean {
+	const current = get(progress);
+	let hasHard = false;
+	let hasSoft = false;
+	for (const key of Object.keys(current.paradigmScores)) {
+		if (!key.startsWith('adj_')) continue;
+		// Extract lemma from key: adj_{lemma}_{genderKey}_{case}_{number}
+		const parts = key.split('_');
+		// parts[0] = "adj", parts[1] = lemma, rest depends on gender key length
+		// Gender keys: m_anim, m_inanim, f, n — but these get split by _
+		// So we need to find the lemma which is parts[1]
+		const lemma = parts[1];
+		if (!lemma) continue;
+		// Soft paradigm adjectives: lemma ends in -i (e.g. "moderni", "cizi")
+		// Hard paradigm adjectives: lemma ends in -y (e.g. "velky", "novy")
+		if (lemma.endsWith('í') || lemma.endsWith('i')) {
+			hasSoft = true;
+		} else if (lemma.endsWith('ý') || lemma.endsWith('y')) {
+			hasHard = true;
+		}
+		if (hasHard && hasSoft) return true;
+	}
+	return false;
+}
+
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 	{
 		id: 'first_steps',
@@ -245,6 +292,38 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 		icon: '\u{2B50}',
 		condition: '20 correct in a row',
 		check: (ctx) => ctx.streak >= 20
+	},
+	{
+		id: 'adjective_debut',
+		name: 'Adjective Debut',
+		description: 'Complete your first adjective drill question',
+		icon: '\u{1F3A8}',
+		condition: 'Answer 1 adjective question',
+		check: () => getAdjectiveStats().attempts >= 1
+	},
+	{
+		id: 'adjective_ace',
+		name: 'Adjective Ace',
+		description: 'Reach 80%+ accuracy on adjective drills (min 20 questions)',
+		icon: '\u{1F48E}',
+		condition: '80%+ adjective accuracy (20+ questions)',
+		check: () => {
+			const stats = getAdjectiveStats();
+			return stats.attempts >= 20 && stats.correct / stats.attempts >= 0.8;
+		},
+		getProgress: () => {
+			const stats = getAdjectiveStats();
+			if (stats.attempts < 20) return { current: stats.attempts, target: 20 };
+			return { current: Math.round((stats.correct / stats.attempts) * 100), target: 80 };
+		}
+	},
+	{
+		id: 'adjective_polyglot',
+		name: 'Tvrdý i Měkký',
+		description: 'Practice both hard and soft paradigm adjectives',
+		icon: '\u{1F9CA}',
+		condition: 'Drill both hard (-y) and soft (-i) adjectives',
+		check: () => hasHardAndSoftAdjectiveAttempts()
 	}
 ];
 
@@ -350,7 +429,10 @@ const CONTEXT_FREE_BADGE_IDS: ReadonlySet<string> = new Set([
 	'thousand_strong',
 	'case_cracker',
 	'polyglot_cases',
-	'week_warrior'
+	'week_warrior',
+	'adjective_debut',
+	'adjective_ace',
+	'adjective_polyglot'
 ]);
 
 /**
@@ -461,8 +543,6 @@ export async function loadBadgesFromSupabase(supabase: SupabaseClient): Promise<
 		return;
 	}
 
-	const local = loadEarnedBadges();
-
 	interface BadgeRow {
 		badge_id: string;
 		earned_at: string;
@@ -486,18 +566,14 @@ export async function loadBadgesFromSupabase(supabase: SupabaseClient): Promise<
 		return result;
 	}
 
+	// For logged-in users, Supabase is the source of truth.
+	// Replace localStorage entirely so stale local badges from another account
+	// don't leak across users on the same device.
+	const remoteBadges: Record<string, EarnedBadge> = {};
 	const rows = toBadgeRows(data);
 	for (const row of rows) {
-		const existing = local[row.badge_id];
-		if (!existing) {
-			local[row.badge_id] = { earnedAt: row.earned_at };
-		} else {
-			// Keep the earlier date
-			if (row.earned_at < existing.earnedAt) {
-				local[row.badge_id] = { earnedAt: row.earned_at };
-			}
-		}
+		remoteBadges[row.badge_id] = { earnedAt: row.earned_at };
 	}
 
-	saveEarnedBadges(local);
+	saveEarnedBadges(remoteBadges);
 }

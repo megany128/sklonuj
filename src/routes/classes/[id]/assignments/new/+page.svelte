@@ -69,6 +69,47 @@
 			return formResult.contentMode;
 		return 'both';
 	});
+	let formIncludeAdjectives = $derived.by(() => {
+		if (isRecord(formResult) && typeof formResult.includeAdjectives === 'boolean')
+			return formResult.includeAdjectives;
+		return false;
+	});
+
+	// Multi-select content toggles
+	let nounsSelected = $state(true);
+	let pronounsSelected = $state(true);
+	let adjectivesSelected = $state(false);
+
+	// Keep in sync when form result changes (e.g. after server validation error)
+	$effect(() => {
+		nounsSelected = formContentMode === 'both' || formContentMode === 'nouns';
+		pronounsSelected = formContentMode === 'both' || formContentMode === 'pronouns';
+		adjectivesSelected = formIncludeAdjectives;
+	});
+
+	let derivedContentMode = $derived(
+		nounsSelected && pronounsSelected ? 'both' : nounsSelected ? 'nouns' : 'pronouns'
+	);
+	let derivedIncludeAdjectives = $derived(adjectivesSelected);
+
+	function toggleContent(type: 'nouns' | 'pronouns' | 'adjectives') {
+		const total =
+			(nounsSelected ? 1 : 0) + (pronounsSelected ? 1 : 0) + (adjectivesSelected ? 1 : 0);
+		if (type === 'nouns') {
+			if (nounsSelected && total <= 1) return;
+			// Prevent leaving only adjectives selected (no nouns or pronouns)
+			if (nounsSelected && !pronounsSelected) return;
+			nounsSelected = !nounsSelected;
+		} else if (type === 'pronouns') {
+			if (pronounsSelected && total <= 1) return;
+			// Prevent leaving only adjectives selected (no nouns or pronouns)
+			if (pronounsSelected && !nounsSelected) return;
+			pronounsSelected = !pronounsSelected;
+		} else {
+			if (adjectivesSelected && total <= 1) return;
+			adjectivesSelected = !adjectivesSelected;
+		}
+	}
 	let formContentLevel = $derived.by(() => {
 		if (isRecord(formResult) && typeof formResult.contentLevel === 'string')
 			return formResult.contentLevel;
@@ -351,25 +392,44 @@
 						</div>
 					</div>
 
-					<!-- Content Mode -->
+					<!-- Content -->
 					<div class="mb-4">
 						<p class="mb-2 text-sm font-medium text-text-default">Content</p>
 						<div class="flex gap-2">
-							{#each [['both', 'Both'], ['nouns', 'Nouns Only'], ['pronouns', 'Pronouns Only']] as [value, label] (value)}
-								<label
-									class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
-								>
-									<input
-										type="radio"
-										name="content_mode"
-										{value}
-										checked={formContentMode === value}
-										class="sr-only"
-									/>
-									{label}
-								</label>
-							{/each}
+							<button
+								type="button"
+								class="rounded-full border px-3 py-1.5 text-xs {nounsSelected
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-default'}"
+								onclick={() => toggleContent('nouns')}
+							>
+								Nouns
+							</button>
+							<button
+								type="button"
+								class="rounded-full border px-3 py-1.5 text-xs {pronounsSelected
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-default'}"
+								onclick={() => toggleContent('pronouns')}
+							>
+								Pronouns
+							</button>
+							<button
+								type="button"
+								class="rounded-full border px-3 py-1.5 text-xs {adjectivesSelected
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-default'}"
+								onclick={() => toggleContent('adjectives')}
+							>
+								Adjectives
+							</button>
 						</div>
+						<input type="hidden" name="content_mode" value={derivedContentMode} />
+						<input
+							type="hidden"
+							name="include_adjectives"
+							value={derivedIncludeAdjectives ? 'true' : 'false'}
+						/>
 					</div>
 
 					<!-- Level -->

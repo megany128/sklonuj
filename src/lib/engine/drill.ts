@@ -19,6 +19,8 @@ import { CASE_INDEX, isCase, isNumber } from '../types';
 import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
+import { stripDiacritics } from '../utils/diacritics';
+import { checkAdjectiveAnswer as checkAdjectiveAnswerImpl } from './adjective-drill';
 
 export interface CurriculumLevel {
 	unlocked_cases: string[];
@@ -74,6 +76,7 @@ interface RawWordBankEntry {
 	difficulty: string;
 	categories: string[];
 	pluralOnly?: boolean;
+	irregular?: boolean;
 	forms: {
 		sg: unknown;
 		pl: unknown;
@@ -134,6 +137,10 @@ export function loadWordBank(): WordEntry[] {
 
 		if (entry.pluralOnly) {
 			base.pluralOnly = true;
+		}
+
+		if (entry.irregular) {
+			base.irregular = true;
 		}
 
 		if (entry.variantForms) {
@@ -336,44 +343,8 @@ export function generateMultiStepQuestion(
 	};
 }
 
-const DIACRITICS_MAP: Record<string, string> = {
-	ě: 'e',
-	š: 's',
-	č: 'c',
-	ř: 'r',
-	ž: 'z',
-	ý: 'y',
-	á: 'a',
-	í: 'i',
-	é: 'e',
-	ú: 'u',
-	ů: 'u',
-	ď: 'd',
-	ť: 't',
-	ň: 'n',
-	Ě: 'E',
-	Š: 'S',
-	Č: 'C',
-	Ř: 'R',
-	Ž: 'Z',
-	Ý: 'Y',
-	Á: 'A',
-	Í: 'I',
-	É: 'E',
-	Ú: 'U',
-	Ů: 'U',
-	Ď: 'D',
-	Ť: 'T',
-	Ň: 'N'
-};
-
-export function stripDiacritics(s: string): string {
-	let result = '';
-	for (const ch of s) {
-		result += DIACRITICS_MAP[ch] ?? ch;
-	}
-	return result;
-}
+// Re-export for callers that import stripDiacritics from this module
+export { stripDiacritics };
 
 /** Collect all accepted forms for a question: primary + variant forms. */
 function getAllAcceptedForms(question: DrillQuestion): string[] {
@@ -396,7 +367,7 @@ function getAllAcceptedForms(question: DrillQuestion): string[] {
 export function checkAnswer(
 	question: DrillQuestion,
 	userAnswer: string,
-	level: Difficulty = 'A1'
+	_level: Difficulty = 'A1'
 ): DrillResult | null {
 	const trimmedUser = userAnswer.trim().toLowerCase();
 	const trimmedCorrect = question.correctAnswer.trim().toLowerCase();
@@ -408,6 +379,11 @@ export function checkAnswer(
 			`[drill] Skipping question with empty correct answer: word="${question.word.lemma}", case=${question.case}, number=${question.number}`
 		);
 		return null;
+	}
+
+	// Delegate adjective questions to the adjective-specific checker
+	if (question.wordCategory === 'adjective') {
+		return checkAdjectiveAnswerImpl(question, userAnswer, _level);
 	}
 
 	// Delegate pronoun questions to the pronoun-specific checker
@@ -462,10 +438,6 @@ export function checkAnswer(
 		for (const form of accepted) {
 			const stripped = stripDiacritics(form.trim().toLowerCase());
 			if (strippedUser === stripped) {
-				const strictDiacritics = level === 'B1' || level === 'B2';
-				if (strictDiacritics) {
-					return { question, userAnswer, correct: false, nearMiss: true };
-				}
 				return { question, userAnswer, correct: true, nearMiss: true };
 			}
 		}
@@ -494,11 +466,6 @@ export function checkAnswer(
 	for (const form of acceptedForms) {
 		const strippedForm = stripDiacritics(form.trim().toLowerCase());
 		if (strippedUser === strippedForm) {
-			// At B1/B2, missing diacritics are marked wrong; at A1/A2, they are a near miss (correct but flagged)
-			const strictDiacritics = level === 'B1' || level === 'B2';
-			if (strictDiacritics) {
-				return { question, userAnswer, correct: false, nearMiss: true };
-			}
 			return { question, userAnswer, correct: true, nearMiss: true };
 		}
 	}
@@ -537,7 +504,7 @@ export function checkAnswer(
 export function checkMultiStepForm(
 	question: MultiStepQuestion,
 	userForm: string,
-	level: Difficulty = 'A1'
+	_level: Difficulty = 'A1'
 ): { correct: boolean; nearMiss: boolean } {
 	const trimmedUser = userForm.trim().toLowerCase();
 	const trimmedCorrect = question.correctForm.trim().toLowerCase();
@@ -572,10 +539,6 @@ export function checkMultiStepForm(
 	for (const form of acceptedForms) {
 		const strippedForm = stripDiacritics(form.trim().toLowerCase());
 		if (strippedUser === strippedForm) {
-			const strictDiacritics = level === 'B1' || level === 'B2';
-			if (strictDiacritics) {
-				return { correct: false, nearMiss: true };
-			}
 			return { correct: true, nearMiss: true };
 		}
 	}

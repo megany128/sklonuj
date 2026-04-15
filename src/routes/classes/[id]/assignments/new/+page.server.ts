@@ -97,6 +97,7 @@ interface FormValues {
 	selectedDrillTypes: string[];
 	numberMode: string;
 	contentMode: string;
+	includeAdjectives: boolean;
 	contentLevel: string;
 	targetQuestions: string;
 	dueDate: string;
@@ -111,6 +112,7 @@ function failWithFormData(status: 400 | 403 | 500, message: string, values: Form
 		selectedDrillTypes: values.selectedDrillTypes,
 		numberMode: values.numberMode,
 		contentMode: values.contentMode,
+		includeAdjectives: values.includeAdjectives,
 		contentLevel: values.contentLevel,
 		targetQuestions: values.targetQuestions,
 		dueDate: values.dueDate
@@ -129,6 +131,7 @@ export const actions: Actions = {
 		const selectedDrillTypes = formData.getAll('selected_drill_types').map((v) => v.toString());
 		const numberMode = (formData.get('number_mode') ?? 'both').toString();
 		const contentMode = (formData.get('content_mode') ?? 'both').toString();
+		const includeAdjectives = formData.get('include_adjectives') === 'true';
 		const contentLevel = (formData.get('content_level') ?? '').toString().trim();
 		const targetQuestionsRaw = (formData.get('target_questions') ?? '20').toString();
 		const dueDateRaw = (formData.get('due_date') ?? '').toString();
@@ -140,6 +143,7 @@ export const actions: Actions = {
 			selectedDrillTypes,
 			numberMode,
 			contentMode,
+			includeAdjectives,
 			contentLevel,
 			targetQuestions: targetQuestionsRaw,
 			dueDate: dueDateRaw
@@ -250,6 +254,7 @@ export const actions: Actions = {
 				selected_drill_types: selectedDrillTypes,
 				number_mode: numberMode,
 				content_mode: contentMode,
+				include_adjectives: includeAdjectives,
 				content_level: contentLevel || null,
 				target_questions: targetQuestions,
 				due_date: dueDate
@@ -305,6 +310,7 @@ export const actions: Actions = {
 						selected_drill_types: selectedDrillTypes,
 						number_mode: numberMode,
 						content_mode: contentMode,
+						include_adjectives: includeAdjectives,
 						content_level: contentLevel || null,
 						target_questions: targetQuestions,
 						due_date: dueDate

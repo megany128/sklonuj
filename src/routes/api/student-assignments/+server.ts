@@ -66,7 +66,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	const { data: assignmentsData, error: assignmentsError } = await supabase
 		.from('assignments')
 		.select(
-			'id, class_id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, due_date'
+			'id, class_id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, due_date, include_adjectives'
 		)
 		.in('class_id', classIds);
 
@@ -119,6 +119,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 		selectedDrillTypes: string[];
 		numberMode: string;
 		contentMode: string;
+		includeAdjectives: boolean;
 		contentLevel: string | null;
 		targetQuestions: number;
 		dueDate: string | null;
@@ -145,6 +146,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 			selectedDrillTypes: toStringArray(a.selected_drill_types),
 			numberMode: typeof a.number_mode === 'string' ? a.number_mode : 'both',
 			contentMode: typeof a.content_mode === 'string' ? a.content_mode : 'both',
+			includeAdjectives: a.include_adjectives === true,
 			contentLevel: typeof a.content_level === 'string' ? a.content_level : null,
 			targetQuestions: typeof a.target_questions === 'number' ? a.target_questions : 0,
 			dueDate: typeof a.due_date === 'string' ? a.due_date : null,

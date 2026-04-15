@@ -1,0 +1,2498 @@
+[
+	{
+		"lemma": "nový",
+		"translation": "new",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["nový", "nového", "novému", "nového", "nový", "novém", "novým"],
+				"pl": ["noví", "nových", "novým", "nové", "noví", "nových", "novými"]
+			},
+			"m_inanim": {
+				"sg": ["nový", "nového", "novému", "nový", "nový", "novém", "novým"],
+				"pl": ["nové", "nových", "novým", "nové", "nové", "nových", "novými"]
+			},
+			"f": {
+				"sg": ["nová", "nové", "nové", "novou", "nová", "nové", "novou"],
+				"pl": ["nové", "nových", "novým", "nové", "nové", "nových", "novými"]
+			},
+			"n": {
+				"sg": ["nové", "nového", "novému", "nové", "nové", "novém", "novým"],
+				"pl": ["nová", "nových", "novým", "nová", "nová", "nových", "novými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "starý",
+		"translation": "old (of an object)",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["starý", "starého", "starému", "starého", "starý", "starém", "starým"],
+				"pl": ["staří", "starých", "starým", "staré", "staří", "starých", "starými"]
+			},
+			"m_inanim": {
+				"sg": ["starý", "starého", "starému", "starý", "starý", "starém", "starým"],
+				"pl": ["staré", "starých", "starým", "staré", "staré", "starých", "starými"]
+			},
+			"f": {
+				"sg": ["stará", "staré", "staré", "starou", "stará", "staré", "starou"],
+				"pl": ["staré", "starých", "starým", "staré", "staré", "starých", "starými"]
+			},
+			"n": {
+				"sg": ["staré", "starého", "starému", "staré", "staré", "starém", "starým"],
+				"pl": ["stará", "starých", "starým", "stará", "stará", "starých", "starými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "dobrý",
+		"translation": "good",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["dobrý", "dobrého", "dobrému", "dobrého", "dobrý", "dobrém", "dobrým"],
+				"pl": ["dobří", "dobrých", "dobrým", "dobré", "dobří", "dobrých", "dobrými"]
+			},
+			"m_inanim": {
+				"sg": ["dobrý", "dobrého", "dobrému", "dobrý", "dobrý", "dobrém", "dobrým"],
+				"pl": ["dobré", "dobrých", "dobrým", "dobré", "dobré", "dobrých", "dobrými"]
+			},
+			"f": {
+				"sg": ["dobrá", "dobré", "dobré", "dobrou", "dobrá", "dobré", "dobrou"],
+				"pl": ["dobré", "dobrých", "dobrým", "dobré", "dobré", "dobrých", "dobrými"]
+			},
+			"n": {
+				"sg": ["dobré", "dobrého", "dobrému", "dobré", "dobré", "dobrém", "dobrým"],
+				"pl": ["dobrá", "dobrých", "dobrým", "dobrá", "dobrá", "dobrých", "dobrými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "velký",
+		"translation": "big",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["size", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["velký", "velkého", "velkému", "velkého", "velký", "velkém", "velkým"],
+				"pl": ["velcí", "velkých", "velkým", "velké", "velcí", "velkých", "velkými"]
+			},
+			"m_inanim": {
+				"sg": ["velký", "velkého", "velkému", "velký", "velký", "velkém", "velkým"],
+				"pl": ["velké", "velkých", "velkým", "velké", "velké", "velkých", "velkými"]
+			},
+			"f": {
+				"sg": ["velká", "velké", "velké", "velkou", "velká", "velké", "velkou"],
+				"pl": ["velké", "velkých", "velkým", "velké", "velké", "velkých", "velkými"]
+			},
+			"n": {
+				"sg": ["velké", "velkého", "velkému", "velké", "velké", "velkém", "velkým"],
+				"pl": ["velká", "velkých", "velkým", "velká", "velká", "velkých", "velkými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "malý",
+		"translation": "small",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["size", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["malý", "malého", "malému", "malého", "malý", "malém", "malým"],
+				"pl": ["malí", "malých", "malým", "malé", "malí", "malých", "malými"]
+			},
+			"m_inanim": {
+				"sg": ["malý", "malého", "malému", "malý", "malý", "malém", "malým"],
+				"pl": ["malé", "malých", "malým", "malé", "malé", "malých", "malými"]
+			},
+			"f": {
+				"sg": ["malá", "malé", "malé", "malou", "malá", "malé", "malou"],
+				"pl": ["malé", "malých", "malým", "malé", "malé", "malých", "malými"]
+			},
+			"n": {
+				"sg": ["malé", "malého", "malému", "malé", "malé", "malém", "malým"],
+				"pl": ["malá", "malých", "malým", "malá", "malá", "malých", "malými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "hezký",
+		"translation": "nice, pretty",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["hezký", "hezkého", "hezkému", "hezkého", "hezký", "hezkém", "hezkým"],
+				"pl": ["hezcí", "hezkých", "hezkým", "hezké", "hezcí", "hezkých", "hezkými"]
+			},
+			"m_inanim": {
+				"sg": ["hezký", "hezkého", "hezkému", "hezký", "hezký", "hezkém", "hezkým"],
+				"pl": ["hezké", "hezkých", "hezkým", "hezké", "hezké", "hezkých", "hezkými"]
+			},
+			"f": {
+				"sg": ["hezká", "hezké", "hezké", "hezkou", "hezká", "hezké", "hezkou"],
+				"pl": ["hezké", "hezkých", "hezkým", "hezké", "hezké", "hezkých", "hezkými"]
+			},
+			"n": {
+				"sg": ["hezké", "hezkého", "hezkému", "hezké", "hezké", "hezkém", "hezkým"],
+				"pl": ["hezká", "hezkých", "hezkým", "hezká", "hezká", "hezkých", "hezkými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "mladý",
+		"translation": "young",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["mladý", "mladého", "mladému", "mladého", "mladý", "mladém", "mladým"],
+				"pl": ["mladí", "mladých", "mladým", "mladé", "mladí", "mladých", "mladými"]
+			},
+			"m_inanim": {
+				"sg": ["mladý", "mladého", "mladému", "mladý", "mladý", "mladém", "mladým"],
+				"pl": ["mladé", "mladých", "mladým", "mladé", "mladé", "mladých", "mladými"]
+			},
+			"f": {
+				"sg": ["mladá", "mladé", "mladé", "mladou", "mladá", "mladé", "mladou"],
+				"pl": ["mladé", "mladých", "mladým", "mladé", "mladé", "mladých", "mladými"]
+			},
+			"n": {
+				"sg": ["mladé", "mladého", "mladému", "mladé", "mladé", "mladém", "mladým"],
+				"pl": ["mladá", "mladých", "mladým", "mladá", "mladá", "mladých", "mladými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "český",
+		"translation": "Czech",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["český", "českého", "českému", "českého", "český", "českém", "českým"],
+				"pl": ["čeští", "českých", "českým", "české", "čeští", "českých", "českými"]
+			},
+			"m_inanim": {
+				"sg": ["český", "českého", "českému", "český", "český", "českém", "českým"],
+				"pl": ["české", "českých", "českým", "české", "české", "českých", "českými"]
+			},
+			"f": {
+				"sg": ["česká", "české", "české", "českou", "česká", "české", "českou"],
+				"pl": ["české", "českých", "českým", "české", "české", "českých", "českými"]
+			},
+			"n": {
+				"sg": ["české", "českého", "českému", "české", "české", "českém", "českým"],
+				"pl": ["česká", "českých", "českým", "česká", "česká", "českých", "českými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "první",
+		"translation": "first",
+		"difficulty": "A1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["první", "prvního", "prvnímu", "prvního", "první", "prvním", "prvním"],
+				"pl": ["první", "prvních", "prvním", "první", "první", "prvních", "prvními"]
+			},
+			"m_inanim": {
+				"sg": ["první", "prvního", "prvnímu", "první", "první", "prvním", "prvním"],
+				"pl": ["první", "prvních", "prvním", "první", "první", "prvních", "prvními"]
+			},
+			"f": {
+				"sg": ["první", "první", "první", "první", "první", "první", "první"],
+				"pl": ["první", "prvních", "prvním", "první", "první", "prvních", "prvními"]
+			},
+			"n": {
+				"sg": ["první", "prvního", "prvnímu", "první", "první", "prvním", "prvním"],
+				"pl": ["první", "prvních", "prvním", "první", "první", "prvních", "prvními"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "krásný",
+		"translation": "beautiful",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["krásný", "krásného", "krásnému", "krásného", "krásný", "krásném", "krásným"],
+				"pl": ["krásní", "krásných", "krásným", "krásné", "krásní", "krásných", "krásnými"]
+			},
+			"m_inanim": {
+				"sg": ["krásný", "krásného", "krásnému", "krásný", "krásný", "krásném", "krásným"],
+				"pl": ["krásné", "krásných", "krásným", "krásné", "krásné", "krásných", "krásnými"]
+			},
+			"f": {
+				"sg": ["krásná", "krásné", "krásné", "krásnou", "krásná", "krásné", "krásnou"],
+				"pl": ["krásné", "krásných", "krásným", "krásné", "krásné", "krásných", "krásnými"]
+			},
+			"n": {
+				"sg": ["krásné", "krásného", "krásnému", "krásné", "krásné", "krásném", "krásným"],
+				"pl": ["krásná", "krásných", "krásným", "krásná", "krásná", "krásných", "krásnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "špatný",
+		"translation": "bad",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["špatný", "špatného", "špatnému", "špatného", "špatný", "špatném", "špatným"],
+				"pl": ["špatní", "špatných", "špatným", "špatné", "špatní", "špatných", "špatnými"]
+			},
+			"m_inanim": {
+				"sg": ["špatný", "špatného", "špatnému", "špatný", "špatný", "špatném", "špatným"],
+				"pl": ["špatné", "špatných", "špatným", "špatné", "špatné", "špatných", "špatnými"]
+			},
+			"f": {
+				"sg": ["špatná", "špatné", "špatné", "špatnou", "špatná", "špatné", "špatnou"],
+				"pl": ["špatné", "špatných", "špatným", "špatné", "špatné", "špatných", "špatnými"]
+			},
+			"n": {
+				"sg": ["špatné", "špatného", "špatnému", "špatné", "špatné", "špatném", "špatným"],
+				"pl": ["špatná", "špatných", "špatným", "špatná", "špatná", "špatných", "špatnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "dlouhý",
+		"translation": "long",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["size", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["dlouhý", "dlouhého", "dlouhému", "dlouhého", "dlouhý", "dlouhém", "dlouhým"],
+				"pl": ["dlouzí", "dlouhých", "dlouhým", "dlouhé", "dlouzí", "dlouhých", "dlouhými"]
+			},
+			"m_inanim": {
+				"sg": ["dlouhý", "dlouhého", "dlouhému", "dlouhý", "dlouhý", "dlouhém", "dlouhým"],
+				"pl": ["dlouhé", "dlouhých", "dlouhým", "dlouhé", "dlouhé", "dlouhých", "dlouhými"]
+			},
+			"f": {
+				"sg": ["dlouhá", "dlouhé", "dlouhé", "dlouhou", "dlouhá", "dlouhé", "dlouhou"],
+				"pl": ["dlouhé", "dlouhých", "dlouhým", "dlouhé", "dlouhé", "dlouhých", "dlouhými"]
+			},
+			"n": {
+				"sg": ["dlouhé", "dlouhého", "dlouhému", "dlouhé", "dlouhé", "dlouhém", "dlouhým"],
+				"pl": ["dlouhá", "dlouhých", "dlouhým", "dlouhá", "dlouhá", "dlouhých", "dlouhými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "krátký",
+		"translation": "short",
+		"difficulty": "A1",
+		"paradigmType": "hard",
+		"categories": ["size", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["krátký", "krátkého", "krátkému", "krátkého", "krátký", "krátkém", "krátkým"],
+				"pl": ["krátcí", "krátkých", "krátkým", "krátké", "krátcí", "krátkých", "krátkými"]
+			},
+			"m_inanim": {
+				"sg": ["krátký", "krátkého", "krátkému", "krátký", "krátký", "krátkém", "krátkým"],
+				"pl": ["krátké", "krátkých", "krátkým", "krátké", "krátké", "krátkých", "krátkými"]
+			},
+			"f": {
+				"sg": ["krátká", "krátké", "krátké", "krátkou", "krátká", "krátké", "krátkou"],
+				"pl": ["krátké", "krátkých", "krátkým", "krátké", "krátké", "krátkých", "krátkými"]
+			},
+			"n": {
+				"sg": ["krátké", "krátkého", "krátkému", "krátké", "krátké", "krátkém", "krátkým"],
+				"pl": ["krátká", "krátkých", "krátkým", "krátká", "krátká", "krátkých", "krátkými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "cizí",
+		"translation": "strange, unfamiliar (not yet part of one's experience)",
+		"difficulty": "A1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["cizí", "cizího", "cizímu", "cizího", "cizí", "cizím", "cizím"],
+				"pl": ["cizí", "cizích", "cizím", "cizí", "cizí", "cizích", "cizími"]
+			},
+			"m_inanim": {
+				"sg": ["cizí", "cizího", "cizímu", "cizí", "cizí", "cizím", "cizím"],
+				"pl": ["cizí", "cizích", "cizím", "cizí", "cizí", "cizích", "cizími"]
+			},
+			"f": {
+				"sg": ["cizí", "cizí", "cizí", "cizí", "cizí", "cizí", "cizí"],
+				"pl": ["cizí", "cizích", "cizím", "cizí", "cizí", "cizích", "cizími"]
+			},
+			"n": {
+				"sg": ["cizí", "cizího", "cizímu", "cizí", "cizí", "cizím", "cizím"],
+				"pl": ["cizí", "cizích", "cizím", "cizí", "cizí", "cizích", "cizími"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "jarní",
+		"translation": "spring (seasonal)",
+		"difficulty": "A1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["jarní", "jarního", "jarnímu", "jarního", "jarní", "jarním", "jarním"],
+				"pl": ["jarní", "jarních", "jarním", "jarní", "jarní", "jarních", "jarními"]
+			},
+			"m_inanim": {
+				"sg": ["jarní", "jarního", "jarnímu", "jarní", "jarní", "jarním", "jarním"],
+				"pl": ["jarní", "jarních", "jarním", "jarní", "jarní", "jarních", "jarními"]
+			},
+			"f": {
+				"sg": ["jarní", "jarní", "jarní", "jarní", "jarní", "jarní", "jarní"],
+				"pl": ["jarní", "jarních", "jarním", "jarní", "jarní", "jarních", "jarními"]
+			},
+			"n": {
+				"sg": ["jarní", "jarního", "jarnímu", "jarní", "jarní", "jarním", "jarním"],
+				"pl": ["jarní", "jarních", "jarním", "jarní", "jarní", "jarních", "jarními"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "červený",
+		"translation": "red",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["color", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["červený", "červeného", "červenému", "červeného", "červený", "červeném", "červeným"],
+				"pl": ["červení", "červených", "červeným", "červené", "červení", "červených", "červenými"]
+			},
+			"m_inanim": {
+				"sg": ["červený", "červeného", "červenému", "červený", "červený", "červeném", "červeným"],
+				"pl": ["červené", "červených", "červeným", "červené", "červené", "červených", "červenými"]
+			},
+			"f": {
+				"sg": ["červená", "červené", "červené", "červenou", "červená", "červené", "červenou"],
+				"pl": ["červené", "červených", "červeným", "červené", "červené", "červených", "červenými"]
+			},
+			"n": {
+				"sg": ["červené", "červeného", "červenému", "červené", "červené", "červeném", "červeným"],
+				"pl": ["červená", "červených", "červeným", "červená", "červená", "červených", "červenými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "modrý",
+		"translation": "blue",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["color", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["modrý", "modrého", "modrému", "modrého", "modrý", "modrém", "modrým"],
+				"pl": ["modří", "modrých", "modrým", "modré", "modří", "modrých", "modrými"]
+			},
+			"m_inanim": {
+				"sg": ["modrý", "modrého", "modrému", "modrý", "modrý", "modrém", "modrým"],
+				"pl": ["modré", "modrých", "modrým", "modré", "modré", "modrých", "modrými"]
+			},
+			"f": {
+				"sg": ["modrá", "modré", "modré", "modrou", "modrá", "modré", "modrou"],
+				"pl": ["modré", "modrých", "modrým", "modré", "modré", "modrých", "modrými"]
+			},
+			"n": {
+				"sg": ["modré", "modrého", "modrému", "modré", "modré", "modrém", "modrým"],
+				"pl": ["modrá", "modrých", "modrým", "modrá", "modrá", "modrých", "modrými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "zelený",
+		"translation": "green",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["color", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["zelený", "zeleného", "zelenému", "zeleného", "zelený", "zeleném", "zeleným"],
+				"pl": ["zelení", "zelených", "zeleným", "zelené", "zelení", "zelených", "zelenými"]
+			},
+			"m_inanim": {
+				"sg": ["zelený", "zeleného", "zelenému", "zelený", "zelený", "zeleném", "zeleným"],
+				"pl": ["zelené", "zelených", "zeleným", "zelené", "zelené", "zelených", "zelenými"]
+			},
+			"f": {
+				"sg": ["zelená", "zelené", "zelené", "zelenou", "zelená", "zelené", "zelenou"],
+				"pl": ["zelené", "zelených", "zeleným", "zelené", "zelené", "zelených", "zelenými"]
+			},
+			"n": {
+				"sg": ["zelené", "zeleného", "zelenému", "zelené", "zelené", "zeleném", "zeleným"],
+				"pl": ["zelená", "zelených", "zeleným", "zelená", "zelená", "zelených", "zelenými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "bílý",
+		"translation": "white",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["color", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["bílý", "bílého", "bílému", "bílého", "bílý", "bílém", "bílým"],
+				"pl": ["bílí", "bílých", "bílým", "bílé", "bílí", "bílých", "bílými"]
+			},
+			"m_inanim": {
+				"sg": ["bílý", "bílého", "bílému", "bílý", "bílý", "bílém", "bílým"],
+				"pl": ["bílé", "bílých", "bílým", "bílé", "bílé", "bílých", "bílými"]
+			},
+			"f": {
+				"sg": ["bílá", "bílé", "bílé", "bílou", "bílá", "bílé", "bílou"],
+				"pl": ["bílé", "bílých", "bílým", "bílé", "bílé", "bílých", "bílými"]
+			},
+			"n": {
+				"sg": ["bílé", "bílého", "bílému", "bílé", "bílé", "bílém", "bílým"],
+				"pl": ["bílá", "bílých", "bílým", "bílá", "bílá", "bílých", "bílými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "černý",
+		"translation": "black",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["color", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["černý", "černého", "černému", "černého", "černý", "černém", "černým"],
+				"pl": ["černí", "černých", "černým", "černé", "černí", "černých", "černými"]
+			},
+			"m_inanim": {
+				"sg": ["černý", "černého", "černému", "černý", "černý", "černém", "černým"],
+				"pl": ["černé", "černých", "černým", "černé", "černé", "černých", "černými"]
+			},
+			"f": {
+				"sg": ["černá", "černé", "černé", "černou", "černá", "černé", "černou"],
+				"pl": ["černé", "černých", "černým", "černé", "černé", "černých", "černými"]
+			},
+			"n": {
+				"sg": ["černé", "černého", "černému", "černé", "černé", "černém", "černým"],
+				"pl": ["černá", "černých", "černým", "černá", "černá", "černých", "černými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "teplý",
+		"translation": "warm",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["temperature", "object"],
+		"forms": {
+			"m_anim": {
+				"sg": ["teplý", "teplého", "teplému", "teplého", "teplý", "teplém", "teplým"],
+				"pl": ["teplí", "teplých", "teplým", "teplé", "teplí", "teplých", "teplými"]
+			},
+			"m_inanim": {
+				"sg": ["teplý", "teplého", "teplému", "teplý", "teplý", "teplém", "teplým"],
+				"pl": ["teplé", "teplých", "teplým", "teplé", "teplé", "teplých", "teplými"]
+			},
+			"f": {
+				"sg": ["teplá", "teplé", "teplé", "teplou", "teplá", "teplé", "teplou"],
+				"pl": ["teplé", "teplých", "teplým", "teplé", "teplé", "teplých", "teplými"]
+			},
+			"n": {
+				"sg": ["teplé", "teplého", "teplému", "teplé", "teplé", "teplém", "teplým"],
+				"pl": ["teplá", "teplých", "teplým", "teplá", "teplá", "teplých", "teplými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "studený",
+		"translation": "cold, cool",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["temperature", "object"],
+		"forms": {
+			"m_anim": {
+				"sg": ["studený", "studeného", "studenému", "studeného", "studený", "studeném", "studeným"],
+				"pl": ["studení", "studených", "studeným", "studené", "studení", "studených", "studenými"]
+			},
+			"m_inanim": {
+				"sg": ["studený", "studeného", "studenému", "studený", "studený", "studeném", "studeným"],
+				"pl": ["studené", "studených", "studeným", "studené", "studené", "studených", "studenými"]
+			},
+			"f": {
+				"sg": ["studená", "studené", "studené", "studenou", "studená", "studené", "studenou"],
+				"pl": ["studené", "studených", "studeným", "studené", "studené", "studených", "studenými"]
+			},
+			"n": {
+				"sg": ["studené", "studeného", "studenému", "studené", "studené", "studeném", "studeným"],
+				"pl": ["studená", "studených", "studeným", "studená", "studená", "studených", "studenými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "rychlý",
+		"translation": "fast",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["speed", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["rychlý", "rychlého", "rychlému", "rychlého", "rychlý", "rychlém", "rychlým"],
+				"pl": ["rychlí", "rychlých", "rychlým", "rychlé", "rychlí", "rychlých", "rychlými"]
+			},
+			"m_inanim": {
+				"sg": ["rychlý", "rychlého", "rychlému", "rychlý", "rychlý", "rychlém", "rychlým"],
+				"pl": ["rychlé", "rychlých", "rychlým", "rychlé", "rychlé", "rychlých", "rychlými"]
+			},
+			"f": {
+				"sg": ["rychlá", "rychlé", "rychlé", "rychlou", "rychlá", "rychlé", "rychlou"],
+				"pl": ["rychlé", "rychlých", "rychlým", "rychlé", "rychlé", "rychlých", "rychlými"]
+			},
+			"n": {
+				"sg": ["rychlé", "rychlého", "rychlému", "rychlé", "rychlé", "rychlém", "rychlým"],
+				"pl": ["rychlá", "rychlých", "rychlým", "rychlá", "rychlá", "rychlých", "rychlými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "pomalý",
+		"translation": "slow",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["speed", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["pomalý", "pomalého", "pomalému", "pomalého", "pomalý", "pomalém", "pomalým"],
+				"pl": ["pomalí", "pomalých", "pomalým", "pomalé", "pomalí", "pomalých", "pomalými"]
+			},
+			"m_inanim": {
+				"sg": ["pomalý", "pomalého", "pomalému", "pomalý", "pomalý", "pomalém", "pomalým"],
+				"pl": ["pomalé", "pomalých", "pomalým", "pomalé", "pomalé", "pomalých", "pomalými"]
+			},
+			"f": {
+				"sg": ["pomalá", "pomalé", "pomalé", "pomalou", "pomalá", "pomalé", "pomalou"],
+				"pl": ["pomalé", "pomalých", "pomalým", "pomalé", "pomalé", "pomalých", "pomalými"]
+			},
+			"n": {
+				"sg": ["pomalé", "pomalého", "pomalému", "pomalé", "pomalé", "pomalém", "pomalým"],
+				"pl": ["pomalá", "pomalých", "pomalým", "pomalá", "pomalá", "pomalých", "pomalými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "silný",
+		"translation": "strong",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["silný", "silného", "silnému", "silného", "silný", "silném", "silným"],
+				"pl": ["silní", "silných", "silným", "silné", "silní", "silných", "silnými"]
+			},
+			"m_inanim": {
+				"sg": ["silný", "silného", "silnému", "silný", "silný", "silném", "silným"],
+				"pl": ["silné", "silných", "silným", "silné", "silné", "silných", "silnými"]
+			},
+			"f": {
+				"sg": ["silná", "silné", "silné", "silnou", "silná", "silné", "silnou"],
+				"pl": ["silné", "silných", "silným", "silné", "silné", "silných", "silnými"]
+			},
+			"n": {
+				"sg": ["silné", "silného", "silnému", "silné", "silné", "silném", "silným"],
+				"pl": ["silná", "silných", "silným", "silná", "silná", "silných", "silnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "slabý",
+		"translation": "weak, feeble",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["slabý", "slabého", "slabému", "slabého", "slabý", "slabém", "slabým"],
+				"pl": ["slabí", "slabých", "slabým", "slabé", "slabí", "slabých", "slabými"]
+			},
+			"m_inanim": {
+				"sg": ["slabý", "slabého", "slabému", "slabý", "slabý", "slabém", "slabým"],
+				"pl": ["slabé", "slabých", "slabým", "slabé", "slabé", "slabých", "slabými"]
+			},
+			"f": {
+				"sg": ["slabá", "slabé", "slabé", "slabou", "slabá", "slabé", "slabou"],
+				"pl": ["slabé", "slabých", "slabým", "slabé", "slabé", "slabých", "slabými"]
+			},
+			"n": {
+				"sg": ["slabé", "slabého", "slabému", "slabé", "slabé", "slabém", "slabým"],
+				"pl": ["slabá", "slabých", "slabým", "slabá", "slabá", "slabých", "slabými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "levný",
+		"translation": "cheap",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["common", "object"],
+		"forms": {
+			"m_anim": {
+				"sg": ["levný", "levného", "levnému", "levného", "levný", "levném", "levným"],
+				"pl": ["levní", "levných", "levným", "levné", "levní", "levných", "levnými"]
+			},
+			"m_inanim": {
+				"sg": ["levný", "levného", "levnému", "levný", "levný", "levném", "levným"],
+				"pl": ["levné", "levných", "levným", "levné", "levné", "levných", "levnými"]
+			},
+			"f": {
+				"sg": ["levná", "levné", "levné", "levnou", "levná", "levné", "levnou"],
+				"pl": ["levné", "levných", "levným", "levné", "levné", "levných", "levnými"]
+			},
+			"n": {
+				"sg": ["levné", "levného", "levnému", "levné", "levné", "levném", "levným"],
+				"pl": ["levná", "levných", "levným", "levná", "levná", "levných", "levnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "drahý",
+		"translation": "dear, expensive",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["common", "object", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["drahý", "drahého", "drahému", "drahého", "drahý", "drahém", "drahým"],
+				"pl": ["drazí", "drahých", "drahým", "drahé", "drazí", "drahých", "drahými"]
+			},
+			"m_inanim": {
+				"sg": ["drahý", "drahého", "drahému", "drahý", "drahý", "drahém", "drahým"],
+				"pl": ["drahé", "drahých", "drahým", "drahé", "drahé", "drahých", "drahými"]
+			},
+			"f": {
+				"sg": ["drahá", "drahé", "drahé", "drahou", "drahá", "drahé", "drahou"],
+				"pl": ["drahé", "drahých", "drahým", "drahé", "drahé", "drahých", "drahými"]
+			},
+			"n": {
+				"sg": ["drahé", "drahého", "drahému", "drahé", "drahé", "drahém", "drahým"],
+				"pl": ["drahá", "drahých", "drahým", "drahá", "drahá", "drahých", "drahými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "sladký",
+		"translation": "sweet",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["common", "object"],
+		"forms": {
+			"m_anim": {
+				"sg": ["sladký", "sladkého", "sladkému", "sladkého", "sladký", "sladkém", "sladkým"],
+				"pl": ["sladcí", "sladkých", "sladkým", "sladké", "sladcí", "sladkých", "sladkými"]
+			},
+			"m_inanim": {
+				"sg": ["sladký", "sladkého", "sladkému", "sladký", "sladký", "sladkém", "sladkým"],
+				"pl": ["sladké", "sladkých", "sladkým", "sladké", "sladké", "sladkých", "sladkými"]
+			},
+			"f": {
+				"sg": ["sladká", "sladké", "sladké", "sladkou", "sladká", "sladké", "sladkou"],
+				"pl": ["sladké", "sladkých", "sladkým", "sladké", "sladké", "sladkých", "sladkými"]
+			},
+			"n": {
+				"sg": ["sladké", "sladkého", "sladkému", "sladké", "sladké", "sladkém", "sladkým"],
+				"pl": ["sladká", "sladkých", "sladkým", "sladká", "sladká", "sladkých", "sladkými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "kyselý",
+		"translation": "sour",
+		"difficulty": "A2",
+		"paradigmType": "hard",
+		"categories": ["common", "object"],
+		"forms": {
+			"m_anim": {
+				"sg": ["kyselý", "kyselého", "kyselému", "kyselého", "kyselý", "kyselém", "kyselým"],
+				"pl": ["kyselí", "kyselých", "kyselým", "kyselé", "kyselí", "kyselých", "kyselými"]
+			},
+			"m_inanim": {
+				"sg": ["kyselý", "kyselého", "kyselému", "kyselý", "kyselý", "kyselém", "kyselým"],
+				"pl": ["kyselé", "kyselých", "kyselým", "kyselé", "kyselé", "kyselých", "kyselými"]
+			},
+			"f": {
+				"sg": ["kyselá", "kyselé", "kyselé", "kyselou", "kyselá", "kyselé", "kyselou"],
+				"pl": ["kyselé", "kyselých", "kyselým", "kyselé", "kyselé", "kyselých", "kyselými"]
+			},
+			"n": {
+				"sg": ["kyselé", "kyselého", "kyselému", "kyselé", "kyselé", "kyselém", "kyselým"],
+				"pl": ["kyselá", "kyselých", "kyselým", "kyselá", "kyselá", "kyselých", "kyselými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "důležitý",
+		"translation": "important",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"důležitý",
+					"důležitého",
+					"důležitému",
+					"důležitého",
+					"důležitý",
+					"důležitém",
+					"důležitým"
+				],
+				"pl": [
+					"důležití",
+					"důležitých",
+					"důležitým",
+					"důležité",
+					"důležití",
+					"důležitých",
+					"důležitými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"důležitý",
+					"důležitého",
+					"důležitému",
+					"důležitý",
+					"důležitý",
+					"důležitém",
+					"důležitým"
+				],
+				"pl": [
+					"důležité",
+					"důležitých",
+					"důležitým",
+					"důležité",
+					"důležité",
+					"důležitých",
+					"důležitými"
+				]
+			},
+			"f": {
+				"sg": [
+					"důležitá",
+					"důležité",
+					"důležité",
+					"důležitou",
+					"důležitá",
+					"důležité",
+					"důležitou"
+				],
+				"pl": [
+					"důležité",
+					"důležitých",
+					"důležitým",
+					"důležité",
+					"důležité",
+					"důležitých",
+					"důležitými"
+				]
+			},
+			"n": {
+				"sg": [
+					"důležité",
+					"důležitého",
+					"důležitému",
+					"důležité",
+					"důležité",
+					"důležitém",
+					"důležitým"
+				],
+				"pl": [
+					"důležitá",
+					"důležitých",
+					"důležitým",
+					"důležitá",
+					"důležitá",
+					"důležitých",
+					"důležitými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "zajímavý",
+		"translation": "interesting",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"zajímavý",
+					"zajímavého",
+					"zajímavému",
+					"zajímavého",
+					"zajímavý",
+					"zajímavém",
+					"zajímavým"
+				],
+				"pl": [
+					"zajímaví",
+					"zajímavých",
+					"zajímavým",
+					"zajímavé",
+					"zajímaví",
+					"zajímavých",
+					"zajímavými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"zajímavý",
+					"zajímavého",
+					"zajímavému",
+					"zajímavý",
+					"zajímavý",
+					"zajímavém",
+					"zajímavým"
+				],
+				"pl": [
+					"zajímavé",
+					"zajímavých",
+					"zajímavým",
+					"zajímavé",
+					"zajímavé",
+					"zajímavých",
+					"zajímavými"
+				]
+			},
+			"f": {
+				"sg": [
+					"zajímavá",
+					"zajímavé",
+					"zajímavé",
+					"zajímavou",
+					"zajímavá",
+					"zajímavé",
+					"zajímavou"
+				],
+				"pl": [
+					"zajímavé",
+					"zajímavých",
+					"zajímavým",
+					"zajímavé",
+					"zajímavé",
+					"zajímavých",
+					"zajímavými"
+				]
+			},
+			"n": {
+				"sg": [
+					"zajímavé",
+					"zajímavého",
+					"zajímavému",
+					"zajímavé",
+					"zajímavé",
+					"zajímavém",
+					"zajímavým"
+				],
+				"pl": [
+					"zajímavá",
+					"zajímavých",
+					"zajímavým",
+					"zajímavá",
+					"zajímavá",
+					"zajímavých",
+					"zajímavými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "nebezpečný",
+		"translation": "dangerous",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"nebezpečný",
+					"nebezpečného",
+					"nebezpečnému",
+					"nebezpečného",
+					"nebezpečný",
+					"nebezpečném",
+					"nebezpečným"
+				],
+				"pl": [
+					"nebezpeční",
+					"nebezpečných",
+					"nebezpečným",
+					"nebezpečné",
+					"nebezpeční",
+					"nebezpečných",
+					"nebezpečnými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"nebezpečný",
+					"nebezpečného",
+					"nebezpečnému",
+					"nebezpečný",
+					"nebezpečný",
+					"nebezpečném",
+					"nebezpečným"
+				],
+				"pl": [
+					"nebezpečné",
+					"nebezpečných",
+					"nebezpečným",
+					"nebezpečné",
+					"nebezpečné",
+					"nebezpečných",
+					"nebezpečnými"
+				]
+			},
+			"f": {
+				"sg": [
+					"nebezpečná",
+					"nebezpečné",
+					"nebezpečné",
+					"nebezpečnou",
+					"nebezpečná",
+					"nebezpečné",
+					"nebezpečnou"
+				],
+				"pl": [
+					"nebezpečné",
+					"nebezpečných",
+					"nebezpečným",
+					"nebezpečné",
+					"nebezpečné",
+					"nebezpečných",
+					"nebezpečnými"
+				]
+			},
+			"n": {
+				"sg": [
+					"nebezpečné",
+					"nebezpečného",
+					"nebezpečnému",
+					"nebezpečné",
+					"nebezpečné",
+					"nebezpečném",
+					"nebezpečným"
+				],
+				"pl": [
+					"nebezpečná",
+					"nebezpečných",
+					"nebezpečným",
+					"nebezpečná",
+					"nebezpečná",
+					"nebezpečných",
+					"nebezpečnými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "správný",
+		"translation": "correct",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["správný", "správného", "správnému", "správného", "správný", "správném", "správným"],
+				"pl": ["správní", "správných", "správným", "správné", "správní", "správných", "správnými"]
+			},
+			"m_inanim": {
+				"sg": ["správný", "správného", "správnému", "správný", "správný", "správném", "správným"],
+				"pl": ["správné", "správných", "správným", "správné", "správné", "správných", "správnými"]
+			},
+			"f": {
+				"sg": ["správná", "správné", "správné", "správnou", "správná", "správné", "správnou"],
+				"pl": ["správné", "správných", "správným", "správné", "správné", "správných", "správnými"]
+			},
+			"n": {
+				"sg": ["správné", "správného", "správnému", "správné", "správné", "správném", "správným"],
+				"pl": ["správná", "správných", "správným", "správná", "správná", "správných", "správnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "bohatý",
+		"translation": "rich",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["bohatý", "bohatého", "bohatému", "bohatého", "bohatý", "bohatém", "bohatým"],
+				"pl": ["bohatí", "bohatých", "bohatým", "bohaté", "bohatí", "bohatých", "bohatými"]
+			},
+			"m_inanim": {
+				"sg": ["bohatý", "bohatého", "bohatému", "bohatý", "bohatý", "bohatém", "bohatým"],
+				"pl": ["bohaté", "bohatých", "bohatým", "bohaté", "bohaté", "bohatých", "bohatými"]
+			},
+			"f": {
+				"sg": ["bohatá", "bohaté", "bohaté", "bohatou", "bohatá", "bohaté", "bohatou"],
+				"pl": ["bohaté", "bohatých", "bohatým", "bohaté", "bohaté", "bohatých", "bohatými"]
+			},
+			"n": {
+				"sg": ["bohaté", "bohatého", "bohatému", "bohaté", "bohaté", "bohatém", "bohatým"],
+				"pl": ["bohatá", "bohatých", "bohatým", "bohatá", "bohatá", "bohatých", "bohatými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "chudý",
+		"translation": "poor (having little or no possessions and money)",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["chudý", "chudého", "chudému", "chudého", "chudý", "chudém", "chudým"],
+				"pl": ["chudí", "chudých", "chudým", "chudé", "chudí", "chudých", "chudými"]
+			},
+			"m_inanim": {
+				"sg": ["chudý", "chudého", "chudému", "chudý", "chudý", "chudém", "chudým"],
+				"pl": ["chudé", "chudých", "chudým", "chudé", "chudé", "chudých", "chudými"]
+			},
+			"f": {
+				"sg": ["chudá", "chudé", "chudé", "chudou", "chudá", "chudé", "chudou"],
+				"pl": ["chudé", "chudých", "chudým", "chudé", "chudé", "chudých", "chudými"]
+			},
+			"n": {
+				"sg": ["chudé", "chudého", "chudému", "chudé", "chudé", "chudém", "chudým"],
+				"pl": ["chudá", "chudých", "chudým", "chudá", "chudá", "chudých", "chudými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "moderní",
+		"translation": "modern",
+		"difficulty": "B1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["moderní", "moderního", "modernímu", "moderního", "moderní", "moderním", "moderním"],
+				"pl": ["moderní", "moderních", "moderním", "moderní", "moderní", "moderních", "moderními"]
+			},
+			"m_inanim": {
+				"sg": ["moderní", "moderního", "modernímu", "moderní", "moderní", "moderním", "moderním"],
+				"pl": ["moderní", "moderních", "moderním", "moderní", "moderní", "moderních", "moderními"]
+			},
+			"f": {
+				"sg": ["moderní", "moderní", "moderní", "moderní", "moderní", "moderní", "moderní"],
+				"pl": ["moderní", "moderních", "moderním", "moderní", "moderní", "moderních", "moderními"]
+			},
+			"n": {
+				"sg": ["moderní", "moderního", "modernímu", "moderní", "moderní", "moderním", "moderním"],
+				"pl": ["moderní", "moderních", "moderním", "moderní", "moderní", "moderních", "moderními"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "poslední",
+		"translation": "last (final)",
+		"difficulty": "B1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"poslední",
+					"posledního",
+					"poslednímu",
+					"posledního",
+					"poslední",
+					"posledním",
+					"posledním"
+				],
+				"pl": [
+					"poslední",
+					"posledních",
+					"posledním",
+					"poslední",
+					"poslední",
+					"posledních",
+					"posledními"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"poslední",
+					"posledního",
+					"poslednímu",
+					"poslední",
+					"poslední",
+					"posledním",
+					"posledním"
+				],
+				"pl": [
+					"poslední",
+					"posledních",
+					"posledním",
+					"poslední",
+					"poslední",
+					"posledních",
+					"posledními"
+				]
+			},
+			"f": {
+				"sg": ["poslední", "poslední", "poslední", "poslední", "poslední", "poslední", "poslední"],
+				"pl": [
+					"poslední",
+					"posledních",
+					"posledním",
+					"poslední",
+					"poslední",
+					"posledních",
+					"posledními"
+				]
+			},
+			"n": {
+				"sg": [
+					"poslední",
+					"posledního",
+					"poslednímu",
+					"poslední",
+					"poslední",
+					"posledním",
+					"posledním"
+				],
+				"pl": [
+					"poslední",
+					"posledních",
+					"posledním",
+					"poslední",
+					"poslední",
+					"posledních",
+					"posledními"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "původní",
+		"translation": "original, indigenous, native",
+		"difficulty": "B1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["původní", "původního", "původnímu", "původního", "původní", "původním", "původním"],
+				"pl": ["původní", "původních", "původním", "původní", "původní", "původních", "původními"]
+			},
+			"m_inanim": {
+				"sg": ["původní", "původního", "původnímu", "původní", "původní", "původním", "původním"],
+				"pl": ["původní", "původních", "původním", "původní", "původní", "původních", "původními"]
+			},
+			"f": {
+				"sg": ["původní", "původní", "původní", "původní", "původní", "původní", "původní"],
+				"pl": ["původní", "původních", "původním", "původní", "původní", "původních", "původními"]
+			},
+			"n": {
+				"sg": ["původní", "původního", "původnímu", "původní", "původní", "původním", "původním"],
+				"pl": ["původní", "původních", "původním", "původní", "původní", "původních", "původními"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "podobný",
+		"translation": "similar",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["podobný", "podobného", "podobnému", "podobného", "podobný", "podobném", "podobným"],
+				"pl": ["podobní", "podobných", "podobným", "podobné", "podobní", "podobných", "podobnými"]
+			},
+			"m_inanim": {
+				"sg": ["podobný", "podobného", "podobnému", "podobný", "podobný", "podobném", "podobným"],
+				"pl": ["podobné", "podobných", "podobným", "podobné", "podobné", "podobných", "podobnými"]
+			},
+			"f": {
+				"sg": ["podobná", "podobné", "podobné", "podobnou", "podobná", "podobné", "podobnou"],
+				"pl": ["podobné", "podobných", "podobným", "podobné", "podobné", "podobných", "podobnými"]
+			},
+			"n": {
+				"sg": ["podobné", "podobného", "podobnému", "podobné", "podobné", "podobném", "podobným"],
+				"pl": ["podobná", "podobných", "podobným", "podobná", "podobná", "podobných", "podobnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "různý",
+		"translation": "different",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["různý", "různého", "různému", "různého", "různý", "různém", "různým"],
+				"pl": ["různí", "různých", "různým", "různé", "různí", "různých", "různými"]
+			},
+			"m_inanim": {
+				"sg": ["různý", "různého", "různému", "různý", "různý", "různém", "různým"],
+				"pl": ["různé", "různých", "různým", "různé", "různé", "různých", "různými"]
+			},
+			"f": {
+				"sg": ["různá", "různé", "různé", "různou", "různá", "různé", "různou"],
+				"pl": ["různé", "různých", "různým", "různé", "různé", "různých", "různými"]
+			},
+			"n": {
+				"sg": ["různé", "různého", "různému", "různé", "různé", "různém", "různým"],
+				"pl": ["různá", "různých", "různým", "různá", "různá", "různých", "různými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "hlavní",
+		"translation": "main",
+		"difficulty": "B1",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["hlavní", "hlavního", "hlavnímu", "hlavního", "hlavní", "hlavním", "hlavním"],
+				"pl": ["hlavní", "hlavních", "hlavním", "hlavní", "hlavní", "hlavních", "hlavními"]
+			},
+			"m_inanim": {
+				"sg": ["hlavní", "hlavního", "hlavnímu", "hlavní", "hlavní", "hlavním", "hlavním"],
+				"pl": ["hlavní", "hlavních", "hlavním", "hlavní", "hlavní", "hlavních", "hlavními"]
+			},
+			"f": {
+				"sg": ["hlavní", "hlavní", "hlavní", "hlavní", "hlavní", "hlavní", "hlavní"],
+				"pl": ["hlavní", "hlavních", "hlavním", "hlavní", "hlavní", "hlavních", "hlavními"]
+			},
+			"n": {
+				"sg": ["hlavní", "hlavního", "hlavnímu", "hlavní", "hlavní", "hlavním", "hlavním"],
+				"pl": ["hlavní", "hlavních", "hlavním", "hlavní", "hlavní", "hlavních", "hlavními"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "příjemný",
+		"translation": "pleasant, agreeable",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["emotion", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"příjemný",
+					"příjemného",
+					"příjemnému",
+					"příjemného",
+					"příjemný",
+					"příjemném",
+					"příjemným"
+				],
+				"pl": [
+					"příjemní",
+					"příjemných",
+					"příjemným",
+					"příjemné",
+					"příjemní",
+					"příjemných",
+					"příjemnými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"příjemný",
+					"příjemného",
+					"příjemnému",
+					"příjemný",
+					"příjemný",
+					"příjemném",
+					"příjemným"
+				],
+				"pl": [
+					"příjemné",
+					"příjemných",
+					"příjemným",
+					"příjemné",
+					"příjemné",
+					"příjemných",
+					"příjemnými"
+				]
+			},
+			"f": {
+				"sg": [
+					"příjemná",
+					"příjemné",
+					"příjemné",
+					"příjemnou",
+					"příjemná",
+					"příjemné",
+					"příjemnou"
+				],
+				"pl": [
+					"příjemné",
+					"příjemných",
+					"příjemným",
+					"příjemné",
+					"příjemné",
+					"příjemných",
+					"příjemnými"
+				]
+			},
+			"n": {
+				"sg": [
+					"příjemné",
+					"příjemného",
+					"příjemnému",
+					"příjemné",
+					"příjemné",
+					"příjemném",
+					"příjemným"
+				],
+				"pl": [
+					"příjemná",
+					"příjemných",
+					"příjemným",
+					"příjemná",
+					"příjemná",
+					"příjemných",
+					"příjemnými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "nemocný",
+		"translation": "ill",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["nemocný", "nemocného", "nemocnému", "nemocného", "nemocný", "nemocném", "nemocným"],
+				"pl": ["nemocní", "nemocných", "nemocným", "nemocné", "nemocní", "nemocných", "nemocnými"]
+			},
+			"m_inanim": {
+				"sg": ["nemocný", "nemocného", "nemocnému", "nemocný", "nemocný", "nemocném", "nemocným"],
+				"pl": ["nemocné", "nemocných", "nemocným", "nemocné", "nemocné", "nemocných", "nemocnými"]
+			},
+			"f": {
+				"sg": ["nemocná", "nemocné", "nemocné", "nemocnou", "nemocná", "nemocné", "nemocnou"],
+				"pl": ["nemocné", "nemocných", "nemocným", "nemocné", "nemocné", "nemocných", "nemocnými"]
+			},
+			"n": {
+				"sg": ["nemocné", "nemocného", "nemocnému", "nemocné", "nemocné", "nemocném", "nemocným"],
+				"pl": ["nemocná", "nemocných", "nemocným", "nemocná", "nemocná", "nemocných", "nemocnými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "zdravý",
+		"translation": "healthy (enjoying health)",
+		"difficulty": "B1",
+		"paradigmType": "hard",
+		"categories": ["common", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["zdravý", "zdravého", "zdravému", "zdravého", "zdravý", "zdravém", "zdravým"],
+				"pl": ["zdraví", "zdravých", "zdravým", "zdravé", "zdraví", "zdravých", "zdravými"]
+			},
+			"m_inanim": {
+				"sg": ["zdravý", "zdravého", "zdravému", "zdravý", "zdravý", "zdravém", "zdravým"],
+				"pl": ["zdravé", "zdravých", "zdravým", "zdravé", "zdravé", "zdravých", "zdravými"]
+			},
+			"f": {
+				"sg": ["zdravá", "zdravé", "zdravé", "zdravou", "zdravá", "zdravé", "zdravou"],
+				"pl": ["zdravé", "zdravých", "zdravým", "zdravé", "zdravé", "zdravých", "zdravými"]
+			},
+			"n": {
+				"sg": ["zdravé", "zdravého", "zdravému", "zdravé", "zdravé", "zdravém", "zdravým"],
+				"pl": ["zdravá", "zdravých", "zdravým", "zdravá", "zdravá", "zdravých", "zdravými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "spokojený",
+		"translation": "satisfied, content",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["emotion", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"spokojený",
+					"spokojeného",
+					"spokojenému",
+					"spokojeného",
+					"spokojený",
+					"spokojeném",
+					"spokojeným"
+				],
+				"pl": [
+					"spokojení",
+					"spokojených",
+					"spokojeným",
+					"spokojené",
+					"spokojení",
+					"spokojených",
+					"spokojenými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"spokojený",
+					"spokojeného",
+					"spokojenému",
+					"spokojený",
+					"spokojený",
+					"spokojeném",
+					"spokojeným"
+				],
+				"pl": [
+					"spokojené",
+					"spokojených",
+					"spokojeným",
+					"spokojené",
+					"spokojené",
+					"spokojených",
+					"spokojenými"
+				]
+			},
+			"f": {
+				"sg": [
+					"spokojená",
+					"spokojené",
+					"spokojené",
+					"spokojenou",
+					"spokojená",
+					"spokojené",
+					"spokojenou"
+				],
+				"pl": [
+					"spokojené",
+					"spokojených",
+					"spokojeným",
+					"spokojené",
+					"spokojené",
+					"spokojených",
+					"spokojenými"
+				]
+			},
+			"n": {
+				"sg": [
+					"spokojené",
+					"spokojeného",
+					"spokojenému",
+					"spokojené",
+					"spokojené",
+					"spokojeném",
+					"spokojeným"
+				],
+				"pl": [
+					"spokojená",
+					"spokojených",
+					"spokojeným",
+					"spokojená",
+					"spokojená",
+					"spokojených",
+					"spokojenými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "unavený",
+		"translation": "tired (needing rest)",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["emotion", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["unavený", "unaveného", "unavenému", "unaveného", "unavený", "unaveném", "unaveným"],
+				"pl": ["unavení", "unavených", "unaveným", "unavené", "unavení", "unavených", "unavenými"]
+			},
+			"m_inanim": {
+				"sg": ["unavený", "unaveného", "unavenému", "unavený", "unavený", "unaveném", "unaveným"],
+				"pl": ["unavené", "unavených", "unaveným", "unavené", "unavené", "unavených", "unavenými"]
+			},
+			"f": {
+				"sg": ["unavená", "unavené", "unavené", "unavenou", "unavená", "unavené", "unavenou"],
+				"pl": ["unavené", "unavených", "unaveným", "unavené", "unavené", "unavených", "unavenými"]
+			},
+			"n": {
+				"sg": ["unavené", "unaveného", "unavenému", "unavené", "unavené", "unaveném", "unaveným"],
+				"pl": ["unavená", "unavených", "unaveným", "unavená", "unavená", "unavených", "unavenými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "překvapený",
+		"translation": "surprised",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["emotion", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"překvapený",
+					"překvapeného",
+					"překvapenému",
+					"překvapeného",
+					"překvapený",
+					"překvapeném",
+					"překvapeným"
+				],
+				"pl": [
+					"překvapení",
+					"překvapených",
+					"překvapeným",
+					"překvapené",
+					"překvapení",
+					"překvapených",
+					"překvapenými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"překvapený",
+					"překvapeného",
+					"překvapenému",
+					"překvapený",
+					"překvapený",
+					"překvapeném",
+					"překvapeným"
+				],
+				"pl": [
+					"překvapené",
+					"překvapených",
+					"překvapeným",
+					"překvapené",
+					"překvapené",
+					"překvapených",
+					"překvapenými"
+				]
+			},
+			"f": {
+				"sg": [
+					"překvapená",
+					"překvapené",
+					"překvapené",
+					"překvapenou",
+					"překvapená",
+					"překvapené",
+					"překvapenou"
+				],
+				"pl": [
+					"překvapené",
+					"překvapených",
+					"překvapeným",
+					"překvapené",
+					"překvapené",
+					"překvapených",
+					"překvapenými"
+				]
+			},
+			"n": {
+				"sg": [
+					"překvapené",
+					"překvapeného",
+					"překvapenému",
+					"překvapené",
+					"překvapené",
+					"překvapeném",
+					"překvapeným"
+				],
+				"pl": [
+					"překvapená",
+					"překvapených",
+					"překvapeným",
+					"překvapená",
+					"překvapená",
+					"překvapených",
+					"překvapenými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "zkušený",
+		"translation": "experienced (having experience and skill)",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "person"],
+		"forms": {
+			"m_anim": {
+				"sg": ["zkušený", "zkušeného", "zkušenému", "zkušeného", "zkušený", "zkušeném", "zkušeným"],
+				"pl": ["zkušení", "zkušených", "zkušeným", "zkušené", "zkušení", "zkušených", "zkušenými"]
+			},
+			"m_inanim": {
+				"sg": ["zkušený", "zkušeného", "zkušenému", "zkušený", "zkušený", "zkušeném", "zkušeným"],
+				"pl": ["zkušené", "zkušených", "zkušeným", "zkušené", "zkušené", "zkušených", "zkušenými"]
+			},
+			"f": {
+				"sg": ["zkušená", "zkušené", "zkušené", "zkušenou", "zkušená", "zkušené", "zkušenou"],
+				"pl": ["zkušené", "zkušených", "zkušeným", "zkušené", "zkušené", "zkušených", "zkušenými"]
+			},
+			"n": {
+				"sg": ["zkušené", "zkušeného", "zkušenému", "zkušené", "zkušené", "zkušeném", "zkušeným"],
+				"pl": ["zkušená", "zkušených", "zkušeným", "zkušená", "zkušená", "zkušených", "zkušenými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "historický",
+		"translation": "historical",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"historický",
+					"historického",
+					"historickému",
+					"historického",
+					"historický",
+					"historickém",
+					"historickým"
+				],
+				"pl": [
+					"historičtí",
+					"historických",
+					"historickým",
+					"historické",
+					"historičtí",
+					"historických",
+					"historickými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"historický",
+					"historického",
+					"historickému",
+					"historický",
+					"historický",
+					"historickém",
+					"historickým"
+				],
+				"pl": [
+					"historické",
+					"historických",
+					"historickým",
+					"historické",
+					"historické",
+					"historických",
+					"historickými"
+				]
+			},
+			"f": {
+				"sg": [
+					"historická",
+					"historické",
+					"historické",
+					"historickou",
+					"historická",
+					"historické",
+					"historickou"
+				],
+				"pl": [
+					"historické",
+					"historických",
+					"historickým",
+					"historické",
+					"historické",
+					"historických",
+					"historickými"
+				]
+			},
+			"n": {
+				"sg": [
+					"historické",
+					"historického",
+					"historickému",
+					"historické",
+					"historické",
+					"historickém",
+					"historickým"
+				],
+				"pl": [
+					"historická",
+					"historických",
+					"historickým",
+					"historická",
+					"historická",
+					"historických",
+					"historickými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "politický",
+		"translation": "political",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"politický",
+					"politického",
+					"politickému",
+					"politického",
+					"politický",
+					"politickém",
+					"politickým"
+				],
+				"pl": [
+					"političtí",
+					"politických",
+					"politickým",
+					"politické",
+					"političtí",
+					"politických",
+					"politickými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"politický",
+					"politického",
+					"politickému",
+					"politický",
+					"politický",
+					"politickém",
+					"politickým"
+				],
+				"pl": [
+					"politické",
+					"politických",
+					"politickým",
+					"politické",
+					"politické",
+					"politických",
+					"politickými"
+				]
+			},
+			"f": {
+				"sg": [
+					"politická",
+					"politické",
+					"politické",
+					"politickou",
+					"politická",
+					"politické",
+					"politickou"
+				],
+				"pl": [
+					"politické",
+					"politických",
+					"politickým",
+					"politické",
+					"politické",
+					"politických",
+					"politickými"
+				]
+			},
+			"n": {
+				"sg": [
+					"politické",
+					"politického",
+					"politickému",
+					"politické",
+					"politické",
+					"politickém",
+					"politickým"
+				],
+				"pl": [
+					"politická",
+					"politických",
+					"politickým",
+					"politická",
+					"politická",
+					"politických",
+					"politickými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "vědecký",
+		"translation": "scientific",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["vědecký", "vědeckého", "vědeckému", "vědeckého", "vědecký", "vědeckém", "vědeckým"],
+				"pl": ["vědečtí", "vědeckých", "vědeckým", "vědecké", "vědečtí", "vědeckých", "vědeckými"]
+			},
+			"m_inanim": {
+				"sg": ["vědecký", "vědeckého", "vědeckému", "vědecký", "vědecký", "vědeckém", "vědeckým"],
+				"pl": ["vědecké", "vědeckých", "vědeckým", "vědecké", "vědecké", "vědeckých", "vědeckými"]
+			},
+			"f": {
+				"sg": ["vědecká", "vědecké", "vědecké", "vědeckou", "vědecká", "vědecké", "vědeckou"],
+				"pl": ["vědecké", "vědeckých", "vědeckým", "vědecké", "vědecké", "vědeckých", "vědeckými"]
+			},
+			"n": {
+				"sg": ["vědecké", "vědeckého", "vědeckému", "vědecké", "vědecké", "vědeckém", "vědeckým"],
+				"pl": ["vědecká", "vědeckých", "vědeckým", "vědecká", "vědecká", "vědeckých", "vědeckými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "společenský",
+		"translation": "social (outgoing)",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"společenský",
+					"společenského",
+					"společenskému",
+					"společenského",
+					"společenský",
+					"společenském",
+					"společenským"
+				],
+				"pl": [
+					"společenští",
+					"společenských",
+					"společenským",
+					"společenské",
+					"společenští",
+					"společenských",
+					"společenskými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"společenský",
+					"společenského",
+					"společenskému",
+					"společenský",
+					"společenský",
+					"společenském",
+					"společenským"
+				],
+				"pl": [
+					"společenské",
+					"společenských",
+					"společenským",
+					"společenské",
+					"společenské",
+					"společenských",
+					"společenskými"
+				]
+			},
+			"f": {
+				"sg": [
+					"společenská",
+					"společenské",
+					"společenské",
+					"společenskou",
+					"společenská",
+					"společenské",
+					"společenskou"
+				],
+				"pl": [
+					"společenské",
+					"společenských",
+					"společenským",
+					"společenské",
+					"společenské",
+					"společenských",
+					"společenskými"
+				]
+			},
+			"n": {
+				"sg": [
+					"společenské",
+					"společenského",
+					"společenskému",
+					"společenské",
+					"společenské",
+					"společenském",
+					"společenským"
+				],
+				"pl": [
+					"společenská",
+					"společenských",
+					"společenským",
+					"společenská",
+					"společenská",
+					"společenských",
+					"společenskými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "praktický",
+		"translation": "practical (of a person)",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"praktický",
+					"praktického",
+					"praktickému",
+					"praktického",
+					"praktický",
+					"praktickém",
+					"praktickým"
+				],
+				"pl": [
+					"praktičtí",
+					"praktických",
+					"praktickým",
+					"praktické",
+					"praktičtí",
+					"praktických",
+					"praktickými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"praktický",
+					"praktického",
+					"praktickému",
+					"praktický",
+					"praktický",
+					"praktickém",
+					"praktickým"
+				],
+				"pl": [
+					"praktické",
+					"praktických",
+					"praktickým",
+					"praktické",
+					"praktické",
+					"praktických",
+					"praktickými"
+				]
+			},
+			"f": {
+				"sg": [
+					"praktická",
+					"praktické",
+					"praktické",
+					"praktickou",
+					"praktická",
+					"praktické",
+					"praktickou"
+				],
+				"pl": [
+					"praktické",
+					"praktických",
+					"praktickým",
+					"praktické",
+					"praktické",
+					"praktických",
+					"praktickými"
+				]
+			},
+			"n": {
+				"sg": [
+					"praktické",
+					"praktického",
+					"praktickému",
+					"praktické",
+					"praktické",
+					"praktickém",
+					"praktickým"
+				],
+				"pl": [
+					"praktická",
+					"praktických",
+					"praktickým",
+					"praktická",
+					"praktická",
+					"praktických",
+					"praktickými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "základní",
+		"translation": "basic, fundamental, underlying",
+		"difficulty": "B2",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"základní",
+					"základního",
+					"základnímu",
+					"základního",
+					"základní",
+					"základním",
+					"základním"
+				],
+				"pl": [
+					"základní",
+					"základních",
+					"základním",
+					"základní",
+					"základní",
+					"základních",
+					"základními"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"základní",
+					"základního",
+					"základnímu",
+					"základní",
+					"základní",
+					"základním",
+					"základním"
+				],
+				"pl": [
+					"základní",
+					"základních",
+					"základním",
+					"základní",
+					"základní",
+					"základních",
+					"základními"
+				]
+			},
+			"f": {
+				"sg": ["základní", "základní", "základní", "základní", "základní", "základní", "základní"],
+				"pl": [
+					"základní",
+					"základních",
+					"základním",
+					"základní",
+					"základní",
+					"základních",
+					"základními"
+				]
+			},
+			"n": {
+				"sg": [
+					"základní",
+					"základního",
+					"základnímu",
+					"základní",
+					"základní",
+					"základním",
+					"základním"
+				],
+				"pl": [
+					"základní",
+					"základních",
+					"základním",
+					"základní",
+					"základní",
+					"základních",
+					"základními"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "celkový",
+		"translation": "overall",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["celkový", "celkového", "celkovému", "celkového", "celkový", "celkovém", "celkovým"],
+				"pl": ["celkoví", "celkových", "celkovým", "celkové", "celkoví", "celkových", "celkovými"]
+			},
+			"m_inanim": {
+				"sg": ["celkový", "celkového", "celkovému", "celkový", "celkový", "celkovém", "celkovým"],
+				"pl": ["celkové", "celkových", "celkovým", "celkové", "celkové", "celkových", "celkovými"]
+			},
+			"f": {
+				"sg": ["celková", "celkové", "celkové", "celkovou", "celková", "celkové", "celkovou"],
+				"pl": ["celkové", "celkových", "celkovým", "celkové", "celkové", "celkových", "celkovými"]
+			},
+			"n": {
+				"sg": ["celkové", "celkového", "celkovému", "celkové", "celkové", "celkovém", "celkovým"],
+				"pl": ["celková", "celkových", "celkovým", "celková", "celková", "celkových", "celkovými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "současný",
+		"translation": "contemporary",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"současný",
+					"současného",
+					"současnému",
+					"současného",
+					"současný",
+					"současném",
+					"současným"
+				],
+				"pl": [
+					"současní",
+					"současných",
+					"současným",
+					"současné",
+					"současní",
+					"současných",
+					"současnými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"současný",
+					"současného",
+					"současnému",
+					"současný",
+					"současný",
+					"současném",
+					"současným"
+				],
+				"pl": [
+					"současné",
+					"současných",
+					"současným",
+					"současné",
+					"současné",
+					"současných",
+					"současnými"
+				]
+			},
+			"f": {
+				"sg": [
+					"současná",
+					"současné",
+					"současné",
+					"současnou",
+					"současná",
+					"současné",
+					"současnou"
+				],
+				"pl": [
+					"současné",
+					"současných",
+					"současným",
+					"současné",
+					"současné",
+					"současných",
+					"současnými"
+				]
+			},
+			"n": {
+				"sg": [
+					"současné",
+					"současného",
+					"současnému",
+					"současné",
+					"současné",
+					"současném",
+					"současným"
+				],
+				"pl": [
+					"současná",
+					"současných",
+					"současným",
+					"současná",
+					"současná",
+					"současných",
+					"současnými"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "tradiční",
+		"translation": "traditional",
+		"difficulty": "B2",
+		"paradigmType": "soft",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"tradiční",
+					"tradičního",
+					"tradičnímu",
+					"tradičního",
+					"tradiční",
+					"tradičním",
+					"tradičním"
+				],
+				"pl": [
+					"tradiční",
+					"tradičních",
+					"tradičním",
+					"tradiční",
+					"tradiční",
+					"tradičních",
+					"tradičními"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"tradiční",
+					"tradičního",
+					"tradičnímu",
+					"tradiční",
+					"tradiční",
+					"tradičním",
+					"tradičním"
+				],
+				"pl": [
+					"tradiční",
+					"tradičních",
+					"tradičním",
+					"tradiční",
+					"tradiční",
+					"tradičních",
+					"tradičními"
+				]
+			},
+			"f": {
+				"sg": ["tradiční", "tradiční", "tradiční", "tradiční", "tradiční", "tradiční", "tradiční"],
+				"pl": [
+					"tradiční",
+					"tradičních",
+					"tradičním",
+					"tradiční",
+					"tradiční",
+					"tradičních",
+					"tradičními"
+				]
+			},
+			"n": {
+				"sg": [
+					"tradiční",
+					"tradičního",
+					"tradičnímu",
+					"tradiční",
+					"tradiční",
+					"tradičním",
+					"tradičním"
+				],
+				"pl": [
+					"tradiční",
+					"tradičních",
+					"tradičním",
+					"tradiční",
+					"tradiční",
+					"tradičních",
+					"tradičními"
+				]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "obvyklý",
+		"translation": "usual",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": ["obvyklý", "obvyklého", "obvyklému", "obvyklého", "obvyklý", "obvyklém", "obvyklým"],
+				"pl": ["obvyklí", "obvyklých", "obvyklým", "obvyklé", "obvyklí", "obvyklých", "obvyklými"]
+			},
+			"m_inanim": {
+				"sg": ["obvyklý", "obvyklého", "obvyklému", "obvyklý", "obvyklý", "obvyklém", "obvyklým"],
+				"pl": ["obvyklé", "obvyklých", "obvyklým", "obvyklé", "obvyklé", "obvyklých", "obvyklými"]
+			},
+			"f": {
+				"sg": ["obvyklá", "obvyklé", "obvyklé", "obvyklou", "obvyklá", "obvyklé", "obvyklou"],
+				"pl": ["obvyklé", "obvyklých", "obvyklým", "obvyklé", "obvyklé", "obvyklých", "obvyklými"]
+			},
+			"n": {
+				"sg": ["obvyklé", "obvyklého", "obvyklému", "obvyklé", "obvyklé", "obvyklém", "obvyklým"],
+				"pl": ["obvyklá", "obvyklých", "obvyklým", "obvyklá", "obvyklá", "obvyklých", "obvyklými"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "nezbytný",
+		"translation": "indispensable (impossible to be omitted, remitted, or spared)",
+		"difficulty": "B2",
+		"paradigmType": "hard",
+		"categories": ["common", "universal"],
+		"forms": {
+			"m_anim": {
+				"sg": [
+					"nezbytný",
+					"nezbytného",
+					"nezbytnému",
+					"nezbytného",
+					"nezbytný",
+					"nezbytném",
+					"nezbytným"
+				],
+				"pl": [
+					"nezbytní",
+					"nezbytných",
+					"nezbytným",
+					"nezbytné",
+					"nezbytní",
+					"nezbytných",
+					"nezbytnými"
+				]
+			},
+			"m_inanim": {
+				"sg": [
+					"nezbytný",
+					"nezbytného",
+					"nezbytnému",
+					"nezbytný",
+					"nezbytný",
+					"nezbytném",
+					"nezbytným"
+				],
+				"pl": [
+					"nezbytné",
+					"nezbytných",
+					"nezbytným",
+					"nezbytné",
+					"nezbytné",
+					"nezbytných",
+					"nezbytnými"
+				]
+			},
+			"f": {
+				"sg": [
+					"nezbytná",
+					"nezbytné",
+					"nezbytné",
+					"nezbytnou",
+					"nezbytná",
+					"nezbytné",
+					"nezbytnou"
+				],
+				"pl": [
+					"nezbytné",
+					"nezbytných",
+					"nezbytným",
+					"nezbytné",
+					"nezbytné",
+					"nezbytných",
+					"nezbytnými"
+				]
+			},
+			"n": {
+				"sg": [
+					"nezbytné",
+					"nezbytného",
+					"nezbytnému",
+					"nezbytné",
+					"nezbytné",
+					"nezbytném",
+					"nezbytným"
+				],
+				"pl": [
+					"nezbytná",
+					"nezbytných",
+					"nezbytným",
+					"nezbytná",
+					"nezbytná",
+					"nezbytných",
+					"nezbytnými"
+				]
+			}
+		},
+		"variantForms": {}
+	}
+]

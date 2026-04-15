@@ -22,6 +22,7 @@
 		selectedDrillTypes: string[];
 		numberMode: string;
 		contentMode: string;
+		includeAdjectives: boolean;
 		contentLevel: string | null;
 		targetQuestions: number;
 		dueDate: string | null;
@@ -71,6 +72,46 @@
 	$effect(() => {
 		if (assignment?.dueDate) editDueDateValue = formatDateForInput(assignment.dueDate);
 	});
+
+	// Multi-select content toggles
+	let editNounsSelected = $state(true);
+	let editPronounsSelected = $state(true);
+	let editAdjectivesSelected = $state(false);
+
+	$effect(() => {
+		if (assignment) {
+			editNounsSelected = assignment.contentMode === 'both' || assignment.contentMode === 'nouns';
+			editPronounsSelected =
+				assignment.contentMode === 'both' || assignment.contentMode === 'pronouns';
+			editAdjectivesSelected = assignment.includeAdjectives;
+		}
+	});
+
+	let editDerivedContentMode = $derived(
+		editNounsSelected && editPronounsSelected ? 'both' : editNounsSelected ? 'nouns' : 'pronouns'
+	);
+	let editDerivedIncludeAdjectives = $derived(editAdjectivesSelected);
+
+	function toggleEditContent(type: 'nouns' | 'pronouns' | 'adjectives') {
+		const total =
+			(editNounsSelected ? 1 : 0) +
+			(editPronounsSelected ? 1 : 0) +
+			(editAdjectivesSelected ? 1 : 0);
+		if (type === 'nouns') {
+			if (editNounsSelected && total <= 1) return;
+			// Prevent leaving only adjectives selected (no nouns or pronouns)
+			if (editNounsSelected && !editPronounsSelected) return;
+			editNounsSelected = !editNounsSelected;
+		} else if (type === 'pronouns') {
+			if (editPronounsSelected && total <= 1) return;
+			// Prevent leaving only adjectives selected (no nouns or pronouns)
+			if (editPronounsSelected && !editNounsSelected) return;
+			editPronounsSelected = !editPronounsSelected;
+		} else {
+			if (editAdjectivesSelected && total <= 1) return;
+			editAdjectivesSelected = !editAdjectivesSelected;
+		}
+	}
 
 	function formatDateForInput(isoDate: string): string {
 		const d = new Date(isoDate);
@@ -292,25 +333,44 @@
 					</div>
 				</div>
 
-				<!-- Content Mode -->
+				<!-- Content -->
 				<div class="mb-4">
 					<p class="mb-2 text-sm font-medium text-text-default">Content</p>
 					<div class="flex gap-2">
-						{#each [['both', 'Both'], ['nouns', 'Nouns Only'], ['pronouns', 'Pronouns Only']] as [value, label] (value)}
-							<label
-								class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
-							>
-								<input
-									type="radio"
-									name="content_mode"
-									{value}
-									checked={assignment.contentMode === value}
-									class="sr-only"
-								/>
-								{label}
-							</label>
-						{/each}
+						<button
+							type="button"
+							class="rounded-full border px-3 py-1.5 text-xs {editNounsSelected
+								? 'border-emphasis bg-emphasis text-text-inverted'
+								: 'border-card-stroke text-text-default'}"
+							onclick={() => toggleEditContent('nouns')}
+						>
+							Nouns
+						</button>
+						<button
+							type="button"
+							class="rounded-full border px-3 py-1.5 text-xs {editPronounsSelected
+								? 'border-emphasis bg-emphasis text-text-inverted'
+								: 'border-card-stroke text-text-default'}"
+							onclick={() => toggleEditContent('pronouns')}
+						>
+							Pronouns
+						</button>
+						<button
+							type="button"
+							class="rounded-full border px-3 py-1.5 text-xs {editAdjectivesSelected
+								? 'border-emphasis bg-emphasis text-text-inverted'
+								: 'border-card-stroke text-text-default'}"
+							onclick={() => toggleEditContent('adjectives')}
+						>
+							Adjectives
+						</button>
 					</div>
+					<input type="hidden" name="content_mode" value={editDerivedContentMode} />
+					<input
+						type="hidden"
+						name="include_adjectives"
+						value={editDerivedIncludeAdjectives ? 'true' : 'false'}
+					/>
 				</div>
 
 				<!-- Level -->

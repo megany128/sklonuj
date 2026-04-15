@@ -13,14 +13,14 @@
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import type { Case } from '$lib/types';
-	import { ALL_CASES, CASE_LABELS, isCase } from '$lib/types';
+	import type { AdjectiveGenderKey } from '$lib/types';
+	import { ALL_CASES, ALL_ADJECTIVE_GENDER_KEYS, CASE_LABELS, isCase } from '$lib/types';
 	import { progress as progressStore } from '$lib/engine/progress';
 	import { onMount } from 'svelte';
 	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
 	import Pencil from '@lucide/svelte/icons/pencil';
 
 	import { BADGE_ICONS, BADGE_COLORS } from '$lib/data/badge-icons';
-
 	function focusOnMount(node: HTMLElement) {
 		node.focus();
 	}
@@ -109,7 +109,7 @@
 		serverProgress?.paradigm_scores ?? (user ? emptyScores : $progressStore.paradigmScores)
 	);
 
-	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun'>('case');
+	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun' | 'adjective'>('case');
 	let accuracyCaseFilter = $state<'all' | Case>('all');
 
 	type ProfileTab = 'progress' | 'mistakes' | 'achievements';
@@ -149,6 +149,38 @@
 	let hasPronounScores = $derived(
 		Object.keys(paradigmScores).some((k) => k.startsWith('pronoun_'))
 	);
+
+	let hasAdjectiveScores = $derived(Object.keys(paradigmScores).some((k) => k.startsWith('adj_')));
+	let adjGenderFilter = $state<AdjectiveGenderKey | 'all'>('all');
+
+	const ADJ_GENDER_FILTER_OPTIONS: Array<{ value: AdjectiveGenderKey | 'all'; label: string }> = [
+		{ value: 'all', label: 'All' },
+		{ value: 'm_anim', label: 'M. anim' },
+		{ value: 'm_inanim', label: 'M. inanim' },
+		{ value: 'f', label: 'Fem' },
+		{ value: 'n', label: 'Neut' }
+	];
+
+	let activeAdjectiveLemmas = $derived.by(() => {
+		const lemmas: string[] = [];
+		for (const key of Object.keys(paradigmScores)) {
+			if (key.startsWith('adj_')) {
+				// key format: adj_{lemma}_{genderKey}_{case}_{number}
+				// genderKey may contain underscores (e.g. m_anim, m_inanim)
+				// lemma is always the second segment (parts[1])
+				const parts = key.split('_');
+				if (parts.length >= 5 && !lemmas.includes(parts[1])) {
+					lemmas.push(parts[1]);
+				}
+			}
+		}
+		return lemmas.sort((a, b) => a.localeCompare(b, 'cs'));
+	});
+
+	const ADJ_GROUPS: Array<{ label: string; suffix: string; description: string }> = [
+		{ label: 'Hard (-ý)', suffix: 'ý', description: 'mladý pattern' },
+		{ label: 'Soft (-í)', suffix: 'í', description: 'jarní pattern' }
+	];
 
 	let activePronounLemmas = $derived.by(() => {
 		const lemmas: Record<string, true> = {};
@@ -210,6 +242,28 @@
 	};
 
 	const PRONOUN_ORDER = ['já', 'ty', 'on', 'ona', 'ono', 'my', 'vy', 'oni', 'se'];
+
+	/** Aggregate adjective scores for a group of lemmas at a specific case+number, optionally filtered by gender */
+	function getAdjGroupScore(
+		lemmas: string[],
+		caseKey: string,
+		num: string,
+		genderFilter: AdjectiveGenderKey | 'all' = 'all'
+	): { attempts: number; correct: number } {
+		let attempts = 0;
+		let correct = 0;
+		const genders = genderFilter === 'all' ? ALL_ADJECTIVE_GENDER_KEYS : [genderFilter];
+		for (const lemma of lemmas) {
+			for (const genderKey of genders) {
+				const score = paradigmScores[`adj_${lemma}_${genderKey}_${caseKey}_${num}`];
+				if (score) {
+					attempts += score.attempts;
+					correct += score.correct;
+				}
+			}
+		}
+		return { attempts, correct };
+	}
 
 	// Display name editing
 	let editingName = $state(false);
@@ -563,11 +617,18 @@
 
 	let hoveredCellScore = $derived.by(() => {
 		if (!hoveredCell) return null;
-		const score = getParadigmCaseNumberScore(
-			hoveredCell.paradigm,
-			hoveredCell.caseKey,
-			hoveredCell.num
-		);
+		let score: { attempts: number; correct: number };
+		if (hoveredCell.paradigm.startsWith('adjgroup_')) {
+			const suffix = hoveredCell.paradigm.slice('adjgroup_'.length);
+			const groupLemmas = activeAdjectiveLemmas.filter((l) => l.endsWith(suffix));
+			score = getAdjGroupScore(groupLemmas, hoveredCell.caseKey, hoveredCell.num, adjGenderFilter);
+		} else {
+			score = getParadigmCaseNumberScore(
+				hoveredCell.paradigm,
+				hoveredCell.caseKey,
+				hoveredCell.num
+			);
+		}
 		const pct = score.attempts > 0 ? Math.round((score.correct / score.attempts) * 100) : -1;
 		const caseMeta = CASE_META.find((c) => c.key === hoveredCell!.caseKey);
 		return {
@@ -1028,6 +1089,18 @@
 									Pronouns
 								</button>
 							{/if}
+							{#if hasAdjectiveScores}
+								<button
+									type="button"
+									class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
+									'adjective'
+										? 'text-text-default'
+										: 'text-text-subtitle hover:text-text-default'}"
+									onclick={() => (breakdownTab = 'adjective')}
+								>
+									Adjectives
+								</button>
+							{/if}
 							<!-- Tab indicator -->
 							<div class="flex-1"></div>
 						</div>
@@ -1433,145 +1506,328 @@
 										</div>
 									{/if}
 								</div>
+							{:else if breakdownTab === 'adjective'}
+								<!-- Adjective view: one combined row per type (hard/soft) -->
+								<div class="flex flex-col gap-4">
+									{#if activeAdjectiveLemmas.length === 0}
+										<p class="py-8 text-center text-sm text-text-subtitle">
+											No adjective practice data yet.
+										</p>
+									{:else}
+										<!-- Gender filter -->
+										<div class="flex items-center justify-end gap-1">
+											{#each ADJ_GENDER_FILTER_OPTIONS as opt (opt.value)}
+												<button
+													class="rounded-md px-2 py-1 text-xs transition-colors {adjGenderFilter ===
+													opt.value
+														? 'bg-accent-blue text-white'
+														: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
+													onclick={() => (adjGenderFilter = opt.value)}
+												>
+													{opt.label}
+												</button>
+											{/each}
+										</div>
+										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+											<div class="overflow-x-auto pb-3">
+												<!-- Case header labels -->
+												<div class="mb-1 flex items-center">
+													<div class="w-28 shrink-0"></div>
+													<div class="w-5 shrink-0"></div>
+													{#each CASE_META as cm (cm.key)}
+														<div
+															class="shrink-0 text-center text-xs text-text-subtitle"
+															style="width: 32px;"
+														>
+															{cm.abbrev}
+														</div>
+													{/each}
+												</div>
+												{#each ADJ_GROUPS as group, gi (group.label)}
+													{@const groupLemmas = activeAdjectiveLemmas.filter((l) =>
+														l.endsWith(group.suffix)
+													)}
+													{#if groupLemmas.length > 0}
+														{@const adjGroupKey = `adjgroup_${group.suffix}`}
+														{#if gi > 0}
+															<div class="my-1.5 border-t border-card-stroke"></div>
+														{/if}
+														<div class="flex items-center">
+															<div class="w-28 shrink-0 pr-2">
+																<p class="text-xs font-medium leading-tight text-text-default">
+																	{group.label}
+																</p>
+																<p class="text-xs leading-tight text-text-subtitle">
+																	{group.description}
+																</p>
+															</div>
+															<div class="flex flex-col gap-0.5">
+																<!-- Sg row -->
+																<div class="flex items-center">
+																	<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																		Sg
+																	</div>
+																	{#each CASE_META as cm (cm.key)}
+																		{@const score = getAdjGroupScore(
+																			groupLemmas,
+																			cm.key,
+																			'sg',
+																			adjGenderFilter
+																		)}
+																		{@const pct =
+																			score.attempts > 0
+																				? Math.round((score.correct / score.attempts) * 100)
+																				: -1}
+																		<div class="flex shrink-0 justify-center" style="width: 32px;">
+																			<div
+																				class="paradigm-cell h-5 w-6 rounded-[3px]"
+																				style="background-color: {pct >= 0
+																					? cellColor(pct)
+																					: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																					? 0.85
+																					: 1};"
+																				role="gridcell"
+																				tabindex="0"
+																				aria-label="{group.label} {cm.label} singular: {pct >= 0
+																					? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																					: 'no data'}"
+																				onmouseenter={(e: MouseEvent) =>
+																					handleCellEnter(e, adjGroupKey, cm.key, 'sg')}
+																				onmouseleave={handleCellLeave}
+																				onfocus={(e: FocusEvent) =>
+																					handleCellEnter(e, adjGroupKey, cm.key, 'sg')}
+																				onblur={handleCellLeave}
+																			></div>
+																		</div>
+																	{/each}
+																</div>
+																<!-- Pl row -->
+																<div class="flex items-center">
+																	<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																		Pl
+																	</div>
+																	{#each CASE_META as cm (cm.key)}
+																		{@const score = getAdjGroupScore(
+																			groupLemmas,
+																			cm.key,
+																			'pl',
+																			adjGenderFilter
+																		)}
+																		{@const pct =
+																			score.attempts > 0
+																				? Math.round((score.correct / score.attempts) * 100)
+																				: -1}
+																		<div class="flex shrink-0 justify-center" style="width: 32px;">
+																			<div
+																				class="paradigm-cell h-5 w-6 rounded-[3px]"
+																				style="background-color: {pct >= 0
+																					? cellColor(pct)
+																					: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																					? 0.85
+																					: 1};"
+																				role="gridcell"
+																				tabindex="0"
+																				aria-label="{group.label} {cm.label} plural: {pct >= 0
+																					? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																					: 'no data'}"
+																				onmouseenter={(e: MouseEvent) =>
+																					handleCellEnter(e, adjGroupKey, cm.key, 'pl')}
+																				onmouseleave={handleCellLeave}
+																				onfocus={(e: FocusEvent) =>
+																					handleCellEnter(e, adjGroupKey, cm.key, 'pl')}
+																				onblur={handleCellLeave}
+																			></div>
+																		</div>
+																	{/each}
+																</div>
+															</div>
+														</div>
+													{/if}
+												{/each}
+											</div>
+										</div>
+
+										<!-- Legend -->
+										<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: var(--color-shaded-background);"
+												></div>
+												No data
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #ef4444; opacity: 0.85;"
+												></div>
+												&lt;40%
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #f97316; opacity: 0.85;"
+												></div>
+												40-59%
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #eab308; opacity: 0.85;"
+												></div>
+												60-79%
+											</div>
+											<div class="flex items-center gap-1">
+												<div
+													class="h-3 w-3 rounded-[2px]"
+													style="background-color: #22c55e; opacity: 0.85;"
+												></div>
+												80%+
+											</div>
+										</div>
+									{/if}
+								</div>
 							{/if}
 						</div>
 					</section>
 
 					<!-- Accuracy Over Time chart -->
-					{#if hasEnoughOverallData}
-						<section class="mb-8">
-							<div class="mb-4 flex items-center justify-between">
-								<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
-									Accuracy Over Time
-								</h2>
-								<select
-									bind:value={accuracyCaseFilter}
-									class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-xs text-text-default"
+					<section class="mb-8">
+						<div class="mb-4 flex items-center justify-between">
+							<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								Accuracy Over Time
+							</h2>
+							<select
+								bind:value={accuracyCaseFilter}
+								class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-xs text-text-default"
+							>
+								<option value="all">Overall</option>
+								{#each ALL_CASES as c (c)}
+									<option value={c}>{CASE_LABELS[c]}</option>
+								{/each}
+							</select>
+						</div>
+						<div
+							class="relative rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4"
+							bind:clientWidth={accChartContainerWidth}
+						>
+							<div class="w-full overflow-x-auto">
+								<svg
+									viewBox="0 0 {ACC_CHART_WIDTH} {ACC_CHART_HEIGHT}"
+									class="w-full"
+									style="min-width: 360px"
+									role="img"
+									aria-label="Daily accuracy over time chart"
 								>
-									<option value="all">Overall</option>
-									{#each ALL_CASES as c (c)}
-										<option value={c}>{CASE_LABELS[c]}</option>
+									<!-- Grid lines and Y-axis labels -->
+									{#each ACC_Y_TICKS as tick (tick)}
+										<line
+											x1={ACC_PAD_LEFT}
+											y1={accYScale(tick)}
+											x2={ACC_CHART_WIDTH - ACC_PAD_RIGHT}
+											y2={accYScale(tick)}
+											stroke="var(--color-card-stroke)"
+											stroke-width="1"
+											stroke-dasharray={tick === 0 ? 'none' : '4 2'}
+										/>
+										<text
+											x={ACC_PAD_LEFT - 8}
+											y={accYScale(tick) + 4}
+											text-anchor="end"
+											fill="var(--color-text-subtitle)"
+											font-size="11"
+										>
+											{tick}%
+										</text>
 									{/each}
-								</select>
-							</div>
-							{#if dailyAccuracy.length < 2}
-								<div class="rounded-xl border border-card-stroke bg-card-bg p-8 text-center">
-									<p class="text-sm text-text-subtitle">
-										Not enough {accuracyCaseFilter === 'all'
-											? 'overall'
-											: CASE_LABELS[accuracyCaseFilter].toLowerCase()} data yet.
-									</p>
-									<p class="mt-1 text-sm text-text-subtitle">
-										Practice more {accuracyCaseFilter === 'all'
-											? ''
-											: CASE_LABELS[accuracyCaseFilter].toLowerCase() + ' '} questions to see your accuracy
-										trend.
-									</p>
-								</div>
-							{:else}
-								<div
-									class="relative rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4"
-									bind:clientWidth={accChartContainerWidth}
-								>
-									<div class="w-full overflow-x-auto">
-										<svg
-											viewBox="0 0 {ACC_CHART_WIDTH} {ACC_CHART_HEIGHT}"
-											class="w-full"
-											style="min-width: 360px"
-											role="img"
-											aria-label="Daily accuracy over time chart"
-										>
-											<!-- Grid lines and Y-axis labels -->
-											{#each ACC_Y_TICKS as tick (tick)}
-												<line
-													x1={ACC_PAD_LEFT}
-													y1={accYScale(tick)}
-													x2={ACC_CHART_WIDTH - ACC_PAD_RIGHT}
-													y2={accYScale(tick)}
-													stroke="var(--color-card-stroke)"
-													stroke-width="1"
-													stroke-dasharray={tick === 0 ? 'none' : '4 2'}
-												/>
-												<text
-													x={ACC_PAD_LEFT - 8}
-													y={accYScale(tick) + 4}
-													text-anchor="end"
-													fill="var(--color-text-subtitle)"
-													font-size="11"
-												>
-													{tick}%
-												</text>
-											{/each}
 
-											<!-- X-axis date labels -->
-											{#each accXLabels as xl (xl.index)}
-												<text
-													x={accXScale(xl.index, dailyAccuracy.length)}
-													y={ACC_CHART_HEIGHT - 8}
-													text-anchor="middle"
-													fill="var(--color-text-subtitle)"
-													font-size="10"
-												>
-													{xl.label}
-												</text>
-											{/each}
+									{#if dailyAccuracy.length >= 2}
+										<!-- X-axis date labels -->
+										{#each accXLabels as xl (xl.index)}
+											<text
+												x={accXScale(xl.index, dailyAccuracy.length)}
+												y={ACC_CHART_HEIGHT - 8}
+												text-anchor="middle"
+												fill="var(--color-text-subtitle)"
+												font-size="10"
+											>
+												{xl.label}
+											</text>
+										{/each}
 
-											<!-- Accuracy line -->
-											<polyline
-												points={accPolylinePoints}
-												fill="none"
-												stroke={accChartColor}
+										<!-- Accuracy line -->
+										<polyline
+											points={accPolylinePoints}
+											fill="none"
+											stroke={accChartColor}
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										/>
+
+										<!-- Data points -->
+										{#each dailyAccuracy as point, i (point.date)}
+											<circle
+												cx={accXScale(i, dailyAccuracy.length)}
+												cy={accYScale(point.accuracy)}
+												r="5"
+												fill={accChartColor}
+												stroke="var(--color-card-bg)"
 												stroke-width="2"
-												stroke-linecap="round"
-												stroke-linejoin="round"
+												pointer-events="none"
 											/>
-
-											<!-- Data points -->
-											{#each dailyAccuracy as point, i (point.date)}
-												<circle
-													cx={accXScale(i, dailyAccuracy.length)}
-													cy={accYScale(point.accuracy)}
-													r="5"
-													fill={accChartColor}
-													stroke="var(--color-card-bg)"
-													stroke-width="2"
-													pointer-events="none"
-												/>
-												<!-- Invisible hit-slop circle for hover -->
-												<circle
-													cx={accXScale(i, dailyAccuracy.length)}
-													cy={accYScale(point.accuracy)}
-													r="20"
-													fill="transparent"
-													role="img"
-													aria-label="{formatAccDate(point.date)}: {point.accuracy}% accuracy"
-													onmouseenter={(e) => handleAccPointHover(e, point.date, point.accuracy)}
-													onmouseleave={clearAccHover}
-												/>
-											{/each}
-										</svg>
-									</div>
-									<!-- Tooltip (outside overflow container so it isn't clipped) -->
-									{#if hoveredAccPoint}
-										<div
-											class="pointer-events-none absolute z-10 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
-											style="{hoveredAccPoint.x > accChartContainerWidth - 140
-												? `right: ${accChartContainerWidth - hoveredAccPoint.x + 12}px`
-												: `left: ${hoveredAccPoint.x + 12}px`}; top: {Math.max(
-												4,
-												hoveredAccPoint.y - 40
-											)}px"
-										>
-											<p class="font-medium text-text-default">
-												{formatAccDate(hoveredAccPoint.date)}
-											</p>
-											<p class="text-text-subtitle">{hoveredAccPoint.accuracy}% accuracy</p>
-										</div>
+											<!-- Invisible hit-slop circle for hover -->
+											<circle
+												cx={accXScale(i, dailyAccuracy.length)}
+												cy={accYScale(point.accuracy)}
+												r="20"
+												fill="transparent"
+												role="img"
+												aria-label="{formatAccDate(point.date)}: {point.accuracy}% accuracy"
+												onmouseenter={(e) => handleAccPointHover(e, point.date, point.accuracy)}
+												onmouseleave={clearAccHover}
+											/>
+										{/each}
 									{/if}
+								</svg>
+							</div>
+							{#if dailyAccuracy.length >= 2 && hoveredAccPoint}
+								<!-- Tooltip -->
+								<div
+									class="pointer-events-none absolute z-10 rounded-lg border border-card-stroke bg-card-bg px-3 py-2 text-xs shadow-md"
+									style="{hoveredAccPoint.x > accChartContainerWidth - 140
+										? `right: ${accChartContainerWidth - hoveredAccPoint.x + 12}px`
+										: `left: ${hoveredAccPoint.x + 12}px`}; top: {Math.max(
+										4,
+										hoveredAccPoint.y - 40
+									)}px"
+								>
+									<p class="font-medium text-text-default">
+										{formatAccDate(hoveredAccPoint.date)}
+									</p>
+									<p class="text-text-subtitle">{hoveredAccPoint.accuracy}% accuracy</p>
 								</div>
 							{/if}
-						</section>
-					{/if}
+							{#if dailyAccuracy.length < 2}
+								<div
+									class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-card-bg/80 backdrop-blur-sm"
+								>
+									<div class="text-center">
+										<p class="text-sm text-text-subtitle">
+											{#if !hasEnoughOverallData}
+												Your accuracy chart will appear as you practice — it updates once a day.
+											{:else}
+												Not enough {accuracyCaseFilter === 'all'
+													? 'overall'
+													: CASE_LABELS[accuracyCaseFilter].toLowerCase()} data yet — practice more to
+												see the trend.
+											{/if}
+										</p>
+									</div>
+								</div>
+							{/if}
+						</div>
+					</section>
 				</div>
 			{/if}
 
@@ -1719,7 +1975,7 @@
 															<div class="flex items-start justify-between gap-2">
 																<p class="mb-1 text-sm font-medium text-text-default">
 																	{#if isCaseId}
-																		Identify the case of "{mistake.lemma}"{#if mistake.sentence}
+																		Identify the case of "{mistake.lemma}" {#if mistake.sentence}
 																			in:{/if}
 																	{:else if isSentenceFillIn}
 																		Fill in "{mistake.lemma}"

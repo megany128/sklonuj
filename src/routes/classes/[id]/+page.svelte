@@ -13,8 +13,13 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import ProgressChart from '$lib/components/ui/ProgressChart.svelte';
-	import { CASE_LABELS, DRILL_TYPE_LABELS, ALL_DRILL_TYPES } from '$lib/types';
-	import type { Case } from '$lib/types';
+	import {
+		CASE_LABELS,
+		DRILL_TYPE_LABELS,
+		ALL_DRILL_TYPES,
+		ALL_ADJECTIVE_GENDER_KEYS
+	} from '$lib/types';
+	import type { Case, AdjectiveGenderKey } from '$lib/types';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import GuidedTour from '$lib/components/ui/GuidedTour.svelte';
@@ -93,6 +98,7 @@
 		selectedDrillTypes: string[];
 		numberMode: string;
 		contentMode: string;
+		includeAdjectives?: boolean;
 		targetQuestions: number;
 		dueDate: string | null;
 		createdAt: string;
@@ -358,6 +364,62 @@
 		return classParadigmScores[`${paradigm}_${caseKey}_${num}`] ?? { attempts: 0, correct: 0 };
 	}
 
+	const ADJ_GROUPS: Array<{ label: string; suffix: string; description: string }> = [
+		{ label: 'Hard (-ý)', suffix: 'ý', description: 'mladý pattern' },
+		{ label: 'Soft (-í)', suffix: 'í', description: 'jarní pattern' }
+	];
+
+	let activeClassAdjectiveLemmas = $derived.by(() => {
+		const lemmas: string[] = [];
+		for (const key of Object.keys(classParadigmScores)) {
+			if (key.startsWith('adj_')) {
+				// key format: adj_{lemma}_{genderKey}_{case}_{number}
+				// genderKey may contain underscores (e.g. m_anim, m_inanim)
+				// lemma is always the second segment (parts[1])
+				const parts = key.split('_');
+				if (parts.length >= 5 && !lemmas.includes(parts[1])) {
+					lemmas.push(parts[1]);
+				}
+			}
+		}
+		return lemmas;
+	});
+
+	let hasAdjectiveData = $derived(activeClassAdjectiveLemmas.length > 0);
+	let classAdjGenderFilter = $state<AdjectiveGenderKey | 'all'>('all');
+
+	const CLASS_ADJ_GENDER_FILTER_OPTIONS: Array<{
+		value: AdjectiveGenderKey | 'all';
+		label: string;
+	}> = [
+		{ value: 'all', label: 'All' },
+		{ value: 'm_anim', label: 'M. anim' },
+		{ value: 'm_inanim', label: 'M. inanim' },
+		{ value: 'f', label: 'Fem' },
+		{ value: 'n', label: 'Neut' }
+	];
+
+	function getAdjGroupClassScore(
+		lemmas: string[],
+		caseKey: string,
+		num: string,
+		genderFilter: AdjectiveGenderKey | 'all' = 'all'
+	): ScoreEntry {
+		let attempts = 0;
+		let correct = 0;
+		const genders = genderFilter === 'all' ? ALL_ADJECTIVE_GENDER_KEYS : [genderFilter];
+		for (const lemma of lemmas) {
+			for (const genderKey of genders) {
+				const entry = classParadigmScores[`adj_${lemma}_${genderKey}_${caseKey}_${num}`];
+				if (entry) {
+					attempts += entry.attempts;
+					correct += entry.correct;
+				}
+			}
+		}
+		return { attempts, correct };
+	}
+
 	function accuracyColor(pct: number): string {
 		if (pct >= 80) return '#22c55e';
 		if (pct >= 60) return '#eab308';
@@ -412,11 +474,23 @@
 
 	let hoveredCellScore = $derived.by(() => {
 		if (!hoveredCell) return null;
-		const score = getParadigmCaseNumberScore(
-			hoveredCell.paradigm,
-			hoveredCell.caseKey,
-			hoveredCell.num
-		);
+		let score: ScoreEntry;
+		if (hoveredCell.paradigm.startsWith('adjgroup_')) {
+			const suffix = hoveredCell.paradigm.slice('adjgroup_'.length);
+			const matchingLemmas = activeClassAdjectiveLemmas.filter((l) => l.endsWith(suffix));
+			score = getAdjGroupClassScore(
+				matchingLemmas,
+				hoveredCell.caseKey,
+				hoveredCell.num,
+				classAdjGenderFilter
+			);
+		} else {
+			score = getParadigmCaseNumberScore(
+				hoveredCell.paradigm,
+				hoveredCell.caseKey,
+				hoveredCell.num
+			);
+		}
 		const pct = score.attempts > 0 ? Math.round((score.correct / score.attempts) * 100) : -1;
 		const caseMeta = CASE_META.find((c) => c.key === hoveredCell!.caseKey);
 		const breakdownKey = `${hoveredCell!.paradigm}_${hoveredCell!.caseKey}_${hoveredCell!.num}`;
@@ -1001,6 +1075,37 @@
 	let assignmentError = $state<string | null>(null);
 	let casesError = $state<string | null>(null);
 	let drillTypesError = $state<string | null>(null);
+
+	// Multi-select content toggles for quick-create
+	let quickNounsSelected = $state(true);
+	let quickPronounsSelected = $state(true);
+	let quickAdjectivesSelected = $state(false);
+
+	let quickDerivedContentMode = $derived(
+		quickNounsSelected && quickPronounsSelected ? 'both' : quickNounsSelected ? 'nouns' : 'pronouns'
+	);
+	let quickDerivedIncludeAdjectives = $derived(quickAdjectivesSelected);
+
+	function toggleQuickContent(type: 'nouns' | 'pronouns' | 'adjectives') {
+		const total =
+			(quickNounsSelected ? 1 : 0) +
+			(quickPronounsSelected ? 1 : 0) +
+			(quickAdjectivesSelected ? 1 : 0);
+		if (type === 'nouns') {
+			if (quickNounsSelected && total <= 1) return;
+			// Prevent leaving only adjectives selected (no nouns or pronouns)
+			if (quickNounsSelected && !quickPronounsSelected) return;
+			quickNounsSelected = !quickNounsSelected;
+		} else if (type === 'pronouns') {
+			if (quickPronounsSelected && total <= 1) return;
+			// Prevent leaving only adjectives selected (no nouns or pronouns)
+			if (quickPronounsSelected && !quickNounsSelected) return;
+			quickPronounsSelected = !quickPronounsSelected;
+		} else {
+			if (quickAdjectivesSelected && total <= 1) return;
+			quickAdjectivesSelected = !quickAdjectivesSelected;
+		}
+	}
 
 	// Edit class modal state
 	let editClassSubmitting = $state(false);
@@ -1969,6 +2074,178 @@
 									{/each}
 								</div>
 
+								{#if hasAdjectiveData}
+									<div class="mb-3 mt-6 flex items-center justify-between">
+										<h2 class="text-lg font-semibold text-text-default">Adjective Accuracy</h2>
+										<div class="flex items-center gap-1">
+											{#each CLASS_ADJ_GENDER_FILTER_OPTIONS as opt (opt.value)}
+												<button
+													class="rounded-md px-2 py-1 text-xs transition-colors {classAdjGenderFilter ===
+													opt.value
+														? 'bg-accent-blue text-white'
+														: 'bg-shaded-background text-text-subtitle hover:text-text-default'}"
+													onclick={() => (classAdjGenderFilter = opt.value)}
+												>
+													{opt.label}
+												</button>
+											{/each}
+										</div>
+									</div>
+									<div class="flex flex-col gap-4">
+										<div class="rounded-xl border border-card-stroke bg-card-bg p-3 sm:p-4">
+											<div class="overflow-x-auto pb-2">
+												<div class="mb-1 flex items-center">
+													<div class="w-28 shrink-0"></div>
+													<div class="w-5 shrink-0"></div>
+													{#each CASE_META as cm (cm.key)}
+														<div
+															class="shrink-0 text-center text-xs text-text-subtitle"
+															style="width: 32px;"
+														>
+															{cm.abbrev}
+														</div>
+													{/each}
+												</div>
+												{#each ADJ_GROUPS as group, gi (group.suffix)}
+													{@const matchingLemmas = activeClassAdjectiveLemmas.filter((l) =>
+														l.endsWith(group.suffix)
+													)}
+													{@const hasAnyData = CASE_META.some(
+														(cm) =>
+															getAdjGroupClassScore(
+																matchingLemmas,
+																cm.key,
+																'sg',
+																classAdjGenderFilter
+															).attempts > 0 ||
+															getAdjGroupClassScore(
+																matchingLemmas,
+																cm.key,
+																'pl',
+																classAdjGenderFilter
+															).attempts > 0
+													)}
+													{#if hasAnyData}
+														{#if gi > 0}
+															<div class="my-1.5 border-t border-card-stroke"></div>
+														{/if}
+														<div class="flex items-center">
+															<div class="w-28 shrink-0 pr-2">
+																<p class="text-xs font-medium leading-tight text-text-default">
+																	{group.label}
+																</p>
+																<p class="text-xs leading-tight text-text-subtitle">
+																	{group.description}
+																</p>
+															</div>
+															<div class="flex flex-col gap-0.5">
+																<!-- Sg row -->
+																<div class="flex items-center">
+																	<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																		Sg
+																	</div>
+																	{#each CASE_META as cm (cm.key)}
+																		{@const score = getAdjGroupClassScore(
+																			matchingLemmas,
+																			cm.key,
+																			'sg',
+																			classAdjGenderFilter
+																		)}
+																		{@const pct =
+																			score.attempts > 0
+																				? Math.round((score.correct / score.attempts) * 100)
+																				: -1}
+																		<div class="flex shrink-0 justify-center" style="width: 32px;">
+																			<div
+																				class="h-5 w-6 rounded-[3px]"
+																				style="background-color: {pct >= 0
+																					? accuracyColor(pct)
+																					: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																					? 0.85
+																					: 1};"
+																				role="gridcell"
+																				tabindex="0"
+																				aria-label="{group.label} {cm.label} singular: {pct >= 0
+																					? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																					: 'no data'}"
+																				onmouseenter={(e: MouseEvent) =>
+																					handleCellEnter(
+																						e,
+																						`adjgroup_${group.suffix}`,
+																						cm.key,
+																						'sg'
+																					)}
+																				onmouseleave={handleCellLeave}
+																				onfocus={(e: FocusEvent) =>
+																					handleCellEnter(
+																						e,
+																						`adjgroup_${group.suffix}`,
+																						cm.key,
+																						'sg'
+																					)}
+																				onblur={handleCellLeave}
+																			></div>
+																		</div>
+																	{/each}
+																</div>
+																<!-- Pl row -->
+																<div class="flex items-center">
+																	<div class="w-5 shrink-0 text-right text-xs text-text-subtitle">
+																		Pl
+																	</div>
+																	{#each CASE_META as cm (cm.key)}
+																		{@const score = getAdjGroupClassScore(
+																			matchingLemmas,
+																			cm.key,
+																			'pl',
+																			classAdjGenderFilter
+																		)}
+																		{@const pct =
+																			score.attempts > 0
+																				? Math.round((score.correct / score.attempts) * 100)
+																				: -1}
+																		<div class="flex shrink-0 justify-center" style="width: 32px;">
+																			<div
+																				class="h-5 w-6 rounded-[3px]"
+																				style="background-color: {pct >= 0
+																					? accuracyColor(pct)
+																					: 'var(--color-shaded-background)'}; opacity: {pct >= 0
+																					? 0.85
+																					: 1};"
+																				role="gridcell"
+																				tabindex="0"
+																				aria-label="{group.label} {cm.label} plural: {pct >= 0
+																					? `${pct}% accuracy, ${attemptLabel(score.attempts)}`
+																					: 'no data'}"
+																				onmouseenter={(e: MouseEvent) =>
+																					handleCellEnter(
+																						e,
+																						`adjgroup_${group.suffix}`,
+																						cm.key,
+																						'pl'
+																					)}
+																				onmouseleave={handleCellLeave}
+																				onfocus={(e: FocusEvent) =>
+																					handleCellEnter(
+																						e,
+																						`adjgroup_${group.suffix}`,
+																						cm.key,
+																						'pl'
+																					)}
+																				onblur={handleCellLeave}
+																			></div>
+																		</div>
+																	{/each}
+																</div>
+															</div>
+														</div>
+													{/if}
+												{/each}
+											</div>
+										</div>
+									</div>
+								{/if}
+
 								<!-- Legend -->
 								<div
 									class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-text-subtitle"
@@ -2319,7 +2596,7 @@
 																					>
 																						{#if mistake.drillType === 'case_identification'}
 																							<p class="mb-1 text-sm font-medium text-text-default">
-																								Identify the case of "{mistake.word}"{#if mistake.sentence}
+																								Identify the case of "{mistake.word}" {#if mistake.sentence}
 																									in:{/if}
 																							</p>
 																							{#if mistake.sentence}
@@ -3171,25 +3448,44 @@
 							</div>
 						</div>
 
-						<!-- Content Mode -->
+						<!-- Content -->
 						<div>
 							<p class="mb-2 text-sm font-medium text-text-default">Content</p>
 							<div class="flex flex-wrap gap-2">
-								{#each [['both', 'Both'], ['nouns', 'Nouns Only'], ['pronouns', 'Pronouns Only']] as [value, label] (value)}
-									<label
-										class="flex cursor-pointer items-center gap-1.5 rounded-full border border-card-stroke px-3 py-1.5 text-xs has-[:checked]:border-emphasis has-[:checked]:bg-emphasis has-[:checked]:text-text-inverted"
-									>
-										<input
-											type="radio"
-											name="content_mode"
-											{value}
-											checked={value === 'both'}
-											class="sr-only"
-										/>
-										{label}
-									</label>
-								{/each}
+								<button
+									type="button"
+									class="rounded-full border px-3 py-1.5 text-xs {quickNounsSelected
+										? 'border-emphasis bg-emphasis text-text-inverted'
+										: 'border-card-stroke text-text-default'}"
+									onclick={() => toggleQuickContent('nouns')}
+								>
+									Nouns
+								</button>
+								<button
+									type="button"
+									class="rounded-full border px-3 py-1.5 text-xs {quickPronounsSelected
+										? 'border-emphasis bg-emphasis text-text-inverted'
+										: 'border-card-stroke text-text-default'}"
+									onclick={() => toggleQuickContent('pronouns')}
+								>
+									Pronouns
+								</button>
+								<button
+									type="button"
+									class="rounded-full border px-3 py-1.5 text-xs {quickAdjectivesSelected
+										? 'border-emphasis bg-emphasis text-text-inverted'
+										: 'border-card-stroke text-text-default'}"
+									onclick={() => toggleQuickContent('adjectives')}
+								>
+									Adjectives
+								</button>
 							</div>
+							<input type="hidden" name="content_mode" value={quickDerivedContentMode} />
+							<input
+								type="hidden"
+								name="include_adjectives"
+								value={quickDerivedIncludeAdjectives ? 'true' : 'false'}
+							/>
 						</div>
 
 						<!-- Target Questions -->

@@ -9,6 +9,9 @@ import Dumbbell from '@lucide/svelte/icons/dumbbell';
 import Zap from '@lucide/svelte/icons/zap';
 import Moon from '@lucide/svelte/icons/moon';
 import Star from '@lucide/svelte/icons/star';
+import Palette from '@lucide/svelte/icons/palette';
+import Gem from '@lucide/svelte/icons/gem';
+import Snowflake from '@lucide/svelte/icons/snowflake';
 
 /**
  * Maps badge id → Lucide icon component. Kept in a shared module so the
@@ -24,7 +27,10 @@ export const BADGE_ICONS: Record<string, Component> = {
 	week_warrior: Dumbbell,
 	speed_demon: Zap,
 	night_owl: Moon,
-	perfectionist: Star
+	perfectionist: Star,
+	adjective_debut: Palette,
+	adjective_ace: Gem,
+	adjective_polyglot: Snowflake
 };
 
 export const BADGE_COLORS: Record<string, string> = {
@@ -37,5 +43,8 @@ export const BADGE_COLORS: Record<string, string> = {
 	week_warrior: 'text-orange-500',
 	speed_demon: 'text-yellow-500',
 	night_owl: 'text-indigo-500',
-	perfectionist: 'text-amber-500'
+	perfectionist: 'text-amber-500',
+	adjective_debut: 'text-pink-500',
+	adjective_ace: 'text-cyan-500',
+	adjective_polyglot: 'text-sky-500'
 };
