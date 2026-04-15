@@ -2,14 +2,14 @@
 	"A1": {
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
 		"unlocked_difficulty": ["A1"],
-		"adjectives_unlocked": false,
+		"adjectives_unlocked": true,
 		"plural_unlocked": false,
-		"pronouns_unlocked": false
+		"pronouns_unlocked": true
 	},
 	"A2": {
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
 		"unlocked_difficulty": ["A1", "A2"],
-		"adjectives_unlocked": false,
+		"adjectives_unlocked": true,
 		"plural_unlocked": "sg_first",
 		"pronouns_unlocked": true
 	},

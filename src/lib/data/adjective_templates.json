@@ -457,7 +457,7 @@
 		"adjectiveCategories": ["universal", "object"]
 	},
 	{
-		"id": "adj_a1_loc_sg_minanim_001",
+		"id": "adj_a2_loc_sg_minanim_001",
 		"template": "Jsem v ___ obchodě.",
 		"requiredCase": "loc",
 		"number": "sg",
@@ -465,11 +465,11 @@
 		"requiredGender": "m",
 		"requiredAnimate": false,
 		"why": "'V' (in) takes locative. The adjective agrees with 'obchodě' (masc. inanimate) in locative singular.",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "object"]
 	},
 	{
-		"id": "adj_a1_loc_sg_n_001",
+		"id": "adj_a2_loc_sg_n_001",
 		"template": "Bydlím v ___ městě.",
 		"requiredCase": "loc",
 		"number": "sg",
@@ -477,7 +477,7 @@
 		"requiredGender": "n",
 		"requiredAnimate": false,
 		"why": "'V' takes locative. The adjective agrees with 'městě' (neuter) in locative singular.",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "object"]
 	},
 	{
