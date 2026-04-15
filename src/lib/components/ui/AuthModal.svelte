@@ -3,7 +3,7 @@
 	import PartyPopper from '@lucide/svelte/icons/party-popper';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { getSupabaseBrowserClient } from '$lib/supabase';
+	import { getSupabaseBrowserClient, sendPasswordResetEmail } from '$lib/supabase';
 	import Confetti from '$lib/components/ui/Confetti.svelte';
 	import posthog from '$lib/posthog';
 
@@ -151,9 +151,10 @@
 		loading = true;
 		error = '';
 
-		const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: `${window.location.origin}/auth/confirm`
-		});
+		const { error: err } = await sendPasswordResetEmail(
+			email,
+			`${window.location.origin}/auth/confirm`
+		);
 
 		if (err) {
 			error = err.message;

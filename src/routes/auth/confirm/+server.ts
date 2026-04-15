@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 	if (error) {
 		console.error('Email confirmation error:', error.message);
-		redirect(303, `${resolve('/auth')}?error=auth_failed`);
+		redirect(303, `${resolve('/auth')}?error=${encodeURIComponent(error.message)}`);
 	}
 
 	if (type === 'recovery') {

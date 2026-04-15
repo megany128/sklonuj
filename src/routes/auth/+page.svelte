@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
-	import { getSupabaseBrowserClient } from '$lib/supabase';
+	import { getSupabaseBrowserClient, sendPasswordResetEmail } from '$lib/supabase';
 	import posthog from '$lib/posthog';
 
 	// Initialize mode synchronously from URL so the redirect effect below
@@ -145,9 +145,7 @@
 				? `${page.url.origin}/auth/confirm?returnTo=${encodeURIComponent(returnTo)}`
 				: `${page.url.origin}/auth/confirm`;
 
-		const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: recoveryRedirect
-		});
+		const { error: err } = await sendPasswordResetEmail(email, recoveryRedirect);
 
 		if (err) {
 			error = err.message;

@@ -18,7 +18,9 @@ export function createSupabaseServerClient(cookies: Cookies) {
 				cookiesToSet.forEach(({ name, value, options }) =>
 					cookies.set(name, value, {
 						...options,
-						path: '/'
+						path: '/',
+						secure: true,
+						sameSite: 'lax'
 					})
 				);
 			}
