@@ -255,7 +255,7 @@
 						minlength="6"
 						aria-label="New password"
 						oninput={clearError}
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						class="w-full cursor-text rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default caret-emphasis placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
 
 					<input
@@ -266,7 +266,7 @@
 						minlength="6"
 						aria-label="Confirm new password"
 						oninput={clearError}
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						class="w-full cursor-text rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default caret-emphasis placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
 
 					<div aria-live="assertive">
