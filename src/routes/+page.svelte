@@ -3502,7 +3502,7 @@
 	<title>Skloňuj — Czech Declension Practice & Noun Case Trainer</title>
 	<meta
 		name="description"
-		content="Practice Czech declension with interactive drills. Master all 7 Czech noun cases, learn grammar patterns, and build fluency with smart exercises for every level from A1 to B2."
+		content="Interactive Czech declension drills, synced to Krok za krokem & trusted by Ivy League professors. Master all 7 cases & 12 paradigms with classroom tools."
 	/>
 	<meta
 		name="keywords"
@@ -3514,7 +3514,7 @@
 	<meta property="og:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		property="og:description"
-		content="Practice Czech declension with interactive drills. Master all 7 noun cases with smart exercises for every level from A1 to B2."
+		content="Interactive Czech declension drills, synced to Krok za krokem & trusted by Ivy League professors. Master all 7 cases & 12 paradigms with classroom tools."
 	/>
 	<meta property="og:url" content="https://sklonuj.com" />
 	<meta property="og:type" content="website" />
@@ -3527,7 +3527,7 @@
 	<meta name="twitter:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		name="twitter:description"
-		content="Practice Czech declension with interactive drills. Master all 7 noun cases with smart exercises for every level from A1 to B2."
+		content="Interactive Czech declension drills, synced to Krok za krokem & trusted by Ivy League professors. Master all 7 cases & 12 paradigms with classroom tools."
 	/>
 	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
 	<script type="application/ld+json">
@@ -3536,7 +3536,7 @@
 			"@type": "WebApplication",
 			"name": "Skloňuj",
 			"url": "https://sklonuj.com",
-			"description": "Interactive Czech declension practice tool. Drill all 7 noun cases with grammar explanations, smart exercises, and progress tracking from A1 to B2.",
+			"description": "Interactive Czech declension drills synced to Krok za krokem and trusted by Ivy League professors. Master all 7 cases and 12 paradigms with adaptive exercises and classroom tools for teachers.",
 			"applicationCategory": "EducationalApplication",
 			"operatingSystem": "Any",
 			"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
