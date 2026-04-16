@@ -124,10 +124,13 @@ upload_one() {
 	local attempt
 
 	# Retry transient R2 errors (we've seen occasional 500s). Backoff: 2s, 4s.
+	# `--remote` is required — without it wrangler targets a local miniflare
+	# simulation and silently succeeds without touching the real bucket.
 	for attempt in 1 2 3; do
 		if "$WRANGLER" r2 object put "${BUCKET}/${key}" \
 			--file "$f" \
-			--content-type "audio/mpeg" >/dev/null 2>&1; then
+			--content-type "audio/mpeg" \
+			--remote >/dev/null 2>&1; then
 			break
 		fi
 		if (( attempt == 3 )); then
