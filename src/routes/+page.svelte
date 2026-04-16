@@ -3806,7 +3806,7 @@
 			<ChapterSelector selectedBook={chapterBook} onModeChange={handleModeChange} />
 			{#if chapterBook === null}
 				<div class="flex items-center gap-2">
-					<span class="text-xs font-semibold uppercase tracking-[0.15em] text-text-subtitle"
+					<span class="text-xs font-semibold uppercase tracking-[0.15em] text-darker-subtitle"
 						>Level</span
 					>
 					<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
@@ -3999,7 +3999,7 @@
 							caseFilterExpanded = !caseFilterExpanded;
 							if (caseFilterExpanded) settingsExpanded = false;
 						}}
-						class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-text-subtitle transition-colors hover:text-text-default"
+						class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-darker-subtitle transition-colors hover:text-text-default"
 					>
 						Filter cases
 						{#if enabledCases.length < ALL_CASES.length}
@@ -4042,7 +4042,7 @@
 					<button
 						type="button"
 						onclick={toggleAutoplay}
-						class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+						class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 						aria-label="Toggle audio autoplay"
 					>
 						{#if autoplayAudio}
@@ -4062,7 +4062,7 @@
 						settingsExpanded = !settingsExpanded;
 						if (settingsExpanded) caseFilterExpanded = false;
 					}}
-					class="flex size-11 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+					class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 					aria-label="Exercise settings"
 					data-tour="settings"
 				>
@@ -4196,7 +4196,7 @@
 
 		<!-- Session stats -->
 		{#if sessionCount > 0}
-			<div class="mt-6 text-center text-xs text-text-subtitle">
+			<div class="mt-6 text-center text-xs text-darker-subtitle">
 				{Math.round($displayTotal)} completed &middot; {Math.round($displayPct)}% accuracy
 			</div>
 		{/if}
@@ -4215,7 +4215,7 @@
 		{/each}
 
 		<!-- SEO description (always server-rendered for indexing) -->
-		<p class="mx-auto mt-10 max-w-lg text-center text-xs leading-relaxed text-text-subtitle/70">
+		<p class="mx-auto mt-10 max-w-lg text-center text-xs leading-relaxed text-darker-subtitle/70">
 			Practice Czech noun declension across all 7 cases. Skloňuj offers interactive drills that
 			adapt to your level, from A1 beginner to B2 intermediate, with smart tracking that focuses on
 			the paradigms and patterns you get wrong most. Follow along with Krok za krokem textbook

@@ -513,7 +513,7 @@
 			{/if}
 		</div>
 
-		<p class="mt-4 text-center text-xs text-text-subtitle">
+		<p class="mt-4 text-center text-xs text-darker-subtitle">
 			<a href={resolve('/')} class="underline underline-offset-2 hover:text-text-default">
 				Continue without account
 			</a>

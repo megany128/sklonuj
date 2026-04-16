@@ -545,7 +545,7 @@
 </script>
 
 <svelte:head>
-	<title>{assignment?.title ?? 'Assignment'} - Sklonuj</title>
+	<title>{assignment?.title ?? 'Assignment'} - Skloňuj</title>
 </svelte:head>
 
 <NavBar user={page.data.user} onSignIn={() => goto(resolve('/auth'))} />
@@ -554,7 +554,7 @@
 	<div class="mx-auto max-w-4xl px-4 py-8">
 		<a
 			href={resolve(`/classes/${classData.id}?tab=assignments`)}
-			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+			class="mb-4 inline-flex items-center gap-1 text-sm text-darker-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {classData.name}
 		</a>
@@ -739,7 +739,7 @@
 					class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {teacherTab ===
 					'overview'
 						? 'border-emphasis text-text-default'
-						: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+						: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 				>
 					Overview
 				</button>
@@ -751,7 +751,7 @@
 					class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {teacherTab ===
 					'students'
 						? 'border-emphasis text-text-default'
-						: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+						: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 				>
 					Students ({studentProgress.length})
 				</button>
@@ -1903,7 +1903,7 @@
 	<div class="mx-auto max-w-4xl px-4 py-8">
 		<a
 			href={resolve(`/classes/${classData.id}?tab=assignments`)}
-			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+			class="mb-4 inline-flex items-center gap-1 text-sm text-darker-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {classData.name}
 		</a>

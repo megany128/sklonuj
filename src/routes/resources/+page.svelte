@@ -115,7 +115,7 @@
 	<main class="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Czech Declension Resources</h1>
-			<p class="mt-2 text-sm leading-relaxed text-text-subtitle">
+			<p class="mt-2 text-sm leading-relaxed text-darker-subtitle">
 				Everything you need to understand and master Czech noun declension — from individual case
 				breakdowns to full paradigm tables and study strategies.
 			</p>

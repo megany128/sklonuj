@@ -83,7 +83,7 @@
 				'After quantities and negation: "pět studentů", "nemám času"',
 				'After certain prepositions indicating origin, absence, or proximity'
 			],
-			prepositions: 'z/ze, do, od/ode, bez, u, kolem, vedle, během, kvůli',
+			prepositions: 'z/ze, do, od/ode, bez, u, kolem, vedle, během',
 			examples: [
 				{
 					sentence: 'To je auto mého otce.',
@@ -373,7 +373,7 @@
 		class="fixed left-6 top-1/2 z-10 hidden -translate-y-1/2 lg:block"
 		aria-label="Table of contents"
 	>
-		<h2 class="mb-3 text-xs font-semibold uppercase tracking-widest text-text-subtitle">
+		<h2 class="mb-3 text-xs font-semibold uppercase tracking-widest text-darker-subtitle">
 			Table of Contents
 		</h2>
 		<ul class="space-y-2">
@@ -389,7 +389,7 @@
 						}}
 						class="block max-w-40 truncate text-xs transition-colors {activeSection === entry.id
 							? 'font-semibold text-emphasis'
-							: 'text-text-subtitle hover:text-text-default'}"
+							: 'text-darker-subtitle hover:text-text-default'}"
 					>
 						{entry.label}
 					</a>
@@ -401,7 +401,7 @@
 	<main class="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
 		<a
 			href={resolve('/resources')}
-			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-emphasis"
+			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-darker-subtitle transition-colors hover:text-emphasis"
 		>
 			<ArrowLeft class="size-4" aria-hidden="true" />
 			Back to Resources
@@ -410,7 +410,7 @@
 		<!-- Header -->
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">The 7 Czech Cases</h1>
-			<p class="mt-2 text-sm leading-relaxed text-text-subtitle">
+			<p class="mt-2 text-sm leading-relaxed text-darker-subtitle">
 				Czech nouns, adjectives, and pronouns change their endings depending on their role in a
 				sentence. These changes are called declension, and Czech has 7 grammatical cases. This guide
 				explains each one with usage rules, prepositions, and example sentences.
@@ -578,7 +578,7 @@
 		<div class="mt-6 text-center">
 			<a
 				href={resolve('/resources')}
-				class="text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				class="text-sm font-medium text-darker-subtitle transition-colors hover:text-text-default"
 			>
 				&larr; Back to Resources
 			</a>

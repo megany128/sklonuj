@@ -106,11 +106,11 @@ async function sendInvitationEmail(
 		await resend.emails.send({
 			from: fromAddress,
 			to: [recipientEmail],
-			subject: `You've been invited to join ${className} on Sklonuj`,
+			subject: `You've been invited to join ${className} on Skloňuj`,
 			html: `
 				<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
 					<h2>You've been invited to a class!</h2>
-					<p><strong>${teacherName}</strong> has invited you to join <strong>${className}</strong> on Sklonuj.</p>
+					<p><strong>${teacherName}</strong> has invited you to join <strong>${className}</strong> on Skloňuj.</p>
 					<p>Click the link below to join:</p>
 					<p>
 						<a href="${joinLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">

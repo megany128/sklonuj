@@ -157,11 +157,11 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	const { error: sendError } = await resend.emails.send({
 		from: fromAddress,
 		to: [email],
-		subject: `You've been invited to join ${classData.name} on Sklonuj`,
+		subject: `You've been invited to join ${classData.name} on Skloňuj`,
 		html: `
 			<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
 				<h2>You've been invited to a class!</h2>
-				<p><strong>${teacherName}</strong> has invited you to join <strong>${classData.name}</strong> on Sklonuj.</p>
+				<p><strong>${teacherName}</strong> has invited you to join <strong>${classData.name}</strong> on Skloňuj.</p>
 				<p>Click the link below to join:</p>
 				<p>
 					<a href="${joinLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">

@@ -89,7 +89,7 @@
 	<div class="mx-auto max-w-lg px-4 py-8">
 		<a
 			href={resolve(`/classes/${classData.id}`)}
-			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+			class="mb-4 inline-flex items-center gap-1 text-sm text-darker-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {classData.name}
 		</a>

@@ -158,7 +158,7 @@
 </script>
 
 <svelte:head>
-	<title>Edit Assignment - Sklonuj</title>
+	<title>Edit Assignment - Skloňuj</title>
 </svelte:head>
 
 <NavBar user={page.data.user} onSignIn={() => goto(resolve('/auth'))} />
@@ -167,7 +167,7 @@
 	<div class="mx-auto max-w-lg px-4 py-8">
 		<a
 			href={resolve(`/classes/${classData.id}/assignments/${fromAssignment?.id ?? assignment.id}`)}
-			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+			class="mb-4 inline-flex items-center gap-1 text-sm text-darker-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to {fromAssignment?.title ?? assignment.title}
 		</a>

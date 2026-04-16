@@ -41,7 +41,7 @@
 		<!-- Header -->
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Privacy Policy</h1>
-			<p class="mt-1 text-sm text-text-subtitle">Last updated: March 2026</p>
+			<p class="mt-1 text-sm text-darker-subtitle">Last updated: March 2026</p>
 		</div>
 
 		<!-- Sections -->

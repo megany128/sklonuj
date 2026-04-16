@@ -9,36 +9,46 @@
 
 	let user = $derived(page.data.user);
 
-	const personalHeaders = ['Case', 'ja', 'ty', 'on', 'ona', 'ono', 'my', 'vy', 'oni'];
+	const personalHeaders = ['Case', 'já', 'ty', 'on', 'ona', 'ono', 'my', 'vy', 'oni'];
 	const personalRows = [
-		['Nom', 'ja', 'ty', 'on', 'ona', 'ono', 'my', 'vy', 'oni'],
+		['Nom', 'já', 'ty', 'on', 'ona', 'ono', 'my', 'vy', 'oni'],
 		[
 			'Gen',
-			'me/mne',
-			'te/tebe',
-			'jeho/neho/ho',
-			'ji/ni',
-			'jeho/neho/ho',
-			'nas',
-			'vas',
+			'mě/mne',
+			'tě/tebe',
+			'jeho/něho/ho',
+			'jí/ní',
+			'jeho/něho/ho',
+			'nás',
+			'vás',
 			'jich/nich'
 		],
-		['Dat', 'mne/mi', 'tobe/ti', 'jemu/nemu/mu', 'ji/ni', 'jemu/nemu/mu', 'nam', 'vam', 'jim/nim'],
-		['Acc', 'me/mne', 'te/tebe', 'jeho/neho/ho/jej', 'ji/ni', 'je/ne/ho', 'nas', 'vas', 'je/ne'],
+		['Dat', 'mně/mi', 'tobě/ti', 'jemu/němu/mu', 'jí/ní', 'jemu/němu/mu', 'nám', 'vám', 'jim/nim'],
+		[
+			'Acc',
+			'mě/mne',
+			'tě/tebe',
+			'jeho/něho/ho/jej/něj',
+			'ji/ni',
+			'je/ně/ho',
+			'nás',
+			'vás',
+			'je/ně'
+		],
 		['Voc', '\u2014', '\u2014', '\u2014', '\u2014', '\u2014', '\u2014', '\u2014', '\u2014'],
-		['Loc', 'mne', 'tobe', 'nem', 'ni', 'nem', 'nas', 'vas', 'nich'],
-		['Ins', 'mnou', 'tebou', 'jim/nim', 'ji/ni', 'jim/nim', 'nami', 'vami', 'jimi/nimi']
+		['Loc', 'mně', 'tobě', 'něm', 'ní', 'něm', 'nás', 'vás', 'nich'],
+		['Ins', 'mnou', 'tebou', 'jím/ním', 'jí/ní', 'jím/ním', 'námi', 'vámi', 'jimi/nimi']
 	];
 
 	const demonstrativeHeaders = ['Case', 'Masc', 'Fem', 'Neut', 'Pl (M anim)', 'Pl (other)'];
 	const demonstrativeRows = [
 		['Nom', 'ten', 'ta', 'to', 'ti', 'ty/ta'],
-		['Gen', 'toho', 'te', 'toho', 'tech', 'tech'],
-		['Dat', 'tomu', 'te', 'tomu', 'tem', 'tem'],
+		['Gen', 'toho', 'té', 'toho', 'těch', 'těch'],
+		['Dat', 'tomu', 'té', 'tomu', 'těm', 'těm'],
 		['Acc', 'toho/ten', 'tu', 'to', 'ty', 'ty/ta'],
 		['Voc', '\u2014', '\u2014', '\u2014', '\u2014', '\u2014'],
-		['Loc', 'tom', 'te', 'tom', 'tech', 'tech'],
-		['Ins', 'tim', 'tou', 'tim', 'temi', 'temi']
+		['Loc', 'tom', 'té', 'tom', 'těch', 'těch'],
+		['Ins', 'tím', 'tou', 'tím', 'těmi', 'těmi']
 	];
 
 	// TOC active section tracking
@@ -68,29 +78,29 @@
 
 	const possessiveHeaders = ['Case', 'Masc', 'Fem', 'Neut', 'Pl'];
 	const possessiveRows = [
-		['Nom', 'muj', 'moje/ma', 'moje/me', 'moji/mi (anim), moje/me'],
-		['Gen', 'meho', 'moji/me', 'meho', 'mych'],
-		['Dat', 'memu', 'moji/me', 'memu', 'mym'],
-		['Acc', 'meho/muj', 'moji/mou', 'moje/me', 'moje/me'],
-		['Loc', 'mem', 'moji/me', 'mem', 'mych'],
-		['Ins', 'mym', 'moji/mou', 'mym', 'mymi']
+		['Nom', 'můj', 'moje/má', 'moje/mé', 'moji/mí (anim), moje/mé'],
+		['Gen', 'mého', 'mojí/mé', 'mého', 'mých'],
+		['Dat', 'mému', 'mojí/mé', 'mému', 'mým'],
+		['Acc', 'mého/můj', 'moji/mou', 'moje/mé', 'moje/mé'],
+		['Loc', 'mém', 'mojí/mé', 'mém', 'mých'],
+		['Ins', 'mým', 'mojí/mou', 'mým', 'mými']
 	];
 </script>
 
 <svelte:head>
-	<title>Czech Pronoun Declension — Sklonuj</title>
+	<title>Czech Pronoun Declension — Skloňuj</title>
 	<meta
 		name="description"
 		content="Complete Czech pronoun declension tables: personal, demonstrative, and possessive pronouns across all 7 cases."
 	/>
 	<meta
 		name="keywords"
-		content="Czech pronoun declension, Czech personal pronouns, Czech demonstrative pronouns, Czech possessive pronouns, Czech grammar, sklonovani zajmen, learn Czech"
+		content="Czech pronoun declension, Czech personal pronouns, Czech demonstrative pronouns, Czech possessive pronouns, Czech grammar, skloňování zájmen, learn Czech"
 	/>
 	<link rel="canonical" href="https://sklonuj.com/resources/pronouns" />
 	<link rel="alternate" hreflang="en" href="https://sklonuj.com/resources/pronouns" />
 	<link rel="alternate" hreflang="x-default" href="https://sklonuj.com/resources/pronouns" />
-	<meta property="og:title" content="Czech Pronoun Declension — Sklonuj" />
+	<meta property="og:title" content="Czech Pronoun Declension — Skloňuj" />
 	<meta
 		property="og:description"
 		content="Complete Czech pronoun declension tables: personal, demonstrative, and possessive pronouns across all 7 cases."
@@ -99,7 +109,7 @@
 	<meta property="og:type" content="article" />
 	<meta property="og:image" content="https://sklonuj.com/og.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Czech Pronoun Declension — Sklonuj" />
+	<meta name="twitter:title" content="Czech Pronoun Declension — Skloňuj" />
 	<meta
 		name="twitter:description"
 		content="Complete Czech pronoun declension tables: personal, demonstrative, and possessive pronouns across all 7 cases."
@@ -158,7 +168,7 @@
 		class="fixed left-6 top-1/2 z-10 hidden -translate-y-1/2 lg:block"
 		aria-label="Table of contents"
 	>
-		<h2 class="mb-3 text-xs font-semibold uppercase tracking-widest text-text-subtitle">
+		<h2 class="mb-3 text-xs font-semibold uppercase tracking-widest text-darker-subtitle">
 			Table of Contents
 		</h2>
 		<ul class="space-y-2">
@@ -174,7 +184,7 @@
 						}}
 						class="block max-w-40 truncate text-xs transition-colors {activeSection === entry.id
 							? 'font-semibold text-emphasis'
-							: 'text-text-subtitle hover:text-text-default'}"
+							: 'text-darker-subtitle hover:text-text-default'}"
 					>
 						{entry.label}
 					</a>
@@ -186,7 +196,7 @@
 	<main class="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
 		<a
 			href={resolve('/resources')}
-			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-emphasis"
+			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-darker-subtitle transition-colors hover:text-emphasis"
 		>
 			<ArrowLeft class="size-4" aria-hidden="true" />
 			Back to Resources
@@ -195,7 +205,7 @@
 		<!-- Header -->
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Czech Pronoun Declension</h1>
-			<p class="mt-2 text-sm leading-relaxed text-text-subtitle">
+			<p class="mt-2 text-sm leading-relaxed text-darker-subtitle">
 				Czech pronouns change their forms across all 7 grammatical cases. This guide covers
 				personal, demonstrative, and possessive pronouns with complete declension tables.
 			</p>
@@ -246,7 +256,7 @@
 			</div>
 
 			<p class="mt-3 text-xs leading-relaxed text-text-subtitle">
-				Note: forms with n- (nim, ni, nich, etc.) are used after prepositions.
+				Note: forms with n- (něj, ní, něm, etc.) are used after prepositions.
 			</p>
 		</section>
 
@@ -304,7 +314,7 @@
 				<h2 class="text-lg font-semibold text-text-default">Possessive Pronouns</h2>
 				<p class="mt-1 text-sm text-text-subtitle">
 					Possessive pronouns show ownership — "my", "your", "our". They agree with the noun they
-					modify in gender, number, and case. The table below uses muj (my) as the model.
+					modify in gender, number, and case. The table below uses můj (my) as the model.
 				</p>
 			</div>
 
@@ -409,7 +419,7 @@
 		<div class="mt-6 text-center">
 			<a
 				href={resolve('/resources')}
-				class="text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				class="text-sm font-medium text-darker-subtitle transition-colors hover:text-text-default"
 			>
 				&larr; Back to Resources
 			</a>

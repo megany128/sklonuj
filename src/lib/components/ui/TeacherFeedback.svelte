@@ -8,7 +8,7 @@
 	const { context = '' }: Props = $props();
 
 	let mailto = $derived(
-		`mailto:may52@cornell.edu?subject=${encodeURIComponent(`Sklonuj Teacher Feedback${context ? ` — ${context}` : ''}`)}`
+		`mailto:may52@cornell.edu?subject=${encodeURIComponent(`Skloňuj Teacher Feedback${context ? ` — ${context}` : ''}`)}`
 	);
 </script>
 

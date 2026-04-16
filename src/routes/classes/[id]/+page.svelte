@@ -1440,7 +1440,7 @@
 		<!-- Back link (use ?list to bypass single-class auto-redirect) -->
 		<a
 			href="{resolve('/classes')}?list"
-			class="mb-4 inline-flex items-center gap-1 text-sm text-text-subtitle transition-colors hover:text-text-default"
+			class="mb-4 inline-flex items-center gap-1 text-sm text-darker-subtitle transition-colors hover:text-text-default"
 		>
 			&larr; Back to Classes
 		</a>
@@ -1702,7 +1702,7 @@
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {activeTab ===
 						'overall'
 							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+							: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
 						Overall
 					</button>
@@ -1717,7 +1717,7 @@
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {activeTab ===
 						'students'
 							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+							: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
 						Students ({students.length})
 					</button>
@@ -1732,7 +1732,7 @@
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {activeTab ===
 						'assignments'
 							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+							: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
 						Assignments ({assignments.length})
 					</button>
@@ -1745,7 +1745,7 @@
 									type="button"
 									onclick={exportCsv}
 									title="Download class progress as a CSV file"
-									class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+									class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-darker-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 								>
 									Export Progress (CSV)
 								</button>
@@ -1756,7 +1756,7 @@
 									type="button"
 									onclick={exportStudentsCsv}
 									title="Download class progress as a CSV file"
-									class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+									class="cursor-pointer rounded-lg border border-card-stroke px-2.5 py-1 text-xs font-medium text-darker-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 								>
 									Export Progress (CSV)
 								</button>
@@ -2248,7 +2248,7 @@
 
 								<!-- Legend -->
 								<div
-									class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-text-subtitle"
+									class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-darker-subtitle"
 								>
 									<div class="flex items-center gap-1">
 										<div
@@ -2922,7 +2922,7 @@
 									<button
 										type="button"
 										onclick={() => (showAllAssignments = true)}
-										class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+										class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-darker-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 									>
 										Show all {filteredAssignments.length} assignments
 									</button>
@@ -3079,7 +3079,7 @@
 								<button
 									type="button"
 									onclick={() => (showAllAssignments = true)}
-									class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+									class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-darker-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 								>
 									Show all {filteredAssignments.length} assignments
 								</button>
@@ -3100,7 +3100,7 @@
 				{/if}
 				{#if confirmingLeave}
 					<div class="flex items-center gap-2">
-						<span class="text-sm text-text-subtitle"
+						<span class="text-sm text-darker-subtitle"
 							>Are you sure you want to leave this class?</span
 						>
 						<form
@@ -3137,7 +3137,7 @@
 						<button
 							type="button"
 							onclick={() => (confirmingLeave = false)}
-							class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+							class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-darker-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 						>
 							Cancel
 						</button>
@@ -3146,7 +3146,7 @@
 					<button
 						type="button"
 						onclick={() => (confirmingLeave = true)}
-						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-negative-stroke hover:text-negative-stroke"
+						class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-darker-subtitle transition-colors hover:border-negative-stroke hover:text-negative-stroke"
 					>
 						Leave Class
 					</button>

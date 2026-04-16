@@ -332,7 +332,7 @@
 	{/if}
 	<div class="flex-1">{@render children()}</div>
 
-	<footer class="py-6 text-center text-xs text-text-subtitle">
+	<footer class="py-6 text-center text-xs text-darker-subtitle">
 		<div class="flex items-center justify-center gap-3">
 			<a href={resolve('/contact')} class="transition-colors hover:text-text-default">Contact</a>
 			<span aria-hidden="true">·</span>

@@ -806,7 +806,7 @@
 						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
 					></path>
 				</svg>
-				<p class="text-sm text-text-subtitle">Loading profile...</p>
+				<p class="text-sm text-darker-subtitle">Loading profile...</p>
 			</div>
 		{:else}
 			{#if loadError}
@@ -846,19 +846,19 @@
 								<button
 									type="button"
 									onclick={openNameModal}
-									class="flex size-7 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+									class="flex size-7 items-center justify-center rounded-md text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
 									aria-label="Edit display name"
 								>
 									<Pencil class="size-3.5" aria-hidden="true" />
 								</button>
 							</div>
 							{#if user.email}
-								<p class="text-sm text-text-subtitle">{user.email}</p>
+								<p class="text-sm text-darker-subtitle">{user.email}</p>
 							{/if}
-							<p class="text-sm text-text-subtitle">Member since {memberSince}</p>
+							<p class="text-sm text-darker-subtitle">Member since {memberSince}</p>
 						</div>
 					</div>
-					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtitle">
+					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-darker-subtitle">
 						<span
 							><span class="font-semibold text-text-default">{totalAttempts}</span> questions completed</span
 						>
@@ -877,7 +877,7 @@
 					</div>
 				{:else}
 					<h1 class="text-lg font-semibold text-text-default sm:text-xl">Your Progress</h1>
-					<p class="mt-1 text-sm text-text-subtitle">
+					<p class="mt-1 text-sm text-darker-subtitle">
 						Your stats are saved locally on this device.
 						<a
 							href={resolve('/auth')}
@@ -886,7 +886,7 @@
 							Sign in
 						</a> to sync across devices.
 					</p>
-					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-subtitle">
+					<div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-darker-subtitle">
 						<span
 							><span class="font-semibold text-text-default">{totalAttempts}</span> questions completed</span
 						>
@@ -926,7 +926,7 @@
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
 						'progress'
 							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+							: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
 						Progress
 					</button>
@@ -941,7 +941,7 @@
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
 						'mistakes'
 							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+							: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
 						Recent Mistakes{storedMistakes.length > 0 ? ` (${storedMistakes.length})` : ''}
 					</button>
@@ -956,7 +956,7 @@
 						class="cursor-pointer border-b-2 px-4 pb-2 text-sm font-medium transition-colors {profileTab ===
 						'achievements'
 							? 'border-emphasis text-text-default'
-							: 'border-transparent text-text-subtitle hover:border-text-subtitle hover:text-text-default'}"
+							: 'border-transparent text-darker-subtitle hover:border-text-subtitle hover:text-text-default'}"
 					>
 						Achievements ({earnedBadgeCount}/{badges.length})
 					</button>
@@ -983,7 +983,7 @@
 					<!-- Activity heatmap -->
 					{#if serverSessions.length > 0}
 						<section class="mb-6 overflow-hidden">
-							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+							<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-darker-subtitle">
 								Activity
 							</h2>
 							<div class="-mx-4 overflow-x-auto px-4">
@@ -1062,7 +1062,7 @@
 								class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
 								'case'
 									? 'text-text-default'
-									: 'text-text-subtitle hover:text-text-default'}"
+									: 'text-darker-subtitle hover:text-text-default'}"
 								onclick={() => (breakdownTab = 'case')}
 							>
 								By Case
@@ -1072,7 +1072,7 @@
 								class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
 								'paradigm'
 									? 'text-text-default'
-									: 'text-text-subtitle hover:text-text-default'}"
+									: 'text-darker-subtitle hover:text-text-default'}"
 								onclick={() => (breakdownTab = 'paradigm')}
 							>
 								By Paradigm
@@ -1083,7 +1083,7 @@
 									class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
 									'pronoun'
 										? 'text-text-default'
-										: 'text-text-subtitle hover:text-text-default'}"
+										: 'text-darker-subtitle hover:text-text-default'}"
 									onclick={() => (breakdownTab = 'pronoun')}
 								>
 									Pronouns
@@ -1095,7 +1095,7 @@
 									class="rounded-lg px-2 py-1.5 text-sm font-semibold uppercase tracking-wide transition-colors {breakdownTab ===
 									'adjective'
 										? 'text-text-default'
-										: 'text-text-subtitle hover:text-text-default'}"
+										: 'text-darker-subtitle hover:text-text-default'}"
 									onclick={() => (breakdownTab = 'adjective')}
 								>
 									Adjectives
@@ -1186,7 +1186,7 @@
 								<!-- By Paradigm view: grouped by gender -->
 								<div class="flex flex-col gap-4">
 									{#if Object.keys(paradigmScores).filter((k) => !k.startsWith('pronoun_')).length === 0}
-										<p class="py-8 text-center text-sm text-text-subtitle">
+										<p class="py-8 text-center text-sm text-darker-subtitle">
 											No paradigm practice data yet.
 										</p>
 									{:else}
@@ -1317,7 +1317,9 @@
 										{/each}
 
 										<!-- Legend -->
-										<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+										<div
+											class="flex items-center justify-center gap-3 text-xs text-darker-subtitle"
+										>
 											<div class="flex items-center gap-1">
 												<div
 													class="h-3 w-3 rounded-[2px]"
@@ -1348,7 +1350,7 @@
 								<!-- By Pronoun view: heatmap grid cards -->
 								<div class="flex flex-col gap-4">
 									{#if activePronounLemmas.length === 0}
-										<p class="py-8 text-center text-sm text-text-subtitle">
+										<p class="py-8 text-center text-sm text-darker-subtitle">
 											No pronoun practice data yet.
 										</p>
 									{:else}
@@ -1467,7 +1469,9 @@
 										{/each}
 
 										<!-- Legend -->
-										<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+										<div
+											class="flex items-center justify-center gap-3 text-xs text-darker-subtitle"
+										>
 											<div class="flex items-center gap-1">
 												<div
 													class="h-3 w-3 rounded-[2px]"
@@ -1510,7 +1514,7 @@
 								<!-- Adjective view: one combined row per type (hard/soft) -->
 								<div class="flex flex-col gap-4">
 									{#if activeAdjectiveLemmas.length === 0}
-										<p class="py-8 text-center text-sm text-text-subtitle">
+										<p class="py-8 text-center text-sm text-darker-subtitle">
 											No adjective practice data yet.
 										</p>
 									{:else}
@@ -1648,7 +1652,9 @@
 										</div>
 
 										<!-- Legend -->
-										<div class="flex items-center justify-center gap-3 text-xs text-text-subtitle">
+										<div
+											class="flex items-center justify-center gap-3 text-xs text-darker-subtitle"
+										>
 											<div class="flex items-center gap-1">
 												<div
 													class="h-3 w-3 rounded-[2px]"
@@ -1694,7 +1700,7 @@
 					<!-- Accuracy Over Time chart -->
 					<section class="mb-8">
 						<div class="mb-4 flex items-center justify-between">
-							<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+							<h2 class="text-sm font-semibold uppercase tracking-wide text-darker-subtitle">
 								Accuracy Over Time
 							</h2>
 							<select
@@ -1849,7 +1855,7 @@
 					{#if storedMistakes.length > 0}
 						<section class="mb-8">
 							<div class="mb-4 flex items-center justify-between">
-								<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+								<h2 class="text-sm font-semibold uppercase tracking-wide text-darker-subtitle">
 									Recent Mistakes ({storedMistakes.length})
 								</h2>
 								<div class="flex items-center gap-2">
@@ -1864,7 +1870,7 @@
 									<button
 										type="button"
 										onclick={() => (confirmingClearMistakes = true)}
-										class="rounded-lg px-2 py-1.5 text-xs text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+										class="rounded-lg px-2 py-1.5 text-xs text-darker-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 									>
 										Clear all
 									</button>
@@ -1903,7 +1909,7 @@
 											<h3 class="text-xs font-semibold text-text-default">
 												{group.label}
 											</h3>
-											<span class="text-xs text-text-subtitle">({group.mistakes.length})</span>
+											<span class="text-xs text-darker-subtitle">({group.mistakes.length})</span>
 										</div>
 										<div class="space-y-2">
 											{#each group.mistakes.slice(0, 5) as mistake (mistake.timestamp + mistake.lemma)}
@@ -2026,7 +2032,7 @@
 												{/if}
 											{/each}
 											{#if group.mistakes.length > 5}
-												<p class="pt-1 text-center text-xs text-text-subtitle">
+												<p class="pt-1 text-center text-xs text-darker-subtitle">
 													showing 5 of {group.mistakes.length}
 												</p>
 											{/if}
@@ -2096,10 +2102,10 @@
 					<!-- 6. Achievements -->
 					<section class="mb-8">
 						<div class="mb-4 flex items-center justify-between">
-							<h2 class="text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+							<h2 class="text-sm font-semibold uppercase tracking-wide text-darker-subtitle">
 								Achievements
 							</h2>
-							<span class="text-xs font-medium text-text-subtitle">
+							<span class="text-xs font-medium text-darker-subtitle">
 								{earnedBadgeCount}/{badges.length} earned
 							</span>
 						</div>
@@ -2172,7 +2178,7 @@
 			<!-- 6. Danger zone (signed-in users only) -->
 			{#if user}
 				<section class="mb-8">
-					<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-text-subtitle">
+					<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-darker-subtitle">
 						Danger zone
 					</h2>
 					<div

@@ -82,7 +82,7 @@ function buildEmailHtml(
 
 	return `
 		<div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px;">
-			<h2 style="color:#333;">Your weekly Sklonuj summary</h2>
+			<h2 style="color:#333;">Your weekly Skloňuj summary</h2>
 			<p>Hi ${name},</p>
 			<p>This week you completed <strong>${stats.totalAttempts} exercises</strong> with an accuracy of <strong>${stats.overallAccuracy}%</strong>.</p>
 			${focusSection}
@@ -148,7 +148,7 @@ Deno.serve(async () => {
 			body: JSON.stringify({
 				from: 'Sklonuj <noreply@sklonuj.com>',
 				to: [user.email],
-				subject: `Your weekly Sklonuj summary - ${stats.overallAccuracy}% accuracy`,
+				subject: `Your weekly Skloňuj summary - ${stats.overallAccuracy}% accuracy`,
 				html
 			})
 		});

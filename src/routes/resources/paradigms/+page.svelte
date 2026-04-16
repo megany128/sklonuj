@@ -160,7 +160,7 @@
 				'Masculine animate nouns ending in a hard consonant (d, h, k, n, r, t…). The nominative singular has a zero ending (bare stem).',
 			examples: ['student', 'bratr', 'chlapec', 'soused'],
 			notes:
-				'Consonant changes occur before -e in vocative: k→c (žák→žáče), h→z, r→ř, ch→š. Accusative singular always matches genitive for animate nouns.'
+				'Vocative singular takes -e, with r softening to ř (bratr→bratře). After velars k, g, h, ch, the ending is -u instead (žák→žáku, kluk→kluku, biolog→biologu) — člověk→člověče is the main exception. Accusative singular always matches genitive for animate nouns.'
 		},
 		{
 			id: 'muž',
@@ -335,7 +335,7 @@
 				'Neuter nouns ending in -o. The most common neuter paradigm. Nominative = accusative = vocative.',
 			examples: ['auto', 'okno', 'kino', 'jablko'],
 			notes:
-				'Locative singular can take -ě or -u. Genitive plural is often a bare stem (žero ending), which sometimes requires a fleeting -e- vowel: okno→oken.'
+				'Locative singular can take -ě or -u. Genitive plural is often a bare stem (zero ending), which sometimes requires a fleeting -e- vowel: okno→oken.'
 		},
 		{
 			id: 'moře',
@@ -497,7 +497,7 @@
 		class="fixed left-6 top-1/2 z-10 hidden -translate-y-1/2 lg:block"
 		aria-label="Table of contents"
 	>
-		<h2 class="mb-3 text-xs font-semibold uppercase tracking-widest text-text-subtitle">
+		<h2 class="mb-3 text-xs font-semibold uppercase tracking-widest text-darker-subtitle">
 			Paradigms
 		</h2>
 		<ul class="space-y-1">
@@ -513,7 +513,7 @@
 						class="flex w-full items-center gap-1 text-left text-[10px] font-bold uppercase tracking-widest transition-colors {activeSection ===
 							group.id || group.paradigms.some((p) => activeSection === p.id)
 							? 'text-emphasis'
-							: 'text-text-subtitle hover:text-text-default'}"
+							: 'text-darker-subtitle hover:text-text-default'}"
 					>
 						<ChevronRight
 							class="size-2.5 shrink-0 transition-transform {expandedGenders.has(group.id)
@@ -538,7 +538,7 @@
 										class="block max-w-40 truncate text-xs transition-colors {activeSection ===
 										paradigm.id
 											? 'font-semibold text-emphasis'
-											: 'text-text-subtitle hover:text-text-default'}"
+											: 'text-darker-subtitle hover:text-text-default'}"
 									>
 										{paradigm.title}
 									</a>
@@ -555,7 +555,7 @@
 		<!-- Back link -->
 		<a
 			href={resolve('/resources')}
-			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-emphasis"
+			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-darker-subtitle transition-colors hover:text-emphasis"
 		>
 			<ArrowLeft class="size-4" aria-hidden="true" />
 			Back to Resources
@@ -564,7 +564,7 @@
 		<!-- Header -->
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Czech Declension Paradigms</h1>
-			<p class="mt-2 text-sm leading-relaxed text-text-subtitle">
+			<p class="mt-2 text-sm leading-relaxed text-darker-subtitle">
 				Czech has 14 standard noun declension paradigms, organized by gender and stem type. Each
 				paradigm is named after a model word whose endings serve as the pattern for all nouns in
 				that group. Learning to identify which paradigm a noun belongs to is the key to declining it
@@ -619,7 +619,7 @@
 							>
 								{group.label}
 							</span>
-							<span class="text-xs text-text-subtitle">
+							<span class="text-xs text-darker-subtitle">
 								{group.paradigms.length} paradigm{group.paradigms.length > 1 ? 's' : ''}
 							</span>
 						</div>
@@ -860,7 +860,7 @@
 		<div class="mt-6 text-center">
 			<a
 				href={resolve('/resources')}
-				class="text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				class="text-sm font-medium text-darker-subtitle transition-colors hover:text-text-default"
 			>
 				&larr; Back to Resources
 			</a>

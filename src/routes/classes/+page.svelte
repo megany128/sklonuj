@@ -293,7 +293,7 @@
 				<button
 					type="button"
 					onclick={openCreateModal}
-					class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+					class="cursor-pointer rounded-xl border border-card-stroke px-4 py-2 text-sm font-medium text-darker-subtitle transition-colors hover:border-emphasis hover:text-text-default"
 				>
 					Create Class
 				</button>
@@ -377,7 +377,7 @@
 					<div class="mt-6">
 						<button
 							type="button"
-							class="flex w-full cursor-pointer items-center gap-2 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+							class="flex w-full cursor-pointer items-center gap-2 text-sm font-medium text-darker-subtitle transition-colors hover:text-text-default"
 							onclick={() => (archivedExpanded = !archivedExpanded)}
 						>
 							<span class="inline-block transition-transform {archivedExpanded ? 'rotate-90' : ''}">

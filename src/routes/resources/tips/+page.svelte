@@ -148,7 +148,7 @@
 	<main class="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
 		<a
 			href={resolve('/resources')}
-			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-text-subtitle transition-colors hover:text-emphasis"
+			class="mb-6 inline-flex items-center gap-1.5 text-xs font-medium text-darker-subtitle transition-colors hover:text-emphasis"
 		>
 			<ArrowLeft class="size-4" aria-hidden="true" />
 			Back to Resources
@@ -159,7 +159,7 @@
 			<h1 class="text-2xl font-semibold text-emphasis">
 				Practical Tips for Learning Czech Declension
 			</h1>
-			<p class="mt-2 text-sm leading-relaxed text-text-subtitle">
+			<p class="mt-2 text-sm leading-relaxed text-darker-subtitle">
 				Czech declension can feel overwhelming at first, but with the right approach it becomes
 				manageable and even intuitive. These tips are based on common learner challenges and proven
 				study strategies.
@@ -254,7 +254,7 @@
 		<div class="mt-6 text-center">
 			<a
 				href={resolve('/resources')}
-				class="text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				class="text-sm font-medium text-darker-subtitle transition-colors hover:text-text-default"
 			>
 				&larr; Back to Resources
 			</a>

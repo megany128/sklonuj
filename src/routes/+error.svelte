@@ -47,7 +47,7 @@
 		<div class="mx-auto max-w-md">
 			<p class="mb-3 text-7xl font-bold text-emphasis">{status}</p>
 			<h1 class="mb-2 text-2xl font-semibold text-emphasis">{statusInfo.title}</h1>
-			<p class="mb-8 text-base text-text-subtitle">
+			<p class="mb-8 text-base text-darker-subtitle">
 				{statusInfo.description}
 			</p>
 			<a
