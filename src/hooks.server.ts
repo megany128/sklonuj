@@ -34,7 +34,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'Content-Security-Policy',
 		// Note: 'unsafe-inline' is required for Google Analytics inline scripts in app.html
 		// To remove it, we would need to refactor GTM to load via external script or use a nonce
-		"default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://us-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google-analytics.com https://cloudflareinsights.com https://us.i.posthog.com https://us-assets.i.posthog.com; frame-src https://challenges.cloudflare.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com"
+		"default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://us-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.supabase.co; media-src 'self' https://audio.sklonuj.com; connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google-analytics.com https://cloudflareinsights.com https://us.i.posthog.com https://us-assets.i.posthog.com; frame-src https://challenges.cloudflare.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com"
 	);
 
 	return response;

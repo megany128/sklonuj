@@ -1,7 +1,15 @@
+import { PUBLIC_AUDIO_BASE_URL } from '$env/static/public';
+
 interface AudioIndex {
 	voice: string;
 	entries: Record<string, string>;
 }
+
+// Strip trailing slashes so we can safely join with `/${rel}`. Empty string
+// means "same origin" — lookupEntry returns `/audio/${rel}` in that case
+// (current local-dev behavior). In prod this points at the R2 custom domain,
+// e.g. https://audio.sklonuj.com.
+const AUDIO_BASE = PUBLIC_AUDIO_BASE_URL.replace(/\/+$/, '');
 
 let speakTimer: number | null = null;
 let cachedVoice: SpeechSynthesisVoice | undefined;
@@ -146,7 +154,8 @@ function playPreGenerated(url: string, onFail: () => void): void {
 function lookupEntry(text: string): string | null {
 	if (!audioIndex) return null;
 	const rel = audioIndex.entries[text];
-	return rel ? `/audio/${rel}` : null;
+	if (!rel) return null;
+	return AUDIO_BASE ? `${AUDIO_BASE}/${rel}` : `/audio/${rel}`;
 }
 
 async function waitForIndex(): Promise<AudioIndex | null> {

@@ -40,3 +40,6 @@ dogfood-output/videos/
 
 # TTS generation venv
 scripts/.venv-tts/
+
+# TTS audio blobs — hosted in R2, not git
+static/audio/cs/
