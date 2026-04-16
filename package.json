@@ -14,7 +14,8 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"test:unit": "vitest",
-		"test": "vitest --run"
+		"test": "vitest --run",
+		"tts:generate": "python3 scripts/generate_tts.py"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

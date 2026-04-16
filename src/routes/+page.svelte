@@ -102,6 +102,7 @@
 		isTTSAvailable,
 		onCzechVoiceReady,
 		warmUpVoices,
+		loadAudioIndex,
 		playCorrectSound,
 		playStreakSound,
 		prepareSentenceForTTS
@@ -1690,6 +1691,10 @@
 		initialized = true;
 		initDarkMode();
 		warmUpVoices();
+		void loadAudioIndex().then(() => {
+			// Manifest arrival can flip TTS availability on browsers without Web Speech.
+			ttsAvailable = isTTSAvailable();
+		});
 		ttsAvailable = isTTSAvailable();
 		if (!ttsAvailable) {
 			// Chrome loads voices async — listen for when Czech voice becomes available

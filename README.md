@@ -76,6 +76,20 @@ This outputs the final `src/lib/data/word_bank.json` consumed by the app. To reb
 python3 scripts/build-dictionary.py
 ```
 
+## Pre-generated audio
+
+Czech pronunciation is served from pre-generated MP3s synthesized with Microsoft Edge TTS (`cs-CZ-AntoninNeural`; alternate: `cs-CZ-VlastaNeural`), with a fallback to the browser's Web Speech API. Pre-gen works on browsers that lack Web Speech (older Safari/Firefox), which is the main reason for this pipeline.
+
+Audio files live under `static/audio/cs/<shard>/<hash>.mp3`; `static/audio/index.json` maps each text string to its relative path. Sentences are not pre-generated (combinatorial explosion) and always use Web Speech.
+
+To regenerate after adding words:
+
+```sh
+pnpm tts:generate
+```
+
+The script auto-bootstraps a venv at `scripts/.venv-tts/` on first run (uses `uv` if available, else `python3 -m venv`). Pass `--force` to rebuild existing files, `--limit N` to smoke-test a subset, or `--voice <name>` to pick a different voice.
+
 ## License
 
 This project is licensed under CC BY-NC-SA 4.0. See [DATA_SOURCES.md](DATA_SOURCES.md) for upstream data licenses.

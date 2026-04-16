@@ -38,3 +38,6 @@ dogfood-output/videos/
 .claude/
 CLAUDE.md
 .mcp.json
+
+# TTS generation venv
+scripts/.venv-tts/
