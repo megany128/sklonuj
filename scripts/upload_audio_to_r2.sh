@@ -70,14 +70,30 @@ fi
 
 CONCURRENCY="${CONCURRENCY:-16}"
 
-if ! command -v wrangler >/dev/null 2>&1; then
-	echo "error: wrangler not found on PATH" >&2
-	echo "install with: pnpm dlx wrangler login   (or: npm i -g wrangler)" >&2
-	exit 1
-fi
-
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
+
+# Resolve a wrangler executable. Prefer a locally installed devDep
+# (node_modules/.bin/wrangler), fall back to whatever's on PATH. `pnpm dlx`
+# is too slow here — 23k invocations would spend most of their time in dlx
+# bookkeeping.
+if [[ -x "$REPO_ROOT/node_modules/.bin/wrangler" ]]; then
+	WRANGLER="$REPO_ROOT/node_modules/.bin/wrangler"
+elif command -v wrangler >/dev/null 2>&1; then
+	WRANGLER="$(command -v wrangler)"
+else
+	cat >&2 <<'EOF'
+error: wrangler not found
+
+install one of:
+  pnpm add -D wrangler        (recommended — local devDep, no global pollution)
+  npm i -g wrangler           (global install)
+
+then re-run this script. if you ran `pnpm dlx wrangler login` earlier, the
+auth token is cached and will work with either install above.
+EOF
+	exit 1
+fi
 
 if [[ ! -d static/audio/cs ]]; then
 	echo "error: static/audio/cs/ missing — run 'pnpm tts:generate' first" >&2
@@ -99,7 +115,7 @@ counter_file="$(mktemp)"
 trap 'rm -f "$counter_file" "$counter_file.lock"' EXIT
 printf '0' >"$counter_file"
 
-export BUCKET PREFIX total counter_file
+export BUCKET PREFIX total counter_file WRANGLER
 
 # The worker script is self-contained so xargs can exec it per-file without
 # re-parsing this file. We keep the heredoc small and stick to POSIX-ish bash.
@@ -108,7 +124,7 @@ upload_one() {
 	local rel="${f#static/audio/}"
 	local key="${PREFIX}${rel}"
 
-	if ! wrangler r2 object put "${BUCKET}/${key}" \
+	if ! "$WRANGLER" r2 object put "${BUCKET}/${key}" \
 		--file "$f" \
 		--content-type "audio/mpeg" >/dev/null; then
 		echo "FAIL $key" >&2
