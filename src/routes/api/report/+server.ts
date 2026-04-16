@@ -1,3 +1,8 @@
+// POST /api/report — receives a content report from the three-dot menu on a
+// drill card. Validates, inserts into `content_reports` (migration 023; RLS
+// enabled with no client policies — inserts go via locals.supabase which is
+// the server-side client), then fire-and-forgets a Discord webhook if
+// DISCORD_REPORT_WEBHOOK_URL is configured. See CLAUDE.md for setup.
 import { json } from '@sveltejs/kit';
 import { env as privateEnv } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
