@@ -107,6 +107,33 @@
 			]
 		}
 	</script>
+	<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "Course",
+			"name": "Czech Declension Course",
+			"description": "Free interactive course covering all 7 Czech grammatical cases, 12 noun paradigms, pronoun declension, and adjective-noun agreement.",
+			"provider": {
+				"@type": "Organization",
+				"name": "Skloňuj",
+				"sameAs": "https://sklonuj.com"
+			},
+			"url": "https://sklonuj.com/resources",
+			"inLanguage": "en",
+			"isAccessibleForFree": true,
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD",
+				"category": "Free"
+			},
+			"hasCourseInstance": {
+				"@type": "CourseInstance",
+				"courseMode": "online",
+				"courseWorkload": "PT10H"
+			}
+		}
+	</script>
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">

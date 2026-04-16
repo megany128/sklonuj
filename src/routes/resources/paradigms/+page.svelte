@@ -481,7 +481,7 @@
 				{
 					"@type": "ListItem",
 					"position": 3,
-					"name": "All Declension Paradigms",
+					"name": "Czech Declension Paradigms",
 					"item": "https://sklonuj.com/resources/paradigms"
 				}
 			]

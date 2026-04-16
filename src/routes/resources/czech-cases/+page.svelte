@@ -357,7 +357,7 @@
 				{
 					"@type": "ListItem",
 					"position": 3,
-					"name": "The 7 Czech Cases Explained",
+					"name": "The 7 Czech Cases",
 					"item": "https://sklonuj.com/resources/czech-cases"
 				}
 			]

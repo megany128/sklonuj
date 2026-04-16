@@ -3499,10 +3499,10 @@
 />
 
 <svelte:head>
-	<title>Skloňuj — Czech Declension Practice & Noun Case Trainer</title>
+	<title>Czech Declension Practice & Noun Case Trainer — Skloňuj</title>
 	<meta
 		name="description"
-		content="Interactive Czech declension drills, synced to Krok za krokem & trusted by Ivy League professors. Master all 7 cases & 12 paradigms with classroom tools."
+		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 12 paradigms & adjective-noun agreement."
 	/>
 	<meta
 		name="keywords"
@@ -3514,7 +3514,7 @@
 	<meta property="og:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		property="og:description"
-		content="Interactive Czech declension drills, synced to Krok za krokem & trusted by Ivy League professors. Master all 7 cases & 12 paradigms with classroom tools."
+		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 12 paradigms & adjective-noun agreement."
 	/>
 	<meta property="og:url" content="https://sklonuj.com" />
 	<meta property="og:type" content="website" />
@@ -3527,7 +3527,7 @@
 	<meta name="twitter:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		name="twitter:description"
-		content="Interactive Czech declension drills, synced to Krok za krokem & trusted by Ivy League professors. Master all 7 cases & 12 paradigms with classroom tools."
+		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 12 paradigms & adjective-noun agreement."
 	/>
 	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
 	<script type="application/ld+json">
@@ -3536,7 +3536,7 @@
 			"@type": "WebApplication",
 			"name": "Skloňuj",
 			"url": "https://sklonuj.com",
-			"description": "Interactive Czech declension drills synced to Krok za krokem and trusted by Ivy League professors. Master all 7 cases and 12 paradigms with adaptive exercises and classroom tools for teachers.",
+			"description": "Interactive Czech declension drills synced to Krok za krokem and trusted by Ivy League professors. Master all 7 cases, 12 paradigms, and adjective-noun agreement with adaptive exercises.",
 			"applicationCategory": "EducationalApplication",
 			"operatingSystem": "Any",
 			"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },

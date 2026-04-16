@@ -135,7 +135,7 @@
 			{
 				'@type': 'ListItem',
 				position: 3,
-				name: 'Practical Tips for Learning Czech Declension',
+				name: 'Tips for Learning Czech Declension',
 				item: 'https://sklonuj.com/resources/tips'
 			}
 		]

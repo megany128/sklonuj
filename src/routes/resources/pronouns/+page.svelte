@@ -152,7 +152,7 @@
 				{
 					"@type": "ListItem",
 					"position": 3,
-					"name": "Pronoun Declension",
+					"name": "Czech Pronoun Declension",
 					"item": "https://sklonuj.com/resources/pronouns"
 				}
 			]

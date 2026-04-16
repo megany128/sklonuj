@@ -1,5 +1,9 @@
+// Evaluated once at module load (i.e. when the worker boots after a deploy),
+// so it reflects the current deployment's build/boot date rather than lying
+// that every page changes on every request.
+const lastmod = new Date().toISOString().split('T')[0];
+
 export function GET() {
-	const lastmod = '2026-03-24';
 	const pages = [
 		{ url: 'https://sklonuj.com', priority: '1.0', changefreq: 'weekly' },
 		{ url: 'https://sklonuj.com/resources', priority: '0.8', changefreq: 'monthly' },

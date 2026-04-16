@@ -165,7 +165,7 @@
 	<a href={resolve('/')} class="flex shrink-0 items-baseline gap-1.5 sm:gap-2">
 		{#if isHomePage}
 			<h1 class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg">
-				Skloňuj
+				Skloňuj<span class="sr-only"> — Czech Declension Practice & Noun Case Trainer</span>
 			</h1>
 		{:else}
 			<span class="text-base font-semibold uppercase tracking-wide text-emphasis sm:text-lg"
