@@ -329,6 +329,8 @@
 
 	<footer class="py-6 text-center text-xs text-darker-subtitle">
 		<div class="flex items-center justify-center gap-3">
+			<a href={resolve('/about')} class="transition-colors hover:text-text-default">About</a>
+			<span aria-hidden="true">·</span>
 			<a href={resolve('/contact')} class="transition-colors hover:text-text-default">Contact</a>
 			<span aria-hidden="true">·</span>
 			<a href={resolve('/privacy')} class="transition-colors hover:text-text-default"

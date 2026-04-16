@@ -12,7 +12,8 @@ export function GET() {
 		{ url: 'https://sklonuj.com/resources/pronouns', priority: '0.7', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources/tips', priority: '0.7', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/privacy', priority: '0.2', changefreq: 'yearly' },
-		{ url: 'https://sklonuj.com/contact', priority: '0.3', changefreq: 'monthly' }
+		{ url: 'https://sklonuj.com/contact', priority: '0.3', changefreq: 'monthly' },
+		{ url: 'https://sklonuj.com/about', priority: '0.5', changefreq: 'monthly' }
 	];
 
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -67,9 +67,7 @@
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold text-emphasis">Feedback & Contact</h1>
 			<p class="mt-1 text-sm text-darker-subtitle">
-				Hey, I'm Megan and I've been learning Czech for a while now! Declensions have been the bane
-				of my existence, and so I created Skloňuj to make studying them easier. If you have ideas to
-				make this better, I'd love to hear them.
+				If you have ideas to make this better, I'd love to hear them!
 			</p>
 		</div>
 
@@ -219,7 +217,7 @@
 		<!-- Credits -->
 		<div class="mt-10 rounded-2xl border border-card-stroke bg-card-bg p-6">
 			<h2 class="mb-3 text-sm font-semibold text-text-default">Credits & Acknowledgments</h2>
-			<ul class="space-y-2.5 text-xs leading-relaxed text-text-subtitle">
+			<ul class="space-y-2.5 text-sm leading-relaxed text-text-subtitle">
 				<li>
 					Morphological data powered by
 					<a
