@@ -48,13 +48,50 @@ Rules:
 
 ## Project
 
-Sklonuj: Czech noun/adjective/pronoun declension drill app. SvelteKit 5 + Svelte 5 runes, Tailwind v4, Supabase (auth + progress sync), deployed to Cloudflare Pages. Data in `src/lib/data/` (word / adjective / pronoun banks, sentence templates, dictionary).
+Sklonuj: Czech noun/adjective/pronoun declension drill app. SvelteKit 5 + Svelte 5 runes, Tailwind v4, Supabase (auth + progress sync), deployed to Cloudflare Pages.
+
+Data is CC BY-NC-SA 3.0 (inherited from MorphoDiTa); project is CC BY-NC-SA 4.0. See `DATA_SOURCES.md` before changing the license.
 
 ## Svelte conventions (strict)
 
 - Svelte 5 runes only: `$state`, `$props`, `$derived`, `$effect`. Never `export let`, `$:`, `on:click`.
 - Event handlers use the attribute form: `onclick={...}`.
 - If you see old syntax in this repo, it's a bug — fix it, don't mirror it.
+
+## Data files (`src/lib/data/`)
+
+- `word_bank.json`, `adjective_bank.json`, `pronoun_bank.json` — curated drill vocabulary with full declension forms. **Do not hand-edit** — regenerate via the pipeline below.
+- `dictionary.json` — 18k noun lookup (read-only reference, not drilled).
+- `sentence_templates.json` — each template has `requiredCase`, `number`, `lemmaCategory`, `difficulty`, `trigger`, `why`. Drill engine filters by these. Plain JSON — append to add new ones.
+- `paradigms.json` — ties each word's `paradigm` field (`hrad`, `pán`, `muž`, `stroj`, `žena`, `růže`, `město`, `moře`, `kuře`, …) to `whyNotes` shown in feedback.
+- `curriculum.json` — A1/A2/B1/B2 level gating. Controls which cases, difficulties, plural, adjectives, pronouns are unlocked. **Update this whenever you add a new content type or difficulty.**
+
+## Adding words (pipeline, not manual edits)
+
+```sh
+python3 scripts/add-word.py <lemma> [<lemma>...]
+# → appends to scripts/starter_lemmas.txt + starter_nouns_meta.csv
+python3 scripts/build_word_bank_morphodita.py
+# → regenerates src/lib/data/word_bank.json via MorphoDiTa API + kaikki.org
+pnpm tts:generate
+# → generates audio for new forms
+```
+
+**Fixing a wrong declension:** edit `scripts/form_overrides.json`, then re-run the builder. Don't hand-patch `word_bank.json` — the next build will overwrite it.
+
+## Drill engine
+
+Main files: `src/lib/engine/drill.ts` (nouns), `adjective-drill.ts`, `pronoun-drill.ts`. Types in `src/lib/types.ts` (`DrillQuestion`, `DrillResult`, `Case`, `Number_`, `Difficulty`, `DrillType`).
+
+Three drill types: `form_production`, `case_identification`, `sentence_fill_in`, plus `multi_step` for adjective-noun agreement.
+
+**Preposition voicing** (`s/se`, `v/ve`, `k/ke`, `z/ze`) is applied at runtime by `applyPrepositionVoicing` in `drill.ts`. Any text pipeline (like TTS pre-gen) needs to handle both forms.
+
+## Progress sync
+
+- Anonymous users: `localStorage`.
+- Logged-in users: Supabase.
+- On login, local and remote progress are merged by `src/lib/engine/progress-merge.ts`.
 
 ## TTS pipeline
 
@@ -88,22 +125,11 @@ If edge-tts returns 403: Microsoft rotated the DRM token again. Bump `edge-tts` 
 
 ## Content report feature
 
-Three-dot menu on each drill card lets users flag issues.
+Three-dot menu on each drill card. Reports go to the `content_reports` Supabase table and (if `DISCORD_REPORT_WEBHOOK_URL` is set) ping a Discord channel.
 
 - `src/lib/components/ReportMenu.svelte` — button + dropdown + modal. Wired into `DrillCard.svelte` top-right.
-- `src/routes/api/report/+server.ts` — POST endpoint: validates, inserts into `content_reports`, fire-and-forgets a Discord webhook.
-- `supabase/migrations/023_create_content_reports.sql` — schema. RLS enabled with **no client policies** — only the server (via `locals.supabase`) can insert. Mirrors the `contact_messages` precedent (migration 004). Don't add client policies.
-
-Env: `DISCORD_REPORT_WEBHOOK_URL` (in `.env` for dev, Cloudflare Pages env vars for prod/preview). Unset = DB insert still works, no Discord ping.
-
-Webhook setup:
-
-1. Discord channel → Edit Channel → Integrations → Webhooks → New Webhook → Copy URL.
-2. Cloudflare Pages → Settings → Environment variables → add to Production + Preview (encrypted).
-3. Redeploy — env var changes only apply to new deployments.
-4. Mirror in local `.env`, restart `pnpm dev`.
-
-Apply the migration with `supabase db push` or by pasting the SQL into the Supabase dashboard SQL editor.
+- `src/routes/api/report/+server.ts` — POST endpoint: validates, inserts, fire-and-forgets the webhook.
+- `supabase/migrations/023_create_content_reports.sql` — RLS enabled with **no client policies** (server-only inserts via `locals.supabase`). Mirrors the `contact_messages` precedent from migration 004.
 
 ## Git workflow
 
@@ -114,7 +140,8 @@ Apply the migration with `supabase db push` or by pasting the SQL into the Supab
 ## Things NOT to do
 
 - Don't re-add old Svelte syntax.
+- Don't hand-edit `word_bank.json` / `adjective_bank.json` / `pronoun_bank.json` — use the pipeline.
 - Don't commit `scripts/.venv-tts/`, `.env`, or any secret.
-- Don't pre-generate sentence audio without solving enumeration drift first — the drill engine's template filters live in `src/lib/engine/drill.ts` and any generator has to stay in lock-step.
+- Don't pre-generate sentence audio without solving enumeration drift first — the drill engine's template filters live in `engine/drill.ts` and any generator has to stay in lock-step.
 - Don't change the `static/audio/index.json` filename scheme without migrating existing files — `audio.ts` depends on `sha1(voice|text)[:16]`.
 - Don't add client-side RLS policies to `content_reports`.
