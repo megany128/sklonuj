@@ -12,6 +12,7 @@
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
 
 	import DottedUnderline from '$lib/components/ui/DottedUnderline.svelte';
+	import ReportMenu from '$lib/components/ReportMenu.svelte';
 	import WrongAnswerDisplay from '$lib/components/ui/WrongAnswerDisplay.svelte';
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
@@ -403,6 +404,9 @@
 				role="region"
 				aria-label="Drill"
 			>
+				<div class="absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
+					<ReportMenu {question} {result} drillType={question?.drillType} />
+				</div>
 				<!-- Prompt -->
 				<div class="text-center">
 					{#if question.drillType === 'form_production'}
