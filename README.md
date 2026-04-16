@@ -78,38 +78,13 @@ python3 scripts/build-dictionary.py
 
 ## Pre-generated audio
 
-Czech pronunciation is served from pre-generated MP3s synthesized with Microsoft Edge TTS (`cs-CZ-AntoninNeural`; alternate: `cs-CZ-VlastaNeural`), with a fallback to the browser's Web Speech API. Pre-gen works on browsers that lack Web Speech (older Safari/Firefox), which is the main reason for this pipeline.
-
-Audio files live under `static/audio/cs/<shard>/<hash>.mp3`; `static/audio/index.json` maps each text string to its relative path. Sentences are not pre-generated (combinatorial explosion) and always use Web Speech.
-
-To regenerate after adding words:
+Czech pronunciation comes from pre-generated MP3s (edge-tts, `cs-CZ-AntoninNeural`) with the Web Speech API as fallback. Regenerate after editing any word/adjective/pronoun bank:
 
 ```sh
 pnpm tts:generate
 ```
 
-The script auto-bootstraps a venv at `scripts/.venv-tts/` on first run (uses `uv` if available, else `python3 -m venv`). Flags:
-
-- `--force` — rebuild existing files
-- `--limit N` — smoke-test with first N items
-- `--only "text1,text2"` — regenerate specific strings and merge into the existing manifest (implies `--force`)
-- `--prune` — after a full run, delete orphan MP3s no longer referenced by the manifest
-- `--voice <name>` — pick a different voice
-- `--dry-run` — count items and chars without generating
-
-If generation returns 403 errors, bump `edge-tts` in `scripts/requirements-tts.txt` to the latest version (Microsoft periodically rotates the `Sec-MS-GEC` DRM token), delete `scripts/.venv-tts/`, and re-run.
-
-## Content reports
-
-Users can flag issues on any drill card via the three-dot menu. Reports are inserted into the `content_reports` Supabase table (RLS enabled, no client policies — server-only inserts) and optionally pinged to a Discord channel.
-
-To enable Discord notifications, set `DISCORD_REPORT_WEBHOOK_URL` in your environment:
-
-1. In Discord, open your target channel → Edit Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL.
-2. Add `DISCORD_REPORT_WEBHOOK_URL=<url>` to your Cloudflare Pages environment variables (Production and Preview) and to your local `.env`.
-3. Redeploy — env var changes only apply to new Pages deployments.
-
-If the env var is unset, reports still save to the DB; no Discord ping is sent. Apply migration 023 (`supabase db push` or paste the SQL into the dashboard) before the feature works.
+See the docstring in `scripts/generate_tts.py` for flags and troubleshooting.
 
 ## License
 

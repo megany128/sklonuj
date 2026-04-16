@@ -2,7 +2,16 @@
 // drill card. Validates, inserts into `content_reports` (migration 023; RLS
 // enabled with no client policies — inserts go via locals.supabase which is
 // the server-side client), then fire-and-forgets a Discord webhook if
-// DISCORD_REPORT_WEBHOOK_URL is configured. See CLAUDE.md for setup.
+// DISCORD_REPORT_WEBHOOK_URL is configured.
+//
+// Webhook setup (only needed when (re)configuring notifications):
+//   1. Discord channel → Edit Channel → Integrations → Webhooks → New Webhook
+//      → Copy Webhook URL.
+//   2. Set DISCORD_REPORT_WEBHOOK_URL in Cloudflare Pages env vars (Production
+//      and Preview, encrypted) and in local .env. Redeploy Pages — env var
+//      changes only apply to new deployments.
+//   3. Unset = DB insert still works, no Discord ping.
+// Apply migration 023 via `supabase db push` or the Supabase SQL editor.
 import { json } from '@sveltejs/kit';
 import { env as privateEnv } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';

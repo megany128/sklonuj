@@ -9,13 +9,35 @@ frontend can look up pre-generated audio by exact text equality.
 Sentences are intentionally NOT pre-generated: the combinatorial explosion
 would be huge, and the frontend falls back to the Web Speech API for them.
 
-Usage:
-    python3 scripts/generate_tts.py [--voice cs-CZ-AntoninNeural] [--limit N]
-                                    [--dry-run] [--force]
+Filename scheme: ``sha1(voice|text)[:16]``. Editing a string produces a new
+file; the old one becomes an orphan until ``--prune``.
 
-If ``scripts/.venv-tts/`` does not exist, the script bootstraps it
+Usage:
+    pnpm tts:generate [-- FLAGS]         # or: python3 scripts/generate_tts.py
+
+Flags:
+    --voice <name>        edge-tts voice (default: cs-CZ-AntoninNeural;
+                          alternate: cs-CZ-VlastaNeural)
+    --only "a,b,c"        regenerate only the listed strings and merge into
+                          the existing manifest. Implies --force.
+    --prune               after a full run, delete MP3s no longer referenced
+                          by the manifest.
+    --limit N             smoke-test: process only the first N items.
+    --dry-run             count items and chars without generating.
+    --force               rebuild all files, ignoring existing ones.
+
+The script is resumable: files that already exist are skipped. Re-runs
+after small edits take seconds, not minutes. Run this after editing any of
+``word_bank.json``, ``adjective_bank.json``, ``pronoun_bank.json``.
+
+Bootstrap: if ``scripts/.venv-tts/`` does not exist, the script creates it
 automatically (preferring ``uv`` when available) and re-execs inside that
-venv. This keeps ``pnpm tts:generate`` a one-step command.
+venv. That keeps ``pnpm tts:generate`` a one-step command.
+
+Troubleshooting 403 errors: Microsoft periodically rotates the ``Sec-MS-GEC``
+DRM token, which breaks older ``edge-tts`` releases. Bump ``edge-tts`` in
+``scripts/requirements-tts.txt`` to the latest version, delete
+``scripts/.venv-tts/``, and re-run.
 """
 
 from __future__ import annotations

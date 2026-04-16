@@ -93,43 +93,17 @@ Three drill types: `form_production`, `case_identification`, `sentence_fill_in`,
 - Logged-in users: Supabase.
 - On login, local and remote progress are merged by `src/lib/engine/progress-merge.ts`.
 
-## TTS pipeline
+## TTS
 
-Czech pronunciation is served from pre-generated MP3s (Microsoft Edge TTS, `cs-CZ-AntoninNeural`). Web Speech API is a fallback only — the whole point is to support browsers without Web Speech (older Safari/Firefox).
-
-Pieces:
-
-- `scripts/generate_tts.py` — walks word/adjective/pronoun banks, dedupes, synthesizes MP3s to `static/audio/cs/<shard>/<hash>.mp3`, writes manifest to `static/audio/index.json`.
-- `scripts/requirements-tts.txt` — `edge-tts>=7.0.0` (6.x gets 403s from Microsoft's rotated `Sec-MS-GEC` DRM token).
-- `scripts/.venv-tts/` — auto-bootstrapped, gitignored.
-- `src/lib/audio.ts` — client. Lazily loads `/audio/index.json`, plays the matching MP3 via `HTMLAudioElement`. Falls back to Web Speech on miss, playback error, or sentence-shaped input (has spaces or >25 chars).
-- Sentences are **not** pre-generated (combinatorial explosion) — they always hit Web Speech.
-
-Regenerate:
+Czech pronunciation is served from pre-generated MP3s (`scripts/generate_tts.py`, edge-tts) with Web Speech as fallback in `src/lib/audio.ts`. Regenerate after editing any word/adjective/pronoun bank:
 
 ```sh
-pnpm tts:generate                            # full run, resumable (skips existing)
-pnpm tts:generate -- --only "nový,nová"      # regenerate specific strings, merge into manifest
-pnpm tts:generate -- --prune                 # full run + delete orphan MP3s
-pnpm tts:generate -- --limit 20              # smoke test first N
-pnpm tts:generate -- --voice cs-CZ-VlastaNeural
-pnpm tts:generate -- --dry-run               # count without generating
-pnpm tts:generate -- --force                 # rebuild all (slow)
+pnpm tts:generate   # resumable; see --help for flags, README for 403 fixes
 ```
 
-Filename is `sha1(voice|text)[:16]`. Editing a string produces a new file; the old one becomes an orphan until `--prune`.
+## Content reports
 
-Regenerate whenever `word_bank.json`, `adjective_bank.json`, or `pronoun_bank.json` changes. The script is resumable, so re-runs after small edits take seconds.
-
-If edge-tts returns 403: Microsoft rotated the DRM token again. Bump `edge-tts` in `scripts/requirements-tts.txt`, `rm -rf scripts/.venv-tts`, re-run.
-
-## Content report feature
-
-Three-dot menu on each drill card. Reports go to the `content_reports` Supabase table and (if `DISCORD_REPORT_WEBHOOK_URL` is set) ping a Discord channel.
-
-- `src/lib/components/ReportMenu.svelte` — button + dropdown + modal. Wired into `DrillCard.svelte` top-right.
-- `src/routes/api/report/+server.ts` — POST endpoint: validates, inserts, fire-and-forgets the webhook.
-- `supabase/migrations/023_create_content_reports.sql` — RLS enabled with **no client policies** (server-only inserts via `locals.supabase`). Mirrors the `contact_messages` precedent from migration 004.
+Three-dot menu on drill cards → `content_reports` table + Discord webhook. Files: `ReportMenu.svelte`, `src/routes/api/report/+server.ts`, migration 023. RLS on with no client policies (server-only inserts via `locals.supabase`, mirroring `contact_messages`).
 
 ## Git workflow
 
