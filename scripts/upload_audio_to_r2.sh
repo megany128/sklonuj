@@ -108,40 +108,41 @@ fi
 
 echo "uploading $total files to r2://${BUCKET}/${PREFIX} with concurrency=${CONCURRENCY}"
 
-# A tmp counter file lets the parallel workers report progress without clashing.
-# We update it with a short flock to avoid torn reads when two uploads finish
-# in the same millisecond.
+# Each worker appends a single byte after a successful upload; total progress
+# is the file's byte count. POSIX guarantees atomicity for appends smaller than
+# PIPE_BUF, so no lock is needed. This is portable (macOS lacks `flock`).
 counter_file="$(mktemp)"
-trap 'rm -f "$counter_file" "$counter_file.lock"' EXIT
-printf '0' >"$counter_file"
+trap 'rm -f "$counter_file"' EXIT
+: >"$counter_file"
 
 export BUCKET PREFIX total counter_file WRANGLER
 
-# The worker script is self-contained so xargs can exec it per-file without
-# re-parsing this file. We keep the heredoc small and stick to POSIX-ish bash.
 upload_one() {
 	local f="$1"
 	local rel="${f#static/audio/}"
 	local key="${PREFIX}${rel}"
+	local attempt
 
-	if ! "$WRANGLER" r2 object put "${BUCKET}/${key}" \
-		--file "$f" \
-		--content-type "audio/mpeg" >/dev/null; then
-		echo "FAIL $key" >&2
-		return 1
-	fi
-
-	# Bump counter under a flock. Report progress every 100 files.
-	(
-		flock 9
-		local n
-		n="$(<"$counter_file")"
-		n=$((n + 1))
-		printf '%s' "$n" >"$counter_file"
-		if (( n % 100 == 0 )) || (( n == total )); then
-			printf 'uploaded %d / %d\n' "$n" "$total"
+	# Retry transient R2 errors (we've seen occasional 500s). Backoff: 2s, 4s.
+	for attempt in 1 2 3; do
+		if "$WRANGLER" r2 object put "${BUCKET}/${key}" \
+			--file "$f" \
+			--content-type "audio/mpeg" >/dev/null 2>&1; then
+			break
 		fi
-	) 9>"$counter_file.lock"
+		if (( attempt == 3 )); then
+			echo "FAIL $key" >&2
+			return 1
+		fi
+		sleep $((attempt * 2))
+	done
+
+	printf '.' >>"$counter_file"
+	local n
+	n="$(wc -c <"$counter_file" | tr -d ' ')"
+	if (( n % 100 == 0 )) || (( n == total )); then
+		printf 'uploaded %d / %d\n' "$n" "$total"
+	fi
 }
 
 export -f upload_one
