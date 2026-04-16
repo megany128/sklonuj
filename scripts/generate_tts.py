@@ -237,15 +237,44 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     p.add_argument("--limit", type=int, default=None, help="Only generate the first N items")
     p.add_argument("--dry-run", action="store_true", help="Count items and total chars without generating")
     p.add_argument("--force", action="store_true", help="Regenerate even if MP3 already exists")
+    p.add_argument(
+        "--only",
+        default=None,
+        help="Comma-separated list of exact strings to (re)generate. Skips the full collection.",
+    )
+    p.add_argument(
+        "--prune",
+        action="store_true",
+        help="After generation, delete MP3 files under static/audio/cs/ that aren't in the manifest.",
+    )
     return p.parse_args(list(argv))
+
+
+def prune_orphans(keep_rel_paths: set[str]) -> int:
+    """Delete MP3s under OUT_DIR/cs/ that aren't referenced by the manifest."""
+    cs_dir = OUT_DIR / "cs"
+    if not cs_dir.exists():
+        return 0
+    keep_abs = {OUT_DIR / rel for rel in keep_rel_paths}
+    removed = 0
+    for mp3 in cs_dir.rglob("*.mp3"):
+        if mp3 not in keep_abs:
+            mp3.unlink()
+            removed += 1
+    return removed
 
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
 
-    texts = collect_texts()
-    if args.limit is not None:
-        texts = texts[: args.limit]
+    if args.only is not None:
+        texts = sorted({s.strip() for s in args.only.split(",") if s.strip()})
+        # --only implies --force: the user asked for these specific items.
+        args.force = True
+    else:
+        texts = collect_texts()
+        if args.limit is not None:
+            texts = texts[: args.limit]
 
     total_chars = sum(len(t) for t in texts)
     print(f"collected {len(texts)} unique strings ({total_chars} chars) for voice {args.voice}", flush=True)
@@ -256,10 +285,29 @@ def main(argv: list[str]) -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     entries, generated, skipped, failures = asyncio.run(run(texts, args.voice, args.force))
 
+    # With --only we're patching a subset — merge into the existing manifest
+    # rather than overwriting it with just the patched entries.
+    if args.only is not None:
+        manifest_path = OUT_DIR / "index.json"
+        if manifest_path.exists():
+            try:
+                existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+                prior_entries = existing.get("entries") if isinstance(existing, dict) else None
+                if isinstance(prior_entries, dict):
+                    merged = {**prior_entries, **entries}
+                    entries = merged
+            except (json.JSONDecodeError, OSError):
+                pass
+
     write_manifest(entries, args.voice)
+
+    pruned = 0
+    if args.prune and args.only is None:
+        pruned = prune_orphans(set(entries.values()))
+
     print(
         f"done: generated={generated} skipped={skipped} failed={len(failures)} "
-        f"manifest={OUT_DIR / 'index.json'}",
+        f"pruned={pruned} manifest={OUT_DIR / 'index.json'}",
         flush=True,
     )
     if failures:
