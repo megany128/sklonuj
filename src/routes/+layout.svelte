@@ -10,7 +10,6 @@
 	import { syncStreakToSupabase, loadStreakFromSupabase } from '$lib/engine/streak';
 	import { syncMistakesToSupabase, loadMistakesFromSupabase } from '$lib/engine/mistakes';
 	import type { Progress, CaseScore, Difficulty } from '$lib/types';
-	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 	import { initPostHog } from '$lib/posthog';
 	import posthog from '$lib/posthog';
@@ -319,10 +318,6 @@
 		return Object.keys(p.caseScores).length > 0;
 	}
 </script>
-
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
 
 <div class="flex min-h-screen flex-col">
 	{#if isOffline}
