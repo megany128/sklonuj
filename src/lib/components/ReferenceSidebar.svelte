@@ -1,8 +1,11 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
 	import DeclensionTable from './DeclensionTable.svelte';
+	import AdjectiveDeclensionTable from './AdjectiveDeclensionTable.svelte';
 	import PronounTable from './PronounTable.svelte';
 	import CaseGuide from './CaseGuide.svelte';
+	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
+	import { stripDiacritics } from '$lib/utils/diacritics';
 
 	type TabId = 'declension' | 'pronouns' | 'cases';
 
@@ -27,10 +30,25 @@
 	});
 
 	const tabs: { id: TabId; label: string }[] = [
-		{ id: 'declension', label: 'Nouns' },
+		{ id: 'declension', label: 'Lookup' },
 		{ id: 'pronouns', label: 'Pronouns' },
 		{ id: 'cases', label: 'Cases' }
 	];
+
+	// Build an adjective-lemma lookup (exact + diacritic-stripped) once so we can route
+	// the Lookup tab to the adjective view when the user clicks an adjective lemma.
+	const adjectiveLemmaLookup: Record<string, true> = {};
+	for (const a of loadAdjectiveBank()) {
+		const lower = a.lemma.toLowerCase();
+		adjectiveLemmaLookup[lower] = true;
+		adjectiveLemmaLookup[stripDiacritics(lower)] = true;
+	}
+
+	let isAdjective = $derived.by(() => {
+		const w = initialWord.trim().toLowerCase();
+		if (w === '') return false;
+		return adjectiveLemmaLookup[w] === true || adjectiveLemmaLookup[stripDiacritics(w)] === true;
+	});
 </script>
 
 <div class="flex h-full flex-col bg-page-background">
@@ -74,7 +92,11 @@
 	<!-- Scrollable content -->
 	<div class="flex-1 overflow-y-auto px-6 pb-8 pt-3">
 		{#if activeTab === 'declension'}
-			<DeclensionTable {initialWord} alwaysExpanded={true} />
+			{#if isAdjective}
+				<AdjectiveDeclensionTable {initialWord} alwaysExpanded={true} />
+			{:else}
+				<DeclensionTable {initialWord} alwaysExpanded={true} />
+			{/if}
 		{:else if activeTab === 'pronouns'}
 			<PronounTable {initialPronoun} alwaysExpanded={true} />
 		{:else if activeTab === 'cases'}
