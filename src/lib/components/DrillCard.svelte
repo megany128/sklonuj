@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
@@ -544,50 +543,29 @@
 							<p class="mt-0.5 text-sm text-text-subtitle">
 								{question.adjective.translation}
 							</p>
-						{:else if question.wordCategory === 'noun'}
+						{:else}
+							{@const headerLemma =
+								question.wordCategory === 'pronoun'
+									? (question.pronoun?.lemma ?? question.word.lemma)
+									: question.word.lemma}
+							{@const headerTranslation =
+								question.wordCategory === 'pronoun'
+									? (question.pronoun?.translation ?? question.word.translation)
+									: question.word.translation}
 							<div class="flex items-center justify-center gap-2">
 								{#if onWordClick}
 									<button
 										type="button"
-										onclick={() => onWordClick?.(question!.word.lemma)}
+										onclick={() => onWordClick?.(headerLemma)}
 										class="cursor-pointer text-lg font-semibold text-emphasis underline decoration-text-subtitle decoration-dotted underline-offset-2 transition-opacity hover:opacity-70 sm:text-xl"
 									>
-										{question.word.lemma}
+										{headerLemma}
 									</button>
 								{:else}
 									<p class="text-lg font-semibold text-emphasis sm:text-xl">
-										{question.word.lemma}
+										{headerLemma}
 									</p>
 								{/if}
-								{#if question.number === 'pl'}
-									<span
-										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
-										>plural</span
-									>
-								{/if}
-							</div>
-							<p class="mt-0.5 text-sm text-text-subtitle">
-								{question.word.translation}
-							</p>
-						{:else}
-							<p class="text-sm text-text-subtitle">Fill in the blank</p>
-						{/if}
-						{@const parts = sentenceWithBlankAndLemma(question)}
-						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{parts.before}<span
-								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-								>&nbsp;&nbsp;&nbsp;&nbsp;</span
-							>{parts.after}{#if onSpeak}<button
-									type="button"
-									onclick={() => onSpeak(speakTargetText(question!))}
-									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
-									aria-label="Listen to pronunciation"
-									><Volume2 class="size-4" aria-hidden="true" /></button
-								>{/if}
-						</p>
-						{#if question.wordCategory === 'pronoun'}
-							<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
-								<span>{question.pronoun?.translation ?? question.word.translation}</span>
 								{#if question.number === 'pl' && !(question.wordCategory === 'pronoun' && question.pronoun?.forms.sg === null)}
 									<span
 										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
@@ -603,18 +581,24 @@
 											: 'without preposition'}
 									</span>
 								{/if}
-								<span class="group relative">
-									<CircleHelp class="h-4 w-4 text-text-subtitle" aria-hidden="true" />
-									<span
-										class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-emphasis px-3 py-1.5 text-xs font-normal text-text-inverted opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
-									>
-										{question.wordCategory === 'pronoun'
-											? (question.pronoun?.lemma ?? question.word.lemma)
-											: question.word.lemma}
-									</span>
-								</span>
+							</div>
+							<p class="mt-0.5 text-sm text-text-subtitle">
+								{headerTranslation}
 							</p>
 						{/if}
+						{@const parts = sentenceWithBlankAndLemma(question)}
+						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
+							{parts.before}<span
+								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+								>&nbsp;&nbsp;&nbsp;&nbsp;</span
+							>{parts.after}{#if onSpeak}<button
+									type="button"
+									onclick={() => onSpeak(speakTargetText(question!))}
+									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
+									><Volume2 class="size-4" aria-hidden="true" /></button
+								>{/if}
+						</p>
 					{/if}
 				</div>
 
