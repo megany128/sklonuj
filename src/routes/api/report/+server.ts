@@ -1,7 +1,8 @@
 // POST /api/report — receives a content report from the three-dot menu on a
 // drill card. Validates, inserts into `content_reports` (migration 023; RLS
-// enabled with no client policies — inserts go via locals.supabase which is
-// the server-side client), then fire-and-forgets a Discord webhook if
+// enabled with no client policies — inserts go via the service-role client
+// which bypasses RLS, mirroring the pattern used by other server-only
+// endpoints in this repo). Then fire-and-forgets a Discord webhook if
 // DISCORD_REPORT_WEBHOOK_URL is configured.
 //
 // Webhook setup (only needed when (re)configuring notifications):
@@ -14,6 +15,8 @@
 // Apply migration 023 via `supabase db push` or the Supabase SQL editor.
 import { json } from '@sveltejs/kit';
 import { env as privateEnv } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
+import { createClient } from '@supabase/supabase-js';
 import type { RequestHandler } from './$types';
 
 const ALLOWED_CATEGORIES = ['wrong_answer', 'bad_sentence', 'bad_explanation', 'other'] as const;
@@ -123,7 +126,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const userId = locals.user?.id ?? null;
 
-	const { error: insertError } = await locals.supabase.from('content_reports').insert({
+	// content_reports has RLS enabled with no client policies (server-only
+	// inserts), so we need the service-role key to bypass RLS. locals.supabase
+	// is the anon client and would always 401 here.
+	const supabaseUrl = publicEnv.PUBLIC_SUPABASE_URL;
+	const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
+	if (!supabaseUrl || !serviceRoleKey) {
+		console.error(
+			'/api/report: PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not configured'
+		);
+		return json({ error: 'Report service is not configured' }, { status: 500 });
+	}
+	const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+	const { error: insertError } = await adminClient.from('content_reports').insert({
 		user_id: userId,
 		category,
 		comment: validated.comment,
