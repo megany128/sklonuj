@@ -2880,7 +2880,13 @@
 		const caseForms = q.number === 'sg' ? q.pronoun.forms.sg : q.pronoun.forms.pl;
 		if (!caseForms) return '';
 		const form = caseForms[q.case];
-		return form.prep || form.bare || '';
+		// Pronoun forms can hold slash-separated alternatives (e.g. "mě/mne").
+		// The TTS manifest has each alternative as its own entry, so strip down
+		// to the first before looking up — otherwise the literal "mě/mne" misses
+		// the manifest and falls back to Web Speech saying "mě slash mne".
+		const prep = (form.prep || '').split('/')[0];
+		const bare = (form.bare || '').split('/')[0];
+		return prep || bare || '';
 	}
 
 	function lookupParadigmNotes(paradigmId: string, word: WordEntry): Record<string, string> | null {

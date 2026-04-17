@@ -382,15 +382,6 @@ export function playClinkSound(): void {
 	ring2.stop(now + 0.18);
 }
 
-/** Remove the ___ gap placeholder and clean up whitespace/punctuation for natural TTS. */
-export function prepareSentenceForTTS(text: string): string {
-	return text
-		.replace('___', '')
-		.replace(/\s+/g, ' ')
-		.replace(/\s([.,!?])/g, '$1')
-		.trim();
-}
-
 export function isTTSAvailable(): boolean {
 	if (typeof window === 'undefined') return false;
 	// Pre-generated audio works on any browser that can play MP3s, even those
