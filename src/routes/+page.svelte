@@ -3448,10 +3448,12 @@
 
 	function autoPlayPrompt(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
-		// Don't autoplay fill-in-the-blank sentences — the point is for the
-		// student to figure out the word from the sentence context. They can
-		// still click the speaker button if they want the hint.
-		if (q.drillType === 'sentence_fill_in') return;
+		// For noun/pronoun fill-in-the-blank, the point is for the student to
+		// figure out the word from sentence context — autoplay would give the
+		// answer away. Adjective fill-ins always show the target adjective
+		// explicitly, so autoplay there is fine and matches the lemma on
+		// screen. The manual speaker button works in all cases.
+		if (q.drillType === 'sentence_fill_in' && q.wordCategory !== 'adjective') return;
 		speak(questionPromptText(q));
 	}
 

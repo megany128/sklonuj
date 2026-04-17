@@ -7,11 +7,13 @@
 	let {
 		question,
 		result,
-		drillType
+		drillType,
+		paradigmNotes = null
 	}: {
 		question: DrillQuestion | null;
 		result: DrillResult | null;
 		drillType?: string;
+		paradigmNotes?: Record<string, string> | null;
 	} = $props();
 
 	type Category = 'wrong_answer' | 'bad_sentence' | 'bad_explanation' | 'other';
@@ -62,8 +64,26 @@
 
 	let explanationText = $derived.by(() => {
 		if (!question) return null;
+		// Capture the same feedback the student sees after submitting: the
+		// template's "why" (skipped for synthetic form-production templates)
+		// plus the paradigm note keyed by case + number. Join with a space so
+		// the Discord payload reads like the on-screen explanation.
+		const templateId = question.template?.id;
+		const isSyntheticFormProduction =
+			templateId === '_form_production' ||
+			templateId === '_pronoun_form_production' ||
+			templateId === '_adj_form_production';
+		const pieces: string[] = [];
 		const why = question.template?.why;
-		return typeof why === 'string' && why.trim().length > 0 ? why : null;
+		if (!isSyntheticFormProduction && typeof why === 'string' && why.trim().length > 0) {
+			pieces.push(why.trim());
+		}
+		const noteKey = `${question.case}_${question.number}`;
+		const paradigmNote = paradigmNotes?.[noteKey];
+		if (typeof paradigmNote === 'string' && paradigmNote.trim().length > 0) {
+			pieces.push(paradigmNote.trim());
+		}
+		return pieces.length > 0 ? pieces.join(' ') : null;
 	});
 
 	let caseName = $derived(question ? CASE_LABELS[question.case] : null);
@@ -78,7 +98,7 @@
 				lines.push(`Case: ${caseName}${num}`);
 			}
 			if (expectedAnswer) lines.push(`Expected: ${expectedAnswer}`);
-			if (result && !result.correct && result.userAnswer) {
+			if (result?.userAnswer) {
 				lines.push(`Your answer: ${result.userAnswer}`);
 			}
 			if (sentenceText) lines.push(`Sentence: ${sentenceText}`);
@@ -144,6 +164,19 @@
 			};
 		}
 	});
+
+	// The drill card applies a transform-based entrance animation which
+	// creates a stacking context, trapping position:fixed descendants. Portal
+	// the modal to <body> so it renders above the drill-settings filter
+	// dropdown and the sidebar without z-index gymnastics.
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				if (node.parentNode) node.parentNode.removeChild(node);
+			}
+		};
+	}
 
 	let nominativeForm = $derived.by(() => {
 		if (!question) return null;
@@ -227,7 +260,7 @@
 			if (dropdownOpen) closeDropdown();
 			else openDropdown();
 		}}
-		class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+		class="flex size-8 shrink-0 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
 		aria-label="Report menu"
 		aria-haspopup="menu"
 		aria-expanded={dropdownOpen}
@@ -255,6 +288,7 @@
 
 {#if modalOpen}
 	<div
+		use:portal
 		class="fixed inset-0 z-[70] flex items-center justify-center px-4"
 		data-modal
 		role="presentation"

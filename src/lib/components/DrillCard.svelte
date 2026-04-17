@@ -395,7 +395,7 @@
 				aria-label="Drill"
 			>
 				<div class="absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
-					<ReportMenu {question} {result} drillType={question?.drillType} />
+					<ReportMenu {question} {result} {paradigmNotes} drillType={question?.drillType} />
 				</div>
 				<!-- Prompt -->
 				<div class="text-center">
