@@ -178,12 +178,26 @@ def path_for(voice: str, text: str) -> tuple[str, Path]:
     return rel, abs_path
 
 
+def _synthesis_text(text: str) -> str:
+    """Append a trailing period so edge-tts holds long final vowels (e.g. -ý).
+
+    Without punctuation the voice clips the last syllable. The manifest key
+    stays the original text so client-side lookup is unchanged and filenames
+    (which hash the key) don't shift. Skip if the text already ends in
+    sentence-terminal punctuation.
+    """
+    stripped = text.rstrip()
+    if stripped.endswith((".", "?", "!")):
+        return text
+    return f"{text}."
+
+
 async def synth_one(text: str, voice: str, abs_path: Path) -> None:
     import edge_tts  # lazily imported so --help works pre-bootstrap
 
     abs_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = abs_path.with_suffix(abs_path.suffix + ".part")
-    communicate = edge_tts.Communicate(text=text, voice=voice)
+    communicate = edge_tts.Communicate(text=_synthesis_text(text), voice=voice)
     await communicate.save(str(tmp))
     if tmp.stat().st_size == 0:
         tmp.unlink(missing_ok=True)
