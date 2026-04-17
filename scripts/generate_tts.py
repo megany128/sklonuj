@@ -247,6 +247,9 @@ async def run(
                     generated += 1
                 except Exception as e:  # noqa: BLE001
                     failures.append((text, repr(e)))
+                    # Print each failure live so we can diagnose mid-run
+                    # without waiting for the full batch to finish.
+                    print(f"FAIL {text!r}: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
         done += 1
         if done % 100 == 0 or done == total:
             print(f"[{done}/{total}] generated={generated} skipped={skipped} failed={len(failures)}", flush=True)
