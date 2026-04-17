@@ -3444,6 +3444,10 @@
 
 	function autoPlayPrompt(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
+		// Don't autoplay fill-in-the-blank sentences — the point is for the
+		// student to figure out the word from the sentence context. They can
+		// still click the speaker button if they want the hint.
+		if (q.drillType === 'sentence_fill_in') return;
 		speak(questionPromptText(q));
 	}
 
