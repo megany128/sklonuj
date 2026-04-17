@@ -215,7 +215,19 @@
 						nominative: nominativeForm,
 						translation: question.word?.translation ?? null,
 						correct: result?.correct ?? null,
-						nearMiss: result?.nearMiss ?? null
+						nearMiss: result?.nearMiss ?? null,
+						// Paradigm helps diagnose incorrect declensions: for nouns
+						// the paradigm id (e.g. "pán", "hrad", "žena"), for
+						// adjectives the paradigmType ("hard" / "soft"), for
+						// pronouns the lemma-as-id since pronouns are irregular.
+						paradigm:
+							question.wordCategory === 'adjective'
+								? (question.adjective?.paradigmType ?? null)
+								: question.wordCategory === 'pronoun'
+									? (question.pronoun?.lemma ?? null)
+									: (question.word.paradigm ?? null),
+						gender: question.word.gender ?? null,
+						animate: question.wordCategory === 'noun' ? (question.word.animate ?? null) : null
 					}
 				: null
 		};

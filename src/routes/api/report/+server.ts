@@ -147,6 +147,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const webhookUrl = privateEnv.DISCORD_REPORT_WEBHOOK_URL;
 	if (webhookUrl) {
+		const paradigm =
+			isRecord(contextValue) && typeof contextValue.paradigm === 'string'
+				? contextValue.paradigm
+				: null;
 		const embed = {
 			title: 'New content report',
 			color: 0xe34994,
@@ -154,6 +158,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				{ name: 'Category', value: fieldOrDash(category), inline: true },
 				{ name: 'Drill type', value: fieldOrDash(validated.drill_type), inline: true },
 				{ name: 'Lemma', value: fieldOrDash(validated.lemma), inline: true },
+				{ name: 'Paradigm', value: fieldOrDash(paradigm), inline: true },
 				{ name: 'Case', value: fieldOrDash(validated.case_name), inline: true },
 				{ name: 'Number', value: fieldOrDash(validated.number_form), inline: true },
 				{ name: 'Expected answer', value: fieldOrDash(validated.expected_answer), inline: true },
