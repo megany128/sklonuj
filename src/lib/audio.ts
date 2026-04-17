@@ -96,6 +96,10 @@ function stopCurrentAudio(): void {
 function speakViaWebSpeech(text: string, lang: string, rate: number): void {
 	if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
+	// Stop any playing pre-generated MP3 — otherwise a sentence (Web Speech)
+	// triggered while a lemma MP3 is still playing would layer on top.
+	stopCurrentAudio();
+
 	if (speakTimer) {
 		clearTimeout(speakTimer);
 		speakTimer = null;
