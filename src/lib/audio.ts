@@ -1,4 +1,4 @@
-import { PUBLIC_AUDIO_BASE_URL } from '$env/static/public';
+import { env as publicEnv } from '$env/dynamic/public';
 
 interface AudioIndex {
 	voice: string;
@@ -8,8 +8,10 @@ interface AudioIndex {
 // Strip trailing slashes so we can safely join with `/${rel}`. Empty string
 // means "same origin" — lookupEntry returns `/audio/${rel}` in that case
 // (current local-dev behavior). In prod this points at the R2 custom domain,
-// e.g. https://audio.sklonuj.com.
-const AUDIO_BASE = PUBLIC_AUDIO_BASE_URL.replace(/\/+$/, '');
+// e.g. https://audio.sklonuj.com. Using $env/dynamic/public so the build
+// doesn't fail if the var isn't defined at compile time (matches the
+// repo's Supabase env-var pattern).
+const AUDIO_BASE = (publicEnv.PUBLIC_AUDIO_BASE_URL ?? '').replace(/\/+$/, '');
 
 let speakTimer: number | null = null;
 let cachedVoice: SpeechSynthesisVoice | undefined;
