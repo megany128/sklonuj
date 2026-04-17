@@ -77,7 +77,15 @@ def bootstrap_venv() -> None:
     first, then re-exec.
     """
     python_bin = VENV_DIR / "bin" / "python3"
-    if Path(sys.executable).resolve() == python_bin.resolve():
+    # Compare sys.prefix (not sys.executable) because the venv's python3 is
+    # typically a symlink chain pointing back at the system interpreter —
+    # resolve() would claim we're already in the venv when we're not. A real
+    # venv sets sys.prefix to the venv dir regardless of the underlying binary.
+    try:
+        in_venv = Path(sys.prefix).resolve() == VENV_DIR.resolve()
+    except (OSError, RuntimeError):
+        in_venv = False
+    if in_venv:
         return
 
     if not python_bin.exists():
