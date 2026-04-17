@@ -3429,17 +3429,15 @@
 	}
 
 	function questionPromptText(q: DrillQuestion): string {
-		// All prompts read the lemma (nominative). Sentences are never spoken —
-		// we only pre-generate single-word audio, and inconsistent voicing between
-		// MP3 lemmas and Web Speech sentences is jarring.
-		if (q.drillType === 'case_identification') {
-			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? '') : q.word.forms[q.number][0];
-		}
-		return q.wordCategory === 'adjective' && q.adjective
-			? q.adjective.lemma
-			: q.wordCategory === 'pronoun'
-				? (q.pronoun?.lemma ?? q.word.lemma)
-				: q.word.lemma;
+		// All prompts read the dictionary lemma. Sentences are never spoken —
+		// we only pre-generate single-word audio. The lemma matches what's shown
+		// in parens in the UI, so what the student hears matches what they see.
+		// Using forms[number][0] instead would read the plural nominative for
+		// plural drills (e.g. "velbloudové") which diverges from the "(velbloud)"
+		// shown on screen.
+		if (q.wordCategory === 'pronoun') return q.pronoun?.lemma ?? '';
+		if (q.wordCategory === 'adjective' && q.adjective) return q.adjective.lemma;
+		return q.word.lemma;
 	}
 
 	function autoPlayPrompt(q: DrillQuestion): void {
