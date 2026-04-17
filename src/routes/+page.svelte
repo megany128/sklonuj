@@ -102,9 +102,9 @@
 		isTTSAvailable,
 		onCzechVoiceReady,
 		warmUpVoices,
+		loadAudioIndex,
 		playCorrectSound,
-		playStreakSound,
-		prepareSentenceForTTS
+		playStreakSound
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
 	import paradigmsData from '$lib/data/paradigms.json';
@@ -1690,6 +1690,10 @@
 		initialized = true;
 		initDarkMode();
 		warmUpVoices();
+		void loadAudioIndex().then(() => {
+			// Manifest arrival can flip TTS availability on browsers without Web Speech.
+			ttsAvailable = isTTSAvailable();
+		});
 		ttsAvailable = isTTSAvailable();
 		if (!ttsAvailable) {
 			// Chrome loads voices async — listen for when Czech voice becomes available
@@ -2876,7 +2880,13 @@
 		const caseForms = q.number === 'sg' ? q.pronoun.forms.sg : q.pronoun.forms.pl;
 		if (!caseForms) return '';
 		const form = caseForms[q.case];
-		return form.prep || form.bare || '';
+		// Pronoun forms can hold slash-separated alternatives (e.g. "mě/mne").
+		// The TTS manifest has each alternative as its own entry, so strip down
+		// to the first before looking up — otherwise the literal "mě/mne" misses
+		// the manifest and falls back to Web Speech saying "mě slash mne".
+		const prep = (form.prep || '').split('/')[0];
+		const bare = (form.bare || '').split('/')[0];
+		return prep || bare || '';
 	}
 
 	function lookupParadigmNotes(paradigmId: string, word: WordEntry): Record<string, string> | null {
@@ -3425,43 +3435,33 @@
 	}
 
 	function questionPromptText(q: DrillQuestion): string {
-		if (q.drillType === 'form_production') {
-			return q.wordCategory === 'adjective' && q.adjective
-				? q.adjective.lemma
-				: q.wordCategory === 'pronoun'
-					? (q.pronoun?.lemma ?? q.word.lemma)
-					: q.word.lemma;
-		} else if (q.drillType === 'sentence_fill_in') {
-			const form =
-				q.wordCategory === 'pronoun'
-					? getPronounFormForTTS(q)
-					: q.word.forms[q.number][CASE_INDEX[q.case]];
-			const voiced = applyPrepositionVoicing(q.template.template, form);
-			return prepareSentenceForTTS(voiced);
-		} else {
-			// case_identification: read only the nominative/lemma form so the user figures out the case
-			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? '') : q.word.forms[q.number][0];
-		}
+		// Match what's shown in parens in the UI so audio and visual align.
+		// For case_identification nouns, parens show the nominative in the
+		// drill's number (e.g. "plody" for plural). For everything else we
+		// show the dictionary lemma.
+		if (q.wordCategory === 'pronoun') return q.pronoun?.lemma ?? '';
+		if (q.wordCategory === 'adjective' && q.adjective) return q.adjective.lemma;
+		if (q.drillType === 'case_identification') return q.word.forms[q.number][0];
+		return q.word.lemma;
 	}
 
 	function autoPlayPrompt(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
+		// All drill types now surface the lemma visually, so autoplay never
+		// spoils the question. Pronoun sentence_fill_in is the one exception
+		// (the lemma isn't prominently displayed there), so we still skip it.
+		if (q.drillType === 'sentence_fill_in' && q.wordCategory === 'pronoun') return;
 		speak(questionPromptText(q));
 	}
 
 	function autoPlayAnswer(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
 		if (q.drillType === 'case_identification') {
-			if (q.wordCategory === 'pronoun') {
-				const form = getPronounFormForTTS(q);
-				const voiced = applyPrepositionVoicing(q.template.template, form);
-				speak(voiced.replace('___', form));
-			} else {
-				// After revealing the answer, read the full sentence with the correct form
-				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
-				const voiced = applyPrepositionVoicing(q.template.template, form);
-				speak(voiced.replace('___', form));
-			}
+			const form =
+				q.wordCategory === 'pronoun'
+					? getPronounFormForTTS(q)
+					: q.word.forms[q.number][CASE_INDEX[q.case]];
+			speak(form);
 			return;
 		}
 		speak(q.correctAnswer);

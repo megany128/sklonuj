@@ -679,7 +679,7 @@
 						>{sentenceParts.after}{#if onSpeak}<button
 								type="button"
 								onclick={() =>
-									onSpeak?.(sentenceParts.before + question.correctForm + sentenceParts.after)}
+									onSpeak?.(formSubmitted ? question.correctForm : question.word.lemma)}
 								class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 								aria-label="Listen to pronunciation"
 							>
@@ -823,11 +823,9 @@
 								type="button"
 								onclick={() =>
 									onSpeak?.(
-										(adjSentenceParts[0] ?? '') +
-											(question.correctAdjectiveForm ?? '') +
-											' ' +
-											question.correctForm +
-											(adjSentenceParts[1] ?? '')
+										adjFormSubmitted
+											? (question.correctAdjectiveForm ?? '')
+											: (question.adjective?.lemma ?? '')
 									)}
 								class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 								aria-label="Listen to pronunciation"

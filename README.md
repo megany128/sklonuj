@@ -76,6 +76,16 @@ This outputs the final `src/lib/data/word_bank.json` consumed by the app. To reb
 python3 scripts/build-dictionary.py
 ```
 
+## Pre-generated audio
+
+Czech pronunciation comes from pre-generated MP3s (edge-tts, `cs-CZ-AntoninNeural`) with the Web Speech API as fallback. Regenerate after editing any word/adjective/pronoun bank:
+
+```sh
+pnpm tts:generate
+```
+
+See the docstring in `scripts/generate_tts.py` for flags and troubleshooting.
+
 ## License
 
 This project is licensed under CC BY-NC-SA 4.0. See [DATA_SOURCES.md](DATA_SOURCES.md) for upstream data licenses.

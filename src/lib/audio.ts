@@ -1,7 +1,36 @@
+import { env as publicEnv } from '$env/dynamic/public';
+
+interface AudioIndex {
+	voice: string;
+	entries: Record<string, string>;
+}
+
+// Strip trailing slashes so we can safely join with `/${rel}`. Empty string
+// means "same origin" — lookupEntry returns `/audio/${rel}` in that case
+// (current local-dev behavior). In prod this points at the R2 custom domain,
+// e.g. https://audio.sklonuj.com. Using $env/dynamic/public so the build
+// doesn't fail if the var isn't defined at compile time (matches the
+// repo's Supabase env-var pattern).
+const AUDIO_BASE = (publicEnv.PUBLIC_AUDIO_BASE_URL ?? '').replace(/\/+$/, '');
+
 let speakTimer: number | null = null;
 let cachedVoice: SpeechSynthesisVoice | undefined;
 let voicesChangedRegistered = false;
 let voicesReadyCallbacks: (() => void)[] = [];
+
+let audioIndexPromise: Promise<AudioIndex | null> | null = null;
+let audioIndex: AudioIndex | null = null;
+let currentAudio: HTMLAudioElement | null = null;
+
+// Cap on how long speak() will wait for a still-loading manifest before
+// giving up and falling through to Web Speech. Avoids user-visible latency
+// on the first click if the manifest fetch is slow.
+const MANIFEST_WAIT_MS = 500;
+
+// Anything with spaces or long enough to be a sentence is not pre-generated
+// (sentences would be a combinatorial explosion). Skip the lookup and go
+// straight to Web Speech for those.
+const SENTENCE_MIN_LEN = 25;
 
 function getCzechVoice(): SpeechSynthesisVoice | null {
 	if (cachedVoice) return cachedVoice;
@@ -31,8 +60,47 @@ function getCzechVoice(): SpeechSynthesisVoice | null {
 	return null;
 }
 
-export function speak(text: string, lang = 'cs-CZ', rate = 0.92): void {
+/** Lazily fetch and cache the pre-generated audio manifest. */
+export function loadAudioIndex(): Promise<AudioIndex | null> {
+	if (typeof window === 'undefined') return Promise.resolve(null);
+	if (audioIndexPromise) return audioIndexPromise;
+	audioIndexPromise = (async () => {
+		try {
+			const res = await fetch('/audio/index.json', { cache: 'force-cache' });
+			if (!res.ok) return null;
+			const data = (await res.json()) as AudioIndex;
+			if (!data || typeof data !== 'object' || !data.entries) return null;
+			audioIndex = data;
+			return data;
+		} catch {
+			return null;
+		}
+	})();
+	return audioIndexPromise;
+}
+
+function isLikelySentence(text: string): boolean {
+	return text.includes(' ') || text.length > SENTENCE_MIN_LEN;
+}
+
+function stopCurrentAudio(): void {
+	if (currentAudio) {
+		try {
+			currentAudio.pause();
+			currentAudio.src = '';
+		} catch {
+			// Ignore — element may already be detached
+		}
+		currentAudio = null;
+	}
+}
+
+function speakViaWebSpeech(text: string, lang: string, rate: number): void {
 	if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+	// Stop any playing pre-generated MP3 — otherwise a sentence (Web Speech)
+	// triggered while a lemma MP3 is still playing would layer on top.
+	stopCurrentAudio();
 
 	if (speakTimer) {
 		clearTimeout(speakTimer);
@@ -58,6 +126,99 @@ export function speak(text: string, lang = 'cs-CZ', rate = 0.92): void {
 
 		speechSynthesis.speak(utterance);
 	}, 150);
+}
+
+function playPreGenerated(url: string, onFail: () => void): void {
+	stopCurrentAudio();
+	// Cancel any pending Web Speech utterance so we don't double-play.
+	if (typeof window !== 'undefined' && window.speechSynthesis?.speaking) {
+		speechSynthesis.cancel();
+	}
+	if (speakTimer) {
+		clearTimeout(speakTimer);
+		speakTimer = null;
+	}
+
+	const audio = new Audio(url);
+	currentAudio = audio;
+	audio.addEventListener('ended', () => {
+		if (currentAudio === audio) currentAudio = null;
+	});
+	// Only fall back to Web Speech if this audio is still the live one when it
+	// errors — otherwise stopCurrentAudio() (which sets src='' and triggers a
+	// synthetic error) would spuriously cascade into Web Speech.
+	audio.addEventListener('error', () => {
+		if (currentAudio === audio) {
+			currentAudio = null;
+			onFail();
+		}
+	});
+	const playPromise = audio.play();
+	if (playPromise && typeof playPromise.catch === 'function') {
+		playPromise.catch(() => {
+			if (currentAudio === audio) {
+				currentAudio = null;
+				onFail();
+			}
+		});
+	}
+}
+
+function lookupEntry(text: string): string | null {
+	if (!audioIndex) return null;
+	const rel = audioIndex.entries[text];
+	if (!rel) return null;
+	return AUDIO_BASE ? `${AUDIO_BASE}/${rel}` : `/audio/${rel}`;
+}
+
+async function waitForIndex(): Promise<AudioIndex | null> {
+	if (audioIndex) return audioIndex;
+	if (!audioIndexPromise) loadAudioIndex();
+	let timer: ReturnType<typeof setTimeout> | null = null;
+	const timeout = new Promise<null>((resolve) => {
+		timer = setTimeout(() => resolve(null), MANIFEST_WAIT_MS);
+	});
+	try {
+		return await Promise.race([audioIndexPromise ?? Promise.resolve(null), timeout]);
+	} finally {
+		if (timer) clearTimeout(timer);
+	}
+}
+
+export function speak(text: string, lang = 'cs-CZ', rate = 0.92): void {
+	if (typeof window === 'undefined') return;
+
+	const trimmed = text.trim();
+	if (!trimmed) return;
+
+	if (isLikelySentence(trimmed)) {
+		speakViaWebSpeech(text, lang, rate);
+		return;
+	}
+
+	const url = lookupEntry(trimmed);
+	if (url) {
+		playPreGenerated(url, () => speakViaWebSpeech(text, lang, rate));
+		return;
+	}
+
+	if (audioIndex) {
+		// Manifest is loaded and doesn't have this text — fall back directly.
+		speakViaWebSpeech(text, lang, rate);
+		return;
+	}
+
+	// Manifest still loading. Wait briefly, then either play or fall back.
+	void waitForIndex().then((idx) => {
+		if (idx) {
+			const url2 = lookupEntry(trimmed);
+			if (url2) {
+				playPreGenerated(url2, () => speakViaWebSpeech(text, lang, rate));
+				return;
+			}
+		}
+		speakViaWebSpeech(text, lang, rate);
+	});
 }
 
 let audioCtx: AudioContext | null = null;
@@ -223,17 +384,12 @@ export function playClinkSound(): void {
 	ring2.stop(now + 0.18);
 }
 
-/** Remove the ___ gap placeholder and clean up whitespace/punctuation for natural TTS. */
-export function prepareSentenceForTTS(text: string): string {
-	return text
-		.replace('___', '')
-		.replace(/\s+/g, ' ')
-		.replace(/\s([.,!?])/g, '$1')
-		.trim();
-}
-
 export function isTTSAvailable(): boolean {
 	if (typeof window === 'undefined') return false;
+	// Pre-generated audio works on any browser that can play MP3s, even those
+	// without Web Speech API. Treat TTS as available whenever either source
+	// can deliver audio.
+	if (audioIndex && Object.keys(audioIndex.entries).length > 0) return true;
 	if (typeof window.speechSynthesis === 'undefined') return false;
 	return getCzechVoice() !== null;
 }

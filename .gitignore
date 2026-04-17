@@ -36,5 +36,10 @@ dogfood-output/videos/
 
 # AI
 .claude/
-CLAUDE.md
 .mcp.json
+
+# TTS generation venv
+scripts/.venv-tts/
+
+# TTS audio blobs — hosted in R2, not git
+static/audio/cs/
