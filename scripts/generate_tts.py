@@ -67,32 +67,39 @@ MAX_RETRIES = 3
 
 
 def bootstrap_venv() -> None:
-    """Create the venv and re-exec this script inside it when missing.
+    """Ensure this script runs inside the tts venv.
 
-    We do this in the CLI entry path rather than at import time so
-    ``--help`` etc. still work without a venv.
+    We do this in the CLI entry path rather than at import time so ``--help``
+    etc. still work without a venv. If we're already running in the venv,
+    no-op. If the venv exists but we're on a different interpreter (common
+    when invoked via ``pnpm tts:generate`` which uses system python3),
+    re-exec into the venv python. If the venv doesn't exist yet, create it
+    first, then re-exec.
     """
     python_bin = VENV_DIR / "bin" / "python3"
-    if python_bin.exists():
+    if Path(sys.executable).resolve() == python_bin.resolve():
         return
 
-    print(f"[bootstrap] creating venv at {VENV_DIR}", flush=True)
-    uv = shutil.which("uv")
-    if uv:
-        subprocess.check_call([uv, "venv", str(VENV_DIR)])
-        subprocess.check_call(
-            [uv, "pip", "install", "--python", str(python_bin), "-r", str(REQ_FILE)]
-        )
+    if not python_bin.exists():
+        print(f"[bootstrap] creating venv at {VENV_DIR}", flush=True)
+        uv = shutil.which("uv")
+        if uv:
+            subprocess.check_call([uv, "venv", str(VENV_DIR)])
+            subprocess.check_call(
+                [uv, "pip", "install", "--python", str(python_bin), "-r", str(REQ_FILE)]
+            )
+        else:
+            subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)])
+            subprocess.check_call(
+                [str(python_bin), "-m", "pip", "install", "--upgrade", "pip"]
+            )
+            subprocess.check_call(
+                [str(python_bin), "-m", "pip", "install", "-r", str(REQ_FILE)]
+            )
+        print("[bootstrap] venv ready; re-executing script", flush=True)
     else:
-        subprocess.check_call([sys.executable, "-m", "venv", str(VENV_DIR)])
-        subprocess.check_call(
-            [str(python_bin), "-m", "pip", "install", "--upgrade", "pip"]
-        )
-        subprocess.check_call(
-            [str(python_bin), "-m", "pip", "install", "-r", str(REQ_FILE)]
-        )
+        print("[bootstrap] re-executing in venv", flush=True)
 
-    print("[bootstrap] venv ready; re-executing script", flush=True)
     os.execv(str(python_bin), [str(python_bin), str(Path(__file__).resolve()), *sys.argv[1:]])
 
 
