@@ -1,16 +1,15 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import X from '@lucide/svelte/icons/x';
 	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
 	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER, ALL_ADJECTIVE_GENDER_KEYS } from '$lib/types';
 	import type { AdjectiveEntry, AdjectiveGenderKey, Case, CaseForms } from '$lib/types';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 
 	let {
-		initialWord = '',
+		selectedLemma = '',
 		alwaysExpanded = false
 	}: {
-		initialWord?: string;
+		selectedLemma?: string;
 		alwaysExpanded?: boolean;
 	} = $props();
 
@@ -18,7 +17,7 @@
 
 	const adjectiveBank: AdjectiveEntry[] = loadAdjectiveBank();
 
-	// Pre-compute stripped lemmas for fast diacritic-insensitive search
+	// Pre-compute stripped lemmas for fast diacritic-insensitive lookup
 	const adjectiveStripped: Array<{ stripped: string; entry: AdjectiveEntry }> = adjectiveBank.map(
 		(a) => ({
 			stripped: stripDiacritics(a.lemma.toLowerCase()),
@@ -51,57 +50,16 @@
 		return null;
 	}
 
-	interface Suggestion {
-		lemma: string;
-		translation: string;
-	}
-
-	const MIN_AUTOCOMPLETE_LENGTH = 3;
-	const MAX_SUGGESTIONS = 8;
-
-	function getSuggestions(query: string): Suggestion[] {
-		const q = query.toLowerCase();
-		const qStripped = stripDiacritics(q);
-		const results: Suggestion[] = [];
-		const seen: Record<string, boolean> = {};
-
-		for (const a of adjectiveStripped) {
-			const key = a.entry.lemma.toLowerCase();
-			if ((key.startsWith(q) || a.stripped.startsWith(qStripped)) && !seen[key]) {
-				results.push({ lemma: a.entry.lemma, translation: a.entry.translation });
-				seen[key] = true;
-				if (results.length >= MAX_SUGGESTIONS) return results;
-			}
-		}
-
-		return results;
-	}
-
 	let expanded = $state(false);
-	let searchQuery = $state('');
-	let showSuggestions = $state(false);
-	let selectedEntry: AdjectiveEntry | null = $state(null);
-	let highlightedIndex = $state(-1);
-
-	let trimmedQuery = $derived(searchQuery.trim().toLowerCase());
 
 	const fallbackEntry: AdjectiveEntry =
 		adjectiveBank.find((a) => a.lemma === 'nový') ?? adjectiveBank[0];
 
-	const defaultEntry: AdjectiveEntry = $derived.by(() => {
-		if (initialWord && initialWord.trim() !== '') {
-			const entry = lookupAdjective(initialWord.trim());
-			if (entry) return entry;
-		}
-		return fallbackEntry;
+	let displayEntry: AdjectiveEntry = $derived.by(() => {
+		const lemma = selectedLemma.trim();
+		if (lemma === '') return fallbackEntry;
+		return lookupAdjective(lemma) ?? fallbackEntry;
 	});
-
-	let suggestions: Suggestion[] = $derived.by(() => {
-		if (trimmedQuery.length < MIN_AUTOCOMPLETE_LENGTH) return [];
-		return getSuggestions(trimmedQuery);
-	});
-
-	let displayEntry: AdjectiveEntry = $derived(selectedEntry ?? defaultEntry);
 
 	// Compute longest common prefix across all forms (all 4 genders × sg+pl) so we can dim the stem.
 	function computeStemAcrossAll(entry: AdjectiveEntry): string {
@@ -132,78 +90,6 @@
 	}
 
 	let stem: string = $derived(computeStemAcrossAll(displayEntry));
-
-	let dropdownOpen = $derived(
-		showSuggestions && trimmedQuery.length >= MIN_AUTOCOMPLETE_LENGTH && !selectedEntry
-	);
-
-	function selectAdjective(lemma: string): void {
-		const entry = lookupAdjective(lemma);
-		if (entry) {
-			searchQuery = entry.lemma;
-			selectedEntry = entry;
-			showSuggestions = false;
-			highlightedIndex = -1;
-		}
-	}
-
-	function handleKeydown(e: KeyboardEvent): void {
-		if (dropdownOpen && suggestions.length > 0) {
-			if (e.key === 'ArrowDown') {
-				e.preventDefault();
-				highlightedIndex = highlightedIndex < suggestions.length - 1 ? highlightedIndex + 1 : 0;
-				return;
-			}
-			if (e.key === 'ArrowUp') {
-				e.preventDefault();
-				highlightedIndex = highlightedIndex > 0 ? highlightedIndex - 1 : suggestions.length - 1;
-				return;
-			}
-			if (e.key === 'Enter') {
-				e.preventDefault();
-				if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
-					selectAdjective(suggestions[highlightedIndex].lemma);
-				} else {
-					selectAdjective(searchQuery.trim());
-				}
-				return;
-			}
-			if (e.key === 'Escape') {
-				showSuggestions = false;
-				highlightedIndex = -1;
-				return;
-			}
-		}
-
-		if (e.key === 'Enter') {
-			selectAdjective(searchQuery.trim());
-		}
-	}
-
-	function handleInput(): void {
-		showSuggestions = true;
-		highlightedIndex = -1;
-		if (
-			selectedEntry !== null &&
-			searchQuery.trim().toLowerCase() !== selectedEntry.lemma.toLowerCase()
-		) {
-			selectedEntry = null;
-		}
-	}
-
-	function clearSearch(): void {
-		searchQuery = '';
-		selectedEntry = null;
-		showSuggestions = false;
-		highlightedIndex = -1;
-	}
-
-	// When initialWord changes, auto-select that adjective (mirrors DeclensionTable behaviour).
-	$effect(() => {
-		if (initialWord && initialWord.trim() !== '') {
-			selectAdjective(initialWord.trim());
-		}
-	});
 
 	function formAt(
 		entry: AdjectiveEntry,
@@ -244,104 +130,20 @@
 				? 'rounded-2xl border border-card-stroke bg-card-bg p-4'
 				: 'mt-2 rounded-2xl border border-card-stroke bg-card-bg p-4'}"
 		>
-			<!-- Search input -->
-			<div>
-				<div class="relative">
-					<input
-						type="text"
-						placeholder="Search for an adjective..."
-						bind:value={searchQuery}
-						oninput={handleInput}
-						onkeydown={handleKeydown}
-						onfocus={() => {
-							if (trimmedQuery.length >= MIN_AUTOCOMPLETE_LENGTH) showSuggestions = true;
-						}}
-						onblur={() => setTimeout(() => (showSuggestions = false), 150)}
-						autocomplete="off"
-						autocorrect="off"
-						autocapitalize="off"
-						spellcheck="false"
-						aria-label="Search for a Czech adjective"
-						role="combobox"
-						aria-expanded={dropdownOpen}
-						aria-controls="adjective-declension-suggestions"
-						aria-autocomplete="list"
-						aria-activedescendant={highlightedIndex >= 0
-							? 'adj-suggestion-' + highlightedIndex
-							: undefined}
-						class="w-full rounded-xl border border-card-stroke bg-card-bg px-3 py-2 pr-8 text-base text-text-default placeholder:text-text-subtitle outline-none transition-colors focus:border-emphasis"
-					/>
-					{#if searchQuery !== ''}
-						<button
-							type="button"
-							onclick={clearSearch}
-							class="absolute right-2 top-1/2 -translate-y-1/2 text-text-subtitle hover:text-text-default"
-							aria-label="Clear search"
-							tabindex="0"
-						>
-							<X class="h-4 w-4" aria-hidden="true" />
-						</button>
-					{/if}
-					{#if dropdownOpen}
-						<div
-							id="adjective-declension-suggestions"
-							class="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-card-stroke bg-card-bg shadow-lg"
-							role="listbox"
-						>
-							{#if suggestions.length > 0}
-								{#each suggestions as s, idx (s.lemma)}
-									<button
-										type="button"
-										role="option"
-										id="adj-suggestion-{idx}"
-										aria-selected={idx === highlightedIndex}
-										onmousedown={() => selectAdjective(s.lemma)}
-										onmouseenter={() => (highlightedIndex = idx)}
-										class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors
-										{idx === highlightedIndex ? 'bg-shaded-background' : 'hover:bg-shaded-background'}"
-									>
-										<span class="font-semibold text-text-default">{s.lemma}</span>
-										<span class="text-xs text-text-subtitle">{s.translation}</span>
-									</button>
-								{/each}
-							{:else}
-								<div class="px-3 py-2.5 text-xs text-text-subtitle">
-									No matching adjectives found
-								</div>
-							{/if}
-						</div>
-					{/if}
-				</div>
-				{#if selectedEntry}
-					<div class="mt-1.5 flex flex-wrap items-center gap-2 px-1">
-						<span class="text-xs text-text-subtitle">
-							{selectedEntry.translation}
-						</span>
-						<span
-							class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
-						>
-							{PARADIGM_TYPE_LABELS[selectedEntry.paradigmType] ?? selectedEntry.paradigmType}
-						</span>
-					</div>
-				{/if}
+			<!-- Adjective info -->
+			<div class="flex flex-wrap items-center gap-2 px-1">
+				<span class="text-sm font-semibold text-text-default">
+					{displayEntry.lemma}
+				</span>
+				<span class="text-xs text-text-subtitle">
+					{displayEntry.translation}
+				</span>
+				<span
+					class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
+				>
+					{PARADIGM_TYPE_LABELS[displayEntry.paradigmType] ?? displayEntry.paradigmType}
+				</span>
 			</div>
-
-			<!-- Adjective info (default, when no search) -->
-			{#if !selectedEntry}
-				<div class="flex flex-wrap items-center gap-2 px-1">
-					<span class="text-sm font-semibold text-text-default">
-						{displayEntry.lemma}
-					</span>
-					<span class="text-xs text-text-subtitle">
-						{displayEntry.translation}
-					</span>
-					<span
-						class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
-					>
-						{PARADIGM_TYPE_LABELS[displayEntry.paradigmType] ?? displayEntry.paradigmType}
-					</span>
-				</div>
-			{/if}
 
 			<!-- Declension table: 7 case rows × (4 genders × sg/pl) = 8 form columns -->
 			<div class="overflow-x-auto">
