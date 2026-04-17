@@ -359,7 +359,9 @@
 	// Speaker buttons always pronounce a single word — lemma before the user
 	// submits, declined form after. Sentences are never spoken; we only
 	// pre-generate single-word MP3s and mixing MP3 + Web Speech sentence reads
-	// creates jarring voice changes.
+	// creates jarring voice changes. For case_identification nouns we read
+	// the nominative in the drill's number (plody for plural) so the audio
+	// matches what's shown in parens.
 	function speakTargetText(q: DrillQuestion): string {
 		const declinedForm =
 			q.wordCategory === 'adjective'
@@ -369,6 +371,9 @@
 					: q.word.forms[q.number][CASE_INDEX[q.case]];
 		if (submitted) {
 			return declinedForm;
+		}
+		if (q.drillType === 'case_identification' && q.wordCategory === 'noun') {
+			return q.word.forms[q.number][0];
 		}
 		return q.wordCategory === 'adjective'
 			? (q.adjective?.lemma ?? q.word.lemma)
@@ -488,7 +493,7 @@
 						{@const caseIdLemma =
 							question.wordCategory === 'pronoun'
 								? (question.pronoun?.lemma ?? question.word.lemma)
-								: question.word.lemma}
+								: question.word.forms[question.number][0]}
 						<p class="text-sm text-text-subtitle">Which case?</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
 						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">

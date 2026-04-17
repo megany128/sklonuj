@@ -3435,14 +3435,13 @@
 	}
 
 	function questionPromptText(q: DrillQuestion): string {
-		// All prompts read the dictionary lemma. Sentences are never spoken —
-		// we only pre-generate single-word audio. The lemma matches what's shown
-		// in parens in the UI, so what the student hears matches what they see.
-		// Using forms[number][0] instead would read the plural nominative for
-		// plural drills (e.g. "velbloudové") which diverges from the "(velbloud)"
-		// shown on screen.
+		// Match what's shown in parens in the UI so audio and visual align.
+		// For case_identification nouns, parens show the nominative in the
+		// drill's number (e.g. "plody" for plural). For everything else we
+		// show the dictionary lemma.
 		if (q.wordCategory === 'pronoun') return q.pronoun?.lemma ?? '';
 		if (q.wordCategory === 'adjective' && q.adjective) return q.adjective.lemma;
+		if (q.drillType === 'case_identification') return q.word.forms[q.number][0];
 		return q.word.lemma;
 	}
 
