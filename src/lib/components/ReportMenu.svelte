@@ -89,23 +89,6 @@
 	let caseName = $derived(question ? CASE_LABELS[question.case] : null);
 	let numberForm = $derived(question ? (question.number === 'pl' ? 'plural' : 'singular') : null);
 
-	let summaryLines = $derived.by(() => {
-		const lines: string[] = [];
-		if (question) {
-			if (lemma) lines.push(`Lemma: ${lemma}`);
-			if (caseName) {
-				const num = question.number === 'pl' ? ' plural' : '';
-				lines.push(`Case: ${caseName}${num}`);
-			}
-			if (expectedAnswer) lines.push(`Expected: ${expectedAnswer}`);
-			if (result?.userAnswer) {
-				lines.push(`Your answer: ${result.userAnswer}`);
-			}
-			if (sentenceText) lines.push(`Sentence: ${sentenceText}`);
-		}
-		return lines;
-	});
-
 	function openDropdown() {
 		dropdownOpen = true;
 	}
@@ -344,16 +327,6 @@
 						Thanks — report sent.
 					</div>
 				{:else}
-					{#if summaryLines.length > 0}
-						<div
-							class="mb-4 rounded-xl bg-shaded-background px-3 py-2.5 text-xs text-text-subtitle"
-						>
-							{#each summaryLines as line (line)}
-								<p class="truncate">{line}</p>
-							{/each}
-						</div>
-					{/if}
-
 					<form onsubmit={handleSubmit} class="flex flex-col gap-4">
 						<fieldset class="flex flex-col gap-2">
 							<legend class="mb-1 text-sm font-medium text-text-default">What's the issue?</legend>
