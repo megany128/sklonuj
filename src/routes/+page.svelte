@@ -104,8 +104,7 @@
 		warmUpVoices,
 		loadAudioIndex,
 		playCorrectSound,
-		playStreakSound,
-		prepareSentenceForTTS
+		playStreakSound
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
 	import paradigmsData from '$lib/data/paradigms.json';
@@ -3430,23 +3429,17 @@
 	}
 
 	function questionPromptText(q: DrillQuestion): string {
-		if (q.drillType === 'form_production') {
-			return q.wordCategory === 'adjective' && q.adjective
-				? q.adjective.lemma
-				: q.wordCategory === 'pronoun'
-					? (q.pronoun?.lemma ?? q.word.lemma)
-					: q.word.lemma;
-		} else if (q.drillType === 'sentence_fill_in') {
-			const form =
-				q.wordCategory === 'pronoun'
-					? getPronounFormForTTS(q)
-					: q.word.forms[q.number][CASE_INDEX[q.case]];
-			const voiced = applyPrepositionVoicing(q.template.template, form);
-			return prepareSentenceForTTS(voiced);
-		} else {
-			// case_identification: read only the nominative/lemma form so the user figures out the case
+		// All prompts read the lemma (nominative). Sentences are never spoken —
+		// we only pre-generate single-word audio, and inconsistent voicing between
+		// MP3 lemmas and Web Speech sentences is jarring.
+		if (q.drillType === 'case_identification') {
 			return q.wordCategory === 'pronoun' ? (q.pronoun?.lemma ?? '') : q.word.forms[q.number][0];
 		}
+		return q.wordCategory === 'adjective' && q.adjective
+			? q.adjective.lemma
+			: q.wordCategory === 'pronoun'
+				? (q.pronoun?.lemma ?? q.word.lemma)
+				: q.word.lemma;
 	}
 
 	function autoPlayPrompt(q: DrillQuestion): void {
@@ -3457,16 +3450,11 @@
 	function autoPlayAnswer(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
 		if (q.drillType === 'case_identification') {
-			if (q.wordCategory === 'pronoun') {
-				const form = getPronounFormForTTS(q);
-				const voiced = applyPrepositionVoicing(q.template.template, form);
-				speak(voiced.replace('___', form));
-			} else {
-				// After revealing the answer, read the full sentence with the correct form
-				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
-				const voiced = applyPrepositionVoicing(q.template.template, form);
-				speak(voiced.replace('___', form));
-			}
+			const form =
+				q.wordCategory === 'pronoun'
+					? getPronounFormForTTS(q)
+					: q.word.forms[q.number][CASE_INDEX[q.case]];
+			speak(form);
 			return;
 		}
 		speak(q.correctAnswer);

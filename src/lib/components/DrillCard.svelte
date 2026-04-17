@@ -7,7 +7,7 @@
 	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_HEX, CASE_NUMBER, isCase } from '$lib/types';
 	import { applyPrepositionVoicing } from '$lib/engine/drill';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
-	import { playClinkSound, prepareSentenceForTTS } from '$lib/audio';
+	import { playClinkSound } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
 
@@ -356,35 +356,25 @@
 		return { caseName: CASE_LABELS[q.case], isPlural };
 	}
 
-	function fullSentenceText(q: DrillQuestion): string {
-		const form =
+	// Speaker buttons always pronounce a single word — lemma before the user
+	// submits, declined form after. Sentences are never spoken; we only
+	// pre-generate single-word MP3s and mixing MP3 + Web Speech sentence reads
+	// creates jarring voice changes.
+	function speakTargetText(q: DrillQuestion): string {
+		const declinedForm =
 			q.wordCategory === 'adjective'
 				? q.correctAnswer
 				: q.wordCategory === 'pronoun'
 					? getPronounForm(q)
 					: q.word.forms[q.number][CASE_INDEX[q.case]];
-		if (q.drillType === 'case_identification') {
-			if (submitted) {
-				return applyPrepositionVoicing(q.template.template, form).replace('___', form);
-			}
-			return q.wordCategory === 'adjective'
-				? (q.adjective?.lemma ?? q.word.lemma)
-				: q.wordCategory === 'pronoun'
-					? (q.pronoun?.lemma ?? '')
-					: q.word.forms[q.number][0];
+		if (submitted) {
+			return declinedForm;
 		}
-		return applyPrepositionVoicing(q.template.template, form).replace('___', form);
-	}
-
-	function sentenceWithGap(q: DrillQuestion): string {
-		const form =
-			q.wordCategory === 'adjective'
-				? q.correctAnswer
-				: q.wordCategory === 'pronoun'
-					? getPronounForm(q)
-					: q.word.forms[q.number][CASE_INDEX[q.case]];
-		const voiced = applyPrepositionVoicing(q.template.template, form);
-		return prepareSentenceForTTS(voiced);
+		return q.wordCategory === 'adjective'
+			? (q.adjective?.lemma ?? q.word.lemma)
+			: q.wordCategory === 'pronoun'
+				? (q.pronoun?.lemma ?? '')
+				: q.word.lemma;
 	}
 </script>
 
@@ -517,7 +507,7 @@
 									>{:else}({caseIdLemma}){/if}</span
 							>{parts.after}{#if onSpeak}<button
 									type="button"
-									onclick={() => onSpeak(fullSentenceText(question!))}
+									onclick={() => onSpeak(speakTargetText(question!))}
 									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
 									><Volume2 class="size-4" aria-hidden="true" /></button
@@ -559,7 +549,7 @@
 								>&nbsp;&nbsp;&nbsp;&nbsp;</span
 							>{parts.after}{#if onSpeak}<button
 									type="button"
-									onclick={() => onSpeak(sentenceWithGap(question!))}
+									onclick={() => onSpeak(speakTargetText(question!))}
 									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
 									aria-label="Listen to pronunciation"
 									><Volume2 class="size-4" aria-hidden="true" /></button
