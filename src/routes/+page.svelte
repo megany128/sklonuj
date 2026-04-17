@@ -3447,12 +3447,10 @@
 
 	function autoPlayPrompt(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
-		// For noun/pronoun fill-in-the-blank, the point is for the student to
-		// figure out the word from sentence context — autoplay would give the
-		// answer away. Adjective fill-ins always show the target adjective
-		// explicitly, so autoplay there is fine and matches the lemma on
-		// screen. The manual speaker button works in all cases.
-		if (q.drillType === 'sentence_fill_in' && q.wordCategory !== 'adjective') return;
+		// All drill types now surface the lemma visually, so autoplay never
+		// spoils the question. Pronoun sentence_fill_in is the one exception
+		// (the lemma isn't prominently displayed there), so we still skip it.
+		if (q.drillType === 'sentence_fill_in' && q.wordCategory === 'pronoun') return;
 		speak(questionPromptText(q));
 	}
 

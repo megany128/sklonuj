@@ -544,6 +544,31 @@
 							<p class="mt-0.5 text-sm text-text-subtitle">
 								{question.adjective.translation}
 							</p>
+						{:else if question.wordCategory === 'noun'}
+							<div class="flex items-center justify-center gap-2">
+								{#if onWordClick}
+									<button
+										type="button"
+										onclick={() => onWordClick?.(question!.word.lemma)}
+										class="cursor-pointer text-lg font-semibold text-emphasis underline decoration-text-subtitle decoration-dotted underline-offset-2 transition-opacity hover:opacity-70 sm:text-xl"
+									>
+										{question.word.lemma}
+									</button>
+								{:else}
+									<p class="text-lg font-semibold text-emphasis sm:text-xl">
+										{question.word.lemma}
+									</p>
+								{/if}
+								{#if question.number === 'pl'}
+									<span
+										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
+										>plural</span
+									>
+								{/if}
+							</div>
+							<p class="mt-0.5 text-sm text-text-subtitle">
+								{question.word.translation}
+							</p>
 						{:else}
 							<p class="text-sm text-text-subtitle">Fill in the blank</p>
 						{/if}
@@ -560,13 +585,9 @@
 									><Volume2 class="size-4" aria-hidden="true" /></button
 								>{/if}
 						</p>
-						{#if question.wordCategory !== 'adjective'}
+						{#if question.wordCategory === 'pronoun'}
 							<p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-text-subtitle">
-								<span
-									>{question.wordCategory === 'pronoun'
-										? (question.pronoun?.translation ?? question.word.translation)
-										: question.word.translation}</span
-								>
+								<span>{question.pronoun?.translation ?? question.word.translation}</span>
 								{#if question.number === 'pl' && !(question.wordCategory === 'pronoun' && question.pronoun?.forms.sg === null)}
 									<span
 										class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
