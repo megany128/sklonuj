@@ -142,15 +142,22 @@ function playPreGenerated(url: string, onFail: () => void): void {
 	audio.addEventListener('ended', () => {
 		if (currentAudio === audio) currentAudio = null;
 	});
+	// Only fall back to Web Speech if this audio is still the live one when it
+	// errors — otherwise stopCurrentAudio() (which sets src='' and triggers a
+	// synthetic error) would spuriously cascade into Web Speech.
 	audio.addEventListener('error', () => {
-		if (currentAudio === audio) currentAudio = null;
-		onFail();
+		if (currentAudio === audio) {
+			currentAudio = null;
+			onFail();
+		}
 	});
 	const playPromise = audio.play();
 	if (playPromise && typeof playPromise.catch === 'function') {
 		playPromise.catch(() => {
-			if (currentAudio === audio) currentAudio = null;
-			onFail();
+			if (currentAudio === audio) {
+				currentAudio = null;
+				onFail();
+			}
 		});
 	}
 }
