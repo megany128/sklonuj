@@ -285,13 +285,47 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 
 		const { sessionDate, questionsAttempted, questionsCorrect, caseScores } = sessionResult.data;
 
+		// Read existing row so we can take the MAX of incoming vs existing.
+		// This prevents multi-tab scenarios from overwriting higher counts
+		// (Tab A syncs 50, Tab B syncs 30 → DB keeps 50, not 30).
+		const { data: existing } = await supabase
+			.from('practice_sessions')
+			.select('questions_attempted, questions_correct, case_scores')
+			.eq('user_id', user.id)
+			.eq('session_date', sessionDate)
+			.maybeSingle();
+
+		let mergedAttempted = questionsAttempted;
+		let mergedCorrect = questionsCorrect;
+		let mergedCaseScores = caseScores;
+
+		if (existing) {
+			mergedAttempted = Math.max(questionsAttempted, existing.questions_attempted ?? 0);
+			mergedCorrect = Math.max(questionsCorrect, existing.questions_correct ?? 0);
+
+			// Merge case_scores: take max per case key
+			const existingCaseScores =
+				(existing.case_scores as Record<string, { attempted: number; correct: number }>) ?? {};
+			const merged: Record<string, { attempted: number; correct: number }> = {
+				...existingCaseScores
+			};
+			for (const [key, val] of Object.entries(caseScores)) {
+				const prev = merged[key] ?? { attempted: 0, correct: 0 };
+				merged[key] = {
+					attempted: Math.max(val.attempted, prev.attempted),
+					correct: Math.max(val.correct, prev.correct)
+				};
+			}
+			mergedCaseScores = merged;
+		}
+
 		const { error: upsertError } = await supabase.from('practice_sessions').upsert(
 			{
 				user_id: user.id,
 				session_date: sessionDate,
-				questions_attempted: questionsAttempted,
-				questions_correct: questionsCorrect,
-				case_scores: caseScores,
+				questions_attempted: mergedAttempted,
+				questions_correct: mergedCorrect,
+				case_scores: mergedCaseScores,
 				updated_at: new Date().toISOString()
 			},
 			{ onConflict: 'user_id,session_date' }

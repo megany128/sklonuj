@@ -175,11 +175,12 @@
 	let sessionSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function getTodayDate(): string {
-		const d = new Date();
-		const y = d.getFullYear();
-		const m = String(d.getMonth() + 1).padStart(2, '0');
-		const day = String(d.getDate()).padStart(2, '0');
-		return `${y}-${m}-${day}`;
+		// Must match server logic: before 5 AM UTC, treat previous day as "today"
+		// so late-night sessions stay grouped with the same calendar day.
+		const ms = Date.now();
+		const hours = Math.floor((ms % 86_400_000) / 3_600_000);
+		const d = new Date(hours < 5 ? ms - 86_400_000 : ms);
+		return d.toISOString().slice(0, 10);
 	}
 
 	function scheduleSessionSync(): void {
