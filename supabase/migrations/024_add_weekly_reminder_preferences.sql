@@ -7,6 +7,10 @@
 -- opted in automatically. Existing users keep their current value.
 ALTER TABLE public.profiles ALTER COLUMN email_reminders SET DEFAULT true;
 
+-- Enable reminders for all existing users (they can unsubscribe via email
+-- link or profile page).
+UPDATE public.profiles SET email_reminders = true WHERE email_reminders = false;
+
 ALTER TABLE public.profiles
   ADD COLUMN reminder_day smallint NOT NULL DEFAULT 1
     CHECK (reminder_day BETWEEN 0 AND 6),

@@ -1024,7 +1024,7 @@
 					tabindex={0}
 				>
 					{#if totalAttempts === 0 && serverSessions.length === 0}
-						<div class="rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
+						<div class="mb-6 rounded-2xl border border-card-stroke bg-card-bg p-8 text-center">
 							<p class="text-sm text-text-subtitle">No activity yet.</p>
 							<p class="mt-1 text-sm text-text-subtitle">
 								Start practicing to see your focus areas and activity here.
