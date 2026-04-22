@@ -111,5 +111,9 @@
 	"sníh": {
 		"sg": ["sníh", "sněhu", "sněhu", "sníh", "sněhu", "sněhu", "sněhem"],
 		"pl": ["sněhy", "sněhů", "sněhům", "sněhy", "sněhy", "snězích", "sněhy"]
+	},
+	"křen": {
+		"sg": ["křen", "křenu", "křenu", "křen", "křene", "křenu", "křenem"],
+		"pl": ["křeny", "křenů", "křenům", "křeny", "křeny", "křenech", "křeny"]
 	}
 }

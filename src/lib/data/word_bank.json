@@ -50531,19 +50531,13 @@
 		"lemma": "křen",
 		"translation": "horseradish",
 		"gender": "m",
-		"animate": true,
-		"paradigm": "pán",
+		"animate": false,
+		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["animals", "food"],
+		"categories": ["food"],
 		"forms": {
-			"sg": ["křen", "křena", "křenovi", "křena", "křene", "křenovi", "křenem"],
-			"pl": ["křenové", "křenů", "křenům", "křeny", "křenové", "křenech", "křeny"]
-		},
-		"variantForms": {
-			"sg": {
-				"2": ["křenu"],
-				"5": ["křenu"]
-			}
+			"sg": ["křen", "křenu", "křenu", "křen", "křene", "křenu", "křenem"],
+			"pl": ["křeny", "křenů", "křenům", "křeny", "křeny", "křenech", "křeny"]
 		}
 	},
 	{
