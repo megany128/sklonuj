@@ -386,7 +386,7 @@
 										: 'text-text-default'}"
 								>
 									{entry.firstName}
-									{#if isMe}
+									{#if isMe && !isAnonymous}
 										<span class="text-xs font-normal text-brand-500">(you)</span>
 									{/if}
 								</span>
