@@ -3106,6 +3106,13 @@
 			recordSessionActivity(false, question?.case);
 			recordAssignmentProgress(false, question?.case, question?.number);
 			checkAssignmentMatchToast();
+			posthog.capture('question_answered', {
+				correct: false,
+				drillType: question?.drillType,
+				case: question?.case,
+				level: currentLevel,
+				skipped: true
+			});
 			streak = 0;
 			if (question.wordCategory === 'adjective') {
 				paradigmNotes = null;
