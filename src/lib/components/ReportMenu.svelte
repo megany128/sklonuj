@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MoreVertical from '@lucide/svelte/icons/more-vertical';
+	import Flag from '@lucide/svelte/icons/flag';
 	import X from '@lucide/svelte/icons/x';
 	import { CASE_LABELS, CASE_INDEX } from '$lib/types';
 	import type { DrillQuestion, DrillResult } from '$lib/types';
@@ -27,7 +27,6 @@
 
 	const MAX_COMMENT = 2000;
 
-	let dropdownOpen = $state(false);
 	let modalOpen = $state(false);
 	let category = $state<Category>('wrong_answer');
 	let comment = $state('');
@@ -35,8 +34,6 @@
 	let errorMessage = $state('');
 	let successVisible = $state(false);
 
-	let buttonEl = $state<HTMLButtonElement | undefined>(undefined);
-	let dropdownEl = $state<HTMLDivElement | undefined>(undefined);
 	let modalEl = $state<HTMLDivElement | undefined>(undefined);
 
 	let lemma = $derived.by(() => {
@@ -89,16 +86,7 @@
 	let caseName = $derived(question ? CASE_LABELS[question.case] : null);
 	let numberForm = $derived(question ? (question.number === 'pl' ? 'plural' : 'singular') : null);
 
-	function openDropdown() {
-		dropdownOpen = true;
-	}
-
-	function closeDropdown() {
-		dropdownOpen = false;
-	}
-
 	function openReportModal() {
-		dropdownOpen = false;
 		resetForm();
 		modalOpen = true;
 	}
@@ -116,33 +104,17 @@
 		successVisible = false;
 	}
 
-	function handleDocumentClick(e: MouseEvent) {
-		if (!dropdownOpen) return;
-		const target = e.target;
-		if (!(target instanceof Node)) return;
-		if (buttonEl?.contains(target)) return;
-		if (dropdownEl?.contains(target)) return;
-		dropdownOpen = false;
-	}
-
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			if (modalOpen) {
-				e.stopPropagation();
-				closeModal();
-			} else if (dropdownOpen) {
-				e.stopPropagation();
-				closeDropdown();
-			}
+		if (e.key === 'Escape' && modalOpen) {
+			e.stopPropagation();
+			closeModal();
 		}
 	}
 
 	$effect(() => {
-		if (dropdownOpen || modalOpen) {
-			document.addEventListener('click', handleDocumentClick);
+		if (modalOpen) {
 			document.addEventListener('keydown', handleKeydown);
 			return () => {
-				document.removeEventListener('click', handleDocumentClick);
 				document.removeEventListener('keydown', handleKeydown);
 			};
 		}
@@ -246,40 +218,17 @@
 	}
 </script>
 
-<div class="relative">
-	<button
-		bind:this={buttonEl}
-		type="button"
-		onclick={(e) => {
-			e.stopPropagation();
-			if (dropdownOpen) closeDropdown();
-			else openDropdown();
-		}}
-		class="flex size-8 shrink-0 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-		aria-label="Report menu"
-		aria-haspopup="menu"
-		aria-expanded={dropdownOpen}
-	>
-		<MoreVertical class="size-4" aria-hidden="true" />
-	</button>
-
-	{#if dropdownOpen}
-		<div
-			bind:this={dropdownEl}
-			class="absolute right-0 top-10 z-20 min-w-[160px] overflow-hidden rounded-xl border border-card-stroke bg-card-bg shadow-lg"
-			role="menu"
-		>
-			<button
-				type="button"
-				onclick={openReportModal}
-				class="block w-full px-4 py-2.5 text-left text-sm text-text-default transition-colors hover:bg-shaded-background"
-				role="menuitem"
-			>
-				Report an issue
-			</button>
-		</div>
-	{/if}
-</div>
+<button
+	type="button"
+	onclick={(e: MouseEvent) => {
+		e.stopPropagation();
+		openReportModal();
+	}}
+	class="flex size-8 shrink-0 items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+	aria-label="Report an issue"
+>
+	<Flag class="size-4" aria-hidden="true" />
+</button>
 
 {#if modalOpen}
 	<div

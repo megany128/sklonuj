@@ -394,7 +394,7 @@
 		"translation": "red",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "universal"],
+		"categories": ["color", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["červený", "červeného", "červenému", "červeného", "červený", "červeném", "červeným"],
@@ -420,7 +420,7 @@
 		"translation": "blue",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "universal"],
+		"categories": ["color", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["modrý", "modrého", "modrému", "modrého", "modrý", "modrém", "modrým"],
@@ -446,7 +446,7 @@
 		"translation": "green",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "universal"],
+		"categories": ["color", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["zelený", "zeleného", "zelenému", "zeleného", "zelený", "zeleném", "zeleným"],
@@ -472,7 +472,7 @@
 		"translation": "white",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "universal"],
+		"categories": ["color", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["bílý", "bílého", "bílému", "bílého", "bílý", "bílém", "bílým"],
@@ -498,7 +498,7 @@
 		"translation": "black",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "universal"],
+		"categories": ["color", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["černý", "černého", "černému", "černého", "černý", "černém", "černým"],

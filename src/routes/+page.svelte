@@ -2,7 +2,6 @@
 	import ListChecks from '@lucide/svelte/icons/list-checks';
 	import Trophy from '@lucide/svelte/icons/trophy';
 	import Flame from '@lucide/svelte/icons/flame';
-	import PartyPopper from '@lucide/svelte/icons/party-popper';
 	import Target from '@lucide/svelte/icons/target';
 	import Brain from '@lucide/svelte/icons/brain';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -254,6 +253,46 @@
 	const curriculum: Record<string, CurriculumLevel> = curriculumData;
 
 	const SETTINGS_STORAGE_KEY = 'sklonuj_settings';
+	const ANON_SESSION_STASH_KEY = 'sklonuj_anon_session';
+
+	/** Stash current anon session stats so they can be synced after sign-up. */
+	function stashAnonSession(): void {
+		if (user) return;
+		const attempted = sessionCorrect + sessionWrong;
+		if (attempted === 0) return;
+		const today = new Date().toISOString().slice(0, 10);
+		localStorage.setItem(
+			ANON_SESSION_STASH_KEY,
+			JSON.stringify({
+				sessionDate: today,
+				questionsAttempted: attempted,
+				questionsCorrect: sessionCorrect,
+				caseScores: sessionCaseMisses
+			})
+		);
+	}
+
+	/** After login, sync any stashed anon session to the server. */
+	function syncStashedAnonSession(): void {
+		const raw = localStorage.getItem(ANON_SESSION_STASH_KEY);
+		if (!raw) return;
+		let stash: unknown;
+		try {
+			stash = JSON.parse(raw);
+		} catch {
+			localStorage.removeItem(ANON_SESSION_STASH_KEY);
+			return;
+		}
+		fetch('/api/sync', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ session: stash })
+		})
+			.then((res) => {
+				if (res.ok) localStorage.removeItem(ANON_SESSION_STASH_KEY);
+			})
+			.catch(() => {});
+	}
 
 	function getDefaultSettings(): DrillSettings {
 		return {
@@ -541,8 +580,6 @@
 					}
 					studentAssignments = validated;
 				}
-				// Load leaderboard after assignments are available
-				loadLeaderboard();
 			})
 			.catch(() => {
 				assignmentError = 'Could not load assignments.';
@@ -882,53 +919,16 @@
 		questionsAnswered: number;
 		correctAnswers: number;
 	}
-	interface UnreadReaction {
-		id: string;
-		fromUserId: string;
-		fromName: string;
-		emoji: string;
-	}
-	let leaderboardData = $state<LeaderboardEntry[]>([]);
-	let leaderboardTotalStudents = $state(0);
-	let leaderboardPointsDelta = $state(0);
-	let leaderboardSentToday = $state<string[]>([]);
-	let leaderboardClassId = $state<string | null>(null);
-	let showLeaderboardConfetti = $state(false);
 	let leaderboardRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
-	function loadLeaderboard(): void {
-		if (!user) return;
+	// Global leaderboard state
+	let globalLeaderboardData = $state<LeaderboardEntry[]>([]);
+	let globalLeaderboardTotal = $state(0);
+	let globalShowOnLeaderboard = $state(true);
+	let globalLeaderboardPointsDelta = $state(0);
 
-		// Determine which class to use
-		let targetClassId: string | null = null;
-
-		// If practicing an assignment, use that assignment's class
-		if (assignmentInfo) {
-			targetClassId = assignmentInfo.classId;
-		} else if (studentAssignments.length > 0) {
-			// Use the first class from assignments (these are classes the user is in)
-			const classIds = [...new Set(studentAssignments.map((a) => a.classId))];
-			if (classIds.length === 1) {
-				targetClassId = classIds[0];
-			} else if (classIds.length > 1) {
-				// Use the first active (has pending assignments) class, or just the first
-				const pending = studentAssignments.filter((a) => a.completedAt === null);
-				if (pending.length > 0) {
-					targetClassId = pending[0].classId;
-				} else {
-					targetClassId = classIds[0];
-				}
-			}
-		}
-
-		if (!targetClassId) return;
-
-		leaderboardClassId = targetClassId;
-		fetchLeaderboardData(targetClassId);
-	}
-
-	function fetchLeaderboardData(classId: string): void {
-		fetch(`/api/leaderboard?classId=${classId}`)
+	function fetchGlobalLeaderboard(): void {
+		fetch('/api/leaderboard/global')
 			.then((res) => {
 				if (!res.ok) return null;
 				return res.json();
@@ -959,126 +959,104 @@
 							});
 						}
 					}
-					leaderboardData = entries;
+					globalLeaderboardData = entries;
 				}
-				if (typeof data.totalStudents === 'number') {
-					leaderboardTotalStudents = data.totalStudents;
+				if (typeof data.totalUsers === 'number') {
+					globalLeaderboardTotal = data.totalUsers;
 				}
-				if (Array.isArray(data.sentToday)) {
-					leaderboardSentToday = data.sentToday.filter(
-						(v: unknown): v is string => typeof v === 'string'
-					);
-				}
-				if (Array.isArray(data.unreadReactions)) {
-					const reactions: UnreadReaction[] = [];
-					for (const r of data.unreadReactions) {
-						if (
-							isRecord(r) &&
-							typeof r.id === 'string' &&
-							typeof r.fromUserId === 'string' &&
-							typeof r.fromName === 'string' &&
-							typeof r.emoji === 'string'
-						) {
-							reactions.push({
-								id: r.id,
-								fromUserId: r.fromUserId,
-								fromName: r.fromName,
-								emoji: r.emoji
-							});
-						}
-					}
-					if (reactions.length > 0) {
-						showReactionToasts(reactions);
-					}
+				if (typeof data.showOnLeaderboard === 'boolean') {
+					globalShowOnLeaderboard = data.showOnLeaderboard;
 				}
 			})
 			.catch(() => {});
 	}
 
-	function showReactionToasts(reactions: UnreadReaction[]): void {
-		for (const reaction of reactions) {
-			const isFlame = reaction.emoji === '\u{1F525}';
-			const msg = isFlame
-				? `${reaction.fromName}: Watch out!`
-				: `${reaction.fromName}: Keep it up!`;
-			addToast(msg, '', {
-				icon: isFlame ? Flame : PartyPopper,
-				iconColor: isFlame ? 'text-orange-500' : 'text-teal-500'
+	function handleGlobalLeaderboardToggle(): void {
+		const newValue = !globalShowOnLeaderboard;
+		globalShowOnLeaderboard = newValue;
+		fetch('/api/leaderboard/global/toggle', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ visible: newValue })
+		})
+			.then((res) => {
+				if (!res.ok) globalShowOnLeaderboard = !newValue;
+			})
+			.catch(() => {
+				globalShowOnLeaderboard = !newValue;
 			});
-		}
-	}
-
-	function handleLeaderboardReactionSent(toUserId: string): void {
-		leaderboardSentToday = [...leaderboardSentToday, toUserId];
 	}
 
 	function updateLeaderboardAfterAnswer(correct: boolean): void {
-		if (!user || leaderboardData.length === 0) return;
+		if (!user) return; // Anon users update via sessionCorrect/sessionWrong which feeds mergedGlobalLeaderboard
 
-		const myEntry = leaderboardData.find((e) => e.userId === user!.id);
-		if (!myEntry) return;
+		if (globalLeaderboardData.length > 0) {
+			const myGlobalEntry = globalLeaderboardData.find((e) => e.userId === user!.id);
+			if (myGlobalEntry) {
+				const pointsGained = correct ? 5 : 1;
+				const newScore = myGlobalEntry.score + pointsGained;
+				globalLeaderboardPointsDelta += pointsGained;
 
-		const pointsGained = correct ? 5 : 1;
-		const newScore = myEntry.score + pointsGained;
-		leaderboardPointsDelta += pointsGained;
-
-		// Check if we passed the person directly above
-		const personAbove = leaderboardData
-			.filter((e) => e.rank < myEntry.rank)
-			.sort((a, b) => b.rank - a.rank)[0];
-
-		const passed = personAbove && newScore > personAbove.score;
-
-		// Update my entry in-place with a new array reference
-		leaderboardData = leaderboardData.map((e) => {
-			if (e.userId !== user!.id) {
-				if (passed && e.userId === personAbove.userId) {
-					return { ...e, rank: e.rank + 1 };
-				}
-				return e;
-			}
-			return {
-				...e,
-				score: newScore,
-				questionsAnswered: e.questionsAnswered + 1,
-				correctAnswers: e.correctAnswers + (correct ? 1 : 0),
-				rank: passed ? myEntry.rank - 1 : myEntry.rank
-			};
-		});
-
-		if (passed) {
-			const newRank = myEntry.rank - 1;
-			if (newRank === 1) {
-				addToast(`You're #1 this week!`, '', {
-					icon: Trophy,
-					iconColor: 'text-amber-500'
+				globalLeaderboardData = globalLeaderboardData.map((e) => {
+					if (e.userId !== user!.id) return e;
+					return {
+						...e,
+						score: newScore,
+						questionsAnswered: e.questionsAnswered + 1,
+						correctAnswers: e.correctAnswers + (correct ? 1 : 0)
+					};
 				});
-				showLeaderboardConfetti = true;
-				setTimeout(() => {
-					showLeaderboardConfetti = false;
-				}, 4000);
-			} else {
-				addToast(`You passed ${personAbove.firstName} — now #${newRank}!`, '', {
-					icon: Trophy,
-					iconColor: 'text-amber-500'
-				});
-			}
-			// Re-fetch after a delay so the sync has time to reach the server
-			if (leaderboardClassId) {
-				const classId = leaderboardClassId;
-				setTimeout(() => fetchLeaderboardData(classId), 5000);
 			}
 		}
 	}
-
-	let showLeaderboard = $derived(
-		user !== null && leaderboardData.length > 1 && leaderboardClassId !== null
-	);
 
 	// Session stats
 	let sessionCorrect = $state(0);
 	let sessionWrong = $state(0);
 	let sessionCaseMisses: Record<string, number> = $state({});
+
+	// For anonymous users, create a client-side leaderboard entry from session stats
+	const ANON_USER_ID = '__anon__';
+	let mergedGlobalLeaderboard = $derived.by(() => {
+		if (user) return globalLeaderboardData;
+		const anonScore = sessionCorrect * 5 + sessionWrong;
+		// Figure out anon rank: count how many real users have a higher score
+		// The API returns windowed data, but globalLeaderboardTotal is the full count
+		let anonRank = globalLeaderboardTotal + 1; // default: last
+		if (anonScore > 0) {
+			// Find lowest-ranked visible entry with score <= anonScore
+			// If we beat some visible entries, our rank is just above them
+			// Otherwise we're somewhere in the hidden middle — approximate
+			const beaten = globalLeaderboardData.filter((e) => e.score < anonScore);
+			if (beaten.length > 0) {
+				const bestBeaten = beaten.reduce((a, b) => (a.rank < b.rank ? a : b));
+				anonRank = bestBeaten.rank;
+			} else if (globalLeaderboardData.length > 0) {
+				const worstVisible = globalLeaderboardData.reduce((a, b) => (a.rank > b.rank ? a : b));
+				if (anonScore === worstVisible.score) {
+					anonRank = worstVisible.rank; // tied
+				} else {
+					anonRank = worstVisible.rank + 1;
+				}
+			}
+		}
+		const anonEntry: LeaderboardEntry = {
+			rank: anonRank,
+			userId: ANON_USER_ID,
+			displayName: 'You',
+			firstName: 'You',
+			score: anonScore,
+			questionsAnswered: sessionCorrect + sessionWrong,
+			correctAnswers: sessionCorrect
+		};
+		const merged = [...globalLeaderboardData, anonEntry];
+		merged.sort((a, b) => a.rank - b.rank || b.score - a.score);
+		return merged;
+	});
+
+	let showGlobalLeaderboard = $derived(
+		mergedGlobalLeaderboard.length > 0 || (user !== null && !globalShowOnLeaderboard)
+	);
 
 	// Streak tracking
 	let streak = $state(0);
@@ -1799,16 +1777,17 @@
 			}
 		}
 
+		// Global leaderboard for all users (including anonymous)
+		fetchGlobalLeaderboard();
+		leaderboardRefreshTimer = setInterval(() => {
+			fetchGlobalLeaderboard();
+		}, 300_000);
+
 		// Load today's session stats and student assignments if logged in
 		if (user) {
+			syncStashedAnonSession();
 			loadTodaySession();
-			loadStudentAssignments(); // This also triggers loadLeaderboard() on completion
-			// Refresh leaderboard every 5 minutes
-			leaderboardRefreshTimer = setInterval(() => {
-				if (leaderboardClassId) {
-					fetchLeaderboardData(leaderboardClassId);
-				}
-			}, 300_000);
+			loadStudentAssignments();
 		}
 
 		// Generate first question using hydrated progress.
@@ -3845,21 +3824,22 @@
 			</div>
 		{/if}
 
-		{#if showLeaderboardConfetti}
-			<Confetti />
-		{/if}
-
-		<!-- Leaderboard banner -->
-		{#if showLeaderboard && leaderboardClassId}
+		<!-- Global leaderboard banner -->
+		{#if showGlobalLeaderboard}
 			<div class="mb-3">
 				<LeaderboardBanner
-					leaderboard={leaderboardData}
-					totalStudents={leaderboardTotalStudents}
-					pointsDelta={leaderboardPointsDelta}
-					currentUserId={user?.id ?? ''}
-					classId={leaderboardClassId}
-					sentToday={leaderboardSentToday}
-					onReactionSent={handleLeaderboardReactionSent}
+					mode="global"
+					leaderboard={mergedGlobalLeaderboard}
+					totalStudents={globalLeaderboardTotal}
+					pointsDelta={globalLeaderboardPointsDelta}
+					currentUserId={user?.id ?? ANON_USER_ID}
+					showOnLeaderboard={globalShowOnLeaderboard}
+					onToggleVisibility={handleGlobalLeaderboardToggle}
+					isAnonymous={user === null}
+					onSignUp={() => {
+						stashAnonSession();
+						authModalOpen = true;
+					}}
 				/>
 			</div>
 		{/if}
