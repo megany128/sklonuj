@@ -1,0 +1,18 @@
+name: Weekly Practice Summaries
+
+on:
+  schedule:
+    # Run every hour — matches per-user day + hour preferences
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  weekly-summary:
+    name: Send weekly practice summaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger weekly summary endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.PRODUCTION_URL }}/api/cron/weekly-summary" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"

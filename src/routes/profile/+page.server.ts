@@ -8,6 +8,9 @@ import type { Actions, PageServerLoad } from './$types';
 interface ProfileData {
 	display_name: string | null;
 	created_at: string;
+	email_reminders: boolean;
+	reminder_day: number;
+	reminder_hour_utc: number;
 }
 
 interface ScoreEntry {
@@ -36,7 +39,10 @@ function isProfileData(v: unknown): v is ProfileData {
 	if (!isRecord(v)) return false;
 	return (
 		(typeof v.display_name === 'string' || v.display_name === null) &&
-		typeof v.created_at === 'string'
+		typeof v.created_at === 'string' &&
+		typeof v.email_reminders === 'boolean' &&
+		typeof v.reminder_day === 'number' &&
+		typeof v.reminder_hour_utc === 'number'
 	);
 }
 
@@ -74,7 +80,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const sixMonthsAgoStr = new Date(sixMonthsAgo).toISOString().slice(0, 10);
 
 	const [profileResult, progressResult, sessionsResult] = await Promise.all([
-		supabase.from('profiles').select('display_name, created_at').eq('id', user.id).maybeSingle(),
+		supabase
+			.from('profiles')
+			.select('display_name, created_at, email_reminders, reminder_day, reminder_hour_utc')
+			.eq('id', user.id)
+			.maybeSingle(),
 		supabase
 			.from('user_progress')
 			.select('level, case_scores, paradigm_scores')
@@ -171,6 +181,38 @@ export const actions: Actions = {
 			.eq('user_id', user.id);
 
 		if (sessionsError) return fail(500, { message: 'Failed to delete practice sessions' });
+
+		return { success: true };
+	},
+
+	updateEmailPreferences: async ({ request, locals }) => {
+		const user = locals.user;
+		if (!user) return fail(401, { message: 'Not authenticated' });
+
+		const formData = await request.formData();
+		const emailReminders = formData.get('email_reminders') === 'true';
+		const reminderDayRaw = Number(formData.get('reminder_day'));
+		const reminderHourUtcRaw = Number(formData.get('reminder_hour_utc'));
+
+		const reminderDay =
+			Number.isInteger(reminderDayRaw) && reminderDayRaw >= 0 && reminderDayRaw <= 6
+				? reminderDayRaw
+				: 1;
+		const reminderHourUtc =
+			Number.isInteger(reminderHourUtcRaw) && reminderHourUtcRaw >= 0 && reminderHourUtcRaw <= 23
+				? reminderHourUtcRaw
+				: 14;
+
+		const { error } = await locals.supabase
+			.from('profiles')
+			.update({
+				email_reminders: emailReminders,
+				reminder_day: reminderDay,
+				reminder_hour_utc: reminderHourUtc
+			})
+			.eq('id', user.id);
+
+		if (error) return fail(500, { message: 'Failed to update email preferences' });
 
 		return { success: true };
 	},

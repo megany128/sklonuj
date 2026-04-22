@@ -33,6 +33,9 @@
 	interface ProfileData {
 		display_name: string | null;
 		created_at: string;
+		email_reminders: boolean;
+		reminder_day: number;
+		reminder_hour_utc: number;
 	}
 
 	interface ProgressData {
@@ -62,7 +65,10 @@
 		if (!isRecord(v)) return false;
 		return (
 			(typeof v.display_name === 'string' || v.display_name === null) &&
-			typeof v.created_at === 'string'
+			typeof v.created_at === 'string' &&
+			typeof v.email_reminders === 'boolean' &&
+			typeof v.reminder_day === 'number' &&
+			typeof v.reminder_hour_utc === 'number'
 		);
 	}
 
@@ -279,7 +285,45 @@
 	let confirmingDelete = $state(false);
 	let deletingAccount = $state(false);
 
+	// Email preferences
+	let emailReminders = $state(false);
+	let reminderDay = $state(1);
+	let reminderHourUtc = $state(14);
+	let savingEmailPrefs = $state(false);
+	let emailPrefsMessage = $state<string | null>(null);
+
 	let displayName = $derived(serverProfile?.display_name ?? '');
+
+	const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+	// Convert local day+hour to UTC day+hour using timezone offset
+	function localToUtc(lDay: number, lHour: number): { day: number; hour: number } {
+		const offsetMinutes = new Date().getTimezoneOffset();
+		const totalMinutes = lHour * 60 + offsetMinutes;
+		const utcHour = ((totalMinutes / 60) | 0) % 24;
+		const dayShift = totalMinutes < 0 ? -1 : totalMinutes >= 24 * 60 ? 1 : 0;
+		return {
+			day: (((lDay + dayShift) % 7) + 7) % 7,
+			hour: ((utcHour % 24) + 24) % 24
+		};
+	}
+
+	// Convert UTC day+hour to local day+hour using timezone offset
+	function utcToLocal(uDay: number, uHour: number): { day: number; hour: number } {
+		const offsetMinutes = new Date().getTimezoneOffset();
+		const totalMinutes = uHour * 60 - offsetMinutes;
+		const localHourRaw = ((totalMinutes / 60) | 0) % 24;
+		const dayShift = totalMinutes < 0 ? -1 : totalMinutes >= 24 * 60 ? 1 : 0;
+		return {
+			day: (((uDay + dayShift) % 7) + 7) % 7,
+			hour: ((localHourRaw % 24) + 24) % 24
+		};
+	}
+
+	// Derived local values from UTC stored values
+	let localPrefs = $derived(utcToLocal(reminderDay, reminderHourUtc));
+	let localDay = $derived(localPrefs.day);
+	let localHour = $derived(localPrefs.hour);
 
 	function openNameModal() {
 		nameInput = displayName;
@@ -731,6 +775,14 @@
 			const supabase = user ? getSupabaseBrowserClient() : undefined;
 			recomputeProgressBasedBadges(supabase);
 			badges = getAllBadges();
+		}
+	});
+
+	$effect(() => {
+		if (serverProfile) {
+			emailReminders = serverProfile.email_reminders;
+			reminderDay = serverProfile.reminder_day;
+			reminderHourUtc = serverProfile.reminder_hour_utc;
 		}
 	});
 
@@ -2173,6 +2225,117 @@
 						</div>
 					</section>
 				</div>
+			{/if}
+
+			<!-- Email preferences (signed-in users only) -->
+			{#if user}
+				<section class="mb-8">
+					<h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-darker-subtitle">
+						Email preferences
+					</h2>
+					<div class="rounded-xl border border-card-stroke bg-card-bg p-4">
+						<form
+							method="POST"
+							action="?/updateEmailPreferences"
+							use:enhance={() => {
+								savingEmailPrefs = true;
+								emailPrefsMessage = null;
+								return async ({ result }) => {
+									savingEmailPrefs = false;
+									if (result.type === 'success') {
+										emailPrefsMessage = 'Preferences saved!';
+										await invalidateAll();
+									} else {
+										emailPrefsMessage = 'Failed to save preferences.';
+									}
+								};
+							}}
+						>
+							<div class="flex items-center justify-between gap-4">
+								<div>
+									<p class="text-sm font-medium text-text-default">Weekly practice reminder</p>
+									<p class="text-xs text-text-subtitle">
+										Get a weekly email with your stats and a nudge to practice.
+									</p>
+								</div>
+								<button
+									type="button"
+									role="switch"
+									aria-checked={emailReminders}
+									aria-label="Toggle weekly practice reminder"
+									onclick={() => (emailReminders = !emailReminders)}
+									class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emphasis focus:ring-offset-2 {emailReminders
+										? 'bg-emphasis'
+										: 'bg-gray-300 dark:bg-gray-600'}"
+								>
+									<span
+										class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {emailReminders
+											? 'translate-x-5'
+											: 'translate-x-0'}"
+									></span>
+								</button>
+							</div>
+
+							{#if emailReminders}
+								<div class="mt-4 flex flex-wrap items-center gap-3">
+									<label class="flex items-center gap-2 text-sm text-text-default">
+										<span class="text-text-subtitle">Day:</span>
+										<select
+											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default focus:border-emphasis focus:outline-none"
+											value={localDay}
+											onchange={(e) => {
+												const newLocalDay = Number(e.currentTarget.value);
+												const utc = localToUtc(newLocalDay, localHour);
+												reminderDay = utc.day;
+												reminderHourUtc = utc.hour;
+											}}
+										>
+											{#each DAY_NAMES as dayName, i (i)}
+												<option value={i}>{dayName}</option>
+											{/each}
+										</select>
+									</label>
+									<label class="flex items-center gap-2 text-sm text-text-default">
+										<span class="text-text-subtitle">Time:</span>
+										<select
+											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default focus:border-emphasis focus:outline-none"
+											value={localHour}
+											onchange={(e) => {
+												const newLocalHour = Number(e.currentTarget.value);
+												const utc = localToUtc(localDay, newLocalHour);
+												reminderDay = utc.day;
+												reminderHourUtc = utc.hour;
+											}}
+										>
+											{#each Array.from({ length: 24 }, (_, i) => i) as hour (hour)}
+												<option value={hour}>
+													{hour.toString().padStart(2, '0')}:00
+												</option>
+											{/each}
+										</select>
+									</label>
+								</div>
+							{/if}
+
+							<input type="hidden" name="email_reminders" value={emailReminders.toString()} />
+							<input type="hidden" name="reminder_day" value={reminderDay.toString()} />
+							<input type="hidden" name="reminder_hour_utc" value={reminderHourUtc.toString()} />
+
+							<div class="mt-4 flex items-center gap-3">
+								<button
+									type="submit"
+									disabled={savingEmailPrefs}
+									class="rounded-lg bg-emphasis px-4 py-1.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+								>
+									{savingEmailPrefs ? 'Saving...' : 'Save'}
+								</button>
+								{#if emailPrefsMessage}
+									<p class="text-xs text-text-subtitle">{emailPrefsMessage}</p>
+								{/if}
+							</div>
+						</form>
+					</div>
+				</section>
 			{/if}
 
 			<!-- 6. Danger zone (signed-in users only) -->

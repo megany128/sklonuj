@@ -19,6 +19,7 @@
 	let error = $state('');
 	let confirmationSent = $state(false);
 	let resetEmailSent = $state(false);
+	let emailReminders = $state(true);
 
 	const supabase = getSupabaseBrowserClient();
 
@@ -91,13 +92,20 @@
 			});
 			if (err) {
 				error = err.message;
-			} else if (data.session) {
-				posthog.capture('signed_up', { method: 'email' });
-				// eslint-disable-next-line svelte/no-navigation-without-resolve -- getRedirectUrl validates the path or uses resolve('/')
-				goto(getRedirectUrl());
 			} else {
-				posthog.capture('signed_up', { method: 'email' });
-				confirmationSent = true;
+				// The DB default for email_reminders is true, so we only need to
+				// update the profile if the user explicitly opted out.
+				if (!emailReminders && data.user) {
+					await supabase.from('profiles').update({ email_reminders: false }).eq('id', data.user.id);
+				}
+				if (data.session) {
+					posthog.capture('signed_up', { method: 'email' });
+					// eslint-disable-next-line svelte/no-navigation-without-resolve -- getRedirectUrl validates the path or uses resolve('/')
+					goto(getRedirectUrl());
+				} else {
+					posthog.capture('signed_up', { method: 'email' });
+					confirmationSent = true;
+				}
 			}
 		} else {
 			const { error: err } = await supabase.auth.signInWithPassword({ email, password });
@@ -453,6 +461,17 @@
 						oninput={clearError}
 						class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
 					/>
+
+					{#if mode === 'signup'}
+						<label class="flex items-center gap-2 text-sm text-text-subtitle">
+							<input
+								type="checkbox"
+								bind:checked={emailReminders}
+								class="size-4 rounded border-card-stroke text-emphasis accent-emphasis focus:ring-emphasis"
+							/>
+							Send me weekly practice reminders
+						</label>
+					{/if}
 
 					{#if mode === 'login'}
 						<div class="flex justify-end">

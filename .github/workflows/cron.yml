@@ -1,4 +1,4 @@
-name: Scheduled Tasks
+name: Scheduled Tasks (6-hourly)
 
 on:
   schedule:
