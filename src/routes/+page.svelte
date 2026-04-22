@@ -1017,6 +1017,46 @@
 
 	// For anonymous users, create a client-side leaderboard entry from session stats
 	const ANON_USER_ID = '__anon__';
+	const ANON_ADJECTIVES = [
+		'Happy',
+		'Brave',
+		'Clever',
+		'Swift',
+		'Calm',
+		'Bold',
+		'Bright',
+		'Keen',
+		'Wise',
+		'Merry',
+		'Witty',
+		'Gentle',
+		'Lively',
+		'Plucky',
+		'Steady',
+		'Nimble'
+	];
+	const ANON_ANIMALS = [
+		'Otter',
+		'Fox',
+		'Bear',
+		'Owl',
+		'Hare',
+		'Wolf',
+		'Deer',
+		'Hawk',
+		'Lynx',
+		'Seal',
+		'Crane',
+		'Raven',
+		'Finch',
+		'Badger',
+		'Robin',
+		'Falcon'
+	];
+	const anonAlias = (() => {
+		const seed = Math.floor(Math.random() * 256);
+		return `${ANON_ADJECTIVES[seed % 16]} ${ANON_ANIMALS[Math.floor(seed / 16) % 16]}`;
+	})();
 	let mergedGlobalLeaderboard = $derived.by(() => {
 		if (user) return globalLeaderboardData;
 		const anonScore = sessionCorrect * 5 + sessionWrong;
@@ -1043,8 +1083,8 @@
 		const anonEntry: LeaderboardEntry = {
 			rank: anonRank,
 			userId: ANON_USER_ID,
-			displayName: 'You',
-			firstName: 'You',
+			displayName: anonAlias,
+			firstName: anonAlias,
 			score: anonScore,
 			questionsAnswered: sessionCorrect + sessionWrong,
 			correctAnswers: sessionCorrect
