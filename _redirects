@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects. Processed before SvelteKit routing.
+# Reclaims SEO equity from deleted routes.
+
+/settings  /profile  301

@@ -290,7 +290,7 @@
 		"translation": "long",
 		"difficulty": "A1",
 		"paradigmType": "hard",
-		"categories": ["size", "universal"],
+		"categories": ["size", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["dlouhý", "dlouhého", "dlouhému", "dlouhého", "dlouhý", "dlouhém", "dlouhým"],
@@ -316,7 +316,7 @@
 		"translation": "short",
 		"difficulty": "A1",
 		"paradigmType": "hard",
-		"categories": ["size", "universal"],
+		"categories": ["size", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["krátký", "krátkého", "krátkému", "krátkého", "krátký", "krátkém", "krátkým"],
@@ -368,7 +368,7 @@
 		"translation": "spring (seasonal)",
 		"difficulty": "A1",
 		"paradigmType": "soft",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["jarní", "jarního", "jarnímu", "jarního", "jarní", "jarním", "jarním"],
@@ -1718,7 +1718,7 @@
 		"translation": "historical",
 		"difficulty": "B2",
 		"paradigmType": "hard",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": [
@@ -1898,7 +1898,7 @@
 		"translation": "scientific",
 		"difficulty": "B2",
 		"paradigmType": "hard",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["vědecký", "vědeckého", "vědeckému", "vědeckého", "vědecký", "vědeckém", "vědeckým"],
@@ -2104,7 +2104,7 @@
 		"translation": "basic, fundamental, underlying",
 		"difficulty": "B2",
 		"paradigmType": "soft",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": [
@@ -2186,7 +2186,7 @@
 		"translation": "overall",
 		"difficulty": "B2",
 		"paradigmType": "hard",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["celkový", "celkového", "celkovému", "celkového", "celkový", "celkovém", "celkovým"],
@@ -2410,7 +2410,7 @@
 		"translation": "indispensable (impossible to be omitted, remitted, or spared)",
 		"difficulty": "B2",
 		"paradigmType": "hard",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": [

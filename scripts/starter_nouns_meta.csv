@@ -1,97 +1,97 @@
 lemma,translation,paradigm,difficulty,categories
 pes,dog,pán,A1,animals
-den,day,hrad,A1,time
+den,day,hrad,A1,"time,duration"
 dítě,child,kuře,A1,family
-chléb,bread,hrad,A1,food
+chléb,bread,hrad,A1,"food,sliceable"
 oko,eye,město,A1,body
 ucho,ear,město,A1,body
 člověk,person,pán,A1,"misc,people"
 muž,man,muž,A1,family
 chlapec,boy,pán,A1,family
-student,student,pán,A1,"misc,people"
+student,student,pán,A1,"misc,people,profession"
 přítel,friend,muž,A1,"misc,people"
 bratr,brother,pán,A1,family
 otec,father,pán,A1,family
 syn,son,pán,A1,family
 kocour,tomcat,pán,A1,animals
-dům,house,hrad,A1,places
+dům,house,hrad,A1,"places,v_place"
 stůl,table,hrad,A1,objects
 stromek,small tree,hrad,A2,nature
-sešit,notebook,hrad,A1,objects
+sešit,notebook,hrad,A1,"objects,readable"
 telefon,phone,hrad,A1,objects
 počítač,computer,stroj,A1,objects
-vlak,train,hrad,A1,transportation
-autobus,bus,hrad,A1,transportation
-most,bridge,hrad,A1,places
-park,park,hrad,A1,places
+vlak,train,hrad,A1,"transportation,vehicle"
+autobus,bus,hrad,A1,"transportation,vehicle"
+most,bridge,hrad,A1,"places,na_place"
+park,park,hrad,A1,"places,v_place"
 les,forest,hrad,A1,nature
-hrad,castle,hrad,A1,places
-hotel,hotel,hrad,A1,places
-obchod,shop,hrad,A1,places
+hrad,castle,hrad,A1,"places,v_place"
+hotel,hotel,hrad,A1,"places,v_place"
+obchod,shop,hrad,A1,"places,v_place"
 žena,woman,žena,A1,family
 matka,mother,žena,A1,family
 dcera,daughter,žena,A1,family
 sestra,sister,žena,A1,family
 přítelkyně,girlfriend,růže,A1,family
-kniha,book,žena,A1,objects
-škola,school,žena,A1,places
-ulice,street,růže,A1,places
-vesnice,village,růže,A1,places
-kavárna,cafe,žena,A1,places
-restaurace,restaurant,růže,A1,places
-místnost,room,kost,A1,places
+kniha,book,žena,A1,"objects,readable"
+škola,school,žena,A1,"places,v_place"
+ulice,street,růže,A1,"places,v_place"
+vesnice,village,růže,A1,"places,v_place"
+kavárna,cafe,žena,A1,"places,v_place"
+restaurace,restaurant,růže,A1,"places,v_place"
+místnost,room,kost,A1,"places,v_place"
 kočka,cat,žena,A1,animals
 růže,rose,růže,A1,nature
 věc,thing,kost,A1,misc
 práce,work,růže,A1,misc
 radost,joy,kost,A1,"misc,abstract"
 noc,night,kost,A1,time
-věž,tower,růže,A1,places
-tramvaj,tram,růže,A1,transportation
-město,city,město,A1,places
+věž,tower,růže,A1,"places,na_place"
+tramvaj,tram,růže,A1,"transportation,vehicle"
+město,city,město,A1,"places,v_place"
 moře,sea,moře,A1,nature
 okno,window,město,A1,objects
 kuře,chicken,kuře,A1,animals
 děvče,girl,kuře,A1,family
-kino,cinema,město,A1,places
-nádraží,station,stavení,A1,places
-náměstí,square,stavení,A1,places
-auto,car,město,A1,transportation
+kino,cinema,město,A1,"places,v_place"
+nádraží,station,stavení,A1,"places,na_place"
+náměstí,square,stavení,A1,"places,na_place"
+auto,car,město,A1,"transportation,vehicle"
 pivo,beer,město,A1,food
 víno,wine,město,A1,food
 jídlo,food,město,A1,food
-maso,meat,město,A1,food
-jablko,apple,město,A1,food
+maso,meat,město,A1,"food,weighable,sliceable"
+jablko,apple,město,A1,"food,sliceable"
 slovo,word,město,A1,misc
-gymnázium,high school,město,A2,places
-muzeum,museum,město,A1,places
+gymnázium,high school,město,A2,"places,v_place"
+muzeum,museum,město,A1,"places,v_place"
 pero,pen,město,A1,objects
 tužka,pencil,žena,A1,objects
-papír,paper,hrad,A1,objects
-zápisník,notepad,hrad,A2,objects
+papír,paper,hrad,A1,"objects,readable"
+zápisník,notepad,hrad,A2,"objects,readable"
 taška,bag,žena,A1,objects
 kabelka,handbag,žena,A2,objects
-bota,shoe,žena,A1,objects
-košile,shirt,růže,A1,objects
+bota,shoe,žena,A1,"objects,clothing"
+košile,shirt,růže,A1,"objects,clothing"
 hlava,head,žena,A1,body
 ruka,hand,žena,A1,body
 noha,leg,žena,A1,body
 nos,nose,hrad,A1,body
 srdce,heart,moře,A1,body
 mléko,milk,město,A1,food
-sýr,cheese,hrad,A1,food
-máslo,butter,město,A1,food
+sýr,cheese,hrad,A1,"food,weighable,sliceable"
+máslo,butter,město,A1,"food,weighable"
 ryba,fish,žena,A1,food
 vejce,egg,moře,A1,food
 káva,coffee,žena,A1,food
 čaj,tea,stroj,A1,food
 voda,water,žena,A1,food
-týden,week,hrad,A1,time
-měsíc,month,hrad,A1,time
-rok,year,hrad,A1,time
-hodina,hour,žena,A1,time
-minuta,minute,žena,A1,time
-rodina,family,žena,A1,family
+týden,week,hrad,A1,"time,duration"
+měsíc,month,hrad,A1,"time,duration"
+rok,year,hrad,A1,"time,duration"
+hodina,hour,žena,A1,"time,duration"
+minuta,minute,žena,A1,"time,duration"
+rodina,family,žena,A1,"misc,people"
 babička,grandmother,žena,A1,family
 dědeček,grandfather,pán,A1,family
 strýc,uncle,pán,A1,family
@@ -101,7 +101,7 @@ manželka,wife,žena,A1,family
 strom,tree,hrad,A1,nature
 květ,blossom,hrad,A1,nature
 tráva,grass,žena,A1,nature
-hora,mountain,žena,A1,"nature,places"
+hora,mountain,žena,A1,"nature,places,na_place"
 řeka,river,žena,A1,nature
 jezero,lake,město,A1,nature
 slunce,sun,moře,A1,nature
@@ -118,25 +118,25 @@ odpověď,answer,kost,A1,misc
 pravda,truth,žena,A1,"misc,abstract"
 svoboda,freedom,žena,A2,"misc,abstract"
 doba,time,,A1,time
-místo,place,,A1,places
+místo,place,,A1,"places,v_place"
 strana,side,,A1,misc
-země,country,,A1,places
+země,country,,A1,"places,v_place"
 případ,case,,A2,misc
-svět,world,,A1,places
+svět,world,,A1,"places,v_place"
 cesta,way,,A1,misc
 část,part,,A1,"misc,abstract"
 konec,end,,A1,time
-chvíle,while,,A1,misc
+chvíle,while,,A1,"misc,duration,time"
 způsob,way,,A2,misc
 společnost,company,,B1,misc
 řada,turn,,A1,misc
 koruna,crown,,A1,misc
 možnost,possibility,,A1,misc
-stát,state,,A2,places
+stát,state,,A2,"places,v_place"
 skupina,group,,A1,misc
 cena,price,,A1,misc
 systém,system,,A2,misc
-oblast,area,,B1,places
+oblast,area,,B1,"places,v_place"
 situace,situation,,A2,misc
 většina,majority,,B1,misc
 firma,firm,,A2,misc
@@ -154,7 +154,7 @@ stav,condition,,A2,misc
 základ,foundation,,A2,misc
 podmínka,condition,,A2,misc
 služba,service,,A1,misc
-zákon,law,,A2,misc
+zákon,law,,A2,"misc,readable"
 počet,number,,A1,misc
 tvář,face,růže,A1,body
 právo,right,,A2,misc
@@ -170,9 +170,9 @@ cíl,goal,stroj,A2,misc
 tělo,body,,A1,body
 smysl,sense,,B1,"misc,abstract"
 rozdíl,difference,,A1,misc
-program,programme,,A1,misc
+program,programme,,A1,"misc,readable"
 člen,member,pán,A1,"misc,people"
-prostor,space,,A2,places
+prostor,space,,A2,"places,v_place"
 forma,form,,A2,misc
 činnost,activity,,A2,misc
 hodnota,value,,A2,"misc,abstract"
@@ -181,16 +181,16 @@ republika,republic,,A2,misc
 názor,opinion,,A1,"misc,abstract"
 prostředí,environment,,A2,misc
 léto,summer,,A1,"time,nature"
-zpráva,news,,A1,misc
+zpráva,news,,A1,"misc,readable"
 osoba,person,,A1,"misc,people"
 století,century,,A2,time
-válka,war,,A2,misc
+válka,war,,A2,"misc,event"
 období,period,,A1,time
 hra,game,,A1,misc
 procento,per cent,,A2,misc
 číslo,number,,A1,misc
-trh,market,,A2,places
-úřad,authority,,A1,"misc,people"
+trh,market,,A2,"places,na_place"
+úřad,authority,,A1,"places,na_place"
 vývoj,development,,A1,misc
 proces,process,,A2,misc
 prostředek,means,,A2,misc
@@ -203,10 +203,10 @@ pomoc,help,,A1,misc
 krok,footstep,,A2,misc
 světlo,light,,A2,misc
 funkce,function,,A2,misc
-ředitel,director,,A1,"misc,people"
+ředitel,director,,A1,"misc,people,profession"
 zkušenost,experience,,A1,"misc,abstract"
 představa,idea,,A1,"misc,abstract"
-pokoj,room,,A1,places
+pokoj,room,,A1,"places,v_place"
 kluk,boy,,A1,"family,people"
 potřeba,need,,A1,misc
 rámec,framework,,A2,misc
@@ -216,16 +216,16 @@ součást,part,,A2,"misc,abstract"
 řešení,solution,,A2,misc
 postup,procedure,,A2,misc
 film,film,,A1,misc
-hranice,border,,A1,places
+hranice,border,,A1,"places,v_place"
 dílo,work,,A2,misc
 kolo,round,,A2,misc
 rada,advice,,A1,misc
 množství,amount,,A2,misc
 podoba,form,,A2,misc
-byt,flat,,A1,places
+byt,flat,,A1,"places,v_place"
 stránka,side,,A2,misc
-centrum,centre,,A1,places
-okamžik,moment,,A1,time
+centrum,centre,,A1,"places,v_place"
+okamžik,moment,,A1,"time,duration"
 metr,metre,,A1,misc
 holka,girl,,A1,"family,people"
 bůh,God,,A1,misc
@@ -252,7 +252,7 @@ kus,piece,,A1,misc
 barva,colour,,A1,misc
 příklad,example,,A1,misc
 jednání,negotiation,,A2,misc
-smlouva,contract,,A2,misc
+smlouva,contract,,A2,"misc,readable"
 plán,plan,,A1,misc
 pohyb,movement,,A2,misc
 večer,evening,,A1,time
@@ -266,7 +266,7 @@ jazyk,language,,A1,misc
 přístup,approach,,A2,misc
 návrh,proposal,,A2,misc
 náklad,expense,,A2,misc
-výkon,performance,,A2,"misc,people"
+výkon,performance,,A2,abstract
 vlas,hair,,A1,body
 strach,fear,,A1,"misc,abstract"
 závěr,conclusion,,A2,misc
@@ -279,14 +279,14 @@ let,flight,,A1,transportation
 zařízení,facility,,A1,misc
 schopnost,ability,,A2,"misc,abstract"
 stovka,hundred,,A1,misc
-kraj,region,,A1,places
+kraj,region,,A1,"places,v_place"
 název,title,,A1,misc
 máma,mum,,A1,family
 šéf,boss,,A1,"misc,people"
 pozornost,attention,,A1,"misc,abstract"
 odpověď,answer,,A1,misc
 zima,winter,,A1,"time,nature"
-prezident,president,,A2,"misc,people"
+prezident,president,,A2,"misc,people,profession"
 politika,politics,,A2,misc
 sobota,Saturday,,A1,time
 souvislost,connection,,A2,misc
@@ -296,9 +296,9 @@ příležitost,opportunity,,A2,misc
 předmět,subject,,A1,misc
 řeč,speech,,A1,misc
 boj,fight,,A2,"misc,event"
-požadavek,demand,,A2,"misc,people"
+požadavek,demand,,A2,abstract
 výroba,production,,A2,misc
-ministr,minister,,A2,"misc,people"
+ministr,minister,,A2,"misc,people,profession"
 hledisko,position,,A2,misc
 téma,theme,,A1,misc
 stavba,construction,,A2,misc
@@ -309,50 +309,50 @@ snaha,effort,,A1,"misc,abstract"
 prst,finger,,A1,body
 pátek,Friday,,A1,time
 třída,class,,A1,misc
-pole,field,,A2,"nature,places"
+pole,field,,A2,"nature,places,na_place"
 kvalita,quality,,A1,"misc,abstract"
 pořádek,order,,A1,misc
 ministerstvo,ministry,,A2,misc
 událost,event,,A2,misc
-divadlo,theatre,,A1,places
-vůz,vehicle,,A1,transportation
+divadlo,theatre,,A1,"places,v_place"
+vůz,vehicle,,A1,"transportation,vehicle"
 návštěva,visit,,A2,misc
 okolí,surroundings,,A2,misc
 síť,network,růže,A2,misc
-budova,building,,A1,places
+budova,building,,A1,"places,v_place"
 klid,calm,,A1,misc
 list,leaf,,A1,nature
 historie,history,,A2,"misc,abstract"
 chyba,mistake,,A1,misc
-lékař,doctor,,A2,"misc,people"
+lékař,doctor,,A2,"misc,people,profession"
 ochrana,protection,,A2,misc
-nemocnice,hospital,,A1,places
+nemocnice,hospital,,A1,"places,v_place"
 soutěž,contest,růže,A2,misc
 šance,chance,,A1,misc
 čelo,forehead,,A1,body
 pokus,attempt,,A1,misc
 zástupce,deputy,,A1,"misc,people"
-tým,team,,A1,"misc,people"
+tým,team,,A1,misc
 stupeň,level,,A2,misc
 metoda,method,,A2,misc
 příprava,preparation,,A1,misc
 majitel,owner,,A1,"misc,people"
-pravidlo,rule,,A1,"misc,abstract"
+pravidlo,rule,,A1,"misc,abstract,readable"
 krev,blood,růže,A1,body
 desítka,ten,,A1,misc
 postel,bed,růže,A1,objects
 nabídka,offer,,A1,misc
 září,September,,A1,time
-zahrada,garden,,A1,"nature,places"
+zahrada,garden,,A1,"nature,places,na_place"
 ztráta,loss,,A1,misc
 umění,art,,A2,"misc,abstract"
 záležitost,concern,,A2,misc
 rozvoj,development,,A2,misc
 kontrola,control,,A1,misc
 předseda,chairman,,A2,"misc,people"
-text,text,,A1,misc
-chvilka,a (little) while,,A1,misc
-obec,village,růže,A1,places
+text,text,,A1,"misc,readable"
+chvilka,a (little) while,,A1,"misc,time,duration"
+obec,village,růže,A1,"places,v_place"
 dívka,girl,,A1,"family,people"
 obličej,face,,A1,body
 studium,studies,,A1,misc
@@ -364,24 +364,24 @@ technika,technology,,A2,misc
 rozhovor,conversation,,A1,misc
 veřejnost,public,,A1,misc
 příčina,cause,,A2,"misc,abstract"
-dopis,letter,,A1,objects
+dopis,letter,,A1,"objects,readable"
 postava,figure,,A2,misc
 praxe,practice,,A1,misc
-zaměstnanec,employee,,A1,"misc,people"
+zaměstnanec,employee,,A1,"misc,people,profession"
 vstup,entrance,,A1,misc
 kultura,culture,,A2,"misc,abstract"
 dojem,impression,,A1,misc
 aktivita,activity,,A1,misc
 spolupráce,cooperation,,A1,misc
 hudba,music,,A1,misc
-banka,bank,,A2,places
+banka,bank,,A2,"places,v_place"
 provoz,operation,,A2,misc
 odborník,expert,,A1,"misc,people"
 tlak,pressure,,A1,misc
-stěna,wall,,A1,places
-pracovník,worker,,A1,"misc,people"
-zeď,wall,,A2,places
-silnice,road,,A1,places
+stěna,wall,,A1,objects
+pracovník,worker,,A1,"misc,people,profession"
+zeď,wall,,A2,objects
+silnice,road,,A1,"places,v_place"
 obsah,content,,A2,misc
 kamarád,friend,,A1,"misc,people"
 naděje,hope,,A1,"misc,abstract"
@@ -391,7 +391,7 @@ chování,behaviour,,A2,misc
 struktura,structure,,A2,misc
 maminka,mum,,A1,family
 vznik,origin,,A2,misc
-článek,article,,A1,"misc,abstract"
+článek,article,,A1,"misc,abstract,readable"
 pondělí,Monday,,A1,time
 povinnost,duty,,A2,"misc,abstract"
 energie,energy,,A2,misc
@@ -399,18 +399,18 @@ starost,worry,,A1,misc
 sen,dream,,A1,"misc,abstract"
 výše,height,,A1,misc
 úvaha,consideration,,A1,"misc,abstract"
-území,area,,A1,places
+území,area,,A1,"places,na_place"
 výraz,expression,,A1,misc
 poměr,ratio,,A1,"misc,abstract"
-příběh,story,,A2,misc
-kancelář,office,růže,A1,places
+příběh,story,,A2,"misc,readable"
+kancelář,office,růže,A1,"places,v_place"
 výhoda,advantage,,A1,"misc,abstract"
 osud,fate,,A1,misc
 spojení,conjunction,,A2,misc
 kolega,colleague,,A1,"misc,people"
 prvek,element,,A2,misc
 princip,principle,,A2,misc
-doktor,doctor,,A1,"misc,people"
+doktor,doctor,,A1,"misc,people,profession"
 nedostatek,lack,,A2,misc
 útok,attack,,A2,misc
 výjimka,exception,,A2,misc
@@ -423,7 +423,7 @@ velikost,size,,A1,misc
 leden,January,,A1,time
 nástroj,tool,,A2,objects
 obor,profession,,A1,misc
-model,model,,A2,misc
+model,model,,A2,"misc,profession"
 styl,style,,A1,misc
 kámen,stone,,A1,nature
 jednotka,unit,,A1,misc
@@ -440,7 +440,7 @@ tvar,shape,,A1,misc
 příroda,nature,,A2,nature
 postavení,status,,A2,misc
 duše,soul,,A1,"misc,abstract"
-půda,land,,A1,places
+půda,land,,A1,"places,na_place"
 doprava,transport,,A1,transportation
 ráno,morning,,A1,time
 scéna,scene,,A1,misc
@@ -449,7 +449,7 @@ moc,power,,A1,"misc,abstract"
 kilometr,kilometre,,A1,misc
 proud,stream,,A1,misc
 výběr,selection,,A1,"misc,event"
-osobnost,personality,,A2,"misc,people"
+osobnost,personality,,A2,abstract
 správa,management,,A2,misc
 řád,order,,A2,misc
 zdraví,health,,A2,misc
@@ -458,14 +458,14 @@ dolar,dollar,,A2,misc
 zahraničí,foreign countries,,A2,misc
 úprava,adjustment,,A2,misc
 rychlost,speed,,A1,misc
-zápas,fight,,A1,"misc,event"
+zápas,fight,,A1,"misc,event,gathering"
 majetek,possession,,A1,misc
 červen,June,,A1,time
 reakce,response,,A2,misc
 květen,May,,A1,time
 zub,tooth,,A1,body
-stanice,station,,A1,places
-oběd,lunch,,A1,"food,meal"
+stanice,station,,A1,"places,na_place"
+oběd,lunch,,A1,"food,meal,mealtime"
 loď,ship,růže,A2,transportation
 vrstva,layer,,A2,misc
 orgán,organ,,A2,misc
@@ -474,20 +474,20 @@ jaro,spring,,A1,"time,nature"
 plocha,surface,,A1,misc
 potíž,trouble,růže,A1,misc
 stroj,machine,,A1,objects
-policista,policeman,,A2,"misc,people"
+policista,policeman,,A2,"misc,people,profession"
 čin,deed,,A1,misc
 kůže,skin,,A1,body
-časopis,magazine,,A2,misc
+časopis,magazine,,A2,"misc,readable"
 vítr,wind,,A1,nature
 datum,date,,A1,time
 divák,viewer,,A1,"misc,people"
 péče,aid,,A1,misc
-kuchyně,kitchen,,A1,places
+kuchyně,kitchen,,A1,"places,v_place"
 nebezpečí,danger,,A1,misc
 návrat,return,,A1,misc
 charakter,character,,A1,misc
 partner,partner,,A1,"misc,people"
-voják,soldier,,A2,"misc,people"
+voják,soldier,,A2,"misc,people,profession"
 kůň,horse,,A1,animals
 okolnost,circumstance,,A2,misc
 vlna,wave,,A2,misc
@@ -508,7 +508,7 @@ předpoklad,condition,,A2,misc
 vlastnost,quality,,A2,"misc,abstract"
 kontakt,contact,,A1,misc
 stopa,trace,,A1,misc
-domov,home,,A1,places
+domov,home,,A1,"places,v_place"
 termín,deadline,,A1,misc
 použití,use,,A2,misc
 internet,the Internet,,A1,misc
@@ -528,48 +528,48 @@ titul,title,,A1,misc
 tma,dark,,A2,misc
 riziko,risk,,A1,misc
 pojem,notion,,A2,misc
-střecha,roof,,A1,places
+střecha,roof,,A1,"places,na_place"
 hráč,player,,A1,"misc,people"
 operace,operation,,A2,misc
 vědomí,awareness,,A1,"misc,abstract"
-hospoda,pub,,A1,places
+hospoda,pub,,A1,"places,v_place"
 výška,height,,A1,misc
 přednost,advantage,,A1,"misc,abstract"
 mysl,mind,,A1,"misc,abstract"
 agentura,agency,,A2,misc
 generace,generation,,A2,"misc,abstract"
-roh,corner,,A1,places
+roh,corner,,A1,misc
 březen,March,,A1,time
 tradice,tradition,,A2,"misc,abstract"
-barák,house,,A2,places
+barák,house,,A2,"places,v_place"
 oddělení,section,,A2,misc
 výstava,exhibition,,A2,misc
 technologie,technology,,A2,misc
 nárok,right,,A2,"misc,abstract"
-bolest,pain,,A1,body
+bolest,pain,,A1,abstract
 komunikace,communication,,A2,misc
 okraj,edge,,A1,misc
 dohoda,agreement,,A2,misc
 vůle,will,,A2,misc
 armáda,army,,A2,misc
 příjem,reception,,A2,misc
-závod,race,,A2,"misc,event"
+závod,race,,A2,"misc,event,gathering"
 paměť,memory,,A2,"misc,abstract"
 výzkum,research,,A2,"misc,abstract"
 soubor,set,,A2,misc
 duben,April,,A1,time
 rozsah,extent,,A2,misc
-řidič,driver,,A1,"misc,people"
+řidič,driver,,A1,"misc,people,profession"
 kapsa,pocket,,A2,misc
 král,king,,A1,"misc,people"
-učitel,teacher,,A1,"misc,people"
+učitel,teacher,,A1,"misc,people,profession"
 adresa,address,,A1,misc
-setkání,meeting,,A2,"misc,event"
+setkání,meeting,,A2,"misc,event,gathering"
 využití,use,,A2,misc
-večeře,dinner,,A1,"food,meal"
+večeře,dinner,,A1,"food,meal,mealtime"
 stín,shadow,,A1,misc
 pád,drop,,A1,misc
-nemoc,illness,,A1,body
+nemoc,illness,,A1,abstract
 srpen,August,,A1,time
 jistota,confidence,,A1,misc
 kategorie,category,,A2,misc
@@ -582,7 +582,7 @@ koleno,knee,,A1,body
 povrch,surface,,A1,misc
 mistr,master,,A1,misc
 sezóna,season,,A1,time
-knížka,book,,A2,objects
+knížka,book,,A2,"objects,readable"
 spor,dispute,,A1,misc
 přítomnost,presence,,A2,misc
 délka,length,,A1,misc
@@ -601,16 +601,16 @@ kapitola,chapter,,A1,misc
 únor,February,,A1,time
 teorie,theory,,A2,misc
 seznam,list,,A1,misc
-kostel,church,,A1,places
-politik,politician,,B1,misc
+kostel,church,,A1,"places,v_place"
+politik,politician,,B1,"misc,profession"
 průměr,average,,A1,misc
 teplo,heat,,A1,misc
-chodba,corridor,,A1,places
+chodba,corridor,,A1,"places,na_place"
 úterý,Tuesday,,A1,time
 kruh,circle,,A1,misc
 následek,consequence,,A1,misc
 ročník,year,,A1,time
-dokument,document,,A1,misc
+dokument,document,,A1,"misc,readable"
 nebe,sky,,A1,nature
 vítězství,victory,,A1,misc
 prosinec,December,,A1,time
@@ -641,12 +641,12 @@ rozpočet,budget,,A2,misc
 počasí,weather,,A1,nature
 západ,west,,A1,misc
 zámek,lock,,B1,misc
-podlaha,floor,,A1,places
+podlaha,floor,,A1,objects
 vzpomínka,remembrance,,B1,misc
 výrobce,manufacturer,,A1,"misc,people"
 věda,science,,A1,"misc,abstract"
-schod,step,,A1,places
-novinář,journalist,,B1,"misc,people"
+schod,step,,A1,objects
+novinář,journalist,,B1,"misc,people,profession"
 svaz,union,,A1,misc
 nálada,mood,,A1,misc
 teplota,temperature,,A1,misc
@@ -657,17 +657,17 @@ povaha,character,,B1,misc
 bok,hip,,A1,misc
 klíč,key,,A1,objects
 literatura,literature,,A1,"misc,abstract"
-nákup,shopping,,A1,places
+nákup,shopping,,A1,"places,na_place"
 průmysl,industry,,B1,misc
-ostrov,island,,B1,"nature,places"
+ostrov,island,,B1,"nature,places,na_place"
 půlka,half,,A1,misc
 ticho,silence,,A1,misc
 jízda,riding,,B1,misc
 smích,laughter,,A1,misc
 fotka,photo,,A1,objects
-koncert,concert,,A1,"misc,event"
-poznámka,note,,A1,misc
-podnikatel,businessman,,A1,"misc,people"
+koncert,concert,,A1,"misc,event,gathering,quiet_event"
+poznámka,note,,A1,"misc,readable"
+podnikatel,businessman,,A1,"misc,people,profession"
 odpor,aversion,,A1,misc
 láhev,bottle,růže,A1,objects
 žádost,request,,A1,misc
@@ -675,10 +675,10 @@ láhev,bottle,růže,A1,objects
 váha,weight,,A1,misc
 diskuse,discussion,,A1,misc
 pobyt,stay,,B1,misc
-střed,centre,,A1,places
+střed,centre,,A1,misc
 bezpečnost,safety,,A2,misc
-krajina,landscape,,B1,"nature,places"
-břeh,bank,,A1,"nature,places"
+krajina,landscape,,B1,"nature,places,v_place"
+břeh,bank,,A1,"nature,places,na_place"
 atmosféra,atmosphere,,B1,misc
 sníh,snow,,A1,nature
 vina,guilt,,A1,misc
@@ -700,9 +700,9 @@ mír,peace,,A1,"misc,abstract"
 vrchol,top,,A1,misc
 víra,belief,,B1,"misc,abstract"
 přechod,crossing,,A1,misc
-úředník,clerk,,B1,misc
+úředník,clerk,,B1,"misc,profession"
 znak,sign,,A1,misc
-předpis,regulation,,A2,misc
+předpis,regulation,,A2,"misc,readable"
 složka,component,,A1,misc
 špička,tip,,A1,misc
 varianta,variant,,A1,misc
@@ -710,23 +710,23 @@ výbor,committee,,A1,misc
 ekonomika,economy,,A2,misc
 úloha,role,,A1,misc
 kost,bone,,A1,body
-vězení,prison,,B1,places
+vězení,prison,,B1,"places,v_place"
 sklo,glass,,A1,objects
 ret,lip,,A1,body
 tabulka,table,,A1,objects
-poslanec,deputy,,A2,"misc,people"
+poslanec,deputy,,A2,"misc,people,profession"
 produkce,production,,A2,misc
 krása,beauty,,A1,misc
-radnice,town hall,,A1,places
+radnice,town hall,,A1,"places,na_place"
 dech,breath,,A1,misc
 prospěch,benefit,,A1,misc
 vydání,expenses,,A1,misc
 přání,wish,,B1,"misc,abstract"
-profesor,professor,,A1,"misc,people"
+profesor,professor,,A1,"misc,people,profession"
 styk,contact,,A1,misc
 mozek,brain,,A1,body
 svědek,witness,,A1,"misc,people"
-herec,actor,,A1,"misc,people"
+herec,actor,,A1,"misc,people,profession"
 tábor,camp,,A1,misc
 úsilí,effort,,A1,"misc,abstract"
 výstavba,building,,A1,misc
@@ -735,41 +735,41 @@ rozměr,dimension,,A1,misc
 mladík,young man,,A1,"misc,people"
 křeslo,(arm)chair,,A1,objects
 hladina,level,,A1,misc
-kopec,hill,,B1,"nature,places"
+kopec,hill,,B1,"nature,places,na_place"
 žák,pupil,,A1,"misc,people"
-brána,gate,,A1,places
+brána,gate,,A1,"places,v_place"
 čtenář,reader,,B1,misc
 krize,crisis,,B1,misc
 výměna,exchange,,A1,misc
 zvyk,habit,,A1,misc
-starosta,mayor,,A2,"misc,people"
+starosta,mayor,,A2,"misc,people,profession"
 současnost,today,,A1,time
 tisk,press,,B1,misc
 konstrukce,construction,,A2,misc
 zásah,hit,,A1,misc
-region,region,,A1,places
-lístek,ticket,,A1,objects
+region,region,,A1,"places,v_place"
+lístek,ticket,,A1,"objects,readable"
 pták,bird,,A1,animals
 kariéra,career,,A1,misc
-reklama,advertisement,,B1,misc
+reklama,advertisement,,B1,"misc,readable"
 objem,capacity,,A1,misc
-patro,floor,,A1,places
+patro,floor,,A1,"places,na_place"
 automobil,automobile,,A1,transportation
 tajemství,secret,,A1,misc
 studie,study,,A1,misc
 fronta,queue,,B1,misc
-sál,hall,,B1,places
+sál,hall,,B1,"places,v_place"
 alkohol,alcohol,,A1,misc
 píseň,song,,B1,misc
 dno,bottom,,A1,misc
 déšť,rain,,A1,nature
-svátek,holiday,,A1,time
+svátek,holiday,,A1,"time,event"
 hodnocení,evaluation,,A2,misc
 klient,client,,A1,"misc,abstract"
 okruh,radius,,A1,misc
 sport,sport,,A1,misc
 odpovědnost,responsibility,,A2,"misc,abstract"
-manažer,manager,,B1,"misc,people"
+manažer,manager,,B1,"misc,people,profession"
 sdružení,association,,A2,misc
 vzor,example,,A1,misc
 chudák,poor,,A1,"misc,people"
@@ -778,14 +778,14 @@ motor,motor,,A1,misc
 hnutí,movement,,A2,misc
 parlament,parliament,,A2,misc
 zážitek,experience,,B1,"misc,abstract"
-trenér,trainer,,A1,"misc,people"
+trenér,trainer,,A1,"misc,people,profession"
 tón,tone,,A1,misc
 dávka,portion,,A1,misc
 plyn,gas,,A1,misc
 nepřítel,enemy,,A1,"misc,people"
-umělec,artist,,B1,"misc,people"
+umělec,artist,,B1,"misc,people,profession"
 omezení,limitation,,A2,misc
-knihovna,library,,A1,places
+knihovna,library,,A1,"places,v_place"
 sídlo,residence,,A1,misc
 sbírka,collection,,B1,misc
 příspěvek,contribution,,A2,misc
@@ -794,16 +794,16 @@ zpracování,processing,,A2,misc
 vzdálenost,distance,,A2,misc
 pacient,patient,,A1,"misc,people"
 linka,line,,A1,misc
-deník,daily,,A1,misc
+deník,daily,,A1,"misc,readable"
 dlaň,palm,,A1,body
 křídlo,wing,,A1,misc
-středisko,centre,,A1,places
+středisko,centre,,A1,"places,v_place"
 realita,reality,,B1,misc
 překvapení,surprise,,A2,misc
 známka,sign,,B1,misc
 přístroj,apparatus,,A1,objects
 oprava,reconstruction,,A1,misc
-moment,moment,,A1,time
+moment,moment,,A1,"time,duration"
 díra,hole,,A1,misc
 snížení,reduction,,A2,misc
 premiér,premier,,A2,"misc,people"
@@ -811,10 +811,10 @@ test,test,,A1,misc
 dáma,lady,,A1,"misc,people"
 výlet,trip,,B1,misc
 rozum,reason,,A1,"misc,abstract"
-vteřina,second,,A1,time
+vteřina,second,,A1,"time,duration"
 přehled,survey,,A2,misc
-pošta,post office,,A1,places
-hlad,hunger,,A1,food
+pošta,post office,,A1,"places,na_place"
+hlad,hunger,,A1,abstract
 zájemce,interested person,,A1,"misc,people"
 hmota,matter,,A1,misc
 plat,pay,,B1,misc
@@ -826,14 +826,14 @@ cigareta,cigarette,,A1,misc
 omyl,mistake,,A1,misc
 zaměstnání,job,,B1,misc
 pořad,programme,,B1,misc
-hala,hall,,A1,places
-domácnost,household,,B1,places
+hala,hall,,A1,"places,v_place"
+domácnost,household,,B1,"places,v_place"
 dálka,distance,,A1,misc
 vzdělání,education,,B1,"misc,abstract"
 série,series,,A1,misc
 hromada,heap,,A1,misc
 efekt,effect,,A2,"misc,abstract"
-představení,performance,,B1,"misc,event"
+představení,performance,,B1,"misc,event,gathering,quiet_event"
 rádio,radio,,A1,objects
 problematika,issues,,A2,misc
 konflikt,conflict,,B1,misc
@@ -845,10 +845,10 @@ tatínek,daddy,,A1,family
 spánek,sleep,,A1,misc
 nůž,knife,,A1,objects
 konference,conference,,A1,misc
-oslava,celebration,,B1,"misc,event"
+oslava,celebration,,B1,"misc,event,gathering"
 liga,league,,A1,misc
 vybavení,equipment,,A1,misc
-mapa,map,,A1,objects
+mapa,map,,A1,"objects,readable"
 závislost,addiction,,A2,misc
 zranění,injury,,A1,misc
 vytvoření,creation,,A2,misc
@@ -861,14 +861,14 @@ slečna,miss,,A1,"family,people"
 památka,memory,,B1,"misc,abstract"
 lék,drug,,B1,misc
 konkurence,competition,,B1,misc
-fotbal,football,,A1,"misc,event"
-režisér,director,,A1,"misc,people"
+fotbal,football,,A1,"misc,event,gathering"
+režisér,director,,A1,"misc,people,profession"
 zábava,fun,,B1,misc
-doklad,certificate,,B1,objects
-záchod,toilet,,A1,places
+doklad,certificate,,B1,"objects,readable"
+záchod,toilet,,A1,"places,na_place"
 realizace,implementation,,A2,misc
 vítěz,winner,,A1,"misc,people"
-schůzka,date,,A1,"misc,event"
+schůzka,date,,A1,"misc,event,gathering"
 souhlas,consent,,A1,misc
 budoucno,future,,A1,time
 aplikace,application,,A1,misc
@@ -881,17 +881,17 @@ pas,passport,,A1,misc
 slza,tear,,A1,body
 důvěra,trust,,A1,misc
 hrdina,hero,,B1,"misc,people"
-myšlení,thinking,,A1,"misc,people"
+myšlení,thinking,,A1,abstract
 blízkost,vicinity,,A2,misc
-svatba,wedding,,B1,"misc,event"
+svatba,wedding,,B1,"misc,event,gathering"
 sranda,fun,,A1,misc
 cit,emotion,,A1,"misc,abstract"
 fakulta,faculty,,A1,misc
-obchodník,trader,,B1,misc
+obchodník,trader,,B1,"misc,profession"
 pár,couple,,A1,misc
 blok,block,,A1,misc
 vražda,murder,,A1,misc
-domek,house,,A1,places
+domek,house,,A1,"places,v_place"
 dluh,debt,,A1,misc
 hřiště,pitch,,A1,misc
 prdel,arse,,A1,misc
@@ -919,24 +919,24 @@ dar,gift,,A1,objects
 led,ice,,A1,nature
 násilí,violence,,A1,misc
 nehoda,accident,,A1,misc
-vystoupení,performance,,A2,"misc,people"
+vystoupení,performance,,A2,event
 příchod,arrival,,A1,misc
-palác,palace,,A1,places
+palác,palace,,A1,"places,v_place"
 rekonstrukce,reconstruction,,A2,misc
 pojetí,concept,,A2,misc
 detail,detail,,A1,misc
 novinka,news,,B1,misc
 dík,(word of) thanks,,A1,misc
 podezření,suspicion,,A2,misc
-spisovatel,writer,,A1,"misc,people"
+spisovatel,writer,,A1,"misc,people,profession"
 odhad,assessment,,A2,misc
 zlato,gold,,B1,misc
 euro,euro,,A2,misc
-letiště,airport,,B1,places
+letiště,airport,,B1,"places,na_place"
 překážka,obstacle,,A1,misc
 paže,arm,,A1,body
 výchova,education,,A1,"misc,abstract"
-popis,description,,A1,misc
+popis,description,,A1,"misc,readable"
 areál,premise,,A2,misc
 vysvětlení,explanation,,A2,misc
 tendence,tendency,,A2,misc
@@ -945,7 +945,7 @@ přednáška,lecture,,A1,misc
 výklad,explication,,A1,misc
 mobil,mobile phone,,A1,objects
 sláva,fame,,A1,misc
-utkání,match,,A1,"misc,event"
+utkání,match,,A1,"misc,event,gathering"
 prohlášení,statement,,A2,misc
 festival,festival,,A1,misc
 pověst,legend,,B1,misc
@@ -957,7 +957,7 @@ potravina,food,,A1,food
 výzva,challenge,,A2,misc
 poplatek,charge,,A1,misc
 spotřeba,consumption,,A2,misc
-strop,ceiling,,A1,places
+strop,ceiling,,A1,objects
 dárek,present,,A1,objects
 jedinec,individual,,A1,"misc,people"
 vyjádření,expression,,A2,misc
@@ -977,7 +977,7 @@ kilo,kilo,,A1,misc
 sbor,board,,A1,misc
 poledne,noon,,A1,misc
 pozadí,background,,A1,misc
-dětství,childhood,,A1,"time,family"
+dětství,childhood,,A1,abstract
 pokles,drop,,A2,misc
 tvrzení,statement,,A1,misc
 jed,poison,,A1,misc
@@ -992,7 +992,7 @@ větev,branch,růže,A1,nature
 expert,expert,,A1,"misc,people"
 argument,argument,,A2,misc
 písnička,song,,B1,misc
-revoluce,revolution,,B1,misc
+revoluce,revolution,,B1,"misc,event"
 církev,church,růže,A1,misc
 demokracie,democracy,,A2,misc
 mechanismus,mechanism,,A2,misc
@@ -1003,7 +1003,7 @@ brambor,potato,,A1,food
 komunista,communist,,A2,"misc,people"
 písek,sand,,A1,misc
 skříň,wardrobe,,A1,objects
-ložnice,bedroom,,A1,places
+ložnice,bedroom,,A1,"places,v_place"
 zloděj,thief,,A1,"misc,people"
 rostlina,plant,,A1,nature
 houba,mushroom,,A1,"food,nature"
@@ -1014,9 +1014,9 @@ reforma,reform,,A2,misc
 zákaz,prohibition,,A2,misc
 vlastník,owner,,A2,"misc,people"
 poznatek,(piece of) knowledge,,A2,"misc,abstract"
-vědec,scholar,,B1,misc
+vědec,scholar,,B1,"misc,profession"
 litr,litre,,A2,misc
-nápis,inscription,,A2,misc
+nápis,inscription,,A2,"misc,readable"
 hrob,grave,,A2,misc
 důchod,pension,,A2,misc
 sněmovna,chamber,,A2,misc
@@ -1024,22 +1024,22 @@ kráva,cow,,A1,animals
 bitva,battle,,A2,"misc,event"
 mládež,youth,,A2,misc
 div,wonder,,A2,misc
-chata,cottage,,B1,places
+chata,cottage,,B1,"places,v_place"
 zrcadlo,mirror,,A2,objects
 droga,drug,,A2,misc
 uspořádání,organization,,A2,misc
-komora,utility room,,A2,places
+komora,utility room,,A2,"places,v_place"
 dav,crowd,,A2,misc
-soudce,judge,,B1,"misc,people"
-zahájení,opening,,A2,"misc,event"
+soudce,judge,,B1,"misc,people,profession"
+zahájení,opening,,A2,"misc,event,gathering"
 oblečení,clothes,,B1,objects
-kout,corner,,A2,places
+kout,corner,,A2,"places,v_place"
 premiéra,premiere,,A2,misc
 zázrak,miracle,,A2,misc
 linie,line,,A2,misc
-básník,poet,,B1,misc
+básník,poet,,B1,"misc,profession"
 zločin,crime,,A2,misc
-manželství,marriage,,A2,family
+manželství,marriage,,A2,abstract
 pokuta,penalty,,B1,misc
 shoda,agreement,,A2,misc
 heslo,password,,A2,misc
@@ -1047,8 +1047,8 @@ dodávka,delivery,,A2,misc
 trať,railway,,A2,misc
 cyklus,cycle,,A2,misc
 plot,fence,,A2,misc
-román,novel,,B1,misc
-rozhodování,decision-making,,A2,"misc,people"
+román,novel,,B1,"misc,readable"
+rozhodování,decision-making,,A2,abstract
 povolení,permission,,B1,misc
 porucha,breakdown,,A2,misc
 orientace,orientation,,A2,misc
@@ -1066,7 +1066,7 @@ kanál,channel,,A2,misc
 taťka,daddy,,A2,family
 peklo,hell,,A2,misc
 zavedení,launching,,A2,misc
-zelenina,vegetable,,A2,food
+zelenina,vegetable,,A2,"food,weighable"
 základna,base,,A2,misc
 trasa,route,,A2,misc
 kamarádka,friend,,A2,"misc,people"
@@ -1076,10 +1076,10 @@ mládí,youth,,A2,misc
 přesvědčení,conviction,,A2,misc
 nástup,entrance,,A2,misc
 příkaz,order,,A2,misc
-snídaně,breakfast,,A1,"food,meal"
+snídaně,breakfast,,A1,"food,meal,mealtime"
 filozofie,philosophy,,A2,misc
-malíř,painter,,B1,"misc,people"
-cukr,sugar,,A2,food
+malíř,painter,,B1,"misc,people,profession"
+cukr,sugar,,A2,"food,weighable"
 půlnoc,midnight,,A2,time
 hospodářství,economy,,A2,misc
 vyšetřování,investigation,,A2,misc
@@ -1087,22 +1087,22 @@ dosažení,achievement,,A2,misc
 brácha,brother,,A2,"family,people"
 bytost,being,,A2,misc
 skladba,composition,,B1,misc
-pohádka,fairy tale,,B1,misc
+pohádka,fairy tale,,B1,"misc,readable"
 socha,statue,,B1,misc
 výpověď,testimony,,A2,misc
 pořadí,order,,A2,misc
-mistrovství,championship,,A2,"misc,event"
+mistrovství,championship,,A2,"misc,event,gathering"
 tvůrce,creator,,A2,misc
 skála,rock,,A2,nature
 aspekt,aspect,,A2,misc
 kříž,cross,,A2,misc
-kapitán,captain,,A2,misc
+kapitán,captain,,A2,"misc,profession"
 dotaz,query,,A2,misc
 podnikání,enterprise,,B1,misc
-sůl,salt,,A2,food
+sůl,salt,,A2,"food,weighable"
 pytel,bag,,A2,objects
 soustava,system,,A2,misc
-koupelna,bathroom,,A2,places
+koupelna,bathroom,,A2,"places,v_place"
 stanovisko,standpoint,,A2,misc
 nábytek,furniture,,A2,objects
 spravedlnost,justice,,A2,"misc,abstract"
@@ -1110,7 +1110,7 @@ seriál,series,,A2,misc
 nesmysl,nonsense,,A2,"misc,abstract"
 úvod,introduction,,A2,misc
 údolí,valley,,A2,nature
-ovoce,fruit,,A2,food
+ovoce,fruit,,A2,"food,weighable"
 vůdce,leader,,B1,"misc,people"
 uživatel,user,,A2,misc
 výdaj,expense,,A2,misc
@@ -1122,14 +1122,14 @@ podpis,signature,,B1,"misc,abstract"
 žaludek,stomach,,A2,body
 směs,mixture,,A2,misc
 jednotlivec,individual,,A2,misc
-krám,shop,,B1,places
+krám,shop,,B1,"places,v_place"
 hovor,talk,,A2,misc
 dělník,worker,,B1,"misc,people"
 náměstek,deputy,,A2,misc
 plus,pro,,A2,misc
 rod,genus,,A2,misc
-chalupa,cottage,,B1,places
-fotbalista,footballer,,A2,"misc,people"
+chalupa,cottage,,B1,"places,v_place"
+fotbalista,footballer,,A2,"misc,people,profession"
 dálnice,motorway,,A2,transportation
 výrok,statement,,A2,misc
 jednička,(number) one,,A2,misc
@@ -1138,11 +1138,11 @@ hloubka,depth,,A2,misc
 nadšení,enthusiasm,,A2,misc
 pravděpodobnost,probability,,A2,"misc,abstract"
 dotace,grant,,A2,misc
-sklep,cellar,,A2,places
+sklep,cellar,,A2,"places,v_place"
 odpoledne,afternoon,,A2,time
 dohled,sight,,A2,misc
 zlepšení,improvement,,A2,misc
-dílna,workshop,,B1,places
+dílna,workshop,,B1,"places,v_place"
 sféra,sphere,,A2,misc
 pojišťovna,insurance company,,A2,misc
 pás,strip,,A2,misc
@@ -1150,8 +1150,8 @@ hrozba,threat,,A2,misc
 tanec,dance,,A2,misc
 talíř,plate,,A2,objects
 tragedie,tragedy,,A2,"misc,event"
-právník,lawyer,,B1,"misc,people"
-choroba,disease,,A2,body
+právník,lawyer,,B1,"misc,people,profession"
+choroba,disease,,A2,abstract
 vtip,joke,,B1,misc
 prádlo,underwear,,A2,objects
 pusa,mouth,,A2,body
@@ -1160,15 +1160,15 @@ podrobnost,detail,,A2,misc
 debata,discussion,,A2,misc
 zjištění,discovery,,A2,misc
 publikum,audience,,A2,misc
-továrna,factory,,B1,places
-velitel,commander,,A2,"misc,people"
+továrna,factory,,B1,"places,v_place"
+velitel,commander,,A2,"misc,people,profession"
 obyvatelstvo,population,,A2,misc
 závazek,commitment,,A2,misc
-chodník,pavement,,A2,places
+chodník,pavement,,A2,"places,na_place"
 tok,stream,,A2,misc
 buňka,cell,,A2,misc
 říše,empire,,A2,misc
-důstojník,officer,,A2,"misc,people"
+důstojník,officer,,A2,"misc,people,profession"
 prášek,powder,,A2,misc
 kmen,trunk,,A2,misc
 složení,composition,,A2,misc
@@ -1176,14 +1176,14 @@ měřítko,scale,,A2,misc
 odpad,waste,,B1,misc
 pití,drinking,,A2,food
 mzda,wages,,A2,misc
-klobouk,hat,,B1,objects
-městečko,small town,,A2,places
+klobouk,hat,,B1,"objects,clothing"
+městečko,small town,,A2,"places,v_place"
 podání,submission,,A2,misc
 zakázka,order,,A2,misc
 prohlídka,examination,,B1,misc
 obvinění,accusation,,A2,misc
 hoch,boy,,A2,"misc,people"
-pracoviště,workplace,,B1,places
+pracoviště,workplace,,B1,"places,na_place"
 vidění,seeing,,A2,misc
 branka,gate,,B1,misc
 organismus,organism,,A2,misc
@@ -1200,20 +1200,20 @@ náhrada,compensation,,A2,misc
 charakteristika,characteristic,,A2,misc
 sklon,disposition,,A2,misc
 ulička,lane,,A2,misc
-kabát,coat,,B1,objects
+kabát,coat,,B1,"objects,clothing"
 květina,flower,,A1,nature
 úcta,respect,,A2,misc
 holčička,(little) girl,,A2,"misc,people"
 vrah,murderer,,A2,"misc,people"
 sklad,stock,,A2,misc
 mínění,opinion,,A2,"misc,abstract"
-zpěvák,singer,,A2,"misc,people"
+zpěvák,singer,,A2,"misc,people,profession"
 gól,goal,,A2,misc
 start,take-off,,A2,misc
 narození,birth,,B1,misc
 pokyn,instruction,,A2,misc
 souboj,fight,,A2,"misc,event"
-síň,hall,,B1,places
+síň,hall,,B1,"places,v_place"
 dodavatel,supplier,,A2,"misc,people"
 nárůst,growth,,A2,misc
 vzhled,looks,,B1,misc
@@ -1226,17 +1226,17 @@ okres,district,,A2,misc
 akcie,share,,A2,misc
 odbor,department,,A2,"misc,abstract"
 používání,use,,A2,misc
-učitelka,female teacher,,A1,"misc,people"
+učitelka,female teacher,,A1,"misc,people,profession"
 smůla,bad luck,,A2,misc
 komplex,complex,,A2,misc
 královna,queen,,A2,"misc,people"
-scénář,scenario,,B1,misc
+scénář,scenario,,B1,"misc,readable"
 pochybnost,doubt,,A2,misc
 obvod,circumference,,A2,misc
 finále,finals,,A2,misc
 mužstvo,team,,A2,misc
 expozice,exhibition,,A2,misc
-plášť,coat,,A2,objects
+plášť,coat,,A2,"objects,clothing"
 cvičení,exercise,,A2,misc
 obrazovka,screen,,B1,misc
 rozdělení,division,,A2,misc
@@ -1246,14 +1246,14 @@ rovnováha,balance,,A2,misc
 čtení,reading,,A2,misc
 volno,leisure,,A2,misc
 obal,cover,,A2,misc
-správce,manager,,A2,"misc,people"
+správce,manager,,A2,"misc,people,profession"
 pachatel,offender,,A2,"misc,people"
-hasič,firefighter,,B1,"misc,people"
+hasič,firefighter,,B1,"misc,people,profession"
 pokrok,progress,,A2,misc
-generál,general,,A2,misc
+generál,general,,A2,"misc,profession"
 čest,honour,,A2,misc
 sval,muscle,,A2,body
-báseň,poem,,B1,misc
+báseň,poem,,B1,"misc,readable"
 vnitro,interior,,A2,misc
 iniciativa,initiative,,A2,misc
 kapka,drop,,B1,misc
@@ -1269,7 +1269,7 @@ sloup,pole,,A2,misc
 etapa,period,,A2,misc
 zadek,back,,A2,body
 běh,run,,A2,misc
-poradce,adviser,,A2,misc
+poradce,adviser,,A2,"misc,profession"
 přínos,contribution,,A2,misc
 pochopení,understanding,,A2,misc
 publikace,publication,,A2,misc
@@ -1281,7 +1281,7 @@ pata,heel,,A2,body
 dnešek,today,,A2,time
 hřbitov,cemetery,,B1,misc
 psaní,writing,,A2,misc
-písmeno,letter,,A2,objects
+písmeno,letter,,A2,"objects,readable"
 porážka,defeat,,A2,misc
 řádek,line,,A2,misc
 léčba,treatment,,A2,misc
@@ -1297,14 +1297,14 @@ protest,protest,,A2,misc
 suma,sum,,A2,misc
 výhled,view,,A2,misc
 stolek,table,,A2,objects
-chrám,temple,,A2,places
+chrám,temple,,A2,"places,v_place"
 plamen,flame,,A2,misc
 ukončení,termination,,A2,misc
 zmatek,confusion,,A2,misc
 obnova,restoration,,A2,misc
 terén,terrain,,A2,nature
 kov,metal,,A2,misc
-pobočka,branch,,A2,places
+pobočka,branch,,A2,"places,na_place"
 architektura,architecture,,A2,misc
 mrak,cloud,,A2,nature
 mez,bounds,,A2,misc
@@ -1313,30 +1313,30 @@ sklenice,glass,,A2,objects
 skok,jump,,A2,misc
 ukázka,demonstration,,A2,misc
 post,post,,A2,misc
-prodejna,shop,,A2,places
-management,management,,A2,"misc,people"
-potomek,descendant,,A2,"misc,people"
-louka,meadow,,A2,"nature,places"
-stadión,stadium,,A2,places
-herečka,actress,,B1,"misc,people"
+prodejna,shop,,A2,"places,v_place"
+management,management,,A2,abstract
+potomek,descendant,,A2,abstract
+louka,meadow,,A2,"nature,places,na_place"
+stadión,stadium,,A2,"places,na_place"
+herečka,actress,,B1,"misc,people,profession"
 sklenička,glass,,A2,objects
 školství,education,,B1,misc
 lavice,desk,,A2,misc
 ohrožení,danger,,A2,misc
-recept,recipe,,B1,misc
+recept,recipe,,B1,"misc,readable"
 turnaj,tournament,,A2,misc
 sluníčko,sun,,A2,nature
 porovnání,comparison,,A2,misc
 překlad,translation,,A2,misc
 hmotnost,weight,,A2,misc
 družstvo,cooperative,,A2,misc
-kněz,priest,,A2,misc
+kněz,priest,,A2,"misc,profession"
 elektřina,electricity,,A2,misc
 tah,pull,,A2,misc
 standard,standard,,A2,misc
 asociace,association,,A2,misc
 pojištění,insurance,,B1,misc
-garáž,garage,,B1,places
+garáž,garage,,B1,"places,v_place"
 zaměstnavatel,employer,,A2,misc
 založení,founding,,A2,misc
 umístění,position,,A2,misc
@@ -1350,7 +1350,7 @@ pokladna,cash desk,,A2,misc
 pohár,cup,,A2,objects
 oznámení,announcement,,B1,misc
 poptávka,demand,,B1,misc
-onemocnění,disease,,A2,body
+onemocnění,disease,,A2,abstract
 sektor,sector,,A2,misc
 volič,voter,,A2,misc
 vlastnictví,ownership,,B1,misc
@@ -1375,25 +1375,25 @@ demokrat,democrat,,A2,"misc,people"
 zemědělství,agriculture,,A2,"misc,abstract"
 bohatství,wealth,,A2,misc
 stan,tent,,B1,misc
-architekt,architect,,A2,misc
+architekt,architect,,A2,"misc,profession"
 planeta,planet,,B1,nature
-otevření,opening,,A2,"misc,event"
+otevření,opening,,A2,"misc,event,gathering"
 tuna,ton,,A2,misc
 plod,fruit,,A2,"food,nature"
 kytka,flower,,A2,nature
 kritik,critic,,A2,misc
 drama,drama,,B1,misc
-lidstvo,mankind,,A2,"misc,people"
+lidstvo,mankind,,A2,abstract
 přehlídka,show,,A2,misc
 vášeň,passion,,A2,misc
 kouzlo,magic,,A2,misc
 měření,measurement,,A2,misc
 útěk,escape,,A2,misc
 hluk,noise,,A2,misc
-pravomoc,authority,,A2,"misc,people"
+pravomoc,authority,,A2,abstract
 hovno,shit,,A2,misc
 metropole,capital,,A2,misc
-elektrárna,power plant,,A2,places
+elektrárna,power plant,,A2,"places,v_place"
 agent,agent,,A2,"misc,people"
 posluchač,listener,,A2,misc
 palec,thumb,,A2,body
@@ -1407,7 +1407,7 @@ dění,events,,A2,misc
 lampa,lamp,,A2,objects
 sazba,rate,,A2,misc
 ráj,paradise,,A2,misc
-redakce,editorial office,,A2,places
+redakce,editorial office,,A2,"places,v_place"
 místopředseda,vice chairman,,A2,"misc,people"
 dvojka,(number) two,,A2,misc
 trouba,oven,,A2,misc
@@ -1418,7 +1418,7 @@ koule,ball,,B1,objects
 huba,mouth,,A2,body
 tyč,post,,A2,misc
 hokej,(ice-)hockey,,A2,misc
-tričko,T-shirt,,B1,objects
+tričko,T-shirt,,B1,"objects,clothing"
 chod,course,,A2,misc
 album,album,,A2,misc
 krabička,box,,A2,objects
@@ -1434,23 +1434,23 @@ trocha,a bit,,A2,misc
 trénink,training,,A2,misc
 křižovatka,intersection,,A2,misc
 pruh,stripe,,A2,misc
-venkov,country,,A2,places
+venkov,country,,A2,"places,na_place"
 výhra,victory,,A2,misc
 odstranění,removal,,A2,misc
-autorita,authority,,A2,"misc,people"
-statek,estate,,A2,places
+autorita,authority,,A2,abstract
+statek,estate,,A2,"places,na_place"
 stabilita,stability,,A2,misc
 proměna,transformation,,A2,misc
 pásmo,zone,,A2,misc
 příloha,supplement,,A2,misc
 zdravotnictví,health care,,A2,misc
 sestava,composition,,A2,misc
-cizina,foreign country,,A2,places
-ředitelka,(woman) director,,A2,"misc,people"
+cizina,foreign country,,A2,"places,v_place"
+ředitelka,(woman) director,,A2,"misc,people,profession"
 profese,profession,,B1,misc
 zaměření,specialization,,A2,misc
 děj,plot,,A2,misc
-bazén,swimming pool,,A2,places
+bazén,swimming pool,,A2,"places,v_place"
 vztek,rage,,A2,"misc,abstract"
 klín,lap,,A2,misc
 poškození,damage,,A2,misc
@@ -1468,7 +1468,7 @@ obliba,popularity,,A2,misc
 příznivec,fan,,A2,misc
 utrpení,suffering,,A2,"misc,abstract"
 úleva,relief,,A2,"misc,abstract"
-vila,villa,,B1,places
+vila,villa,,B1,"places,v_place"
 vyprávění,tale,,A2,misc
 kresba,drawing,,A2,misc
 kontext,context,,A2,misc
@@ -1488,7 +1488,7 @@ kapitál,capital,,A2,misc
 plnění,performance,,A2,misc
 blesk,lightning,,A2,misc
 odvolání,withdrawal,,A2,misc
-sukně,skirt,,B1,objects
+sukně,skirt,,B1,"objects,clothing"
 lokalita,locality,,B1,misc
 akt,act,,A2,misc
 disciplína,discipline,,A2,misc
@@ -1500,18 +1500,18 @@ ustanovení,regulation,,A2,misc
 přístav,harbour,,A2,misc
 historka,story,,A2,misc
 určení,purpose,,A2,misc
-průvodce,guide,,B1,misc
+průvodce,guide,,B1,"misc,profession"
 zachování,conservation,,A2,misc
 civilizace,civilization,,A2,misc
 mrtvola,corpse,,A2,misc
-vlast,homeland,,B1,places
+vlast,homeland,,B1,"places,v_place"
 námět,suggestion,,A2,misc
 zabezpečení,security,,A2,misc
 spolek,club,,A2,misc
 přelom,turn,,A2,misc
 výnos,decree,,A2,misc
 mráz,frost,,A2,nature
-stánek,stall,,A2,places
+stánek,stall,,A2,"places,na_place"
 osa,axis,,A2,misc
 nejistota,uncertainty,,B1,misc
 skončení,termination,,A2,misc
@@ -1529,14 +1529,14 @@ uhlí,coal,,A2,misc
 salát,salad,,A2,food
 ústava,constitution,,A2,misc
 perspektiva,prospect,,A2,misc
-lavička,bench,,A2,places
+lavička,bench,,A2,"places,na_place"
 definice,definition,,A2,misc
 rukáv,sleeve,,B1,misc
 rekord,record,,A2,misc
-pevnost,fortress,,A2,places
-slavnost,celebration,,A2,"misc,event"
-klášter,monastery,,A2,places
-schodiště,staircase,,A2,places
+pevnost,fortress,,A2,"places,v_place"
+slavnost,celebration,,A2,"misc,event,gathering"
+klášter,monastery,,A2,"places,v_place"
+schodiště,staircase,,A2,"places,na_place"
 šťáva,juice,,A2,food
 svah,slope,,A2,nature
 poslání,mission,,A2,misc
@@ -1547,17 +1547,17 @@ znalec,expert,,A2,"misc,people"
 odstup,distance,,A2,misc
 výkřik,scream,,A2,misc
 pochyba,doubt,,A2,misc
-pláž,beach,,B1,"nature,places"
+pláž,beach,,B1,"nature,places,na_place"
 strejda,uncle,,A2,"family,people"
 logika,logic,,A2,misc
-vyšetřovatel,investigator,,A2,misc
+vyšetřovatel,investigator,,A2,"misc,profession"
 uniforma,uniform,,A2,objects
 zmínka,mention,,A2,misc
 lež,lie,,A2,"misc,abstract"
 zahrádka,(small) garden,,A2,nature
 únava,weariness,,A2,body
 pistole,gun,,A2,objects
-přátelství,friendship,,A2,"misc,people"
+přátelství,friendship,,A2,abstract
 pochod,march,,A2,misc
 surovina,ingredient,,A2,misc
 uznání,praise,,A2,misc
@@ -1566,10 +1566,10 @@ vězeň,prisoner,,A2,"misc,people"
 institut,institute,,A2,misc
 vesmír,universe,,A2,misc
 stáří,age,,A2,time
-oblek,suit,,B1,objects
+oblek,suit,,B1,"objects,clothing"
 dobro,(the) good,,A2,misc
 parta,gang,,A2,misc
-pohřeb,funeral,,A2,misc
+pohřeb,funeral,,A2,"misc,event,gathering,quiet_event"
 spis,file,,A2,misc
 pult,bar,,A2,misc
 alternativa,alternative,,A2,misc
@@ -1577,10 +1577,10 @@ zakladatel,founder,,A2,misc
 servis,service,,A2,misc
 porušení,breach,,A2,misc
 odvětví,branch,,A2,misc
-sídliště,housing estate,,A2,places
+sídliště,housing estate,,A2,"places,na_place"
 éra,era,,A2,misc
 lhůta,term,,A2,misc
-parkoviště,car park,,A2,places
+parkoviště,car park,,A2,"places,na_place"
 nenávist,hatred,,A2,"misc,abstract"
 potěšení,pleasure,,A2,misc
 únik,escape,,A2,misc
@@ -1590,24 +1590,24 @@ privatizace,privatization,,A2,misc
 kvalifikace,competence,,A2,misc
 hřích,sin,,A2,misc
 spolužák,classmate,,A2,misc
-nakladatelství,publishing house,,A2,places
+nakladatelství,publishing house,,A2,"places,v_place"
 prezentace,presentation,,A2,misc
 řetěz,chain,,A2,misc
 novela,amendment,,A2,misc
 náznak,indication,,A2,misc
 interpretace,interpretation,,A2,misc
-hokejista,(ice-)hockey player,,A2,"misc,people"
+hokejista,(ice-)hockey player,,A2,"misc,people,profession"
 nasazení,drive,,A2,misc
-pilot,pilot,,B1,misc
-království,kingdom,,B1,"misc,people"
+pilot,pilot,,B1,"misc,profession"
+království,kingdom,,B1,"places,v_place"
 personál,staff,,A2,misc
 využívání,utilization,,A2,misc
 zázemí,background,,A2,misc
 vedro,heat,,A2,misc
 iluze,illusion,,A2,misc
 koupě,bargain,,A2,misc
-nemovitost,real estate,,B1,places
-bunda,jacket,,B1,objects
+nemovitost,real estate,,B1,"places,v_place"
+bunda,jacket,,B1,"objects,clothing"
 povodeň,flood,,A2,misc
 písmo,handwriting,,A2,misc
 zápis,minutes,,A2,misc
@@ -1619,7 +1619,7 @@ tuk,fat,,A2,misc
 zklamání,disappointment,,A2,misc
 milenec,lover,,A2,"misc,people"
 nádobí,dishes,,A2,misc
-laboratoř,laboratory,,A2,places
+laboratoř,laboratory,,A2,"places,v_place"
 bezpečí,safety,,A2,misc
 kouč,coach,,A2,misc
 svíčka,candle,,B1,objects
@@ -1630,10 +1630,10 @@ vzdělávání,education,,A2,"misc,abstract"
 výuka,teaching,,A2,misc
 pauza,break,,A2,misc
 myš,mouse,,A2,animals
-specialista,specialist,,A2,misc
+specialista,specialist,,A2,"misc,profession"
 záloha,deposit,,A2,misc
 kopie,copy,,A2,misc
-inženýr,engineer,,A2,"misc,people"
+inženýr,engineer,,A2,"misc,people,profession"
 výskyt,occurrence,,A2,misc
 výpočet,calculation,,A2,misc
 kroužek,ring,,A2,objects
@@ -1644,7 +1644,7 @@ císař,emperor,,A2,misc
 míč,ball,,B1,objects
 nehet,nail,,A2,body
 oděv,clothes,,A2,objects
-asistent,assistant,,A2,"misc,people"
+asistent,assistant,,A2,"misc,people,profession"
 stížnost,complaint,,A2,misc
 inteligence,intelligence,,A2,misc
 motivace,motivation,,A2,misc
@@ -1658,9 +1658,9 @@ klika,handle,,A2,objects
 intenzita,intensity,,A2,misc
 schéma,scheme,,A2,misc
 panna,virgin,,A2,misc
-fotograf,photographer,,A2,"misc,people"
+fotograf,photographer,,A2,"misc,people,profession"
 oblouk,arc,,A2,misc
-balkón,balcony,,A2,places
+balkón,balcony,,A2,"places,na_place"
 idea,idea,,A2,"misc,abstract"
 rezerva,reserve,,A2,misc
 údržba,maintenance,,A2,misc
@@ -1669,12 +1669,12 @@ polštář,pillow,,A2,objects
 sleva,discount,,B1,misc
 brankář,goalkeeper,,A2,misc
 nádoba,container,,A2,misc
-rozkaz,command,,A2,"misc,people"
+rozkaz,command,,A2,abstract
 předchůdce,predecessor,,A2,misc
 kabinet,cabinet,,A2,misc
 opak,reverse,,A2,misc
 chůze,walking,,B1,misc
-producent,producer,,A2,misc
+producent,producer,,A2,"misc,profession"
 okénko,(small) window,,A2,nature
 eso,ace,,A2,misc
 poezie,poetry,,B1,misc
@@ -1685,7 +1685,7 @@ advokát,lawyer,,A2,"misc,people"
 položka,item,,A2,misc
 tajemník,secretary,,A2,misc
 průkaz,card,,A2,objects
-ocenění,award,,A2,"misc,event"
+ocenění,award,,A2,"misc,event,gathering"
 režie,directing,,A2,misc
 limit,limit,,A2,misc
 miska,bowl,,A2,misc
@@ -1699,7 +1699,7 @@ kontinent,continent,,B1,misc
 uzavření,closing,,A2,misc
 miláček,sweetheart,,A2,"family,people"
 integrace,integration,,A2,misc
-čokoláda,chocolate,,A2,food
+čokoláda,chocolate,,A2,"food,sliceable"
 profil,profile,,A2,misc
 potrava,food,,A2,food
 pot,sweat,,A2,misc
@@ -1713,9 +1713,9 @@ mince,coin,,B1,misc
 svědectví,testimony,,A2,misc
 historik,historian,,B1,misc
 záplava,flood,,B1,misc
-metro,tube,,A2,transportation
+metro,tube,,A2,"transportation,vehicle"
 hospodaření,management,,A2,misc
-zpěvačka,(female) singer,,A2,"misc,people"
+zpěvačka,(female) singer,,A2,"misc,people,profession"
 nádrž,tank,,A2,misc
 dokumentace,documentation,,A2,misc
 rozbor,analysis,,A2,misc
@@ -1725,10 +1725,10 @@ posun,shift,,A2,misc
 nezávislost,independence,,A2,"misc,abstract"
 oceán,ocean,,B1,nature
 bordel,mess,,A2,misc
-jeviště,stage,,B1,places
+jeviště,stage,,B1,"places,na_place"
 bedna,box,,A2,objects
 štít,shield,,A2,misc
-senátor,senator,,A2,misc
+senátor,senator,,A2,"misc,profession"
 vozík,handcart,,A2,transportation
 medicína,medicine,,A2,misc
 odjezd,departure,,A2,misc
@@ -1740,11 +1740,11 @@ dialog,dialogue,,A2,misc
 námitka,objection,,A2,misc
 video,video,,A2,misc
 neúspěch,failure,,A2,misc
-magistrát,metropolitan authority,,A2,places
+magistrát,metropolitan authority,,A2,"places,na_place"
 had,snake,,A2,animals
 hlasování,vote,,A2,misc
 kostka,cube,,A2,objects
-slovník,dictionary,,A2,objects
+slovník,dictionary,,A2,"objects,readable"
 emoce,emotion,,A2,"misc,abstract"
 skandál,scandal,,A2,misc
 sad,orchard,,A2,misc
@@ -1757,7 +1757,7 @@ soustředění,concentration,,A2,"misc,abstract"
 ubytování,accommodation,,B1,misc
 nevýhoda,disadvantage,,A2,"misc,abstract"
 muzika,music,,A2,misc
-jídelna,dining room,,B1,places
+jídelna,dining room,,B1,"places,v_place"
 loket,elbow,,A2,body
 odpočinek,rest,,A2,misc
 hlína,soil,,A2,misc
@@ -1770,7 +1770,7 @@ tabule,board,,A2,objects
 maximum,maximum,,A2,misc
 jednota,unity,,A2,misc
 spojenec,ally,,A2,misc
-mezera,space,,A2,places
+mezera,space,,A2,objects
 debil,asshole,,A2,misc
 mísa,bowl,,A2,misc
 bába,old woman,,A2,"misc,people"
@@ -1794,13 +1794,13 @@ prkno,board,,A2,misc
 příznak,symptom,,A2,misc
 záchvat,attack,,A2,misc
 úzkost,anxiety,,A2,misc
-ekonom,economist,,A2,misc
+ekonom,economist,,A2,"misc,profession"
 tečka,dot,,A2,misc
 listina,document,,A2,misc
 štáb,headquarters,,A2,misc
 objednávka,order,,A2,misc
 experiment,experiment,,A2,misc
-hudebník,musician,,A2,"misc,people"
+hudebník,musician,,A2,"misc,people,profession"
 vyhlídka,view,,A2,misc
 nařízení,decree,,A2,misc
 pláč,crying,,A2,misc
@@ -1819,8 +1819,8 @@ divize,division,,A2,misc
 omáčka,sauce,,A2,food
 východisko,basis,,A2,misc
 havárie,accident,,A2,misc
-školka,nursery school,,A2,places
-schůze,meeting,,B1,"misc,event"
+školka,nursery school,,A2,"places,v_place"
+schůze,meeting,,B1,"misc,event,gathering"
 bilance,balance,,A2,misc
 manipulace,manipulation,,A2,misc
 zvyšování,increase,,A2,misc
@@ -1829,48 +1829,48 @@ zastoupení,representation,,A2,misc
 němčina,German,,A2,misc
 příčka,rung,,A2,misc
 výkonnost,performance,,A2,misc
-obřad,ceremony,,A2,"misc,event"
-představenstvo,board of directors,,A2,"misc,people"
+obřad,ceremony,,A2,"misc,event,gathering,quiet_event"
+představenstvo,board of directors,,A2,misc
 protivník,opponent,,A2,misc
 pozorování,observation,,A2,misc
-tunel,tunnel,,A2,places
+tunel,tunnel,,A2,"places,v_place"
 peněženka,wallet,,B1,objects
 inspirace,inspiration,,A2,"misc,abstract"
 skupinka,group,,A2,misc
 zastupitel,council member,,A2,"misc,people"
-rukavice,glove,,B1,objects
-čepice,cap,,B1,objects
+rukavice,glove,,B1,"objects,clothing"
+čepice,cap,,B1,"objects,clothing"
 čistota,cleanliness,,A2,misc
 pouť,funfair,,B1,misc
-sportovec,sportsman,,A2,"misc,people"
+sportovec,sportsman,,A2,"misc,people,profession"
 trojice,threesome,,A2,misc
 kalendář,calendar,,A2,objects
 poklad,treasure,,A2,misc
 šíření,spread,,A2,misc
 interiér,interior,,A2,misc
-mouka,flour,,A2,food
+mouka,flour,,A2,"food,weighable"
 pára,steam,,A2,nature
 formát,format,,A2,misc
 dodržování,observation,,A2,misc
 trvání,duration,,A2,time
 melodie,melody,,A2,misc
 zodpovědnost,responsibility,,A2,"misc,abstract"
-plakát,poster,,B1,objects
+plakát,poster,,B1,"objects,readable"
 kloub,joint,,A2,body
 kabina,cabin,,A2,misc
 volant,steering wheel,,A2,objects
-koláč,cake,,A2,food
+koláč,cake,,A2,"food,sliceable"
 ambice,ambition,,A2,misc
 pleť,complexion,,A2,body
 stezka,path,,A2,misc
 slabost,weakness,,A2,misc
 zkoumání,investigation,,A2,misc
 interval,interval,,A2,misc
-redaktor,editor,,A2,misc
-doktorka,(woman) doctor,,A2,"misc,people"
+redaktor,editor,,A2,"misc,profession"
+doktorka,(woman) doctor,,A2,"misc,people,profession"
 vzkaz,message,,A2,misc
 uvedení,introduction,,A2,misc
-princ,prince,,A2,"misc,people"
+princ,prince,,A2,people
 varování,warning,,A2,"misc,event"
 nájem,rent,,A2,misc
 šířka,width,,A2,misc
@@ -1881,7 +1881,7 @@ originál,original,,A2,misc
 srážka,crash,,A2,misc
 hrana,edge,,A2,misc
 verš,verse,,A2,misc
-spořitelna,savings bank,,A2,places
+spořitelna,savings bank,,A2,"places,v_place"
 lžíce,spoon,,A2,objects
 trojka,(number) three,,A2,misc
 hřbet,back,,A2,body
@@ -1894,10 +1894,10 @@ flaška,bottle,,B1,objects
 hrnec,pot,,A2,objects
 zoufalství,despair,,A2,misc
 vada,defect,,A2,misc
-obývák,living room,,A2,places
-večírek,party,,A2,"misc,event"
+obývák,living room,,A2,"places,v_place"
+večírek,party,,A2,"misc,event,gathering"
 moucha,fly,,A2,animals
-anketa,survey,,A2,misc
+anketa,survey,,A2,"misc,readable"
 pozdrav,greeting,,A2,misc
 volání,call,,A2,misc
 osvětlení,lighting,,A2,misc
@@ -1908,12 +1908,12 @@ sebevědomí,self-confidence,,A2,misc
 ideál,ideal,,A2,"misc,abstract"
 absolvent,graduate,,A2,misc
 důležitost,importance,,A2,misc
-strava,food,,A2,food
+strava,food,,A2,misc
 vnímání,perception,,A2,misc
 uspokojení,satisfaction,,A2,misc
 páteř,backbone,,A2,body
 bariéra,barrier,,A2,misc
-ves,village,,A2,places
+ves,village,,A2,"places,v_place"
 udržení,preservation,,A2,misc
 sraz,reunion,,A2,misc
 mlčení,silence,,A2,misc
@@ -1923,22 +1923,22 @@ index,index,,A2,misc
 deprese,depression,,A2,misc
 dovednost,skill,,A2,"misc,abstract"
 morálka,morality,,A2,misc
-psycholog,psychologist,,B1,misc
+psycholog,psychologist,,B1,"misc,profession"
 náprava,remedy,,A2,misc
 bojovník,fighter,,A2,"misc,people"
 ruch,activity,,A2,misc
 prevence,prevention,,A2,misc
 vyhláška,(public) notice,,A2,misc
 plánování,planning,,A2,misc
-koutek,corner,,A2,places
+koutek,corner,,A2,"places,v_place"
 brigáda,summer job,,A2,misc
 škála,scale,,A2,misc
 náruč,(open) arms,,A2,body
 výhrada,reservation,,A2,misc
 stadium,stage,,A2,misc
 tržba,receipts,,A2,misc
-učebnice,textbook,,A2,objects
-pódium,stage,,A2,places
+učebnice,textbook,,A2,"objects,readable"
+pódium,stage,,A2,"places,na_place"
 nadace,foundation,,B1,misc
 protokol,protocol,,A2,misc
 kompromis,compromise,,A2,misc
@@ -1947,7 +1947,7 @@ dědek,geezer,,A2,"family,people"
 tenis,tennis,,A2,misc
 uvolnění,loosening,,A2,misc
 respekt,respect,,A2,misc
-pasáž,passage,,A2,places
+pasáž,passage,,A2,"places,v_place"
 aféra,scandal,,B1,misc
 keř,bush,,A2,nature
 zájezd,trip,,B1,misc
@@ -1958,14 +1958,14 @@ orchestr,orchestra,,B1,misc
 psychologie,psychology,,A2,misc
 výslech,interrogation,,A2,misc
 lednička,fridge,,A2,objects
-demonstrace,demonstration,,B1,"misc,event"
-rukopis,handwriting,,A2,misc
+demonstrace,demonstration,,B1,"misc,event,gathering"
+rukopis,handwriting,,A2,"misc,readable"
 zkratka,abbreviation,,A2,misc
 licence,licence,,A2,misc
 vzrušení,excitement,,A2,misc
 poušť,desert,,B1,misc
 komplikace,complication,,A2,misc
-nástupce,successor,,A2,"misc,people"
+nástupce,successor,,A2,misc
 zpoždění,delay,,B1,misc
 vkus,taste,,A2,misc
 lyže,ski,,A2,objects
@@ -1980,13 +1980,13 @@ rám,frame,,A2,misc
 splnění,accomplishment,,A2,misc
 pomůcka,aid,,A2,misc
 sponzor,sponsor,,A2,misc
-sekunda,second,,A2,time
+sekunda,second,,A2,"time,duration"
 mýtus,myth,,A2,misc
-věznice,prison,,A2,places
+věznice,prison,,A2,"places,v_place"
 fenomén,phenomenon,,A2,misc
 tekutina,liquid,,A2,misc
 přeprava,transport,,A2,misc
-vrch,hill,,A2,"nature,places"
+vrch,hill,,A2,"nature,places,v_place"
 lev,lion,,A2,animals
 křik,shouting,,A2,misc
 legislativa,legislation,,A2,misc
@@ -2007,7 +2007,7 @@ odstín,shade,,A2,misc
 pach,stench,,A2,misc
 kytara,guitar,,A2,misc
 pouto,bond,,A2,misc
-katalog,catalogue,,A2,objects
+katalog,catalogue,,A2,"objects,readable"
 skladatel,composer,,A2,misc
 medvěd,bear,,A2,animals
 železo,iron,,A2,misc
@@ -2018,21 +2018,21 @@ cibule,onion,,A2,food
 ostuda,scandal,,A2,misc
 ovzduší,air,,A2,misc
 server,server,,A2,misc
-horečka,fever,,A2,body
+horečka,fever,,A2,abstract
 šňůra,cord,,A2,misc
 pánbůh,God,,A2,misc
 průvod,parade,,A2,misc
 bída,poverty,,B1,misc
-šampionát,championship,,A2,"misc,event"
+šampionát,championship,,A2,"misc,event,gathering"
 záhada,mystery,,A2,misc
 žíla,vein,,A2,body
 připojení,connection,,A2,misc
 čekání,waiting,,A2,misc
 kostým,costume,,B1,misc
 sluchátko,earphone,,A2,objects
-knedlík,dumpling,,A2,food
-buchta,cake,,A2,food
-analytik,analyst,,A2,misc
+knedlík,dumpling,,A2,"food,sliceable"
+buchta,cake,,A2,"food,sliceable"
+analytik,analyst,,A2,"misc,profession"
 člun,boat,,A2,transportation
 tušení,feeling,,A2,misc
 příhoda,event,,A2,misc
@@ -2046,11 +2046,11 @@ tvor,creature,,A2,misc
 vlákno,fibre,,A2,misc
 půle,half,,A2,misc
 hruď,chest,,A2,body
-jeskyně,cave,,A2,"nature,places"
-ocas,tail,,A2,animals
-dort,cake,,A2,food
-burza,stock market,,B1,places
-těsto,dough,,A2,food
+jeskyně,cave,,A2,"nature,places,v_place"
+ocas,tail,,A2,body
+dort,cake,,A2,"food,sliceable"
+burza,stock market,,B1,"places,v_place"
+těsto,dough,,A2,"food,weighable,sliceable"
 stráž,guard,,A2,misc
 absence,absence,,A2,misc
 rakovina,cancer,,A2,misc
@@ -2076,7 +2076,7 @@ trubka,trumpet,,A2,objects
 filozof,philosopher,,A2,misc
 šperk,jewel,,A2,misc
 hmyz,insect,,A2,animals
-členství,membership,,A2,"misc,people"
+členství,membership,,A2,abstract
 lídr,leader,,A2,"misc,people"
 nuda,boredom,,A2,misc
 povídka,(short) story,,B1,misc
@@ -2085,7 +2085,7 @@ autorka,(female) author,,A2,"misc,people"
 salon,salon,,A2,misc
 působnost,activity,,A2,misc
 transakce,transaction,,A2,misc
-sako,jacket,,A2,objects
+sako,jacket,,A2,"objects,clothing"
 kompetence,competence,,A2,misc
 meč,sword,,A2,objects
 princezna,princess,,B1,"misc,people"
@@ -2101,8 +2101,8 @@ hněv,anger,,A2,misc
 ďábel,devil,,A2,misc
 hloupost,nonsense,,A2,"misc,abstract"
 cela,cell,,A2,misc
-sjezd,meeting,,A2,"misc,event"
-maturita,school-leaving examination,,A2,"misc,event"
+sjezd,meeting,,A2,"misc,event,gathering"
+maturita,school-leaving examination,,A2,"misc,event,gathering,quiet_event"
 kilogram,kilogram,,A2,misc
 e-mail,e-mail,,A2,misc
 řízek,schnitzel,,A2,food
@@ -2119,7 +2119,7 @@ chlad,chill,,A2,nature
 pětka,(number) five,,A2,misc
 dobytek,livestock,,A2,misc
 konkurent,competitor,,A2,"misc,people"
-ponožka,sock,,A2,objects
+ponožka,sock,,A2,"objects,clothing"
 horizont,horizon,,A2,misc
 sucho,drought,,B1,misc
 koncept,concept,,A2,misc
@@ -2132,32 +2132,32 @@ federace,federation,,A2,misc
 ocel,steel,,A2,misc
 sprcha,shower,,A2,objects
 uchazeč,applicant,,A2,"misc,people"
-bydliště,place of residence,,B1,places
-kuchyň,kitchen,,B1,places
-občanství,citizenship,,B1,"misc,people"
+bydliště,place of residence,,B1,"places,v_place"
+kuchyň,kitchen,,B1,"places,v_place"
+občanství,citizenship,,B1,abstract
 oslovení,form of address,,B1,objects
 sourozenci,siblings,,B1,family
 tykání,using ty with someone,,B1,misc
 vízum,visa,,B1,misc
 vykání,using vy with someone,,B1,misc
 prarodiče,grandparents,,B1,family
-stravenka,food coupon,,B1,food
+stravenka,food coupon,,B1,objects
 chalupář,chalupa-owner and -goer,,B1,"misc,people"
 chatař,chata-owner and -goer,,B1,"misc,people"
-hausbót,house-boat,,B1,places
+hausbót,house-boat,,B1,"places,v_place"
 hypotéka,mortgage,,B1,misc
 jachta,yacht,,B1,misc
 kastelán/ka,someone who lives and works in a castle,,B1,places
 loft,loft,,B1,misc
-maják,light-house,,B1,places
+maják,light-house,,B1,"places,na_place"
 makléř,(real-estate) broker,,B1,"misc,people"
-mrakodrap,skyscraper,,B1,places
+mrakodrap,skyscraper,,B1,"places,v_place"
 oba,both,,B1,misc
 obě,both,,B1,misc
-panelák,prefab apartment building,,B1,places
-penzion,boarding-house,,B1,places
+panelák,prefab apartment building,,B1,"places,v_place"
+penzion,boarding-house,,B1,"places,v_place"
 pól,pole,,B1,misc
-squat,a building that you’ve squatted in,,B1,places
+squat,a building that you’ve squatted in,,B1,"places,v_place"
 terasa,deck,,B1,misc
 topení,heating,,B1,misc
 vlk,wolf (sea-wolf,,B1,animals
@@ -2168,47 +2168,47 @@ motorka,motorcycle,,B1,misc
 schody,stairs,,B1,misc
 slon,elephant,,B1,animals
 velbloud,camel,,B1,animals
-autoopravna,car-repair shop,,B1,places
+autoopravna,car-repair shop,,B1,"places,v_place"
 koníček,hobby (lit,,B1,misc
 koza,goat,,B1,animals
 pohovor,interview,,B1,misc
 velvyslanectví,embassy,,B1,misc
-bankéř,banker,,B1,"misc,people"
+bankéř,banker,,B1,"misc,people,profession"
 bankéřka,banker,,B1,"misc,people"
 dělnice,(blue-collar) worker,,B1,"misc,people"
-farmář,farmer,,B1,"misc,people"
+farmář,farmer,,B1,"misc,people,profession"
 farmářka,farmer,,B1,"misc,people"
 hasička,fire-fighter,,B1,"misc,people"
 historička,historian,,B1,misc
 kosmonaut,astronaut,,B1,misc
 kosmonautka,astronaut,,B1,misc
-lékařka,doctor,,B1,"misc,people"
-manažerka,manager,,B1,"misc,people"
-modelka,model,,B1,misc
-novinářka,journalist,,B1,"misc,people"
+lékařka,doctor,,B1,"misc,people,profession"
+manažerka,manager,,B1,"misc,people,profession"
+modelka,model,,B1,"misc,profession"
+novinářka,journalist,,B1,"misc,people,profession"
 pilotka,pilot,,B1,misc
 policistka,police-officer,,B1,"misc,people"
 politička,politician,,B1,misc
 politolog,political scientist,,B1,"misc,people"
 politoložka,political scientist,,B1,"misc,people"
 právnička,lawyer,,B1,"misc,people"
-prodavač,salesperson,,B1,"misc,people"
-prodavačka,salesperson,,B1,"misc,people"
+prodavač,salesperson,,B1,"misc,people,profession"
+prodavačka,salesperson,,B1,"misc,people,profession"
 průvodkyně,guide,,B1,misc
 psycholožka,psychologist,,B1,misc
 soudkyně,judge,,B1,"misc,people"
-uklízeč,cleaner,,B1,misc
+uklízeč,cleaner,,B1,"misc,profession"
 uklízečkou,cleaner,,B1,misc
 umělkyně,artist,,B1,"misc,people"
 úřednice,bureaucrat,,B1,"misc,people"
 vědkyně,scientist,,B1,"misc,people"
-veterinář,veterinarian,,B1,misc
-veterinářka,veterinarian,,B1,misc
+veterinář,veterinarian,,B1,"misc,profession"
+veterinářka,veterinarian,,B1,"misc,profession"
 zemědělec,farmer,,B1,"misc,people"
 čtenář/čtenářka,reader,,B1,misc
 čumák/čumáček,snout,,B1,misc
 filmář/filmářka,a film-person,,B1,"misc,people"
-gratulace,congratulations,,B1,"misc,event"
+gratulace,congratulations,,B1,"misc,event,gathering"
 ilustrace,illustration,,B1,misc
 krtek,mole,,B1,animals
 málokdo,few people,,B1,misc
@@ -2219,7 +2219,7 @@ zajíc,hare,,B1,animals
 zvířátko,small animal,,B1,animals
 autíčko,toy-cars,,B1,objects
 čajník,tea-pot,,B1,objects
-čekárna,waiting-room,,B1,places
+čekárna,waiting-room,,B1,"places,v_place"
 dárk,gift,,B1,objects
 hrnk,cup,,B1,objects
 jehla,needle,,B1,misc
@@ -2255,18 +2255,18 @@ svátk,holiday,,B1,time
 úplnk,full moon,,B1,nature
 čarodějnice,Witches Day,,B1,time
 dušičky,All Souls Day,,B1,time
-mikuláš,Saint Nicholas,,B1,misc
+mikuláš,Saint Nicholas,,B1,"event,people"
 valentýn,Valentine’s Day,,B1,time
 vánoce,Christmas,,B1,misc
 velikonoce,Easter,,B1,misc
 silvestr,New Year’s Eve,,B1,time
-autoservis,car-repair shop,,B1,places
+autoservis,car-repair shop,,B1,"places,v_place"
 čistírna,dry-cleaner‘s,,B1,misc
 dělení,division,,B1,misc
 feministka,feminist,,B1,misc
-kadeřnictví,hair-stylist‘s,,B1,places
+kadeřnictví,hair-stylist‘s,,B1,"places,v_place"
 krejčovství,tailor’s,,B1,misc
-masáž,massage,,B1,body
+masáž,massage,,B1,misc
 masér/ka,masseur/masseuse,,B1,misc
 práva,right / rights,,B1,"misc,abstract"
 předsudk,prejudice,,B1,misc
@@ -2286,7 +2286,7 @@ spánk,sleep,,B1,misc
 šachty,chess,,B1,misc
 terč,target,,B1,misc
 vor,raft,,B1,misc
-angína,sore throat,,B1,body
+angína,sore throat,,B1,misc
 drak,dragon,,B1,misc
 drvoštěp,woodcutter,,B1,nature
 chřipka,flu,,B1,misc
@@ -2305,7 +2305,7 @@ doklady,documentation,,B1,misc
 hlediště,auditorium,,B1,misc
 hodiny,clock,,B1,objects
 hodinky,watch,,B1,objects
-knihomol,book-worm,,B1,objects
+knihomol,book-worm,,B1,"misc,people"
 koláž,collage,,B1,misc
 muzikál,musical,,B1,"misc,abstract"
 nota,(musical) note,,B1,"misc,abstract"
@@ -2324,7 +2324,7 @@ cholerik,hot-headed person,,B1,"misc,people"
 melancholik,melancholy person,,B1,"misc,people"
 podobnost,resemblance,,B1,misc
 porod,birth,,B1,misc
-porodnice,maternity ward,,B1,places
+porodnice,maternity ward,,B1,"places,v_place"
 pudl,poodle,,B1,animals
 sangvinik,sanguine person,,B1,"misc,people"
 vlasnost,trait,,B1,misc
@@ -2336,13 +2336,13 @@ křížovka,crossword,,B1,objects
 kvíz,quiz,,B1,misc
 národnost,nationality,,B1,misc
 notebook,laptop,,B1,misc
-noviny,newspaper,,B1,objects
+noviny,newspaper,,B1,"objects,readable"
 předpověď,forecast,,B1,misc
 recenze,review,,B1,misc
 reportáž,report,,B1,misc
 titulk,title,,B1,misc
 zprávy,news,,B1,misc
-bankomat,bank machine,,B1,places
+bankomat,bank machine,,B1,objects
 bezdomovc,homeless person,,B1,"misc,people"
 dávky,welfare,,B1,misc
 charita,charity,,B1,misc
@@ -2355,7 +2355,7 @@ alergie,allergies,,B1,misc
 důsledk,consequence,,B1,misc
 ekolog/ekoložka,ecologist,,B1,misc
 ekologie,ecology,,B1,misc
-farma,farm,,B1,places
+farma,farm,,B1,"places,na_place"
 globalizace,globalization,,B1,misc
 majitel/majitelka,owner,,B1,"misc,people"
 nedostatk,insufficiency,,B1,misc
@@ -2386,38 +2386,38 @@ bačkory,slippers,,B1,objects
 boty,shoes,,B1,objects
 brýle,glasses,,B1,objects
 džíny,jeans,,B1,misc
-halenka,jumper,,B1,misc
+halenka,jumper,,B1,"misc,clothing"
 kalhotky,tights,,B1,misc
 kapuce,hood,,B1,misc
 kožešina,fur,,B1,misc
 kožich,fur-coat,,B1,objects
-kraťasy,shorts,,B1,misc
+kraťasy,shorts,,B1,"misc,clothing"
 látk,material,,B1,misc
 límc,collar,,B1,misc
-mikina,sweatshirt,,B1,objects
-náušnice,ear-ring,,B1,body
+mikina,sweatshirt,,B1,"objects,clothing"
+náušnice,ear-ring,,B1,objects
 návrhář/návrhářka,clothes designer,,B1,objects
-nohavice,pants-legs,,B1,animals
-pantofle,splippers,,B1,body
+nohavice,pants-legs,,B1,objects
+pantofle,splippers,,B1,clothing
 pásek,belt,,B1,misc
-plavky,swimsuit,,B1,misc
+plavky,swimsuit,,B1,"misc,clothing"
 podkolenky,knee-socks,,B1,body
 podpatk,heel,,B1,misc
 ponožky,socks,,B1,misc
-punčocháče,stockings,,B1,"misc,people"
+punčocháče,stockings,,B1,"objects,clothing"
 pyžamo,pajamas,,B1,misc
 sandály,sandals,,B1,misc
 slipy,briefs,,B1,misc
 šála,wrapper,,B1,misc
-šaty,clothes,,B1,objects
+šaty,clothes,,B1,clothing
 šortky,shorts,,B1,misc
-tepláky,sweatpants,,B1,animals
-trenýrky,boxers,,B1,objects
+tepláky,sweatpants,,B1,"objects,clothing"
+trenýrky,boxers,,B1,"objects,clothing"
 výstřih,neckline,,B1,body
 zákazník/zákaznice,customer,,B1,misc
 zip,zipper,,B1,misc
 župan,bathrobe,,B1,misc
-bankovka,bank-note,,B1,places
+bankovka,bank-note,,B1,objects
 bon,voucher,,B1,misc
 dějepis,history,,B1,"misc,abstract"
 dějiny,history,,B1,"misc,abstract"
@@ -2430,12 +2430,12 @@ puč,putsch,,B1,misc
 represe,repression,,B1,misc
 samizdat,samizdat,,B1,misc
 socialismus,socialism,,B1,misc
-tuzex,foreign-currency store during communism,,B1,places
+tuzex,foreign-currency store during communism,,B1,"places,v_place"
 volby,elections,,B1,"misc,event"
-avantgarda,Avant-garde,,B1,animals
+avantgarda,Avant-garde,,B1,abstract
 básnířka,poet,,B1,misc
 buřič,fire-brand,,B1,misc
-dramatik,playwright,,B1,"misc,abstract"
+dramatik,playwright,,B1,"misc,abstract,profession"
 esejista/esejistka,essayist,,B1,misc
 génius,genius,,B1,misc
 kreslíř,someone who draws,,B1,misc
@@ -2446,10 +2446,10 @@ představitel/představitelka,representative,,B1,objects
 překladatel/překladatelka,translator,,B1,misc
 publicista/publicistka,(political) columnist,,B1,misc
 realismus,Realism,,B1,misc
-romantismus,Romanticism,,B1,"misc,people"
+romantismus,Romanticism,,B1,abstract
 scénárista/scénáristka,script writer,,B1,"misc,people"
 surrealismus,Surrealism,,B1,misc
-textář,writer of texts (song lyrics,,B1,"family,people"
+textář,writer of texts (song lyrics,,B1,"people,profession"
 umělec/umělkyně,artist,,B1,"misc,people"
 underground,underground,,B1,misc
 úryvk,excerpt,,B1,misc
@@ -2461,21 +2461,21 @@ průlom,breakthrough,,B2,"misc,abstract"
 příslib,pledge/promise,,B2,"misc,abstract"
 přebytek,surplus/excess,,B2,misc
 ústupek,concession,,B2,"misc,abstract"
-záchvěv,tremor/shiver,,B2,body
+záchvěv,tremor/shiver,,B2,abstract
 průnik,penetration/intersection,,B2,"misc,abstract"
 výčet,enumeration/list,,B2,misc
-průtah,delay/procrastination,,B2,"misc,time"
+průtah,delay/procrastination,,B2,abstract
 peníz,coin,,B2,objects
 hřebíček,clove (spice),,B2,food
 výtěžek,yield/proceeds,,B2,"misc,abstract"
 krajíc,slice (of bread),,B2,food
-chirurg,surgeon,,B2,"people,body"
+chirurg,surgeon,,B2,"people,profession"
 archeolog,archaeologist,,B2,people
-diplomat,diplomat,,B2,people
+diplomat,diplomat,,B2,"people,profession"
 podvodník,fraudster/con artist,,B2,people
 vyjednavač,negotiator,,B2,people
 viník,culprit/offender,,B2,people
-dědic,heir,,B2,people
+dědic,heir,,B2,family
 zmocněnec,authorized representative,,B2,people
 poručník,guardian,,B2,people
 ochránce,protector/defender,,B2,people
@@ -2490,11 +2490,11 @@ idealista,idealist,,B2,people
 houslista,violinist,,B2,people
 husita,Hussite,,B2,people
 pochoutka,delicacy/treat,,B2,food
-pozvánka,invitation,,B2,"misc,objects"
-pohlednice,postcard,,B2,objects
+pozvánka,invitation,,B2,"misc,objects,readable"
+pohlednice,postcard,,B2,"objects,readable"
 zástěrka,apron,,B2,objects
-výloha,shop window/expense,,B2,"places,misc"
-přepážka,counter/partition,,B2,"places,objects"
+výloha,shop window/expense,,B2,"misc,objects"
+přepážka,counter/partition,,B2,objects
 útrata,expense/spending,,B2,"misc,abstract"
 přirážka,surcharge,,B2,"misc,abstract"
 obžaloba,indictment/prosecution,,B2,"misc,abstract"
@@ -2503,8 +2503,8 @@ záštita,patronage/auspices,,B2,"misc,abstract"
 záplata,patch,,B2,objects
 úhrada,payment/reimbursement,,B2,"misc,abstract"
 stolice,stool/seat,,B2,objects
-svatyně,sanctuary/shrine,,B2,places
-studnice,well (water source),,B2,"places,nature"
+svatyně,sanctuary/shrine,,B2,"places,v_place"
+studnice,well (water source),,B2,"places,nature,v_place"
 opatrnost,caution/prudence,,B2,"misc,abstract"
 zvědavost,curiosity,,B2,"misc,abstract"
 nedbalost,negligence/carelessness,,B2,"misc,abstract"
@@ -2516,16 +2516,16 @@ marnost,futility/vanity,,B2,"misc,abstract"
 zručnost,dexterity/skill,,B2,"misc,abstract"
 lstivost,cunning/craftiness,,B2,"misc,abstract"
 neohroženost,fearlessness/intrepidity,,B2,"misc,abstract"
-doupě,den/lair,,B2,"nature,animals"
+doupě,den/lair,,B2,"nature,places,v_place"
 brko,straw (drinking),,B2,objects
 platidlo,currency/means of payment,,B2,"misc,objects"
-pečivo,pastry/baked goods,,B2,food
-tržiště,marketplace,,B2,places
-pohřebiště,burial ground/cemetery,,B2,places
-bojiště,battlefield,,B2,places
-cvičiště,training ground,,B2,places
-dějiště,scene (of events),,B2,places
-kolbiště,arena/jousting ground,,B2,places
+pečivo,pastry/baked goods,,B2,"food,weighable,sliceable"
+tržiště,marketplace,,B2,"places,na_place"
+pohřebiště,burial ground/cemetery,,B2,"places,na_place"
+bojiště,battlefield,,B2,"places,na_place"
+cvičiště,training ground,,B2,"places,na_place"
+dějiště,scene (of events),,B2,"places,na_place"
+kolbiště,arena/jousting ground,,B2,"places,na_place"
 jehně,lamb,,B2,"animals,food"
 sele,piglet,,B2,animals
 štěně,puppy,,B2,animals
@@ -2550,13 +2550,13 @@ bažina,swamp/marsh,,B2,nature
 mokřad,wetland,,B2,nature
 útes,cliff/crag,,B2,nature
 ledovec,glacier,,B2,nature
-průsmyk,mountain pass,,B2,"nature,places"
+průsmyk,mountain pass,,B2,"nature,places,v_place"
 vyslanec,envoy/ambassador,,B2,people
 věřitel,creditor,,B2,people
 dlužník,debtor,,B2,people
 šarlatán,charlatan/quack,,B2,people
-sklepení,vault/cellar,,B2,places
-nábřeží,embankment/waterfront,,B2,places
+sklepení,vault/cellar,,B2,"places,v_place"
+nábřeží,embankment/waterfront,,B2,"places,na_place"
 šlacha,tendon/sinew,,B2,body
 čelist,jaw,,B2,body
 koření,spices/seasoning,,B2,food
@@ -2571,7 +2571,7 @@ gazela,gazelle,,B2,animals
 tchoř,polecat/skunk,,B2,animals
 jestřáb,hawk,,B2,animals
 podstavec,pedestal/stand,,B2,objects
-obojek,collar (for animals),,B2,"objects,animals"
+obojek,collar (for animals),,B2,objects
 závaží,weight/counterweight,,B2,objects
 přezka,buckle,,B2,objects
 hmoždíř,mortar (bowl),,B2,objects

@@ -2564,8 +2564,13 @@
 							const levelConfig = curriculum[prog.level];
 							if (levelConfig.adjectives_unlocked) {
 								const adjCands = getAdjectiveCandidates(levelConfig.unlocked_difficulty);
-								// Filter by semantic compatibility with the noun
-								const isPersonNoun = word.animate;
+								// Filter by semantic compatibility with the noun.
+								// Czech grammatical animacy is only marked on masculine nouns, so
+								// `word.animate` is false for feminine/neuter humans (matka, žena,
+								// dítě). Use semantic categories instead to avoid pairing e.g.
+								// "studená matka" or "jarní žena".
+								const PERSON_CATEGORIES = ['people', 'family', 'profession', 'nationality'];
+								const isPersonNoun = word.categories.some((c) => PERSON_CATEGORIES.includes(c));
 								const compatAdjs = adjCands.filter((a) =>
 									a.categories.some(
 										(c) => c === 'universal' || (isPersonNoun ? c === 'person' : c === 'object')
