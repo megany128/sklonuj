@@ -27,7 +27,7 @@
 	},
 	{
 		"lemma": "starý",
-		"translation": "old (of an object)",
+		"translation": "old",
 		"difficulty": "A1",
 		"paradigmType": "hard",
 		"categories": ["common", "universal"],
@@ -339,7 +339,7 @@
 	},
 	{
 		"lemma": "cizí",
-		"translation": "strange, unfamiliar (not yet part of one's experience)",
+		"translation": "foreign; someone else's; unfamiliar",
 		"difficulty": "A1",
 		"paradigmType": "soft",
 		"categories": ["common", "universal"],
@@ -651,7 +651,7 @@
 	},
 	{
 		"lemma": "slabý",
-		"translation": "weak, feeble",
+		"translation": "weak",
 		"difficulty": "A2",
 		"paradigmType": "hard",
 		"categories": ["common", "universal"],
@@ -1103,7 +1103,7 @@
 	},
 	{
 		"lemma": "chudý",
-		"translation": "poor (having little or no possessions and money)",
+		"translation": "poor (lacking money)",
 		"difficulty": "B1",
 		"paradigmType": "hard",
 		"categories": ["common", "person"],
@@ -2407,7 +2407,7 @@
 	},
 	{
 		"lemma": "nezbytný",
-		"translation": "indispensable (impossible to be omitted, remitted, or spared)",
+		"translation": "indispensable, essential",
 		"difficulty": "B2",
 		"paradigmType": "hard",
 		"categories": ["common", "object"],

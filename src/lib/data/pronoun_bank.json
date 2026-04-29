@@ -65,7 +65,7 @@
 				"acc": { "prep": "něho/něj", "bare": "ho" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "něm", "bare": "" },
-				"ins": { "prep": "ním", "bare": "jím" }
+				"ins": { "prep": "ním", "bare": "" }
 			},
 			"pl": null
 		},
@@ -74,7 +74,7 @@
 			"dat_sg": "After prepositions, use 'němu' (e.g. 'k němu'). Without prepositions: 'mu' (enclitic) or 'jemu' (emphatic).",
 			"acc_sg": "After prepositions, use n-forms: 'na něho', 'pro něj'. Without prepositions: 'ho' (enclitic). The form 'jeho' in accusative is archaic.",
 			"loc_sg": "Only 'něm' exists; always used after prepositions (e.g. 'o něm', 'po něm').",
-			"ins_sg": "After prepositions, use 'ním' (e.g. 's ním'). Without prepositions: 'jím' (emphatic)."
+			"ins_sg": "Only 'ním' exists; always used after prepositions (e.g. 's ním', 'před ním')."
 		}
 	},
 	{
@@ -117,7 +117,7 @@
 				"acc": { "prep": "ně/něj", "bare": "je" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "něm", "bare": "" },
-				"ins": { "prep": "ním", "bare": "jím" }
+				"ins": { "prep": "ním", "bare": "" }
 			},
 			"pl": null
 		},
@@ -126,7 +126,7 @@
 			"dat_sg": "After prepositions, use 'němu' (e.g. 'k němu'). Without prepositions: 'mu' (enclitic) or 'jemu' (emphatic).",
 			"acc_sg": "After prepositions, use n-forms: 'na ně', 'pro něj'. Without prepositions, the standard neuter form is 'je'. Note: neuter 'ně'/'je' differs from masculine 'něho'/'ho'.",
 			"loc_sg": "Only 'něm' exists; always used after prepositions (e.g. 'o něm').",
-			"ins_sg": "After prepositions, use 'ním' (e.g. 's ním'). Without prepositions: 'jím' (emphatic)."
+			"ins_sg": "Only 'ním' exists; always used after prepositions (e.g. 's ním')."
 		}
 	},
 	{

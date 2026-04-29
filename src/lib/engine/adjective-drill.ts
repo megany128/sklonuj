@@ -371,7 +371,7 @@ export function generateAdjectiveFormProduction(
 export function checkAdjectiveAnswer(
 	question: DrillQuestion,
 	userAnswer: string,
-	_level: Difficulty = 'A1'
+	level: Difficulty = 'A1'
 ): DrillResult | null {
 	if (!question.adjective || !question.acceptedAnswers) return null;
 
@@ -416,13 +416,13 @@ export function checkAdjectiveAnswer(
 		return { question, userAnswer, correct: false, nearMiss: false, accidentalCase };
 	}
 
-	// Near-miss (diacritics only) — always accept but flag, since adjectives
-	// are unlocked at B1+ where students are still learning agreement patterns.
+	// Near-miss (diacritics only). At A1/A2 lenient (correct + flag); at B1/B2 strict.
 	const strippedUser = stripDiacritics(trimmedUser);
+	const lenient = level === 'A1' || level === 'A2';
 	for (const form of question.acceptedAnswers) {
 		const stripped = stripDiacritics(form.trim().toLowerCase());
 		if (strippedUser === stripped) {
-			return { question, userAnswer, correct: true, nearMiss: true };
+			return { question, userAnswer, correct: lenient, nearMiss: true };
 		}
 	}
 

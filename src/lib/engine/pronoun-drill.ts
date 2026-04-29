@@ -61,7 +61,6 @@ interface RawPronounTemplate {
 
 const VALID_GENDERS = new Set<string>(['m', 'f', 'n']);
 const VALID_DIFFICULTIES = new Set<string>(['A1', 'A2', 'B1', 'B2']);
-const ALL_CASES_ORDERED: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 const VALID_FORM_CONTEXTS = new Set<string>(['prep', 'bare', 'either']);
 
 function isGender(value: string): value is Gender {
@@ -77,15 +76,22 @@ function isFormContext(value: string): value is PronounFormContext {
 }
 
 function validatePronounCaseForms(raw: RawPronounCaseForms, lemma: string): PronounCaseForms {
-	const result: Partial<Record<Case, PronounCaseForm>> = {};
-	for (const c of ALL_CASES_ORDERED) {
+	function getCaseForm(c: Case): PronounCaseForm {
 		const entry = raw[c];
 		if (!entry || typeof entry.prep !== 'string' || typeof entry.bare !== 'string') {
 			throw new Error(`Missing or invalid case form "${c}" for pronoun "${lemma}"`);
 		}
-		result[c] = { prep: entry.prep, bare: entry.bare };
+		return { prep: entry.prep, bare: entry.bare };
 	}
-	return result as PronounCaseForms;
+	return {
+		nom: getCaseForm('nom'),
+		gen: getCaseForm('gen'),
+		dat: getCaseForm('dat'),
+		acc: getCaseForm('acc'),
+		voc: getCaseForm('voc'),
+		loc: getCaseForm('loc'),
+		ins: getCaseForm('ins')
+	};
 }
 
 // ---------------------------------------------------------------------------
@@ -229,8 +235,8 @@ function getPronounForm(
 // ---------------------------------------------------------------------------
 
 export function makePlaceholderWord(pronoun: PronounEntry): WordEntry {
-	const emptyCaseForms: CaseForms = ['', '', '', '', '', '', ''];
 	const gender: Gender = pronoun.gender ?? 'm';
+	const emptyForms = (): CaseForms => ['', '', '', '', '', '', ''];
 	// Placeholder: pronouns don't have noun paradigms; 'pán' is arbitrary but required by WordEntry type
 	return {
 		lemma: pronoun.lemma,
@@ -241,8 +247,8 @@ export function makePlaceholderWord(pronoun: PronounEntry): WordEntry {
 		difficulty: pronoun.difficulty,
 		categories: pronoun.categories,
 		forms: {
-			sg: [...emptyCaseForms] as CaseForms,
-			pl: [...emptyCaseForms] as CaseForms
+			sg: emptyForms(),
+			pl: emptyForms()
 		}
 	};
 }
@@ -274,7 +280,6 @@ export function generatePronounFormProduction(
 	const form = getPronounForm(pronoun, case_, number_);
 	if (!form) return null;
 
-	const prepForms = splitForms(form.prep);
 	const bareForms = splitForms(form.bare);
 
 	// Skip standalone form-production when no bare form exists (e.g. locative, and
@@ -286,9 +291,10 @@ export function generatePronounFormProduction(
 
 	const correctAnswer = bareForms[0];
 
-	// acceptedAnswers includes all prep and bare forms (the engine still accepts
-	// bank-listed prep variants in case the learner types one).
-	const acceptedAnswers = [...prepForms, ...bareForms];
+	// acceptedAnswers is restricted to bare forms only — the placeholder template
+	// has no preposition, so accepting prep-only variants (e.g. "němu" for `on dat`
+	// when the bare answer is "mu") would mark a wrong-context answer as correct.
+	const acceptedAnswers = Array.from(new Set(bareForms));
 
 	return {
 		word: makePlaceholderWord(pronoun),
@@ -326,19 +332,19 @@ export function generatePronounSentenceDrill(
 		case 'prep': {
 			if (prepForms.length === 0) return null;
 			correctAnswer = prepForms[0];
-			acceptedAnswers = [...prepForms];
+			acceptedAnswers = Array.from(new Set(prepForms));
 			break;
 		}
 		case 'bare': {
 			if (bareForms.length === 0) return null;
 			correctAnswer = bareForms[0];
-			acceptedAnswers = [...bareForms];
+			acceptedAnswers = Array.from(new Set(bareForms));
 			break;
 		}
 		case 'either': {
 			if (prepForms.length === 0 && bareForms.length === 0) return null;
 			correctAnswer = prepForms.length > 0 ? prepForms[0] : bareForms[0];
-			acceptedAnswers = [...prepForms, ...bareForms];
+			acceptedAnswers = Array.from(new Set([...prepForms, ...bareForms]));
 			break;
 		}
 	}

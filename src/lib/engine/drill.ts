@@ -374,10 +374,19 @@ function getAllAcceptedForms(question: DrillQuestion): string[] {
 	return forms;
 }
 
+/**
+ * Whether a near-miss (diacritic-only) answer counts as correct at this level.
+ * A1/A2: lenient — correct, flagged as near-miss.
+ * B1/B2: strict — wrong, still flagged as near-miss for feedback.
+ */
+function nearMissIsCorrect(level: Difficulty): boolean {
+	return level === 'A1' || level === 'A2';
+}
+
 export function checkAnswer(
 	question: DrillQuestion,
 	userAnswer: string,
-	_level: Difficulty = 'A1'
+	level: Difficulty = 'A1'
 ): DrillResult | null {
 	const trimmedUser = userAnswer.trim().toLowerCase();
 	const trimmedCorrect = question.correctAnswer.trim().toLowerCase();
@@ -393,7 +402,7 @@ export function checkAnswer(
 
 	// Delegate adjective questions to the adjective-specific checker
 	if (question.wordCategory === 'adjective') {
-		return checkAdjectiveAnswerImpl(question, userAnswer, _level);
+		return checkAdjectiveAnswerImpl(question, userAnswer, level);
 	}
 
 	// Delegate pronoun questions to the pronoun-specific checker
@@ -448,7 +457,12 @@ export function checkAnswer(
 		for (const form of accepted) {
 			const stripped = stripDiacritics(form.trim().toLowerCase());
 			if (strippedUser === stripped) {
-				return { question, userAnswer, correct: true, nearMiss: true };
+				return {
+					question,
+					userAnswer,
+					correct: nearMissIsCorrect(level),
+					nearMiss: true
+				};
 			}
 		}
 
@@ -476,7 +490,12 @@ export function checkAnswer(
 	for (const form of acceptedForms) {
 		const strippedForm = stripDiacritics(form.trim().toLowerCase());
 		if (strippedUser === strippedForm) {
-			return { question, userAnswer, correct: true, nearMiss: true };
+			return {
+				question,
+				userAnswer,
+				correct: nearMissIsCorrect(level),
+				nearMiss: true
+			};
 		}
 	}
 
@@ -514,7 +533,7 @@ export function checkAnswer(
 export function checkMultiStepForm(
 	question: MultiStepQuestion,
 	userForm: string,
-	_level: Difficulty = 'A1'
+	level: Difficulty = 'A1'
 ): { correct: boolean; nearMiss: boolean } {
 	const trimmedUser = userForm.trim().toLowerCase();
 	const trimmedCorrect = question.correctForm.trim().toLowerCase();
@@ -549,7 +568,7 @@ export function checkMultiStepForm(
 	for (const form of acceptedForms) {
 		const strippedForm = stripDiacritics(form.trim().toLowerCase());
 		if (strippedUser === strippedForm) {
-			return { correct: true, nearMiss: true };
+			return { correct: nearMissIsCorrect(level), nearMiss: true };
 		}
 	}
 
@@ -599,14 +618,28 @@ export function applyPrepositionVoicing(template: string, filledForm: string): s
 		return false;
 	}
 
-	// v -> ve: before v, f, or consonant clusters starting with those + sp/st/sk/šk/zd/zn
+	// v -> ve: before v, f, or consonant clusters starting with those + sp/st/sk/šk/zd/zn/mn/jm
 	function needsVe(): boolean {
 		if (firstChar === 'v' || firstChar === 'f') return true;
 		if (isCluster) {
 			if (
-				['sp', 'st', 'sk', 'šk', 'zd', 'zn', 'dn', 'dv', 'sv', 'šp', 'št', 'ct', 'čt'].some(
-					(cl) => firstTwo === cl
-				)
+				[
+					'sp',
+					'st',
+					'sk',
+					'šk',
+					'zd',
+					'zn',
+					'dn',
+					'dv',
+					'sv',
+					'šp',
+					'št',
+					'ct',
+					'čt',
+					'mn',
+					'jm'
+				].some((cl) => firstTwo === cl)
 			)
 				return true;
 		}

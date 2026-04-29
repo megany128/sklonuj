@@ -1,4 +1,21 @@
 {
+	"sekretář": {
+		"pl": [
+			"sekretáři",
+			"sekretářů",
+			"sekretářům",
+			"sekretáře",
+			"sekretáři",
+			"sekretářích",
+			"sekretáři"
+		]
+	},
+	"manžel": {
+		"sg": ["manžel", "manžela", "manželovi", "manžela", "manželi", "manželovi", "manželem"]
+	},
+	"kořen": {
+		"sg": ["kořen", "kořene", "kořenu", "kořen", "kořeni", "kořeni", "kořenem"]
+	},
 	"dítě": {
 		"pl": ["děti", "dětí", "dětem", "děti", "děti", "dětech", "dětmi"]
 	},

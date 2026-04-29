@@ -360,18 +360,6 @@
 		"formContext": "prep"
 	},
 	{
-		"id": "pt_031",
-		"template": "Viděl jsem ___.",
-		"requiredCase": "acc",
-		"number": "sg",
-		"trigger": "vidět + accusative",
-		"why": "The verb 'vidět' (to see) takes a direct object in the accusative case.",
-		"difficulty": "A1",
-		"pronounCategory": "personal",
-		"requiredPronoun": "ono",
-		"formContext": "bare"
-	},
-	{
 		"id": "pt_032",
 		"template": "Mluvili jsme o ___.",
 		"requiredCase": "loc",
@@ -394,18 +382,6 @@
 		"pronounCategory": "personal",
 		"requiredPronoun": "ono",
 		"formContext": "prep"
-	},
-	{
-		"id": "pt_034",
-		"template": "Dej ___ to.",
-		"requiredCase": "dat",
-		"number": "sg",
-		"trigger": "dát + dative",
-		"why": "The verb 'dát' (to give) takes an indirect object in the dative case.",
-		"difficulty": "A1",
-		"pronounCategory": "personal",
-		"requiredPronoun": "ono",
-		"formContext": "bare"
 	},
 	{
 		"id": "pt_035",
@@ -775,30 +751,6 @@
 		"trigger": "o + locative (reflexive)",
 		"why": "The preposition 'o' (about) requires the locative form 'sobě' for the reflexive.",
 		"difficulty": "B1",
-		"pronounCategory": "personal",
-		"requiredPronoun": "se",
-		"formContext": "prep"
-	},
-	{
-		"id": "pt_079",
-		"template": "Odešel od ___.",
-		"requiredCase": "gen",
-		"number": "sg",
-		"trigger": "od + genitive (reflexive)",
-		"why": "The preposition 'od' (from) requires the genitive form 'sebe' for the reflexive.",
-		"difficulty": "A2",
-		"pronounCategory": "personal",
-		"requiredPronoun": "se",
-		"formContext": "prep"
-	},
-	{
-		"id": "pt_080",
-		"template": "Nebyl u ___ doma.",
-		"requiredCase": "gen",
-		"number": "sg",
-		"trigger": "u + genitive (reflexive)",
-		"why": "The preposition 'u' (at) requires the genitive form 'sebe' for the reflexive.",
-		"difficulty": "A2",
 		"pronounCategory": "personal",
 		"requiredPronoun": "se",
 		"formContext": "prep"

@@ -47089,7 +47089,7 @@
 	},
 	{
 		"lemma": "kakao",
-		"translation": "cocoa powder (powder from cocoa solids)",
+		"translation": "cocoa",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -47351,7 +47351,7 @@
 	},
 	{
 		"lemma": "bratranec",
-		"translation": "cousin, male first cousin (son of a person's uncle or aunt)",
+		"translation": "cousin (male)",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
@@ -47555,7 +47555,7 @@
 	},
 	{
 		"lemma": "paní",
-		"translation": "Mrs",
+		"translation": "lady, Mrs., madam",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -47685,7 +47685,7 @@
 	},
 	{
 		"lemma": "prezidentka",
-		"translation": "female equivalent of prezident (“president”)",
+		"translation": "president (female)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -47801,7 +47801,7 @@
 	},
 	{
 		"lemma": "sekretář",
-		"translation": "secretary (person keeping records)",
+		"translation": "secretary",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
@@ -47958,7 +47958,7 @@
 	},
 	{
 		"lemma": "vegetariánka",
-		"translation": "female equivalent of vegetarián (“vegetarian”)",
+		"translation": "vegetarian (female)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48915,7 +48915,7 @@
 	},
 	{
 		"lemma": "drogerie",
-		"translation": "a retail store selling cosmetics and cleaning products",
+		"translation": "drugstore (toiletries, household goods)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -49379,7 +49379,7 @@
 	},
 	{
 		"lemma": "pepř",
-		"translation": "pepper, a plant of the family Piperaceae",
+		"translation": "pepper (spice)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -50351,7 +50351,7 @@
 	},
 	{
 		"lemma": "rolák",
-		"translation": "turtleneck collar (US), turtleneck (US), polo-neck (UK)",
+		"translation": "turtleneck",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -50390,7 +50390,7 @@
 	},
 	{
 		"lemma": "citrón",
-		"translation": "alternative form of citron (“lemon”)",
+		"translation": "lemon",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",

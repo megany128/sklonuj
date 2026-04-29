@@ -21,18 +21,19 @@
 			{ "prep": "blízko", "meaning": "near", "example": "blízko školy" },
 			{ "prep": "uprostřed", "meaning": "in the middle of", "example": "uprostřed lesa" },
 			{ "prep": "během", "meaning": "during", "example": "během dne" },
-			{ "prep": "mimo", "meaning": "outside of", "example": "mimo město" },
 			{ "prep": "místo", "meaning": "instead of", "example": "místo bratra" },
-			{ "prep": "kromě", "meaning": "except, besides", "example": "kromě mě" }
+			{ "prep": "kromě", "meaning": "except, besides", "example": "kromě bratra" }
 		]
 	},
 	"dat": {
 		"name": "Dative (3. pád)",
-		"function": "The indirect object case — the person receiving something or benefiting from an action. Used with k/ke.",
+		"function": "The indirect object case — the person receiving something or benefiting from an action. Used with k/ke, proti, kvůli, díky, naproti.",
 		"question": "Komu? Čemu? (To whom? To what?)",
 		"prepositions": [
 			{ "prep": "k/ke", "meaning": "towards, to", "example": "k domu" },
+			{ "prep": "proti", "meaning": "against, opposite", "example": "proti větru" },
 			{ "prep": "kvůli", "meaning": "because of", "example": "kvůli práci" },
+			{ "prep": "díky", "meaning": "thanks to", "example": "díky tobě" },
 			{ "prep": "naproti", "meaning": "opposite", "example": "naproti škole" },
 			{ "prep": "navzdory", "meaning": "despite", "example": "navzdory počasí" },
 			{ "prep": "vůči", "meaning": "towards, regarding", "example": "vůči lidem" }
@@ -47,14 +48,14 @@
 			{ "prep": "pro", "meaning": "for", "example": "pro bratra" },
 			{ "prep": "přes", "meaning": "across, over", "example": "přes most" },
 			{ "prep": "za", "meaning": "behind (direction)", "example": "za dům" },
-			{ "prep": "o", "meaning": "about (interest)", "example": "o historii" },
+			{ "prep": "o", "meaning": "about (interest, request)", "example": "prosit o radu" },
 			{ "prep": "mimo", "meaning": "past, outside", "example": "mimo město" }
 		]
 	},
 	"voc": {
 		"name": "Vocative (5. pád)",
-		"function": "Used for direct address — calling someone by name or title. The only case not governed by prepositions.",
-		"question": "Used when calling: 'Petře! Maminko! Pane!'",
+		"function": "Used for direct address — calling someone by name or title (e.g. 'Petře!', 'Maminko!', 'Pane!'). The only case not governed by prepositions.",
+		"question": "— (no question; used for calling)",
 		"prepositions": []
 	},
 	"loc": {
@@ -71,7 +72,7 @@
 	},
 	"ins": {
 		"name": "Instrumental (7. pád)",
-		"function": "Expresses the means or instrument of action, accompaniment (with), or location behind/under/above. Also used for a transient role with 'stát se' (to become) and in older/formal usage with 'být' for professions — modern Czech normally uses the nominative ('Jsem učitel').",
+		"function": "Expresses the means or instrument of action, accompaniment (with), or location behind/under/above. Also obligatory with 'stát se' (to become) to mark the resulting role: 'Stal se lékařem'. With 'být', the instrumental marks a role/function in formal or written register ('Byl učitelem'); modern colloquial Czech prefers the nominative when 'být' equates two nouns ('Jsem učitel'). Other verbs taking the role-instrumental: zůstat, jmenovat, zvolit.",
 		"question": "Kým? Čím? (By whom? With what?)",
 		"prepositions": [
 			{ "prep": "s/se", "meaning": "with", "example": "se sestrou" },
