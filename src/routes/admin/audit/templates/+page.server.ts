@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { createAdminWriteClient, requireAdmin } from '$lib/server/admin';
 import { getAllRenderedTemplates } from '$lib/server/template-review';
-import type { ReviewStatus, TemplateType } from '$lib/server/template-review';
 import type { Case, Difficulty } from '$lib/types';
 import type { PageServerLoad } from './$types';
 import {
@@ -15,7 +14,15 @@ import {
 	isTemplateType
 } from './types';
 
-const CASE_SET: ReadonlySet<string> = new Set<Case>(['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins']);
+const CASE_SET: ReadonlySet<string> = new Set<Case>([
+	'nom',
+	'gen',
+	'dat',
+	'acc',
+	'voc',
+	'loc',
+	'ins'
+]);
 const DIFFICULTY_SET: ReadonlySet<string> = new Set<Difficulty>(['A1', 'A2', 'B1', 'B2']);
 const TYPE_FILTER_SET: ReadonlySet<string> = new Set<string>(TEMPLATE_TYPE_FILTERS);
 const REVIEW_FILTER_SET: ReadonlySet<string> = new Set<string>(REVIEW_FILTER_VALUES);
@@ -75,8 +82,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 	const caseFilterRaw = url.searchParams.get('case') ?? 'all';
 	const caseFilter = caseFilterRaw === 'all' || isCase(caseFilterRaw) ? caseFilterRaw : 'all';
 	const diffFilterRaw = url.searchParams.get('difficulty') ?? 'all';
-	const diffFilter =
-		diffFilterRaw === 'all' || isDifficulty(diffFilterRaw) ? diffFilterRaw : 'all';
+	const diffFilter = diffFilterRaw === 'all' || isDifficulty(diffFilterRaw) ? diffFilterRaw : 'all';
 	const reviewFilter = parseReviewFilter(url.searchParams.get('review'));
 
 	const adminClient = createAdminWriteClient();
