@@ -15,7 +15,8 @@
 		"format:check": "prettier --check .",
 		"test:unit": "vitest",
 		"test": "vitest --run",
-		"tts:generate": "python3 scripts/generate_tts.py"
+		"tts:generate": "python3 scripts/generate_tts.py",
+		"audit:templates": "tsx scripts/dump_templates_for_review.ts"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
@@ -41,6 +42,7 @@
 		"svelte": "^5.51.0",
 		"svelte-check": "^4.4.2",
 		"tailwindcss": "^4.2.1",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.54.0",
 		"vite": "^7.3.1",
