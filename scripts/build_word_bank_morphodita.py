@@ -152,11 +152,21 @@ def load_meta_csv(path: Path) -> dict[str, dict]:
     return meta
 
 
-def load_form_overrides(path: Path) -> dict[str, dict[str, list[str]]]:
+def load_form_overrides(path: Path) -> dict[str, dict[str, object]]:
     """
     Load manual form overrides for irregular nouns.
 
-    File format: JSON object mapping lemma -> {"sg": [...], "pl": [...]}
+    File format: JSON object mapping lemma -> override spec. Supported keys:
+
+      - "sg" / "pl": full 7-element primary array (replaces MorphoDiTa output
+        for that number; also clears MorphoDiTa-generated variant forms for
+        that number).
+      - "remove_variants_sg" / "remove_variants_pl": list of case indices
+        (0=nom..6=ins) whose MorphoDiTa-generated variants should be dropped.
+        Use this to prune wrong variant entries (e.g. spurious masc-animate
+        plural endings on inanimate nouns) without overriding the primary
+        array.
+
     Either key can be omitted to use MorphoDiTa forms for that number.
     """
     if not path.exists():
@@ -626,6 +636,15 @@ def main() -> int:
             sg = overrides["sg"]
         if "pl" in overrides:
             pl = overrides["pl"]
+
+        # Prune specific variant-form entries that MorphoDiTa generates
+        # incorrectly for this lemma (e.g. animate-style plural on an inanimate
+        # noun). Indices reference the case order [nom, gen, dat, acc, voc,
+        # loc, ins].
+        for idx in overrides.get("remove_variants_sg", []) or []:
+            variant_sg.pop(int(idx), None)
+        for idx in overrides.get("remove_variants_pl", []) or []:
+            variant_pl.pop(int(idx), None)
 
         # Get metadata (manual override > wiktionary > defaults)
         m = meta.get(lemma, {})

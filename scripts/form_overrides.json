@@ -129,6 +129,12 @@
 		"sg": ["sníh", "sněhu", "sněhu", "sníh", "sněhu", "sněhu", "sněhem"],
 		"pl": ["sněhy", "sněhů", "sněhům", "sněhy", "sněhy", "snězích", "sněhy"]
 	},
+	"roh": {
+		"remove_variants_sg": [3]
+	},
+	"hrob": {
+		"remove_variants_pl": [0]
+	},
 	"křen": {
 		"sg": ["křen", "křenu", "křenu", "křen", "křene", "křenu", "křenem"],
 		"pl": ["křeny", "křenů", "křenům", "křeny", "křeny", "křenech", "křeny"]

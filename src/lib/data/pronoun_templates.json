@@ -429,7 +429,7 @@
 		"difficulty": "A1",
 		"pronounCategory": "personal",
 		"requiredPronoun": "my",
-		"formContext": "either"
+		"formContext": "bare"
 	},
 	{
 		"id": "pt_039",
@@ -441,7 +441,7 @@
 		"difficulty": "A1",
 		"pronounCategory": "personal",
 		"requiredPronoun": "my",
-		"formContext": "either"
+		"formContext": "bare"
 	},
 	{
 		"id": "pt_040",
@@ -513,7 +513,7 @@
 		"difficulty": "A1",
 		"pronounCategory": "personal",
 		"requiredPronoun": "vy",
-		"formContext": "either"
+		"formContext": "bare"
 	},
 	{
 		"id": "pt_046",
@@ -525,7 +525,7 @@
 		"difficulty": "A1",
 		"pronounCategory": "personal",
 		"requiredPronoun": "vy",
-		"formContext": "either"
+		"formContext": "bare"
 	},
 	{
 		"id": "pt_047",
@@ -585,7 +585,7 @@
 		"difficulty": "A1",
 		"pronounCategory": "personal",
 		"requiredPronoun": "vy",
-		"formContext": "either"
+		"formContext": "bare"
 	},
 	{
 		"id": "pt_052",
@@ -849,7 +849,7 @@
 		"difficulty": "A1",
 		"pronounCategory": "personal",
 		"requiredPronoun": "my",
-		"formContext": "either"
+		"formContext": "bare"
 	},
 	{
 		"id": "pt_074",

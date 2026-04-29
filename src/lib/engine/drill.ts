@@ -485,7 +485,10 @@ export function checkAnswer(
 		}
 	}
 
-	// Check near-miss (diacritics only) against any accepted form
+	// Check near-miss (diacritics only) against any accepted form. Run this
+	// before accidental-case so a typo on the right answer (e.g. "dome" for
+	// loc-sg "domě") is preferred over an accidental match against an
+	// unrelated form (in this example "dome" also happens to be voc-sg).
 	const strippedUser = stripDiacritics(trimmedUser);
 	for (const form of acceptedForms) {
 		const strippedForm = stripDiacritics(form.trim().toLowerCase());
@@ -619,6 +622,7 @@ export function applyPrepositionVoicing(template: string, filledForm: string): s
 	}
 
 	// v -> ve: before v, f, or consonant clusters starting with those + sp/st/sk/šk/zd/zn/mn/jm
+	// Also covers lexicalized cases: "ve městě" (mě-), "ve všech" (vš-), "ve vzduchu" (vz-).
 	function needsVe(): boolean {
 		if (firstChar === 'v' || firstChar === 'f') return true;
 		if (isCluster) {
@@ -638,7 +642,10 @@ export function applyPrepositionVoicing(template: string, filledForm: string): s
 					'ct',
 					'čt',
 					'mn',
-					'jm'
+					'jm',
+					'mě',
+					'vš',
+					'vz'
 				].some((cl) => firstTwo === cl)
 			)
 				return true;

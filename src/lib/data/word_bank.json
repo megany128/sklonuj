@@ -9296,9 +9296,6 @@
 			"pl": ["rohy", "rohů", "rohům", "rohy", "rohy", "rozích", "rohy"]
 		},
 		"variantForms": {
-			"sg": {
-				"3": ["roha"]
-			},
 			"pl": {
 				"5": ["rohách"]
 			}
@@ -17988,9 +17985,6 @@
 		"variantForms": {
 			"sg": {
 				"5": ["hrobu"]
-			},
-			"pl": {
-				"0": ["hrobové"]
 			}
 		}
 	},

@@ -160,7 +160,7 @@
 		"translation": "young",
 		"difficulty": "A1",
 		"paradigmType": "hard",
-		"categories": ["common", "person"],
+		"categories": ["common", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["mladý", "mladého", "mladému", "mladého", "mladý", "mladém", "mladým"],
@@ -394,7 +394,7 @@
 		"translation": "red",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "object"],
+		"categories": ["color", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["červený", "červeného", "červenému", "červeného", "červený", "červeném", "červeným"],
@@ -420,7 +420,7 @@
 		"translation": "blue",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "object"],
+		"categories": ["color", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["modrý", "modrého", "modrému", "modrého", "modrý", "modrém", "modrým"],
@@ -446,7 +446,7 @@
 		"translation": "green",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "object"],
+		"categories": ["color", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["zelený", "zeleného", "zelenému", "zeleného", "zelený", "zeleném", "zeleným"],
@@ -472,7 +472,7 @@
 		"translation": "white",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "object"],
+		"categories": ["color", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["bílý", "bílého", "bílému", "bílého", "bílý", "bílém", "bílým"],
@@ -498,7 +498,7 @@
 		"translation": "black",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["color", "object"],
+		"categories": ["color", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["černý", "černého", "černému", "černého", "černý", "černém", "černým"],
@@ -1080,7 +1080,7 @@
 		"translation": "rich",
 		"difficulty": "B1",
 		"paradigmType": "hard",
-		"categories": ["common", "person"],
+		"categories": ["common", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["bohatý", "bohatého", "bohatému", "bohatého", "bohatý", "bohatém", "bohatým"],
@@ -1106,7 +1106,7 @@
 		"translation": "poor (lacking money)",
 		"difficulty": "B1",
 		"paradigmType": "hard",
-		"categories": ["common", "person"],
+		"categories": ["common", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["chudý", "chudého", "chudému", "chudého", "chudý", "chudém", "chudým"],
@@ -1460,7 +1460,7 @@
 		"translation": "healthy (enjoying health)",
 		"difficulty": "B1",
 		"paradigmType": "hard",
-		"categories": ["common", "person"],
+		"categories": ["common", "universal"],
 		"forms": {
 			"m_anim": {
 				"sg": ["zdravý", "zdravého", "zdravému", "zdravého", "zdravý", "zdravém", "zdravým"],
@@ -2384,7 +2384,7 @@
 		"translation": "usual",
 		"difficulty": "B2",
 		"paradigmType": "hard",
-		"categories": ["common", "universal"],
+		"categories": ["common", "object"],
 		"forms": {
 			"m_anim": {
 				"sg": ["obvyklý", "obvyklého", "obvyklému", "obvyklého", "obvyklý", "obvyklém", "obvyklým"],

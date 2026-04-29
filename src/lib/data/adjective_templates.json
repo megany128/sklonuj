@@ -273,7 +273,7 @@
 		"requiredAnimate": true,
 		"why": "Direct address takes vocative. The adjective agrees with 'pane' (masc. animate) in vocative singular.",
 		"difficulty": "B2",
-		"adjectiveCategories": ["person"]
+		"adjectiveCategories": ["universal", "person"]
 	},
 	{
 		"id": "adj_ins_sg_m_026",
@@ -309,7 +309,7 @@
 		"requiredAnimate": true,
 		"why": "'Přátelé' is vocative plural — the adjective must match in vocative plural masculine animate.",
 		"difficulty": "B2",
-		"adjectiveCategories": ["person"]
+		"adjectiveCategories": ["universal", "person"]
 	},
 	{
 		"id": "adj_acc_sg_manim_024",
@@ -335,7 +335,6 @@
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"]
 	},
-
 	{
 		"id": "adj_a1_nom_sg_minanim_001",
 		"template": "To je ___ stůl.",
@@ -828,7 +827,6 @@
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "object"]
 	},
-
 	{
 		"id": "adj_b1_gen_sg_minanim_001",
 		"template": "Je to blízko ___ lesa.",
@@ -999,13 +997,13 @@
 	},
 	{
 		"id": "adj_b1_ins_pl_n_001",
-		"template": "Díváme se za ___ okny.",
+		"template": "Sedíme za ___ okny.",
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "za",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'Za' (behind) takes instrumental. The adjective agrees with 'okny' (neuter plural) in instrumental.",
+		"why": "Sedíme za + ins of plural neuter location.",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "object"]
 	},
@@ -1055,7 +1053,7 @@
 		"requiredAnimate": true,
 		"why": "Direct address takes vocative. The adjective agrees with 'paní' (feminine) in vocative singular.",
 		"difficulty": "B2",
-		"adjectiveCategories": ["person"]
+		"adjectiveCategories": ["universal", "person"]
 	},
 	{
 		"id": "adj_b2_voc_sg_n_001",
@@ -1067,7 +1065,7 @@
 		"requiredAnimate": true,
 		"why": "Direct address takes vocative. The adjective agrees with 'dítě' (neuter) in vocative singular.",
 		"difficulty": "B2",
-		"adjectiveCategories": ["person"]
+		"adjectiveCategories": ["universal", "person"]
 	},
 	{
 		"id": "adj_b2_voc_pl_f_001",
@@ -1079,7 +1077,7 @@
 		"requiredAnimate": true,
 		"why": "Direct address takes vocative. The adjective agrees with 'dámy' (feminine plural) in vocative.",
 		"difficulty": "B2",
-		"adjectiveCategories": ["person"]
+		"adjectiveCategories": ["universal", "person"]
 	},
 	{
 		"id": "adj_b2_nom_sg_manim_001",

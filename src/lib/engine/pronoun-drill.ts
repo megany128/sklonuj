@@ -306,7 +306,10 @@ export function generatePronounFormProduction(
 		wordCategory: 'pronoun',
 		pronoun,
 		acceptedAnswers,
-		expectedFormContext: 'either'
+		// Form-production placeholder template has no preposition, so only the
+		// bare/clitic form is correct. Keep this in sync with `acceptedAnswers`,
+		// which is also bare-only.
+		expectedFormContext: 'bare'
 	};
 }
 

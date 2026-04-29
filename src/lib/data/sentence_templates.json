@@ -946,13 +946,13 @@
 		"difficulty": "B1"
 	},
 	{
-		"id": "gen_mimo_088",
+		"id": "acc_mimo_088",
 		"template": "Jdeme mimo ___.",
 		"lemmaCategory": "places",
-		"requiredCase": "gen",
+		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "mimo",
-		"why": "'Mimo' (past/outside of) always takes the genitive case.",
+		"why": "'Mimo' (past/outside of) takes the accusative case in modern Czech (the older genitive is now bookish).",
 		"difficulty": "B1"
 	},
 	{
