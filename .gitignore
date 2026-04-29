@@ -30,8 +30,8 @@ src/lib/data/KzK2/
 # Internal docs
 ROADMAP.md
 
-# Local audit dumps
-audit/
+# Local audit dumps (root only — don't ignore src/routes/admin/audit)
+/audit/
 
 # QA artifacts (screenshots/videos from dogfood runs)
 dogfood-output/screenshots*/
