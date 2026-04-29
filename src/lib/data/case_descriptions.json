@@ -71,7 +71,7 @@
 	},
 	"ins": {
 		"name": "Instrumental (7. pád)",
-		"function": "Expresses the means or instrument of action, accompaniment (with), or location behind/under/above. Used for professions with 'být'.",
+		"function": "Expresses the means or instrument of action, accompaniment (with), or location behind/under/above. Also used for a transient role with 'stát se' (to become) and in older/formal usage with 'být' for professions — modern Czech normally uses the nominative ('Jsem učitel').",
 		"question": "Kým? Čím? (By whom? With what?)",
 		"prepositions": [
 			{ "prep": "s/se", "meaning": "with", "example": "se sestrou" },

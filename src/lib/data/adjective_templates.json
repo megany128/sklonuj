@@ -754,7 +754,7 @@
 		"requiredAnimate": true,
 		"why": "Indirect object takes dative. The adjective agrees with 'psům' (masc. animate plural) in dative.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "object"]
+		"adjectiveCategories": ["universal", "person"]
 	},
 	{
 		"id": "adj_a2_dat_pl_n_001",

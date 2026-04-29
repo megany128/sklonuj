@@ -2687,24 +2687,24 @@
 	},
 	{
 		"id": "voc_pane_250",
-		"template": "Vážený ___.",
-		"lemmaCategory": "people",
+		"template": "Vážený pane ___,",
+		"lemmaCategory": "profession",
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Formal letter salutations use the vocative case — 'Vážený pane' (Dear Sir).",
+		"why": "Formal letter salutations use the vocative case — 'Vážený pane řediteli' (Dear Director). The title after 'pane' is also in the vocative.",
 		"difficulty": "A2"
 	},
 	{
 		"id": "voc_pani_251",
-		"template": "Vážená ___.",
-		"lemmaCategory": "people",
+		"template": "Vážená paní ___,",
+		"lemmaCategory": "profession",
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Formal letter salutations use the vocative case — 'Vážená paní' (Dear Madam).",
+		"why": "Formal letter salutations use the vocative case — 'Vážená paní doktorko' (Dear Doctor). The title after 'paní' is also in the vocative.",
 		"difficulty": "A2"
 	},
 	{

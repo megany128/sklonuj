@@ -277,14 +277,17 @@ export function generatePronounFormProduction(
 	const prepForms = splitForms(form.prep);
 	const bareForms = splitForms(form.bare);
 
-	if (prepForms.length === 0 && bareForms.length === 0) return null;
+	// Skip standalone form-production when no bare form exists (e.g. locative, and
+	// instrumental for personal pronouns). The prep-only forms (mně, tobě, něm, ní,
+	// mnou, ...) are ungrammatical without a preposition; presenting them as a
+	// standalone answer would teach learners to use n-forms / long forms in
+	// contexts where they cannot occur.
+	if (bareForms.length === 0) return null;
 
-	// For bare form recall (no preposition), prefer the bare/non-prepositional form as primary,
-	// since the prep forms are post-prepositional (n-forms) and would be misleading without context.
-	// Fall back to prep form if no bare form exists (e.g. locative, instrumental for some pronouns).
-	const correctAnswer = bareForms.length > 0 ? bareForms[0] : prepForms[0];
+	const correctAnswer = bareForms[0];
 
-	// acceptedAnswers includes all prep and bare forms
+	// acceptedAnswers includes all prep and bare forms (the engine still accepts
+	// bank-listed prep variants in case the learner types one).
 	const acceptedAnswers = [...prepForms, ...bareForms];
 
 	return {

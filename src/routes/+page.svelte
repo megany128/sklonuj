@@ -2262,10 +2262,18 @@
 			const word = weightedRandom(validWords, prog, case_, number_);
 			const genderKey = getAdjectiveGenderKey(word);
 
-			// Filter adjectives that have a valid form for this combination
-			const validAdjs = adjCandidates.filter(
-				(a) => getAdjectiveForm(a, genderKey, case_, number_) !== null
-			);
+			// Filter adjectives that have a valid form for this combination,
+			// then narrow by semantic compatibility with the noun (mirrors the
+			// multi_step pairing logic so form-production prompts don't surface
+			// awkward pairings like "studený učitel" or "jarní pes").
+			const PERSON_CATEGORIES = ['people', 'family', 'profession', 'nationality', 'animals'];
+			const isPersonNoun = word.categories.some((c) => PERSON_CATEGORIES.includes(c));
+			const validAdjs = adjCandidates.filter((a) => {
+				if (getAdjectiveForm(a, genderKey, case_, number_) === null) return false;
+				return a.categories.some(
+					(c) => c === 'universal' || (isPersonNoun ? c === 'person' : c === 'object')
+				);
+			});
 			if (validAdjs.length === 0) return null;
 			const adj = weightedRandomAdjective(validAdjs, prog, case_, number_, word);
 			return generateAdjectiveFormProduction(adj, genderKey, case_, number_, word);
@@ -2571,8 +2579,16 @@
 								// Czech grammatical animacy is only marked on masculine nouns, so
 								// `word.animate` is false for feminine/neuter humans (matka, žena,
 								// dítě). Use semantic categories instead to avoid pairing e.g.
-								// "studená matka" or "jarní žena".
-								const PERSON_CATEGORIES = ['people', 'family', 'profession', 'nationality'];
+								// "studená matka" or "jarní žena". Animals are grouped with people
+								// here because pet-style adjectives ("young", "sick", "hungry") fit
+								// dogs/cats far better than object-style ones ("blue", "spring").
+								const PERSON_CATEGORIES = [
+									'people',
+									'family',
+									'profession',
+									'nationality',
+									'animals'
+								];
 								const isPersonNoun = word.categories.some((c) => PERSON_CATEGORIES.includes(c));
 								const compatAdjs = adjCands.filter((a) =>
 									a.categories.some(
