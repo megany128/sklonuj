@@ -7257,7 +7257,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc", "profession"],
+		"categories": ["misc"],
 		"forms": {
 			"sg": ["model", "modelu", "modelu", "model", "modele", "modelu", "modelem"],
 			"pl": ["modely", "modelů", "modelům", "modely", "modely", "modelech", "modely"]

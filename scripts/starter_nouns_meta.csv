@@ -423,7 +423,7 @@ velikost,size,,A1,misc
 leden,January,,A1,time
 nástroj,tool,,A2,objects
 obor,profession,,A1,misc
-model,model,,A2,"misc,profession"
+model,model,,A2,misc
 styl,style,,A1,misc
 kámen,stone,,A1,nature
 jednotka,unit,,A1,misc

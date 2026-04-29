@@ -939,9 +939,8 @@
 					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 						{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
 								class="font-semibold {CASE_COLORS[question.correctCase].text}"
-								>{question.correctAdjectiveForm}</span
-							>
-						{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
+								>{question.correctAdjectiveForm}&nbsp;</span
+							>{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
 							>{question.correctForm}</span
 						>{sentenceParts.after}
 					</p>

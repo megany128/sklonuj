@@ -2555,11 +2555,14 @@
 					const showCaseStep = effectiveEnabledCases.length > 1;
 					const msq = generateMultiStepQuestion(word, template, showCaseStep);
 					if (msq) {
-						// Attach an adjective step if content decision was adjective, or randomly based on word mode
+						// Attach an adjective step if content decision was adjective, or randomly based on word mode.
+						// Skip vocative — adjective vocative forms are identical to nominative (no useful drill),
+						// and random descriptive adjectives produce awkward direct address (e.g. "malá profesorko").
 						const wantAdj =
-							contentDecision === 'adjective' ||
-							effectiveWordMode === 'adjectives' ||
-							(effectiveWordMode === 'both' && Math.random() < 0.5);
+							template.requiredCase !== 'voc' &&
+							(contentDecision === 'adjective' ||
+								effectiveWordMode === 'adjectives' ||
+								(effectiveWordMode === 'both' && Math.random() < 0.5));
 						if (wantAdj) {
 							const levelConfig = curriculum[prog.level];
 							if (levelConfig.adjectives_unlocked) {

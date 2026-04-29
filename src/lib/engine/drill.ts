@@ -90,6 +90,7 @@ interface RawTemplateEntry {
 	template: string;
 	lemmaCategory: string;
 	semanticTags?: string[];
+	excludesCategories?: string[];
 	requiredCase: string;
 	number: string;
 	trigger: string;
@@ -200,6 +201,9 @@ export function loadTemplates(): SentenceTemplate[] {
 		if (entry.requiredGender && isGender(entry.requiredGender)) {
 			mapped.requiredGender = entry.requiredGender;
 		}
+		if (entry.excludesCategories && entry.excludesCategories.length > 0) {
+			mapped.excludesCategories = entry.excludesCategories;
+		}
 		return mapped;
 	});
 	return cachedTemplates;
@@ -254,6 +258,12 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	// If template requires a specific gender, filter by it.
 	if (template.requiredGender) {
 		filtered = filtered.filter((word) => word.gender === template.requiredGender);
+	}
+
+	// Exclude words whose categories overlap with the template's excludesCategories.
+	const excluded = template.excludesCategories;
+	if (excluded && excluded.length > 0) {
+		filtered = filtered.filter((word) => !word.categories.some((c) => excluded.includes(c)));
 	}
 
 	return filtered;

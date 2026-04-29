@@ -148,6 +148,8 @@ export interface SentenceTemplate {
 	template: string;
 	lemmaCategory: string;
 	semanticTags?: string[];
+	/** Words with any of these categories are excluded as candidates. */
+	excludesCategories?: string[];
 	requiredCase: Case;
 	number: Number_;
 	trigger: string;
