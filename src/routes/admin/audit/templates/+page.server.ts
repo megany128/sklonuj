@@ -7,6 +7,7 @@ import type { PageServerLoad } from './$types';
 import {
 	TEMPLATE_TYPE_FILTERS,
 	REVIEW_FILTER_VALUES,
+	type GroupVm,
 	type PageVm,
 	type ReviewFilter,
 	type ReviewRow,
@@ -14,6 +15,46 @@ import {
 	isReviewStatus,
 	isTemplateType
 } from './types';
+import type { RenderedTemplate, TemplateType } from '$lib/server/template-review';
+
+const CASE_ORDER: Record<Case, number> = {
+	nom: 0,
+	gen: 1,
+	dat: 2,
+	acc: 3,
+	voc: 4,
+	loc: 5,
+	ins: 6
+};
+const NUMBER_ORDER: Record<'sg' | 'pl', number> = { sg: 0, pl: 1 };
+const DIFFICULTY_ORDER: Record<Difficulty, number> = { A1: 0, A2: 1, B1: 2, B2: 3 };
+const TYPE_ORDER: Record<TemplateType, number> = { sentence: 0, adjective: 1, pronoun: 2 };
+
+/**
+ * Group key + label for the "what is this template matched to?" axis.
+ * Sentence: lemmaCategory (+ semanticTags as narrowing suffix).
+ * Adjective: adjectiveCategories joined, or 'any' when unconstrained.
+ * Pronoun: pronounCategory ?? lemmaCategory ?? requiredPronoun ?? 'any'.
+ * The label drops the type (rendered as a chip in the UI instead).
+ */
+function getGroupKey(t: RenderedTemplate): { key: string; label: string } {
+	if (t.type === 'sentence') {
+		const base = t.lemmaCategory ?? 'other';
+		const tagSuffix =
+			t.semanticTags && t.semanticTags.length > 0 ? ` · +${t.semanticTags.join('+')}` : '';
+		const label = `${base}${tagSuffix}`;
+		return { key: `sentence::${label}`, label };
+	}
+	if (t.type === 'adjective') {
+		const cats =
+			t.adjectiveCategories && t.adjectiveCategories.length > 0
+				? t.adjectiveCategories.join('+')
+				: 'any adjective';
+		return { key: `adjective::${cats}`, label: cats };
+	}
+	const label = t.pronounCategory ?? t.lemmaCategory ?? t.requiredPronoun ?? 'any pronoun';
+	return { key: `pronoun::${label}`, label };
+}
 
 const CASE_SET: ReadonlySet<string> = new Set<Case>([
 	'nom',
@@ -281,14 +322,73 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 			myReview: myReview ? { status: myReview.status, note: myReview.note } : null,
 			otherReviews,
 			myBlockedLemmas,
-			blockedLemmas
+			blockedLemmas,
+			flagged
 		});
 	}
 
 	totals.shown = rows.length;
 
+	// Bucket filtered rows by semantic-match group key. Sort templates within
+	// each group by case → number → difficulty so a reviewer scanning a single
+	// category reads top-to-bottom in a predictable order.
+	const groupsMap = new Map<string, GroupVm>();
+	for (const row of rows) {
+		const { key, label } = getGroupKey(row.template);
+		let g = groupsMap.get(key);
+		if (!g) {
+			g = {
+				key,
+				label,
+				type: row.template.type,
+				templates: [],
+				counts: {
+					total: 0,
+					unreviewedByMe: 0,
+					flagged: 0,
+					noCandidates: 0,
+					withBlockedLemmas: 0
+				}
+			};
+			groupsMap.set(key, g);
+		}
+		g.templates.push(row);
+		g.counts.total += 1;
+		if (!row.myReview) g.counts.unreviewedByMe += 1;
+		if (row.flagged) g.counts.flagged += 1;
+		if (row.template.candidates.length === 0) g.counts.noCandidates += 1;
+		if (row.blockedLemmas.length > 0) g.counts.withBlockedLemmas += 1;
+	}
+
+	for (const g of groupsMap.values()) {
+		g.templates.sort((a, b) => {
+			const ac = CASE_ORDER[a.template.requiredCase] - CASE_ORDER[b.template.requiredCase];
+			if (ac !== 0) return ac;
+			const an = NUMBER_ORDER[a.template.number] - NUMBER_ORDER[b.template.number];
+			if (an !== 0) return an;
+			const ad = DIFFICULTY_ORDER[a.template.difficulty] - DIFFICULTY_ORDER[b.template.difficulty];
+			if (ad !== 0) return ad;
+			return a.template.id.localeCompare(b.template.id);
+		});
+	}
+
+	// Group sort: type first (sentence → adjective → pronoun), then groups with
+	// outstanding work float up (unreviewed > flagged > no-candidates > done),
+	// then alphabetical by label for determinism.
+	const groups = [...groupsMap.values()].sort((a, b) => {
+		const at = TYPE_ORDER[a.type] - TYPE_ORDER[b.type];
+		if (at !== 0) return at;
+		const aHasWork = a.counts.unreviewedByMe > 0 ? 0 : 1;
+		const bHasWork = b.counts.unreviewedByMe > 0 ? 0 : 1;
+		if (aHasWork !== bHasWork) return aHasWork - bHasWork;
+		const aFlag = a.counts.flagged > 0 ? 0 : 1;
+		const bFlag = b.counts.flagged > 0 ? 0 : 1;
+		if (aFlag !== bFlag) return aFlag - bFlag;
+		return a.label.localeCompare(b.label);
+	});
+
 	const vm: PageVm = {
-		rows,
+		groups,
 		totals,
 		filters: {
 			type: typeFilter,

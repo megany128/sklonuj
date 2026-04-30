@@ -34,6 +34,18 @@ export interface RenderedExample {
 	lemma: string;
 	form: string;
 	filled: string;
+	/** Filled text up to (but not including) the form — used to bold the form in the UI. */
+	before: string;
+	/** Filled text after the form. */
+	after: string;
+	/**
+	 * The lemma's category set, minus the categories the template itself filters
+	 * on. Reviewers see only the *narrowing* sub-tags that distinguish this
+	 * example from the rest of the bucket — e.g. for a template scoped to
+	 * `people`, an `autorita` entry surfaces tags like `abstract` rather than
+	 * re-printing `people`.
+	 */
+	subCategories: string[];
 }
 
 export interface RenderedTemplate {
@@ -61,7 +73,22 @@ export interface RenderedTemplate {
 	 * (template, lemma) pairs as blocks.
 	 */
 	candidates: string[];
+	/**
+	 * Same lemmas as `candidates`, but bucketed by their *narrowing* sub-tag
+	 * combination (template-level filter categories removed). Lets the UI
+	 * render lemmas grouped by sub-category and offer a per-group bulk-block
+	 * action — the primary mechanism for "flag this sub-category for this
+	 * template" feedback. Buckets are ordered largest-first; lemmas inside
+	 * each bucket are alphabetised.
+	 */
+	candidateGroups: CandidateGroup[];
 	examples: RenderedExample[];
+}
+
+export interface CandidateGroup {
+	/** Sorted, alphabetised sub-tag list. Empty array = lemmas with no narrowing tags. */
+	subCategories: string[];
+	lemmas: string[];
 }
 
 interface RawSentenceTemplate {
@@ -390,10 +417,63 @@ function pronounTemplateFilterSet(t: RawPronounTemplate): ReadonlySet<string> {
 
 // ─── Rendering ───────────────────────────────────────────────────────────
 
-function fill(template: string, form: string): string {
-	// Apply preposition voicing first (k -> ke, v -> ve, etc) so reviewers see
-	// the same surface form learners do; then substitute the form into the blank.
-	return applyPrepositionVoicing(template, form).replace('___', form);
+/**
+ * Apply preposition voicing first (k → ke, v → ve, …) so reviewers see the
+ * same surface form learners do, then substitute the form into the blank.
+ * Returns the slices around the substituted form so the UI can bold it
+ * without fragile string-matching on the filled output.
+ */
+function fillParts(
+	template: string,
+	form: string
+): { before: string; after: string; filled: string } {
+	const voiced = applyPrepositionVoicing(template, form);
+	const idx = voiced.indexOf('___');
+	if (idx === -1) {
+		return { before: voiced, after: '', filled: voiced };
+	}
+	const before = voiced.slice(0, idx);
+	const after = voiced.slice(idx + 3);
+	return { before, after, filled: before + form + after };
+}
+
+function subCategoriesFor(
+	categories: readonly string[],
+	templateFilters: ReadonlySet<string>
+): string[] {
+	return [...new Set(categories)]
+		.filter((c) => !templateFilters.has(c))
+		.sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Bucket candidate lemmas by their narrowing sub-tag combination. Mirrors the
+ * bucketing logic in `stratifiedSample` so the dashboard groups match the
+ * example diversity the reviewer already sees. Used by the UI to offer
+ * per-sub-category bulk-block actions ("flag the whole 'abstract' sub-bucket
+ * for this template").
+ */
+function buildCandidateGroups<T>(
+	candidates: T[],
+	getLemma: (item: T) => string,
+	getCategories: (item: T) => readonly string[],
+	templateFilters: ReadonlySet<string>
+): CandidateGroup[] {
+	const buckets = new Map<string, { subCategories: string[]; lemmas: string[] }>();
+	for (const item of candidates) {
+		const sub = subCategoriesFor(getCategories(item), templateFilters);
+		const key = sub.join('|');
+		const existing = buckets.get(key);
+		if (existing) existing.lemmas.push(getLemma(item));
+		else buckets.set(key, { subCategories: sub, lemmas: [getLemma(item)] });
+	}
+	const out = [...buckets.values()];
+	for (const b of out) b.lemmas.sort((a, b) => a.localeCompare(b));
+	out.sort((a, b) => {
+		if (a.lemmas.length !== b.lemmas.length) return b.lemmas.length - a.lemmas.length;
+		return a.subCategories.join('|').localeCompare(b.subCategories.join('|'));
+	});
+	return out;
 }
 
 function renderSentenceTemplate(t: RawSentenceTemplate): RenderedTemplate | null {
@@ -403,16 +483,25 @@ function renderSentenceTemplate(t: RawSentenceTemplate): RenderedTemplate | null
 	const candidates = getSentenceCandidates(t);
 	const caseIdx = CASE_INDEX[t.requiredCase];
 	const num = t.number;
+	const filters = sentenceTemplateFilterSet(t);
 	const sampled = stratifiedSample(
 		candidates,
 		(w) => w.lemma,
 		(w) => w.categories,
-		sentenceTemplateFilterSet(t),
+		filters,
 		MAX_EXAMPLES_PER_TEMPLATE
 	);
 	const examples: RenderedExample[] = sampled.map((w) => {
 		const form = w.forms[num][caseIdx];
-		return { lemma: w.lemma, form, filled: fill(t.template, form) };
+		const parts = fillParts(t.template, form);
+		return {
+			lemma: w.lemma,
+			form,
+			filled: parts.filled,
+			before: parts.before,
+			after: parts.after,
+			subCategories: subCategoriesFor(w.categories, filters)
+		};
 	});
 	const out: RenderedTemplate = {
 		id: t.id,
@@ -425,6 +514,12 @@ function renderSentenceTemplate(t: RawSentenceTemplate): RenderedTemplate | null
 		why: t.why,
 		lemmaCategory: t.lemmaCategory,
 		candidates: candidates.map((w) => w.lemma).sort((a, b) => a.localeCompare(b)),
+		candidateGroups: buildCandidateGroups(
+			candidates,
+			(w) => w.lemma,
+			(w) => w.categories,
+			filters
+		),
 		examples
 	};
 	if (t.semanticTags) out.semanticTags = t.semanticTags;
@@ -442,16 +537,25 @@ function renderAdjectiveTemplate(t: RawAdjectiveTemplate): RenderedTemplate | nu
 	const caseIdx = CASE_INDEX[t.requiredCase];
 	const formKey = adjectiveFormKey(t);
 	const num = t.number;
+	const filters = adjectiveTemplateFilterSet(t);
 	const sampled = stratifiedSample(
 		candidates,
 		(a) => a.lemma,
 		(a) => a.categories,
-		adjectiveTemplateFilterSet(t),
+		filters,
 		MAX_EXAMPLES_PER_TEMPLATE
 	);
 	const examples: RenderedExample[] = sampled.map((a) => {
 		const form = a.forms[formKey][num][caseIdx];
-		return { lemma: a.lemma, form, filled: fill(t.template, form) };
+		const parts = fillParts(t.template, form);
+		return {
+			lemma: a.lemma,
+			form,
+			filled: parts.filled,
+			before: parts.before,
+			after: parts.after,
+			subCategories: subCategoriesFor(a.categories, filters)
+		};
 	});
 	const out: RenderedTemplate = {
 		id: t.id,
@@ -465,6 +569,12 @@ function renderAdjectiveTemplate(t: RawAdjectiveTemplate): RenderedTemplate | nu
 		requiredGender: t.requiredGender,
 		requiredAnimate: t.requiredAnimate,
 		candidates: candidates.map((a) => a.lemma).sort((a, b) => a.localeCompare(b)),
+		candidateGroups: buildCandidateGroups(
+			candidates,
+			(a) => a.lemma,
+			(a) => a.categories,
+			filters
+		),
 		examples
 	};
 	if (t.adjectiveCategories) out.adjectiveCategories = t.adjectiveCategories;
@@ -479,16 +589,25 @@ function renderPronounTemplate(t: RawPronounTemplate): RenderedTemplate | null {
 	const num = t.number;
 	const caseName = t.requiredCase;
 	const formContext = normalizeFormContext(t.formContext);
+	const filters = pronounTemplateFilterSet(t);
 	const sampled = stratifiedSample(
 		candidates,
 		(p) => p.lemma,
 		(p) => p.categories,
-		pronounTemplateFilterSet(t),
+		filters,
 		MAX_EXAMPLES_PER_TEMPLATE
 	);
 	const examples: RenderedExample[] = sampled.map((p) => {
 		const form = pickPronounForm(p, caseName, num, formContext) ?? '';
-		return { lemma: p.lemma, form, filled: fill(t.template, form) };
+		const parts = fillParts(t.template, form);
+		return {
+			lemma: p.lemma,
+			form,
+			filled: parts.filled,
+			before: parts.before,
+			after: parts.after,
+			subCategories: subCategoriesFor(p.categories, filters)
+		};
 	});
 	const out: RenderedTemplate = {
 		id: t.id,
@@ -501,6 +620,12 @@ function renderPronounTemplate(t: RawPronounTemplate): RenderedTemplate | null {
 		why: t.why,
 		formContext,
 		candidates: candidates.map((p) => p.lemma).sort((a, b) => a.localeCompare(b)),
+		candidateGroups: buildCandidateGroups(
+			candidates,
+			(p) => p.lemma,
+			(p) => p.categories,
+			filters
+		),
 		examples
 	};
 	if (t.pronounCategory) out.pronounCategory = t.pronounCategory;

@@ -47,10 +47,33 @@ export interface TemplateRowVm {
 	 * (including the current one). Used to mark chips as struck-through.
 	 */
 	blockedLemmas: string[];
+	/** True if any reviewer (me or other) has set status `needs_fix`/`wrong`. */
+	flagged: boolean;
+}
+
+/**
+ * Groups templates that share a "what is this matched to" key — the semantic
+ * category (`lemmaCategory` / `pronounCategory` / `adjectiveCategories`) is
+ * the primary review unit, since the main review task is verifying the
+ * prompt-to-category match. Group counts drive collapse defaults and bulk
+ * actions.
+ */
+export interface GroupVm {
+	key: string;
+	label: string;
+	type: TemplateType;
+	templates: TemplateRowVm[];
+	counts: {
+		total: number;
+		unreviewedByMe: number;
+		flagged: number;
+		noCandidates: number;
+		withBlockedLemmas: number;
+	};
 }
 
 export interface PageVm {
-	rows: TemplateRowVm[];
+	groups: GroupVm[];
 	totals: {
 		all: number;
 		shown: number;
