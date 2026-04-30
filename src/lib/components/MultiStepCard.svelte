@@ -3,11 +3,19 @@
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import CircleX from '@lucide/svelte/icons/circle-x';
-	import type { Case, Difficulty, MultiStepQuestion, MultiStepResult } from '$lib/types';
+	import type {
+		Case,
+		Difficulty,
+		DrillQuestion,
+		DrillResult,
+		MultiStepQuestion,
+		MultiStepResult
+	} from '$lib/types';
 	import { ALL_CASES, CASE_LABELS, CASE_COLORS, CASE_NUMBER, isParadigm } from '$lib/types';
 	import { applyPrepositionVoicing, checkMultiStepForm } from '$lib/engine/drill';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
+	import ReportMenu from '$lib/components/ReportMenu.svelte';
 
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
@@ -384,6 +392,34 @@
 		}
 	}
 
+	// Synthetic DrillQuestion + DrillResult adapters so we can reuse ReportMenu
+	// (which targets the per-question report flow). MultiStep's report payload
+	// uses the noun branch — adjective info is appended to the report context
+	// when present so triage still has it.
+	let reportQuestion: DrillQuestion = $derived({
+		word: question.word,
+		template: question.template,
+		correctAnswer: question.correctForm,
+		case: question.case,
+		number: question.number,
+		drillType: 'multi_step',
+		wordCategory: 'noun',
+		...(question.adjective ? { adjective: question.adjective } : {})
+	});
+	// Result is only meaningful once the form step has been submitted. Until
+	// then the user can still flag the *prompt* (template / sentence quality)
+	// — ReportMenu accepts a null result and skips the user-answer fields.
+	let reportResult: DrillResult | null = $derived(
+		formSubmitted
+			? {
+					question: reportQuestion,
+					userAnswer: formInput,
+					correct: formCorrect,
+					nearMiss: formNearMiss
+				}
+			: null
+	);
+
 	// Step progress indicator
 	let hasAdjectiveStep = $derived(!!question.adjective && !!question.correctAdjectiveForm);
 	let totalSteps = $derived((question.showCaseStep ? 3 : 2) + (hasAdjectiveStep ? 1 : 0));
@@ -412,6 +448,14 @@
 			role="region"
 			aria-label="Full Analysis Drill"
 		>
+			<div class="absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
+				<ReportMenu
+					question={reportQuestion}
+					result={reportResult}
+					{paradigmNotes}
+					drillType="multi_step"
+				/>
+			</div>
 			<!-- Step progress bar -->
 			{#if currentStep !== 'summary'}
 				<div class="flex items-center justify-center gap-2">

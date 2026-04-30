@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { createAdminWriteClient, requireAdmin } from '$lib/server/admin';
 import { getAllRenderedTemplates } from '$lib/server/template-review';
+import lemmaBlocksData from '$lib/data/lemma_blocks.json';
 import type { Case, Difficulty } from '$lib/types';
 import type { PageServerLoad } from './$types';
 import {
@@ -150,13 +151,97 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 		else reviewsByTemplate.set(key, [r]);
 	}
 
+	// Per-template lemma blocks across all reviewers. Used to render struck-out
+	// chips on the dashboard (and to count templates with at least one block).
+	// We keep two maps: union (for the chip "blocked by someone" state) and
+	// per-current-user (for the chip "blocked by me" state).
+	//
+	// Mirrors the bake script behavior: only honor blocks from reviewers who
+	// are *currently* admins, so the dashboard count matches what
+	// `pnpm audit:bake-blocks` will produce.
+	const [{ data: blocksRaw, error: blocksError }, { data: adminsRaw, error: adminsError }] =
+		await Promise.all([
+			adminClient
+				.from('template_lemma_blocks')
+				.select('template_id, template_type, lemma, reviewer_id'),
+			adminClient.from('profiles').select('id').eq('is_admin', true)
+		]);
+
+	if (blocksError) {
+		console.error('Failed to load template lemma blocks:', blocksError);
+		throw error(500, 'Failed to load template lemma blocks');
+	}
+	if (adminsError) {
+		console.error('Failed to load admin reviewer ids:', adminsError);
+		throw error(500, 'Failed to load admin reviewer ids');
+	}
+
+	const currentAdminIds = new Set<string>();
+	if (Array.isArray(adminsRaw)) {
+		for (const raw of adminsRaw) {
+			if (typeof raw !== 'object' || raw === null) continue;
+			const r = raw as Record<string, unknown>;
+			if (typeof r.id === 'string') currentAdminIds.add(r.id);
+		}
+	}
+
+	const blockedLemmasByTemplate = new Map<string, Set<string>>();
+	const myBlockedLemmasByTemplate = new Map<string, Set<string>>();
+	// Set of `${type}:${id}:${lemma}` triples for the pending-bake diff.
+	const liveBlocks = new Set<string>();
+	if (Array.isArray(blocksRaw)) {
+		for (const raw of blocksRaw) {
+			if (typeof raw !== 'object' || raw === null) continue;
+			const r = raw as Record<string, unknown>;
+			if (typeof r.template_id !== 'string') continue;
+			if (!isTemplateType(r.template_type)) continue;
+			if (typeof r.lemma !== 'string') continue;
+			if (typeof r.reviewer_id !== 'string') continue;
+			if (!currentAdminIds.has(r.reviewer_id)) continue;
+			const key = `${r.template_type}:${r.template_id}`;
+			const all = blockedLemmasByTemplate.get(key);
+			if (all) all.add(r.lemma);
+			else blockedLemmasByTemplate.set(key, new Set([r.lemma]));
+			if (r.reviewer_id === userId) {
+				const mine = myBlockedLemmasByTemplate.get(key);
+				if (mine) mine.add(r.lemma);
+				else myBlockedLemmasByTemplate.set(key, new Set([r.lemma]));
+			}
+			liveBlocks.add(`${r.template_type}:${r.template_id}:${r.lemma}`);
+		}
+	}
+
+	// Compare live (DB) blocks vs the baked JSON snapshot the drill engine
+	// reads. Counts on each side reveal pending adds (in DB, not in JSON =
+	// will appear after `pnpm audit:bake-blocks`) and pending removes (in
+	// JSON, not in DB = a reviewer cleared their block but the bake hasn't
+	// been re-run yet).
+	const bakedSnapshot: Record<
+		'sentence' | 'adjective' | 'pronoun',
+		Record<string, string[]>
+	> = lemmaBlocksData;
+	const bakedBlocks = new Set<string>();
+	for (const type of ['sentence', 'adjective', 'pronoun'] as const) {
+		const bucket = bakedSnapshot[type];
+		for (const templateId of Object.keys(bucket)) {
+			for (const lemma of bucket[templateId]) {
+				bakedBlocks.add(`${type}:${templateId}:${lemma}`);
+			}
+		}
+	}
+	let pendingAdds = 0;
+	for (const k of liveBlocks) if (!bakedBlocks.has(k)) pendingAdds += 1;
+	let pendingRemoves = 0;
+	for (const k of bakedBlocks) if (!liveBlocks.has(k)) pendingRemoves += 1;
+
 	const allTemplates = getAllRenderedTemplates();
 	const totals = {
 		all: allTemplates.length,
 		shown: 0,
 		unreviewedByMe: 0,
 		flaggedByAnyone: 0,
-		noCandidates: 0
+		noCandidates: 0,
+		withBlockedLemmas: 0
 	};
 
 	const rows: TemplateRowVm[] = [];
@@ -165,11 +250,20 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 		const reviews = reviewsByTemplate.get(key) ?? [];
 		const myReview = reviews.find((r) => r.reviewerId === userId) ?? null;
 		const otherReviews = reviews.filter((r) => r.reviewerId !== userId);
+		const blockedLemmasSet = blockedLemmasByTemplate.get(key);
+		const myBlockedLemmasSet = myBlockedLemmasByTemplate.get(key);
+		const blockedLemmas = blockedLemmasSet
+			? [...blockedLemmasSet].sort((a, b) => a.localeCompare(b))
+			: [];
+		const myBlockedLemmas = myBlockedLemmasSet
+			? [...myBlockedLemmasSet].sort((a, b) => a.localeCompare(b))
+			: [];
 
 		const flagged = reviews.some((r) => r.status === 'needs_fix' || r.status === 'wrong');
 		if (!myReview) totals.unreviewedByMe += 1;
 		if (flagged) totals.flaggedByAnyone += 1;
-		if (template.candidateCount === 0) totals.noCandidates += 1;
+		if (template.candidates.length === 0) totals.noCandidates += 1;
+		if (blockedLemmas.length > 0) totals.withBlockedLemmas += 1;
 
 		// Apply filters.
 		if (typeFilter !== 'all' && template.type !== typeFilter) continue;
@@ -179,12 +273,15 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 		if (reviewFilter === 'unreviewed_by_me' && myReview) continue;
 		if (reviewFilter === 'reviewed_by_me' && !myReview) continue;
 		if (reviewFilter === 'flagged_by_anyone' && !flagged) continue;
-		if (reviewFilter === 'no_candidates' && template.candidateCount > 0) continue;
+		if (reviewFilter === 'no_candidates' && template.candidates.length > 0) continue;
+		if (reviewFilter === 'has_blocked_lemmas' && blockedLemmas.length === 0) continue;
 
 		rows.push({
 			template,
 			myReview: myReview ? { status: myReview.status, note: myReview.note } : null,
-			otherReviews
+			otherReviews,
+			myBlockedLemmas,
+			blockedLemmas
 		});
 	}
 
@@ -199,7 +296,13 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 			difficulty: diffFilter,
 			review: reviewFilter
 		},
-		currentReviewerId: userId
+		currentReviewerId: userId,
+		bakeStatus: {
+			liveCount: liveBlocks.size,
+			bakedCount: bakedBlocks.size,
+			pendingAdds,
+			pendingRemoves
+		}
 	};
 
 	return vm;

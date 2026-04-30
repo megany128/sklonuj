@@ -43,6 +43,13 @@ const CASE_LABEL: Record<Case, string> = {
 const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 const DIFFICULTY_ORDER = ['A1', 'A2', 'B1', 'B2'];
 
+/**
+ * Cap on the "All lemmas" inline list per template. Beyond this, the list
+ * becomes a single thousand-entry comma blob and is unscannable on paper —
+ * reviewers should use the dashboard chip grid instead.
+ */
+const MAX_INLINE_LEMMAS = 50;
+
 function caseDifficultyKey(t: RenderedTemplate): string {
 	return `${t.requiredCase}/${t.difficulty}`;
 }
@@ -107,11 +114,20 @@ function renderSection(title: string, templates: RenderedTemplate[]): string {
 			if (t.examples.length === 0) {
 				lines.push(`      ⚠️ **NO MATCHING LEMMAS** — template never fires.`);
 			} else {
-				lines.push(`      Examples (${t.candidateCount} total candidates):`);
+				lines.push(`      Examples (${t.candidates.length} total candidates):`);
 				for (const ex of t.examples) {
 					// Bold the inflected form inside the rendered (voiced) sentence.
 					const filledBold = ex.filled.replace(ex.form, `**${ex.form}**`);
 					lines.push(`        - ${ex.lemma} → "${filledBold}"`);
+				}
+				if (t.candidates.length <= MAX_INLINE_LEMMAS) {
+					lines.push(`      All lemmas: ${t.candidates.join(', ')}`);
+				} else {
+					const shown = t.candidates.slice(0, MAX_INLINE_LEMMAS);
+					const remaining = t.candidates.length - MAX_INLINE_LEMMAS;
+					lines.push(
+						`      First ${MAX_INLINE_LEMMAS} lemmas: ${shown.join(', ')}, …+${remaining} more (use admin dashboard)`
+					);
 				}
 			}
 			lines.push('');
@@ -141,6 +157,13 @@ function main(): void {
 	sections.push('re-running the script preserves your checkmarks.', '');
 	sections.push('Examples are rendered with preposition voicing applied (k → ke, v → ve, s → se,');
 	sections.push('z → ze) — what you see is what learners see.', '');
+	sections.push(
+		'Block individual (template, lemma) pairs via the admin dashboard at',
+		'`/admin/audit/templates` — chip click. The "All lemmas" list under each',
+		'template is the complete set the drill engine pairs with that template;',
+		'reviewers can call out bad lemmas by name in the comment beneath.',
+		''
+	);
 	sections.push(`Generated: ${new Date().toISOString()}`, '');
 	sections.push('---', '');
 	sections.push(renderSection('Sentence templates', buckets.sentence));

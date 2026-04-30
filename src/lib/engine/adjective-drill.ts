@@ -20,6 +20,7 @@ import { CASE_INDEX, isCase, isNumber } from '../types';
 import adjectiveBankData from '../data/adjective_bank.json';
 import adjectiveTemplateData from '../data/adjective_templates.json';
 import { stripDiacritics } from '../utils/diacritics';
+import { getBlockedLemmaSet } from './lemma-blocks';
 
 // ---------------------------------------------------------------------------
 // Raw JSON interfaces (pre-validation)
@@ -481,8 +482,16 @@ export function filterAdjectivesByTemplate(
 	template: SentenceTemplate
 ): AdjectiveEntry[] {
 	const allowed = template.adjectiveCategories;
-	if (!allowed || allowed.length === 0) return candidates;
-	return candidates.filter((adj) => adj.categories.some((c) => allowed.includes(c)));
+	let filtered =
+		allowed && allowed.length > 0
+			? candidates.filter((adj) => adj.categories.some((c) => allowed.includes(c)))
+			: candidates;
+	// Drop lemmas a reviewer has flagged via the admin dashboard.
+	const blocked = getBlockedLemmaSet('adjective', template.id);
+	if (blocked.size > 0) {
+		filtered = filtered.filter((adj) => !blocked.has(adj.lemma));
+	}
+	return filtered;
 }
 
 // ---------------------------------------------------------------------------

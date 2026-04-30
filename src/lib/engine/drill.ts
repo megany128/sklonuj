@@ -19,6 +19,7 @@ import { CASE_INDEX, isCase, isNumber } from '../types';
 import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
+import { getBlockedLemmaSet } from './lemma-blocks';
 import { stripDiacritics } from '../utils/diacritics';
 import { checkAdjectiveAnswer as checkAdjectiveAnswerImpl } from './adjective-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
@@ -267,6 +268,13 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	const excluded = template.excludesCategories;
 	if (excluded && excluded.length > 0) {
 		filtered = filtered.filter((word) => !word.categories.some((c) => excluded.includes(c)));
+	}
+
+	// Drop lemmas a reviewer has flagged via the admin dashboard. Empty list is
+	// the common case (set is shared sentinel) so this is effectively free.
+	const blocked = getBlockedLemmaSet('sentence', template.id);
+	if (blocked.size > 0) {
+		filtered = filtered.filter((word) => !blocked.has(word.lemma));
 	}
 
 	return filtered;

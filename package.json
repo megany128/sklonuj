@@ -16,7 +16,8 @@
 		"test:unit": "vitest",
 		"test": "vitest --run",
 		"tts:generate": "python3 scripts/generate_tts.py",
-		"audit:templates": "tsx scripts/dump_templates_for_review.ts"
+		"audit:templates": "tsx scripts/dump_templates_for_review.ts",
+		"audit:bake-blocks": "tsx --env-file=.env scripts/bake_lemma_blocks.ts"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

@@ -3271,8 +3271,8 @@
 			case: result.question.case,
 			level: currentLevel
 		});
-		if (sessionCount === 10) {
-			posthog.capture('ten_questions_completed', { level: currentLevel });
+		if (sessionCount === 3) {
+			posthog.capture('three_questions_completed', { level: currentLevel });
 		}
 
 		if (result.correct) {
@@ -3400,8 +3400,8 @@
 			formCorrect: result.formCorrect,
 			adjectiveCorrect: result.adjectiveCorrect
 		});
-		if (sessionCount === 10) {
-			posthog.capture('ten_questions_completed', { level: currentLevel });
+		if (sessionCount === 3) {
+			posthog.capture('three_questions_completed', { level: currentLevel });
 		}
 
 		checkAchievementBadges(allCorrect);
@@ -4186,8 +4186,8 @@
 			</div>
 		{/if}
 
-		<!-- Sign-up prompt for guests after 10 questions -->
-		{#if !user && sessionCount >= 10 && !signupPromptDismissed}
+		<!-- Sign-up prompt for guests after 3 questions -->
+		{#if !user && sessionCount >= 3 && !signupPromptDismissed}
 			<div
 				transition:slide={{ duration: 200 }}
 				class="mx-auto mb-3 mt-6 max-w-[867px] rounded-2xl border border-card-stroke bg-card-bg px-4 py-3 sm:px-5 sm:py-3.5"

@@ -54,7 +54,13 @@ export interface RenderedTemplate {
 	formContext?: FormContext;
 	requiredAnimate?: boolean;
 	adjectiveCategories?: string[];
-	candidateCount: number;
+	/**
+	 * Full alphabetised lemma list for every candidate the drill engine would
+	 * pair with this template (no curriculum gating, no level filtering — pure
+	 * structural match). Reviewers scan this in the dashboard to flag bad
+	 * (template, lemma) pairs as blocks.
+	 */
+	candidates: string[];
 	examples: RenderedExample[];
 }
 
@@ -135,7 +141,16 @@ const sentenceTemplates: RawSentenceTemplate[] = sentenceTemplatesRaw;
 const adjectiveTemplates: RawAdjectiveTemplate[] = adjectiveTemplatesRaw;
 const pronounTemplates: RawPronounTemplate[] = pronounTemplatesRaw;
 
-const EXAMPLES_PER_TEMPLATE = 3;
+/**
+ * Maximum rendered examples per template. Examples are stratified across the
+ * lemma's category-sets so reviewers see a *semantic spread* (profession,
+ * family, nationality, …) instead of three alphabetically-adjacent lemmas
+ * that all behave the same. The cap keeps each card scannable while
+ * surfacing the diversity that matters for catching template-level bugs
+ * (e.g. "Dobrý den, profesorko" only surfaces if a profession noun is in
+ * the example set; alphabetical first-3 misses it).
+ */
+const MAX_EXAMPLES_PER_TEMPLATE = 10;
 const VALID_CASES = new Set<string>(['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins']);
 const VALID_NUMBERS = new Set<string>(['sg', 'pl']);
 const VALID_DIFFICULTIES = new Set<string>(['A1', 'A2', 'B1', 'B2']);
@@ -289,6 +304,90 @@ function getPronounCandidates(t: RawPronounTemplate): RawPronounEntry[] {
 	return matches;
 }
 
+// ─── Stratified sampling ─────────────────────────────────────────────────
+
+/**
+ * Pick a semantically-diverse subset of candidates by bucketing on each
+ * lemma's full category set, then sampling the alphabetically-first lemma
+ * per bucket. Larger buckets get sampled first so the most "common" sub-
+ * category is always represented; smaller buckets surface the long tail.
+ *
+ * Deterministic: same input → same output across runs (sorted bucket key,
+ * sorted lemmas inside each bucket). Reviewer checkmarks survive
+ * regenerations.
+ *
+ * Excludes any template-level filter category from the bucket key (those
+ * are redundant — every matching lemma has them) so two lemmas only differ
+ * by their *narrowing* sub-tags.
+ */
+function stratifiedSample<T>(
+	candidates: T[],
+	getLemma: (item: T) => string,
+	getCategories: (item: T) => readonly string[],
+	templateFilterCategories: ReadonlySet<string>,
+	limit: number
+): T[] {
+	if (candidates.length <= limit) {
+		// Small pool — just return everything sorted by lemma so the rendering
+		// stays deterministic (and avoid bucket overhead).
+		return [...candidates].sort((a, b) => getLemma(a).localeCompare(getLemma(b)));
+	}
+
+	// Build bucket key per lemma: sorted, deduped categories minus the template's
+	// own filter set. Lemmas with identical sub-tag combinations land in the
+	// same bucket.
+	const buckets = new Map<string, T[]>();
+	for (const item of candidates) {
+		const subTags = [...new Set(getCategories(item))]
+			.filter((c) => !templateFilterCategories.has(c))
+			.sort((a, b) => a.localeCompare(b));
+		const key = subTags.join('|') || '__no_subtags__';
+		const arr = buckets.get(key);
+		if (arr) arr.push(item);
+		else buckets.set(key, [item]);
+	}
+
+	// Sort each bucket alphabetically and pick the first lemma per bucket.
+	const bucketEntries = [...buckets.entries()].map(([key, items]) => ({
+		key,
+		items: [...items].sort((a, b) => getLemma(a).localeCompare(getLemma(b))),
+		size: items.length
+	}));
+
+	// Sort buckets: largest first (so the most representative example always
+	// makes the cap), then alphabetically by key for determinism on ties.
+	bucketEntries.sort((a, b) => b.size - a.size || a.key.localeCompare(b.key));
+
+	const out: T[] = [];
+	for (const bucket of bucketEntries) {
+		if (out.length >= limit) break;
+		out.push(bucket.items[0]);
+	}
+
+	// Final ordering: alphabetical by lemma so the markdown / dashboard list
+	// reads naturally (not "by bucket size").
+	return out.sort((a, b) => getLemma(a).localeCompare(getLemma(b)));
+}
+
+function sentenceTemplateFilterSet(t: RawSentenceTemplate): ReadonlySet<string> {
+	const set = new Set<string>([t.lemmaCategory]);
+	if (t.semanticTags) for (const tag of t.semanticTags) set.add(tag);
+	return set;
+}
+
+function adjectiveTemplateFilterSet(t: RawAdjectiveTemplate): ReadonlySet<string> {
+	const set = new Set<string>();
+	if (t.adjectiveCategories) for (const cat of t.adjectiveCategories) set.add(cat);
+	return set;
+}
+
+function pronounTemplateFilterSet(t: RawPronounTemplate): ReadonlySet<string> {
+	const set = new Set<string>();
+	if (t.pronounCategory) set.add(t.pronounCategory);
+	if (t.lemmaCategory) set.add(t.lemmaCategory);
+	return set;
+}
+
 // ─── Rendering ───────────────────────────────────────────────────────────
 
 function fill(template: string, form: string): string {
@@ -304,7 +403,14 @@ function renderSentenceTemplate(t: RawSentenceTemplate): RenderedTemplate | null
 	const candidates = getSentenceCandidates(t);
 	const caseIdx = CASE_INDEX[t.requiredCase];
 	const num = t.number;
-	const examples: RenderedExample[] = candidates.slice(0, EXAMPLES_PER_TEMPLATE).map((w) => {
+	const sampled = stratifiedSample(
+		candidates,
+		(w) => w.lemma,
+		(w) => w.categories,
+		sentenceTemplateFilterSet(t),
+		MAX_EXAMPLES_PER_TEMPLATE
+	);
+	const examples: RenderedExample[] = sampled.map((w) => {
 		const form = w.forms[num][caseIdx];
 		return { lemma: w.lemma, form, filled: fill(t.template, form) };
 	});
@@ -318,7 +424,7 @@ function renderSentenceTemplate(t: RawSentenceTemplate): RenderedTemplate | null
 		trigger: t.trigger,
 		why: t.why,
 		lemmaCategory: t.lemmaCategory,
-		candidateCount: candidates.length,
+		candidates: candidates.map((w) => w.lemma).sort((a, b) => a.localeCompare(b)),
 		examples
 	};
 	if (t.semanticTags) out.semanticTags = t.semanticTags;
@@ -336,7 +442,14 @@ function renderAdjectiveTemplate(t: RawAdjectiveTemplate): RenderedTemplate | nu
 	const caseIdx = CASE_INDEX[t.requiredCase];
 	const formKey = adjectiveFormKey(t);
 	const num = t.number;
-	const examples: RenderedExample[] = candidates.slice(0, EXAMPLES_PER_TEMPLATE).map((a) => {
+	const sampled = stratifiedSample(
+		candidates,
+		(a) => a.lemma,
+		(a) => a.categories,
+		adjectiveTemplateFilterSet(t),
+		MAX_EXAMPLES_PER_TEMPLATE
+	);
+	const examples: RenderedExample[] = sampled.map((a) => {
 		const form = a.forms[formKey][num][caseIdx];
 		return { lemma: a.lemma, form, filled: fill(t.template, form) };
 	});
@@ -351,7 +464,7 @@ function renderAdjectiveTemplate(t: RawAdjectiveTemplate): RenderedTemplate | nu
 		why: t.why,
 		requiredGender: t.requiredGender,
 		requiredAnimate: t.requiredAnimate,
-		candidateCount: candidates.length,
+		candidates: candidates.map((a) => a.lemma).sort((a, b) => a.localeCompare(b)),
 		examples
 	};
 	if (t.adjectiveCategories) out.adjectiveCategories = t.adjectiveCategories;
@@ -366,7 +479,14 @@ function renderPronounTemplate(t: RawPronounTemplate): RenderedTemplate | null {
 	const num = t.number;
 	const caseName = t.requiredCase;
 	const formContext = normalizeFormContext(t.formContext);
-	const examples: RenderedExample[] = candidates.slice(0, EXAMPLES_PER_TEMPLATE).map((p) => {
+	const sampled = stratifiedSample(
+		candidates,
+		(p) => p.lemma,
+		(p) => p.categories,
+		pronounTemplateFilterSet(t),
+		MAX_EXAMPLES_PER_TEMPLATE
+	);
+	const examples: RenderedExample[] = sampled.map((p) => {
 		const form = pickPronounForm(p, caseName, num, formContext) ?? '';
 		return { lemma: p.lemma, form, filled: fill(t.template, form) };
 	});
@@ -380,7 +500,7 @@ function renderPronounTemplate(t: RawPronounTemplate): RenderedTemplate | null {
 		trigger: t.trigger,
 		why: t.why,
 		formContext,
-		candidateCount: candidates.length,
+		candidates: candidates.map((p) => p.lemma).sort((a, b) => a.localeCompare(b)),
 		examples
 	};
 	if (t.pronounCategory) out.pronounCategory = t.pronounCategory;

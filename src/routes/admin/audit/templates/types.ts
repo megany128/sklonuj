@@ -12,7 +12,8 @@ export const REVIEW_FILTER_VALUES = [
 	'unreviewed_by_me',
 	'reviewed_by_me',
 	'flagged_by_anyone',
-	'no_candidates'
+	'no_candidates',
+	'has_blocked_lemmas'
 ] as const;
 export type ReviewFilter = (typeof REVIEW_FILTER_VALUES)[number];
 
@@ -35,6 +36,17 @@ export interface TemplateRowVm {
 	template: RenderedTemplate;
 	myReview: { status: ReviewStatus; note: string | null } | null;
 	otherReviews: ReviewRow[];
+	/**
+	 * Lemmas the current reviewer has personally blocked for this template.
+	 * Subset of `blockedLemmas`. Used by the UI to render "you blocked this"
+	 * styling distinct from "another reviewer blocked this".
+	 */
+	myBlockedLemmas: string[];
+	/**
+	 * Union of every blocked lemma for this template across all reviewers
+	 * (including the current one). Used to mark chips as struck-through.
+	 */
+	blockedLemmas: string[];
 }
 
 export interface PageVm {
@@ -45,6 +57,7 @@ export interface PageVm {
 		unreviewedByMe: number;
 		flaggedByAnyone: number;
 		noCandidates: number;
+		withBlockedLemmas: number;
 	};
 	filters: {
 		type: (typeof TEMPLATE_TYPE_FILTERS)[number];
@@ -53,6 +66,18 @@ export interface PageVm {
 		review: ReviewFilter;
 	};
 	currentReviewerId: string;
+	/**
+	 * Diff between live block rows in `template_lemma_blocks` (filtered to
+	 * current admins) and the baked snapshot in `lemma_blocks.json` that the
+	 * drill engine ships with. Non-zero counts mean a `pnpm audit:bake-blocks`
+	 * + commit + deploy is needed for changes to take effect.
+	 */
+	bakeStatus: {
+		liveCount: number;
+		bakedCount: number;
+		pendingAdds: number;
+		pendingRemoves: number;
+	};
 }
 
 export const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {

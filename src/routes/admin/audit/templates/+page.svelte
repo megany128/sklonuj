@@ -28,7 +28,8 @@
 		unreviewed_by_me: 'Unreviewed (me)',
 		reviewed_by_me: 'Reviewed (me)',
 		flagged_by_anyone: 'Flagged',
-		no_candidates: 'No candidates'
+		no_candidates: 'No candidates',
+		has_blocked_lemmas: 'Has blocked lemmas'
 	};
 
 	const TYPE_BADGE: Record<TemplateType, string> = {
@@ -41,6 +42,11 @@
 	const DIFFICULTIES = ['all', 'A1', 'A2', 'B1', 'B2'] as const;
 
 	let pendingId = $state<string | null>(null);
+	let pendingChipKey = $state<string | null>(null);
+
+	function chipKey(row: TemplateRowVm, lemma: string): string {
+		return `${rowKey(row)}::${lemma}`;
+	}
 
 	function buildQuery(
 		overrides: Partial<{ type: string; case: string; difficulty: string; review: string }>
@@ -117,13 +123,66 @@
 	function noteValue(row: TemplateRowVm): string {
 		return row.myReview?.note ?? '';
 	}
+
+	async function toggleBlock(row: TemplateRowVm, lemma: string): Promise<void> {
+		const key = chipKey(row, lemma);
+		pendingChipKey = key;
+		const isMine = row.myBlockedLemmas.includes(lemma);
+		try {
+			// DELETE uses query params (safer through HTTP intermediaries that
+			// strip request bodies on DELETE); POST keeps the JSON body.
+			const url = isMine
+				? `/api/admin/template-lemma-blocks?template_id=${encodeURIComponent(row.template.id)}&template_type=${encodeURIComponent(row.template.type)}&lemma=${encodeURIComponent(lemma)}`
+				: '/api/admin/template-lemma-blocks';
+			const res = await fetch(url, {
+				method: isMine ? 'DELETE' : 'POST',
+				headers: isMine ? {} : { 'content-type': 'application/json' },
+				body: isMine
+					? null
+					: JSON.stringify({
+							template_id: row.template.id,
+							template_type: row.template.type,
+							lemma
+						})
+			});
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({}));
+				console.error('Failed to toggle block:', body);
+				alert(`Failed to update block: ${body.error ?? res.statusText}`);
+				return;
+			}
+			await invalidateAll();
+		} catch (err) {
+			console.error('Failed to toggle block:', err);
+			alert('Network error while updating block.');
+		} finally {
+			pendingChipKey = null;
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>Admin · Template review</title>
 </svelte:head>
 
-<section class="mb-4 grid gap-3 text-sm md:grid-cols-5">
+{#if data.bakeStatus.pendingAdds > 0 || data.bakeStatus.pendingRemoves > 0}
+	<aside
+		class="mb-4 rounded-md border border-warning-stroke bg-warning-background px-4 py-3 text-sm text-warning-text"
+	>
+		<div class="font-semibold">Pending bake — drill engine is out of date.</div>
+		<div class="mt-1 text-xs">
+			Live blocks: <span class="font-mono">{data.bakeStatus.liveCount}</span> · Baked:
+			<span class="font-mono">{data.bakeStatus.bakedCount}</span>
+			{#if data.bakeStatus.pendingAdds > 0}· {data.bakeStatus.pendingAdds} pending add(s){/if}{#if data.bakeStatus.pendingRemoves > 0}
+				· {data.bakeStatus.pendingRemoves} pending remove(s){/if}. Run
+			<code class="rounded bg-card-bg px-1 py-0.5 font-mono">pnpm audit:bake-blocks</code>, commit
+			<code class="rounded bg-card-bg px-1 py-0.5 font-mono">src/lib/data/lemma_blocks.json</code>,
+			and deploy.
+		</div>
+	</aside>
+{/if}
+
+<section class="mb-4 grid gap-3 text-sm md:grid-cols-3 lg:grid-cols-6">
 	<div class="rounded-md border border-card-stroke bg-card-bg p-3">
 		<div class="text-xs uppercase text-darker-subtitle">Total</div>
 		<div class="text-lg font-semibold">{data.totals.all}</div>
@@ -143,6 +202,10 @@
 	<div class="rounded-md border border-card-stroke bg-card-bg p-3">
 		<div class="text-xs uppercase text-darker-subtitle">No candidates</div>
 		<div class="text-lg font-semibold">{data.totals.noCandidates}</div>
+	</div>
+	<div class="rounded-md border border-card-stroke bg-card-bg p-3">
+		<div class="text-xs uppercase text-darker-subtitle">With blocked lemmas</div>
+		<div class="text-lg font-semibold">{data.totals.withBlockedLemmas}</div>
 	</div>
 </section>
 
@@ -219,7 +282,7 @@
 							{REVIEW_STATUS_LABELS[row.myReview.status]}
 						</span>
 					{/if}
-					{#if t.candidateCount === 0}
+					{#if t.candidates.length === 0}
 						<span
 							class="inline-block rounded-full bg-negative-background px-2 py-0.5 text-xs font-medium text-negative-stroke"
 						>
@@ -246,11 +309,43 @@
 					</div>
 				{/if}
 
+				{#if t.candidates.length > 0}
+					<div class="mb-2">
+						<div class="mb-1 text-xs text-darker-subtitle">
+							Lemmas ({t.candidates.length}){#if row.blockedLemmas.length > 0}
+								· {row.blockedLemmas.length} blocked{/if}
+						</div>
+						<div class="flex flex-wrap gap-1">
+							{#each t.candidates as lemma (lemma)}
+								{@const blockedByMe = row.myBlockedLemmas.includes(lemma)}
+								{@const blockedByAnyone = row.blockedLemmas.includes(lemma)}
+								{@const blockedByOther = blockedByAnyone && !blockedByMe}
+								{@const chipPending = pendingChipKey === chipKey(row, lemma)}
+								<button
+									type="button"
+									title={blockedByMe
+										? 'You blocked this — click to unblock'
+										: blockedByOther
+											? 'Blocked by another reviewer — click to add your own block'
+											: 'Block this (template, lemma) pair'}
+									disabled={chipPending}
+									onclick={() => toggleBlock(row, lemma)}
+									class="rounded-full px-2 py-0.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 {blockedByMe
+										? 'bg-negative-background text-negative-stroke line-through'
+										: blockedByOther
+											? 'bg-warning-background text-warning-text line-through opacity-70'
+											: 'bg-shaded-background text-darker-subtitle hover:bg-card-bg'}"
+								>
+									{lemma}
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
 				{#if t.examples.length > 0}
 					<div class="mb-2">
-						<div class="text-xs text-darker-subtitle">
-							Examples ({t.candidateCount} total candidates):
-						</div>
+						<div class="text-xs text-darker-subtitle">Examples (rendered surface forms):</div>
 						<ul class="ml-4 list-disc text-sm">
 							{#each t.examples as ex (ex.lemma)}
 								<li>

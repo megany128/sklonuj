@@ -17,6 +17,7 @@ import type {
 import { isCase, isNumber } from '../types';
 import pronounBankData from '../data/pronoun_bank.json';
 import pronounTemplateData from '../data/pronoun_templates.json';
+import { getBlockedLemmaSet } from './lemma-blocks';
 
 // ---------------------------------------------------------------------------
 // Raw JSON interfaces (pre-validation)
@@ -376,13 +377,17 @@ export function getPronounCandidates(
 	chapterPronounLemmas?: string[]
 ): PronounEntry[] {
 	const bank = loadPronounBank();
+	// Lemma blocks are stored exactly as the bank lemma string (slash-lemmas
+	// like "mě/mne" included), so direct === membership works.
+	const blocked = getBlockedLemmaSet('pronoun', template.id);
 
 	// If template specifies a required pronoun, return only that one
 	if (template.requiredPronoun) {
 		const required = template.requiredPronoun;
-		const match = bank.filter(
+		let match = bank.filter(
 			(p) => p.lemma === required || p.lemma.split('/').some((part) => part === required)
 		);
+		if (blocked.size > 0) match = match.filter((p) => !blocked.has(p.lemma));
 		return match;
 	}
 
@@ -399,6 +404,10 @@ export function getPronounCandidates(
 				chapterPronounLemmas.includes(p.lemma) ||
 				chapterPronounLemmas.some((lemma) => p.lemma.split('/').some((part) => part === lemma))
 		);
+	}
+
+	if (blocked.size > 0) {
+		candidates = candidates.filter((p) => !blocked.has(p.lemma));
 	}
 
 	return candidates;
