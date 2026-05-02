@@ -79,6 +79,33 @@ export function recordPracticeDay(): void {
 	}
 }
 
+/**
+ * Idempotently merge new YYYY-MM-DD practice dates into the local
+ * `sklonuj_practice_days` set. Used after login to import dates pulled from
+ * `practice_sessions` so Week Warrior's day-streak check works for users
+ * whose history lives only on the server.
+ */
+export function addPracticeDays(dates: string[]): void {
+	if (typeof window === 'undefined') return;
+	if (!Array.isArray(dates) || dates.length === 0) return;
+	const existing = new Set(getPracticeDays());
+	let changed = false;
+	for (const d of dates) {
+		if (typeof d !== 'string') continue;
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+		if (!existing.has(d)) {
+			existing.add(d);
+			changed = true;
+		}
+	}
+	if (!changed) return;
+	try {
+		localStorage.setItem(PRACTICE_DAYS_KEY, JSON.stringify(Array.from(existing).sort()));
+	} catch {
+		// localStorage may be unavailable
+	}
+}
+
 /** Count the current consecutive-day practice streak ending at today or yesterday. */
 function getConsecutiveDayStreak(): number {
 	const days = getPracticeDays();
@@ -440,8 +467,15 @@ const CONTEXT_FREE_BADGE_IDS: ReadonlySet<string> = new Set([
  * Call this on pages that display badges (e.g. profile) after the progress
  * store has been populated with server data, so badges aren't lost when
  * localStorage is empty but server progress exists.
+ *
+ * `proxyEarnedAt` lets callers backfill a sensible "earned at" stamp (e.g.
+ * the user's last practice date) instead of stamping retroactive badges with
+ * the current moment, which would misrepresent when the milestone was reached.
  */
-export function recomputeProgressBasedBadges(supabase?: SupabaseClient): void {
+export function recomputeProgressBasedBadges(
+	supabase?: SupabaseClient,
+	proxyEarnedAt?: string
+): void {
 	const dummyCtx: BadgeCheckContext = {
 		wasCorrect: false,
 		streak: 0,
@@ -451,12 +485,16 @@ export function recomputeProgressBasedBadges(supabase?: SupabaseClient): void {
 
 	const earned = loadEarnedBadges();
 	const newlyEarned: BadgeDefinition[] = [];
+	const earnedAtForRetroactive =
+		typeof proxyEarnedAt === 'string' && proxyEarnedAt.length > 0
+			? proxyEarnedAt
+			: new Date().toISOString();
 
 	for (const badge of BADGE_DEFINITIONS) {
 		if (badge.id in earned) continue;
 		if (!CONTEXT_FREE_BADGE_IDS.has(badge.id)) continue;
 		if (badge.check(dummyCtx)) {
-			earned[badge.id] = { earnedAt: new Date().toISOString() };
+			earned[badge.id] = { earnedAt: earnedAtForRetroactive };
 			newlyEarned.push(badge);
 		}
 	}

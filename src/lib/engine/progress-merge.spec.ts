@@ -8,6 +8,7 @@ function emptyProgress(overrides: Partial<Progress> = {}): Progress {
 		caseScores: {},
 		paradigmScores: {},
 		lastSession: '',
+		longestStreak: 0,
 		...overrides
 	};
 }
@@ -119,11 +120,12 @@ describe('mergeProgress', () => {
 
 	it('handles undefined paradigmScores gracefully (backward compat)', () => {
 		// Simulate old progress format without paradigmScores
-		const local = {
-			level: 'A1' as const,
+		const local: Progress = {
+			level: 'A1',
 			caseScores: { gen_sg: { attempts: 2, correct: 1 } },
 			paradigmScores: {},
-			lastSession: ''
+			lastSession: '',
+			longestStreak: 0
 		};
 		const remote = emptyProgress({
 			paradigmScores: { hrad_gen_sg: { attempts: 3, correct: 2 } }
@@ -142,7 +144,8 @@ describe('mergeProgress', () => {
 			paradigmScores: {
 				hrad_gen_sg: { attempts: 10, correct: 8 }
 			},
-			lastSession: '2024-06-15'
+			lastSession: '2024-06-15',
+			longestStreak: 7
 		};
 		const remote: Progress = {
 			level: 'B1',
@@ -153,7 +156,8 @@ describe('mergeProgress', () => {
 			paradigmScores: {
 				žena_dat_pl: { attempts: 3, correct: 3 }
 			},
-			lastSession: '2024-05-01'
+			lastSession: '2024-05-01',
+			longestStreak: 4
 		};
 		const result = mergeProgress(local, remote);
 
@@ -164,5 +168,18 @@ describe('mergeProgress', () => {
 		expect(result.caseScores['dat_pl']).toEqual({ attempts: 3, correct: 3 });
 		expect(result.paradigmScores['hrad_gen_sg']).toEqual({ attempts: 10, correct: 8 });
 		expect(result.paradigmScores['žena_dat_pl']).toEqual({ attempts: 3, correct: 3 });
+		expect(result.longestStreak).toBe(7);
+	});
+
+	it('takes the max longestStreak across local and remote', () => {
+		const local = emptyProgress({ longestStreak: 5 });
+		const remote = emptyProgress({ longestStreak: 12 });
+		expect(mergeProgress(local, remote).longestStreak).toBe(12);
+	});
+
+	it('handles missing longestStreak gracefully (treats as 0)', () => {
+		const local = emptyProgress();
+		const remote = emptyProgress({ longestStreak: 9 });
+		expect(mergeProgress(local, remote).longestStreak).toBe(9);
 	});
 });

@@ -208,7 +208,10 @@ export async function syncMistakesToSupabase(supabase: SupabaseClient): Promise<
 }
 
 /**
- * Fetch mistakes from `user_mistakes` and merge with localStorage (union of both).
+ * Fetch mistakes from `user_mistakes` and merge with localStorage (union of
+ * both, deduped by lemma+case+number+timestamp). Pushes the merged result
+ * back to Supabase if it diverges from the remote, so a guest's pre-login
+ * mistakes aren't silently dropped on first sign-in.
  */
 export async function loadMistakesFromSupabase(supabase: SupabaseClient): Promise<void> {
 	const { data: userData } = await supabase.auth.getUser();
@@ -226,21 +229,65 @@ export async function loadMistakesFromSupabase(supabase: SupabaseClient): Promis
 		return;
 	}
 
-	if (!data) return;
-
 	const remoteMistakes: MistakeRecord[] = [];
-	const raw: unknown = data.mistakes;
-	if (Array.isArray(raw)) {
-		for (const entry of raw) {
-			if (isValidMistakeRecord(entry)) {
-				remoteMistakes.push(entry);
+	if (data) {
+		const raw: unknown = data.mistakes;
+		if (Array.isArray(raw)) {
+			for (const entry of raw) {
+				if (isValidMistakeRecord(entry)) {
+					remoteMistakes.push(entry);
+				}
 			}
 		}
 	}
 
-	if (remoteMistakes.length === 0) return;
+	const localMistakes = get(mistakeRecords);
 
-	// For logged-in users, Supabase is the source of truth.
-	// Replace localStorage entirely so stale local records don't persist.
-	mistakeRecords.set(remoteMistakes);
+	// Union local + remote, dedupe on (lemma, targetCase, targetNumber, timestamp).
+	const seen = new Set<string>();
+	const union: MistakeRecord[] = [];
+	for (const m of [...localMistakes, ...remoteMistakes]) {
+		const key = `${m.lemma}|${m.targetCase}|${m.targetNumber}|${m.timestamp}`;
+		if (seen.has(key)) continue;
+		seen.add(key);
+		union.push(m);
+	}
+
+	// Newest first.
+	union.sort((a, b) => (a.timestamp > b.timestamp ? -1 : a.timestamp < b.timestamp ? 1 : 0));
+
+	// Apply the same per-case + global cap as addMistake to keep the local
+	// store bounded and avoid blowing past `MAX_MISTAKES`.
+	const perCaseCount = new Map<Case, number>();
+	const capped: MistakeRecord[] = [];
+	for (const m of union) {
+		const count = perCaseCount.get(m.targetCase) ?? 0;
+		if (count >= MAX_MISTAKES_PER_CASE) continue;
+		perCaseCount.set(m.targetCase, count + 1);
+		capped.push(m);
+		if (capped.length >= MAX_MISTAKES) break;
+	}
+
+	mistakeRecords.set(capped);
+
+	// If the merged result diverges from what's in Supabase, push it back so
+	// the union persists across devices. Identity is on the same dedupe key.
+	const remoteKeySet = new Set(
+		remoteMistakes.map((m) => `${m.lemma}|${m.targetCase}|${m.targetNumber}|${m.timestamp}`)
+	);
+	const cappedKeySet = new Set(
+		capped.map((m) => `${m.lemma}|${m.targetCase}|${m.targetNumber}|${m.timestamp}`)
+	);
+	let diverged = remoteKeySet.size !== cappedKeySet.size;
+	if (!diverged) {
+		for (const k of cappedKeySet) {
+			if (!remoteKeySet.has(k)) {
+				diverged = true;
+				break;
+			}
+		}
+	}
+	if (diverged) {
+		await syncMistakesToSupabase(supabase);
+	}
 }

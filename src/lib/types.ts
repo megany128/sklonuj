@@ -346,4 +346,9 @@ export interface Progress {
 	caseScores: { [caseKey: string]: CaseScore };
 	paradigmScores: { [paradigmKey: string]: CaseScore };
 	lastSession: string;
+	/**
+	 * All-time longest run of consecutive correct answers (in-the-moment streak
+	 * cap). Distinct from `streak.ts` which tracks consecutive practice DAYS.
+	 */
+	longestStreak: number;
 }

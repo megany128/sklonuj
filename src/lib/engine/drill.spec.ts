@@ -47,7 +47,8 @@ describe('getCandidates', () => {
 			level: 'B1',
 			caseScores: {},
 			paradigmScores: {},
-			lastSession: ''
+			lastSession: '',
+			longestStreak: 0
 		};
 		const candidates = getCandidates(placesTemplate, progress);
 		expect(candidates.length).toBeGreaterThan(0);
@@ -294,7 +295,8 @@ describe('weightedRandom', () => {
 			level: 'A1',
 			caseScores: {},
 			paradigmScores: {},
-			lastSession: ''
+			lastSession: '',
+			longestStreak: 0
 		};
 		const picked = weightedRandom(candidates, progress, 'nom', 'sg');
 		expect(candidates).toContainEqual(picked);
@@ -319,7 +321,8 @@ describe('weightedRandom', () => {
 				['hrad_loc_sg']: { attempts: 20, correct: 20 },
 				['žena_loc_sg']: { attempts: 20, correct: 20 }
 			},
-			lastSession: ''
+			lastSession: '',
+			longestStreak: 0
 		};
 
 		const counts: Record<string, number> = {};

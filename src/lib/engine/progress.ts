@@ -16,7 +16,8 @@ const DEFAULT_PROGRESS: Progress = {
 	level: 'A1',
 	caseScores: {},
 	paradigmScores: {},
-	lastSession: ''
+	lastSession: '',
+	longestStreak: 0
 };
 
 export function isRecordLike(value: unknown): value is Record<string, unknown> {
@@ -55,12 +56,22 @@ export function isValidProgress(value: unknown): value is Progress {
 		return false;
 	}
 
+	// longestStreak is optional for backwards compatibility (older payloads
+	// didn't have it). When present it must be a non-negative number.
+	const longestStreak = rec['longestStreak'];
+	if (
+		longestStreak !== undefined &&
+		(typeof longestStreak !== 'number' || !Number.isFinite(longestStreak) || longestStreak < 0)
+	) {
+		return false;
+	}
+
 	return true;
 }
 
 function loadFromStorage(): Progress {
 	if (typeof window === 'undefined')
-		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {} };
+		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, longestStreak: 0 };
 
 	try {
 		const raw = localStorage.getItem(STORAGE_KEY);
@@ -69,11 +80,15 @@ function loadFromStorage(): Progress {
 		const parsed: unknown = JSON.parse(raw);
 		if (isValidProgress(parsed)) {
 			parsed.paradigmScores ??= {};
+			// Backwards compat: older payloads didn't track longestStreak.
+			if (typeof parsed.longestStreak !== 'number') {
+				parsed.longestStreak = 0;
+			}
 			return parsed;
 		}
-		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {} };
+		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, longestStreak: 0 };
 	} catch {
-		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {} };
+		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, longestStreak: 0 };
 	}
 }
 
@@ -220,7 +235,25 @@ export function setLevel(level: Difficulty): void {
 }
 
 export function resetProgress(): void {
-	progress.set({ level: 'A1', caseScores: {}, paradigmScores: {}, lastSession: '' });
+	progress.set({
+		level: 'A1',
+		caseScores: {},
+		paradigmScores: {},
+		lastSession: '',
+		longestStreak: 0
+	});
+}
+
+/**
+ * Update the all-time longest correct-in-a-row answer streak.
+ * No-op if the supplied value is less than or equal to the current best.
+ */
+export function updateLongestStreak(streak: number): void {
+	if (!Number.isFinite(streak) || streak <= 0) return;
+	progress.update((current) => {
+		if (streak <= current.longestStreak) return current;
+		return { ...current, longestStreak: streak };
+	});
 }
 
 export function getCombinedCaseStrength(case_: Case): { accuracy: number; attempts: number } {

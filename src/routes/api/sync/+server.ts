@@ -84,6 +84,7 @@ interface ValidatedProgress {
 	caseScores: Record<string, { attempts: number; correct: number }>;
 	paradigmScores: Record<string, { attempts: number; correct: number }>;
 	lastSession: string;
+	longestStreak: number;
 }
 
 interface ValidatedSession {
@@ -122,13 +123,32 @@ function validateProgress(
 
 	const paradigmScores = isValidScoresRecord(rawParadigmScores) ? rawParadigmScores : {};
 
+	// longestStreak is optional for backwards compatibility; default to 0.
+	const rawLongestStreak = value['longestStreak'];
+	let longestStreak = 0;
+	if (rawLongestStreak !== undefined) {
+		if (
+			typeof rawLongestStreak !== 'number' ||
+			!Number.isFinite(rawLongestStreak) ||
+			rawLongestStreak < 0 ||
+			rawLongestStreak > 1_000_000
+		) {
+			return {
+				valid: false,
+				reason: 'progress.longestStreak must be a non-negative number <= 1,000,000'
+			};
+		}
+		longestStreak = rawLongestStreak;
+	}
+
 	return {
 		valid: true,
 		data: {
 			level,
 			caseScores,
 			paradigmScores,
-			lastSession
+			lastSession,
+			longestStreak
 		}
 	};
 }
@@ -257,7 +277,23 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			return json({ error: progressResult.reason }, { status: 400 });
 		}
 
-		const { level, caseScores, paradigmScores, lastSession } = progressResult.data;
+		const { level, caseScores, paradigmScores, lastSession, longestStreak } = progressResult.data;
+
+		// Read existing longest_answer_streak so a stale client payload can't
+		// shrink the all-time maximum. We take MAX(existing, incoming).
+		const { data: existingProgress } = await supabase
+			.from('user_progress')
+			.select('longest_answer_streak')
+			.eq('user_id', user.id)
+			.maybeSingle();
+
+		let mergedLongestStreak = longestStreak;
+		if (existingProgress) {
+			const existingValue = existingProgress.longest_answer_streak;
+			if (typeof existingValue === 'number' && existingValue > mergedLongestStreak) {
+				mergedLongestStreak = existingValue;
+			}
+		}
 
 		const { error: updateError } = await supabase.from('user_progress').upsert(
 			{
@@ -266,6 +302,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 				case_scores: caseScores,
 				paradigm_scores: paradigmScores,
 				last_session: lastSession,
+				longest_answer_streak: mergedLongestStreak,
 				updated_at: new Date().toISOString()
 			},
 			{ onConflict: 'user_id' }
@@ -276,22 +313,18 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		}
 	}
 
-	// Sync practice session
-	if (body['session'] !== undefined) {
-		const sessionResult = validateSession(body['session']);
-		if (!sessionResult.valid) {
-			return json({ error: sessionResult.reason }, { status: 400 });
-		}
+	const userId = user.id;
 
-		const { sessionDate, questionsAttempted, questionsCorrect, caseScores } = sessionResult.data;
+	// Upsert a single practice session, merging with any existing row by taking
+	// the per-field MAX so concurrent tabs (or stale-then-fresh requests)
+	// can't shrink today's totals.
+	async function upsertSession(session: ValidatedSession): Promise<string | null> {
+		const { sessionDate, questionsAttempted, questionsCorrect, caseScores } = session;
 
-		// Read existing row so we can take the MAX of incoming vs existing.
-		// This prevents multi-tab scenarios from overwriting higher counts
-		// (Tab A syncs 50, Tab B syncs 30 → DB keeps 50, not 30).
 		const { data: existing } = await supabase
 			.from('practice_sessions')
 			.select('questions_attempted, questions_correct, case_scores')
-			.eq('user_id', user.id)
+			.eq('user_id', userId)
 			.eq('session_date', sessionDate)
 			.maybeSingle();
 
@@ -303,9 +336,8 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			mergedAttempted = Math.max(questionsAttempted, existing.questions_attempted ?? 0);
 			mergedCorrect = Math.max(questionsCorrect, existing.questions_correct ?? 0);
 
-			// Merge case_scores: take max per case key
-			const existingCaseScores =
-				(existing.case_scores as Record<string, { attempted: number; correct: number }>) ?? {};
+			const existingCaseScores: Record<string, { attempted: number; correct: number }> =
+				isValidSessionCaseScoresRecord(existing.case_scores) ? existing.case_scores : {};
 			const merged: Record<string, { attempted: number; correct: number }> = {
 				...existingCaseScores
 			};
@@ -321,7 +353,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 
 		const { error: upsertError } = await supabase.from('practice_sessions').upsert(
 			{
-				user_id: user.id,
+				user_id: userId,
 				session_date: sessionDate,
 				questions_attempted: mergedAttempted,
 				questions_correct: mergedCorrect,
@@ -331,8 +363,45 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			{ onConflict: 'user_id,session_date' }
 		);
 
-		if (upsertError) {
-			return json({ error: 'Failed to upsert practice session' }, { status: 500 });
+		if (upsertError) return 'Failed to upsert practice session';
+		return null;
+	}
+
+	// Sync a single practice session
+	if (body['session'] !== undefined) {
+		const sessionResult = validateSession(body['session']);
+		if (!sessionResult.valid) {
+			return json({ error: sessionResult.reason }, { status: 400 });
+		}
+		const failure = await upsertSession(sessionResult.data);
+		if (failure) {
+			return json({ error: failure }, { status: 500 });
+		}
+	}
+
+	// Sync a batch of guest sessions captured before sign-up
+	if (body['sessions'] !== undefined) {
+		const rawSessions = body['sessions'];
+		if (!Array.isArray(rawSessions)) {
+			return json({ error: 'sessions must be an array' }, { status: 400 });
+		}
+		// Cap batch size to keep request bounded and reject obviously bogus input.
+		if (rawSessions.length > 1000) {
+			return json({ error: 'sessions array too large (max 1000)' }, { status: 400 });
+		}
+		const validatedSessions: ValidatedSession[] = [];
+		for (let i = 0; i < rawSessions.length; i++) {
+			const sessionResult = validateSession(rawSessions[i]);
+			if (!sessionResult.valid) {
+				return json({ error: `sessions[${i}]: ${sessionResult.reason}` }, { status: 400 });
+			}
+			validatedSessions.push(sessionResult.data);
+		}
+		for (const s of validatedSessions) {
+			const failure = await upsertSession(s);
+			if (failure) {
+				return json({ error: failure }, { status: 500 });
+			}
 		}
 	}
 

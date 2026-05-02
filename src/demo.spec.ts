@@ -231,13 +231,15 @@ describe('mergeProgress', () => {
 			level: 'A1' as const,
 			caseScores: { gen_sg: { attempts: 5, correct: 3 } },
 			paradigmScores: {},
-			lastSession: '2024-01-01'
+			lastSession: '2024-01-01',
+			longestStreak: 0
 		};
 		const remote = {
 			level: 'A1' as const,
 			caseScores: { acc_sg: { attempts: 3, correct: 2 } },
 			paradigmScores: {},
-			lastSession: '2024-01-02'
+			lastSession: '2024-01-02',
+			longestStreak: 0
 		};
 		const merged = mergeProgress(local, remote);
 		expect(merged).toBeDefined();

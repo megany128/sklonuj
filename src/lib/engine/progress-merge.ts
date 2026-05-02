@@ -10,6 +10,9 @@ export function loadProgressFromLocalStorage(): Progress | null {
 		const parsed: unknown = JSON.parse(raw);
 		if (!isValidProgress(parsed)) return null;
 		parsed.paradigmScores ??= {};
+		if (typeof parsed.longestStreak !== 'number') {
+			parsed.longestStreak = 0;
+		}
 		return parsed;
 	} catch {
 		return null;
@@ -59,6 +62,7 @@ export function mergeProgress(local: Progress, remote: Progress): Progress {
 		level: higherLevel(local.level, remote.level),
 		caseScores: mergeScores(local.caseScores, remote.caseScores),
 		paradigmScores: mergeScores(local.paradigmScores ?? {}, remote.paradigmScores ?? {}),
-		lastSession: laterSession(local.lastSession, remote.lastSession)
+		lastSession: laterSession(local.lastSession, remote.lastSession),
+		longestStreak: Math.max(local.longestStreak ?? 0, remote.longestStreak ?? 0)
 	};
 }

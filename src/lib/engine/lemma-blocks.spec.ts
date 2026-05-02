@@ -51,7 +51,8 @@ const PROGRESS_B2: Progress = {
 	level: 'B2',
 	caseScores: {},
 	paradigmScores: {},
-	lastSession: ''
+	lastSession: '',
+	longestStreak: 0
 };
 
 describe('lemma blocks · sentence (noun) drill', () => {

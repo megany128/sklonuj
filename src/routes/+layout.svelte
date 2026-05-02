@@ -9,6 +9,9 @@
 	import { syncBadgesToSupabase, loadBadgesFromSupabase } from '$lib/engine/achievements';
 	import { syncStreakToSupabase, loadStreakFromSupabase } from '$lib/engine/streak';
 	import { syncMistakesToSupabase, loadMistakesFromSupabase } from '$lib/engine/mistakes';
+	import { getGuestSessions, clearGuestSessions } from '$lib/engine/guest-sessions';
+	import { addPracticeDays } from '$lib/engine/achievements';
+	import type { SupabaseClient } from '@supabase/supabase-js';
 	import type { Progress, CaseScore, Difficulty } from '$lib/types';
 	import '../app.css';
 	import { initPostHog } from '$lib/posthog';
@@ -64,6 +67,66 @@
 		await badgeStreakSyncInFlight;
 	}
 
+	/**
+	 * Upload guest-mode per-day session data captured before sign-up so the
+	 * heatmap and streak reflect activity that happened while logged out.
+	 * Clears the local cache after a successful POST.
+	 */
+	async function uploadGuestSessions(): Promise<string[]> {
+		const sessions = getGuestSessions();
+		if (sessions.length === 0) return [];
+		try {
+			const res = await fetch('/api/sync', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ sessions })
+			});
+			if (!res.ok) {
+				console.error('Failed to upload guest sessions:', res.status);
+				return [];
+			}
+			const dates = sessions.map((s) => s.sessionDate);
+			clearGuestSessions();
+			addPracticeDays(dates);
+			return dates;
+		} catch (err) {
+			console.error('Error uploading guest sessions:', err);
+			return [];
+		}
+	}
+
+	/**
+	 * Pull recent `practice_sessions` dates from Supabase and merge into the
+	 * local practice-days set so Week Warrior's day-streak check works for
+	 * users whose history lives on the server (e.g. fresh device login).
+	 */
+	async function loadServerPracticeDays(client: SupabaseClient, userId: string): Promise<void> {
+		try {
+			const { data, error } = await client
+				.from('practice_sessions')
+				.select('session_date')
+				.eq('user_id', userId)
+				.order('session_date', { ascending: false })
+				.limit(60);
+			if (error) {
+				console.error('Failed to load practice_sessions for streak:', error);
+				return;
+			}
+			if (!Array.isArray(data)) return;
+			const dates: string[] = [];
+			for (const row of data) {
+				if (!isRecord(row)) continue;
+				const sessionDate = row.session_date;
+				if (typeof sessionDate === 'string') {
+					dates.push(sessionDate);
+				}
+			}
+			addPracticeDays(dates);
+		} catch (err) {
+			console.error('Error loading server practice days:', err);
+		}
+	}
+
 	/** Offline detection */
 	let isOffline = $state(false);
 
@@ -101,6 +164,7 @@
 		const caseScores = row.case_scores ?? {};
 		const paradigmScores = row.paradigm_scores ?? {};
 		const lastSession = row.last_session;
+		const longestAnswerStreak = row.longest_answer_streak;
 
 		if (!isValidScoresRecord(caseScores)) return null;
 		if (!isValidScoresRecord(paradigmScores)) return null;
@@ -110,12 +174,19 @@
 			level,
 			caseScores,
 			paradigmScores,
-			lastSession: typeof lastSession === 'string' ? lastSession : ''
+			lastSession: typeof lastSession === 'string' ? lastSession : '',
+			longestStreak: typeof longestAnswerStreak === 'number' ? longestAnswerStreak : 0
 		};
 	}
 
 	function clearProgress(): void {
-		progress.set({ level: 'A1', caseScores: {}, paradigmScores: {}, lastSession: '' });
+		progress.set({
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {},
+			lastSession: '',
+			longestStreak: 0
+		});
 	}
 
 	onMount(() => {
@@ -136,7 +207,8 @@
 				level: spLevel,
 				caseScores: spRaw.case_scores,
 				paradigmScores: spRaw.paradigm_scores,
-				lastSession: spRaw.last_session
+				lastSession: spRaw.last_session,
+				longestStreak: spRaw.longest_answer_streak ?? 0
 			};
 			const localProgress = loadProgressFromLocalStorage();
 			const storedUserId = localStorage.getItem(STORAGE_USER_KEY);
@@ -166,6 +238,7 @@
 							case_scores: merged.caseScores,
 							paradigm_scores: merged.paradigmScores,
 							last_session: merged.lastSession,
+							longest_answer_streak: merged.longestStreak,
 							updated_at: new Date().toISOString()
 						})
 						.eq('user_id', mergedUserId);
@@ -189,6 +262,16 @@
 			// Guarded by badgeStreakSyncedUserId so the SIGNED_IN auth handler
 			// below doesn't race this path on a fresh sign-in.
 			void syncBadgesAndStreaks(initSupabase, pageData.user.id);
+
+			// Upload any guest-mode per-day session data captured before sign-up
+			// (heatmap / streak fix) and seed the local practice-days set from
+			// recent practice_sessions on the server.
+			void (async () => {
+				const userIdForSessions = pageData.user?.id;
+				if (!userIdForSessions) return;
+				await uploadGuestSessions();
+				await loadServerPracticeDays(initSupabase, userIdForSessions);
+			})();
 		}
 
 		const supabase = getSupabaseBrowserClient();
@@ -243,6 +326,7 @@
 										case_scores: merged.caseScores,
 										paradigm_scores: merged.paradigmScores,
 										last_session: merged.lastSession,
+										longest_answer_streak: merged.longestStreak,
 										updated_at: new Date().toISOString()
 									})
 									.eq('user_id', userId);
@@ -264,6 +348,7 @@
 									case_scores: usableLocalProgress.caseScores,
 									paradigm_scores: usableLocalProgress.paradigmScores,
 									last_session: usableLocalProgress.lastSession,
+									longest_answer_streak: usableLocalProgress.longestStreak,
 									updated_at: new Date().toISOString()
 								},
 								{ onConflict: 'user_id' }
@@ -295,6 +380,12 @@
 						// Sync badges and streaks with Supabase (merge local + remote).
 						// Deduped against onMount's initial sync via badgeStreakSyncedUserId.
 						await syncBadgesAndStreaks(supabase, userId);
+
+						// Upload guest-mode session data (heatmap accuracy) and seed
+						// the local practice-days set so Week Warrior's day-streak
+						// check works on a fresh device login.
+						await uploadGuestSessions();
+						await loadServerPracticeDays(supabase, userId);
 					} catch (err) {
 						console.error('Error during SIGNED_IN progress sync:', err);
 					}

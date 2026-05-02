@@ -73,7 +73,8 @@
 		setLevel,
 		getAllCaseStrengths,
 		getCombinedCaseStrength,
-		pickWeightedCase
+		pickWeightedCase,
+		updateLongestStreak
 	} from '$lib/engine/progress';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { recordPractice } from '$lib/engine/streak';
@@ -107,6 +108,7 @@
 		playStreakSound
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
+	import { recordGuestSessionActivity } from '$lib/engine/guest-sessions';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
@@ -161,7 +163,8 @@
 						level: current.level,
 						caseScores: current.caseScores,
 						paradigmScores: current.paradigmScores,
-						lastSession: current.lastSession
+						lastSession: current.lastSession,
+						longestStreak: current.longestStreak
 					}
 				})
 			}).catch(() => {});
@@ -204,7 +207,6 @@
 	}
 
 	function recordSessionActivity(correct: boolean, caseKey?: string): void {
-		if (!user) return;
 		todayAttempted++;
 		if (correct) todayCorrect++;
 		if (caseKey) {
@@ -213,7 +215,13 @@
 			if (correct) existing.correct++;
 			todayCaseScores = { ...todayCaseScores, [caseKey]: existing };
 		}
-		scheduleSessionSync();
+		if (user) {
+			scheduleSessionSync();
+		} else {
+			// Track guest activity per-day in localStorage so it can be uploaded
+			// to `practice_sessions` after sign-up (heatmap + Week Warrior badge).
+			recordGuestSessionActivity(correct, caseKey);
+		}
 	}
 
 	function loadTodaySession(): void {
@@ -1814,7 +1822,8 @@
 					level: savedProgress.level,
 					caseScores: savedProgress.case_scores,
 					paradigmScores: savedProgress.paradigm_scores,
-					lastSession: savedProgress.last_session ?? ''
+					lastSession: savedProgress.last_session ?? '',
+					longestStreak: savedProgress.longest_answer_streak ?? 0
 				};
 				const localProgress = loadProgressFromLocalStorage();
 				if (localProgress && Object.keys(localProgress.caseScores).length > 0) {
@@ -3314,6 +3323,7 @@
 		if (result.correct) {
 			streak++;
 			if (streak > bestStreak) bestStreak = streak;
+			updateLongestStreak(streak);
 			if (autoplayAudio) {
 				if (streak >= 3) {
 					playStreakSound(streak);
@@ -3365,6 +3375,7 @@
 			sessionCorrect++;
 			streak++;
 			if (streak > bestStreak) bestStreak = streak;
+			updateLongestStreak(streak);
 			if (autoplayAudio) {
 				if (streak >= 3) {
 					playStreakSound(streak);
@@ -3375,19 +3386,30 @@
 		} else {
 			sessionWrong++;
 			streak = 0;
-			// Persist multi-step mistake for review later
-			addMistake({
-				lemma: result.question.word.lemma,
-				translation: result.question.word.translation,
-				targetCase: result.question.case,
-				targetNumber: result.question.number,
-				userAnswer: result.userForm,
-				correctAnswer: result.question.correctForm,
-				drillType: 'multi_step',
-				sentence: result.question.template?.template,
-				userParadigm: result.userParadigm,
-				correctParadigm: result.question.correctParadigm
-			});
+			// Record a mistake when ANY sub-step is wrong, not just the form. We
+			// inspect each step explicitly so paradigm-only or case-only slips
+			// still surface in the review list.
+			const paradigmWrong = !result.paradigmCorrect;
+			const caseWrong = result.caseCorrect !== null && !result.caseCorrect;
+			const formWrong = !result.formCorrect;
+			const adjectiveWrong =
+				result.adjectiveCorrect !== null &&
+				result.adjectiveCorrect !== undefined &&
+				!result.adjectiveCorrect;
+			if (paradigmWrong || caseWrong || formWrong || adjectiveWrong) {
+				addMistake({
+					lemma: result.question.word.lemma,
+					translation: result.question.word.translation,
+					targetCase: result.question.case,
+					targetNumber: result.question.number,
+					userAnswer: result.userForm,
+					correctAnswer: result.question.correctForm,
+					drillType: 'multi_step',
+					sentence: result.question.template?.template,
+					userParadigm: result.userParadigm,
+					correctParadigm: result.question.correctParadigm
+				});
+			}
 		}
 
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);

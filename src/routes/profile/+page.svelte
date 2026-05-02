@@ -42,6 +42,8 @@
 		level: string;
 		case_scores: Record<string, ScoreEntry>;
 		paradigm_scores: Record<string, ScoreEntry>;
+		last_session: string;
+		longest_answer_streak: number;
 	}
 
 	interface SessionData {
@@ -74,7 +76,13 @@
 
 	function isProgressData(v: unknown): v is ProgressData {
 		if (!isRecord(v)) return false;
-		return typeof v.level === 'string' && isRecord(v.case_scores) && isRecord(v.paradigm_scores);
+		return (
+			typeof v.level === 'string' &&
+			isRecord(v.case_scores) &&
+			isRecord(v.paradigm_scores) &&
+			typeof v.last_session === 'string' &&
+			typeof v.longest_answer_streak === 'number'
+		);
 	}
 
 	function isSessionArray(v: unknown): v is SessionData[] {
@@ -113,6 +121,9 @@
 	);
 	let paradigmScores = $derived(
 		serverProgress?.paradigm_scores ?? (user ? emptyScores : $progressStore.paradigmScores)
+	);
+	let longestStreak = $derived(
+		serverProgress?.longest_answer_streak ?? $progressStore.longestStreak ?? 0
 	);
 
 	let breakdownTab = $state<'case' | 'paradigm' | 'pronoun' | 'adjective'>('case');
@@ -429,6 +440,10 @@
 	let heatmapMonthLabels = $derived.by(() => {
 		const labels: Array<{ label: string; weekIndex: number }> = [];
 		let lastMonth = -1;
+		// Each cell column is ~13px wide; a 3-letter month abbreviation needs ~3
+		// columns of clearance to avoid overlapping the next label.
+		const MIN_WEEK_GAP = 3;
+		let lastLabelWeekIndex = -Infinity;
 
 		for (let i = 0; i < heatmapWeeks.length; i++) {
 			const week = heatmapWeeks[i];
@@ -436,11 +451,13 @@
 			const firstDay = new Date(week[0].date + 'T00:00:00');
 			const month = firstDay.getMonth();
 			if (month !== lastMonth) {
+				lastMonth = month;
+				if (i - lastLabelWeekIndex < MIN_WEEK_GAP) continue;
 				labels.push({
 					label: firstDay.toLocaleDateString('en-US', { month: 'short' }),
 					weekIndex: i
 				});
-				lastMonth = month;
+				lastLabelWeekIndex = i;
 			}
 		}
 
@@ -773,7 +790,15 @@
 			// (which may have been loaded from Supabase) so badges aren't lost
 			// when localStorage is empty on a new device/browser.
 			const supabase = user ? getSupabaseBrowserClient() : undefined;
-			recomputeProgressBasedBadges(supabase);
+			// Use last_session as the proxy timestamp for retroactive badges so
+			// they don't all get stamped with the current moment. last_session is
+			// stored as YYYY-MM-DD; coerce to a full ISO timestamp.
+			const lastSession = serverProgress?.last_session;
+			const proxy =
+				typeof lastSession === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(lastSession)
+					? `${lastSession}T00:00:00.000Z`
+					: undefined;
+			recomputeProgressBasedBadges(supabase, proxy);
 			badges = getAllBadges();
 		}
 	});
@@ -926,6 +951,11 @@
 								> badges</span
 							>
 						{/if}
+						{#if longestStreak > 0}
+							<span
+								><span class="font-semibold text-text-default">{longestStreak}</span> longest streak</span
+							>
+						{/if}
 					</div>
 				{:else}
 					<h1 class="text-lg font-semibold text-text-default sm:text-xl">Your Progress</h1>
@@ -952,6 +982,11 @@
 								><span class="font-semibold text-text-default"
 									>{earnedBadgeCount}/{badges.length}</span
 								> badges</span
+							>
+						{/if}
+						{#if longestStreak > 0}
+							<span
+								><span class="font-semibold text-text-default">{longestStreak}</span> longest streak</span
 							>
 						{/if}
 					</div>

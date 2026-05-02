@@ -22,6 +22,8 @@ interface ProgressData {
 	level: string;
 	case_scores: Record<string, ScoreEntry>;
 	paradigm_scores: Record<string, ScoreEntry>;
+	last_session: string;
+	longest_answer_streak: number;
 }
 
 interface SessionData {
@@ -48,13 +50,24 @@ function isProfileData(v: unknown): v is ProfileData {
 
 function isProgressData(v: unknown): v is ProgressData {
 	if (!isRecord(v)) return false;
-	return (
-		typeof v.level === 'string' &&
-		typeof v.case_scores === 'object' &&
-		v.case_scores !== null &&
-		typeof v.paradigm_scores === 'object' &&
-		v.paradigm_scores !== null
-	);
+	if (
+		typeof v.level !== 'string' ||
+		typeof v.case_scores !== 'object' ||
+		v.case_scores === null ||
+		typeof v.paradigm_scores !== 'object' ||
+		v.paradigm_scores === null
+	) {
+		return false;
+	}
+	// last_session and longest_answer_streak are tolerated when missing so older
+	// rows still validate; the caller normalises to safe defaults.
+	if (v.last_session !== undefined && typeof v.last_session !== 'string') {
+		return false;
+	}
+	if (v.longest_answer_streak !== undefined && typeof v.longest_answer_streak !== 'number') {
+		return false;
+	}
+	return true;
 }
 
 function isSessionArray(v: unknown): v is SessionData[] {
@@ -87,7 +100,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.maybeSingle(),
 		supabase
 			.from('user_progress')
-			.select('level, case_scores, paradigm_scores')
+			.select('level, case_scores, paradigm_scores, last_session, longest_answer_streak')
 			.eq('user_id', user.id)
 			.maybeSingle(),
 		supabase
@@ -111,7 +124,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	const profile = isProfileData(profileResult.data) ? profileResult.data : null;
-	const progress = isProgressData(progressResult.data) ? progressResult.data : null;
+	const rawProgress = isProgressData(progressResult.data) ? progressResult.data : null;
+	const progress: ProgressData | null = rawProgress
+		? {
+				level: rawProgress.level,
+				case_scores: rawProgress.case_scores,
+				paradigm_scores: rawProgress.paradigm_scores,
+				last_session: typeof rawProgress.last_session === 'string' ? rawProgress.last_session : '',
+				longest_answer_streak:
+					typeof rawProgress.longest_answer_streak === 'number'
+						? rawProgress.longest_answer_streak
+						: 0
+			}
+		: null;
 	const rawSessions = isSessionArray(sessionsResult.data) ? sessionsResult.data : [];
 	// Normalize case_scores for rows that predate the column
 	const sessions = rawSessions.map((s) => {

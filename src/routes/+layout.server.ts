@@ -5,6 +5,7 @@ interface SavedProgress {
 	case_scores: Record<string, { attempts: number; correct: number }>;
 	paradigm_scores: Record<string, { attempts: number; correct: number }>;
 	last_session: string;
+	longest_answer_streak: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -29,11 +30,14 @@ function parseSavedProgress(data: unknown): SavedProgress | null {
 	if (typeof data.last_session !== 'string') return null;
 	if (!isScoresRecord(data.case_scores)) return null;
 	if (!isScoresRecord(data.paradigm_scores)) return null;
+	const rawLongest = data.longest_answer_streak;
+	const longestAnswerStreak = typeof rawLongest === 'number' ? rawLongest : 0;
 	return {
 		level: data.level,
 		case_scores: data.case_scores,
 		paradigm_scores: data.paradigm_scores,
-		last_session: data.last_session
+		last_session: data.last_session,
+		longest_answer_streak: longestAnswerStreak
 	};
 }
 
@@ -49,7 +53,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 		const progressPromise = supabase
 			.from('user_progress')
-			.select('level, case_scores, paradigm_scores, last_session')
+			.select('level, case_scores, paradigm_scores, last_session, longest_answer_streak')
 			.eq('user_id', user.id)
 			.maybeSingle();
 

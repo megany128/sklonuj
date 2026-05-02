@@ -89,6 +89,27 @@ export const actions: Actions = {
 
 		const supabase = locals.supabase;
 
+		// Detect whether this is the user's first class. If so, auto-disable the
+		// weekly practice summary email after the insert succeeds — those summaries
+		// are aimed at learners, and creating a class implies the user is a teacher.
+		const userId = user.id;
+		const { count: existingClassCount, error: existingClassError } = await supabase
+			.from('classes')
+			.select('id', { count: 'exact', head: true })
+			.eq('teacher_id', userId);
+		const isFirstClass = existingClassError === null && (existingClassCount ?? 0) === 0;
+
+		async function disableWeeklySummaryEmail(): Promise<void> {
+			if (!isFirstClass) return;
+			const { error: updateError } = await supabase
+				.from('profiles')
+				.update({ email_reminders: false })
+				.eq('id', userId);
+			if (updateError) {
+				console.error('Failed to auto-disable weekly summary for new teacher:', updateError);
+			}
+		}
+
 		const initialCode = await generateClassCode(supabase);
 		if ('error' in initialCode) {
 			return fail(500, { message: 'Failed to create class. Please try again.', name, level });
@@ -133,6 +154,7 @@ export const actions: Actions = {
 				}
 
 				if (retryData && typeof retryData.id === 'string') {
+					await disableWeeklySummaryEmail();
 					redirect(303, resolve(`/classes/${retryData.id}?tour=1`));
 				}
 			}
@@ -141,6 +163,7 @@ export const actions: Actions = {
 		}
 
 		if (data && typeof data.id === 'string') {
+			await disableWeeklySummaryEmail();
 			redirect(303, resolve(`/classes/${data.id}?tour=1`));
 		}
 
