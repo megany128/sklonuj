@@ -3,6 +3,7 @@ import type { SupabaseClient, User } from '@supabase/supabase-js';
 interface PublicUser {
 	id: string;
 	email: string | undefined;
+	display_name: string | null;
 	user_metadata: { avatar_url?: string };
 }
 

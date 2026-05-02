@@ -202,16 +202,22 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	const currentHourUtc = now.getUTCHours();
 	const sixDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
 
-	// Find users whose preferred day + hour matches now and who haven't been emailed recently
+	// Find users whose preferred day matches today, whose preferred hour has
+	// already passed (or is now), and who haven't been emailed in the last 6
+	// days. Using `<=` instead of `=` on the hour gives us a same-day catch-up
+	// window: GitHub Actions occasionally drops scheduled runs (free-tier is
+	// best-effort), so the next hourly run picks up anyone the missed slot
+	// was meant to email. The 6-day guard prevents double-sends within a week.
 	const { data: profilesData, error: profilesError } = await adminClient
 		.from('profiles')
 		.select('id, display_name')
 		.eq('email_reminders', true)
 		.eq('reminder_day', currentDayUtc)
-		.eq('reminder_hour_utc', currentHourUtc)
+		.lte('reminder_hour_utc', currentHourUtc)
 		.or(`last_weekly_email_at.is.null,last_weekly_email_at.lt.${sixDaysAgo.toISOString()}`);
 
 	if (profilesError) {
+		console.error('weekly-summary: failed to query profiles', profilesError);
 		return json({ error: 'Failed to query profiles' }, { status: 500 });
 	}
 
@@ -221,7 +227,10 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	);
 
 	if (profiles.length === 0) {
-		return json({ ok: true, sent: 0 });
+		console.log(
+			`weekly-summary: day=${currentDayUtc} hour=${currentHourUtc} eligible=0 (no users matched filter)`
+		);
+		return json({ ok: true, eligible: 0, sent: 0, failed: 0 });
 	}
 
 	const userIds = profiles.map((p) => p.id);
@@ -363,6 +372,21 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	);
 
 	const sent = results.filter((r) => r.status === 'fulfilled').length;
+	const failures = results
+		.map((r, i) => ({ r, job: validJobs[i] }))
+		.filter(({ r }) => r.status === 'rejected')
+		.map(({ r, job }) => ({
+			profileId: job.profileId,
+			email: job.email,
+			reason: r.status === 'rejected' ? String((r as PromiseRejectedResult).reason) : 'unknown'
+		}));
 
-	return json({ ok: true, sent });
+	console.log(
+		`weekly-summary: day=${currentDayUtc} hour=${currentHourUtc} eligible=${profiles.length} sent=${sent} failed=${failures.length}`
+	);
+	if (failures.length > 0) {
+		console.error('weekly-summary: failures', failures);
+	}
+
+	return json({ ok: true, eligible: profiles.length, sent, failed: failures.length });
 };

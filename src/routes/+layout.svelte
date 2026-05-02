@@ -13,8 +13,22 @@
 	import '../app.css';
 	import { initPostHog } from '$lib/posthog';
 	import posthog from '$lib/posthog';
+	import DisplayNamePromptModal from '$lib/components/ui/DisplayNamePromptModal.svelte';
 
 	let { children } = $props();
+
+	// Prompt logged-in users to set a display name when their profile row has
+	// none. Skip on /auth (signup is mid-flow) and /profile (the page already
+	// has a name editor — modal would just overlap it).
+	let needsDisplayNamePrompt = $derived.by(() => {
+		const u = page.data.user;
+		if (!u) return false;
+		const name = u.display_name;
+		if (typeof name === 'string' && name.trim().length > 0) return false;
+		const path = page.url.pathname;
+		if (path.startsWith('/auth') || path.startsWith('/profile')) return false;
+		return true;
+	});
 
 	/** Track the last merged user ID to prevent duplicate merge operations on repeated SIGNED_IN events. */
 	let lastMergedUserId: string | null = null;
@@ -340,3 +354,7 @@
 		<div class="mt-1.5 font-medium">Skloňuj</div>
 	</footer>
 </div>
+
+{#if needsDisplayNamePrompt}
+	<DisplayNamePromptModal />
+{/if}
