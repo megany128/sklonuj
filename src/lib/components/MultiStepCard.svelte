@@ -863,7 +863,7 @@
 							><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
 								>({question.adjective?.lemma})</span
 							></span
-						>{question.correctForm}{adjSentenceParts[1] ?? ''}{#if onSpeak}<button
+						>&nbsp;{question.correctForm}{adjSentenceParts[1] ?? ''}{#if onSpeak}<button
 								type="button"
 								onclick={() =>
 									onSpeak?.(
@@ -983,8 +983,8 @@
 					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 						{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
 								class="font-semibold {CASE_COLORS[question.correctCase].text}"
-								>{question.correctAdjectiveForm}&nbsp;</span
-							>{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
+								>{question.correctAdjectiveForm}</span
+							>&nbsp;{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
 							>{question.correctForm}</span
 						>{sentenceParts.after}
 					</p>

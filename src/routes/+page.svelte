@@ -24,6 +24,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type {
+		AdjectiveEntry,
 		Case,
 		ContentMode,
 		Difficulty,
@@ -1370,7 +1371,17 @@
 	let chapterPickerOpen = $state(false);
 	let practicingMistakes = $state(false);
 	let lastMistakeIndex = $state(-1);
-	let lastTemplateId: string | null = null;
+	const RECENT_TEMPLATE_LIMIT = 5;
+	const RECENT_LEMMA_LIMIT = 8;
+	let recentTemplateIds: string[] = [];
+	let recentNounLemmas: string[] = [];
+	let recentAdjectiveLemmas: string[] = [];
+	let recentPronounLemmas: string[] = [];
+
+	function pushRecent(buf: string[], id: string, limit: number): void {
+		buf.push(id);
+		if (buf.length > limit) buf.shift();
+	}
 
 	let relevantMistakeCount = $derived(
 		selectedCase === 'all'
@@ -1987,7 +1998,7 @@
 		// If no chapter lemmas, fall back to normal selection
 		if (currentLemmas.length === 0 && previousLemmas.length === 0) {
 			const valid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-			return valid.length > 0 ? weightedRandom(valid, prog, case_, number_) : null;
+			return valid.length > 0 ? pickWord(valid, prog, case_, number_) : null;
 		}
 
 		const allLemmasLower = new Set([
@@ -2013,7 +2024,7 @@
 
 		if (!hasCoreWords) {
 			const valid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-			return valid.length > 0 ? weightedRandom(valid, prog, case_, number_) : null;
+			return valid.length > 0 ? pickWord(valid, prog, case_, number_) : null;
 		}
 
 		// General pool only from chapter 13 onward, at 20%
@@ -2025,23 +2036,23 @@
 				(w) => !allLemmasLower.has(w.lemma.toLowerCase()) && hasValidForm(w, case_, number_)
 			);
 			if (generalWords.length > 0) {
-				return weightedRandom(generalWords, prog, case_, number_);
+				return pickWord(generalWords, prog, case_, number_);
 			}
 		}
 
 		// Pick from chapter vocab: 75% current, 25% previous
 		const innerRoll = Math.random();
 		if (innerRoll < 0.75 && coreCurrentWords.length > 0) {
-			return weightedRandom(coreCurrentWords, prog, case_, number_);
+			return pickWord(coreCurrentWords, prog, case_, number_);
 		} else if (corePreviousWords.length > 0) {
-			return weightedRandom(corePreviousWords, prog, case_, number_);
+			return pickWord(corePreviousWords, prog, case_, number_);
 		} else if (coreCurrentWords.length > 0) {
-			return weightedRandom(coreCurrentWords, prog, case_, number_);
+			return pickWord(coreCurrentWords, prog, case_, number_);
 		}
 
 		// Absolute fallback
 		const allValid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-		return allValid.length > 0 ? weightedRandom(allValid, prog, case_, number_) : null;
+		return allValid.length > 0 ? pickWord(allValid, prog, case_, number_) : null;
 	}
 
 	function getChapterIndex(): number {
@@ -2052,13 +2063,53 @@
 	}
 
 	function pickTemplate(templates: SentenceTemplate[]): SentenceTemplate {
-		if (templates.length > 1 && lastTemplateId !== null) {
-			const filtered = templates.filter((t) => t.id !== lastTemplateId);
+		if (templates.length > 1 && recentTemplateIds.length > 0) {
+			const filtered = templates.filter((t) => !recentTemplateIds.includes(t.id));
 			if (filtered.length > 0) {
 				return filtered[Math.floor(Math.random() * filtered.length)];
 			}
 		}
 		return templates[Math.floor(Math.random() * templates.length)];
+	}
+
+	function pickWord(
+		candidates: WordEntry[],
+		prog: Progress,
+		case_: Case,
+		number_: Number_
+	): WordEntry {
+		const filtered = candidates.filter((w) => !recentNounLemmas.includes(w.lemma));
+		const pool = filtered.length > 0 ? filtered : candidates;
+		const picked = weightedRandom(pool, prog, case_, number_);
+		pushRecent(recentNounLemmas, picked.lemma, RECENT_LEMMA_LIMIT);
+		return picked;
+	}
+
+	function pickAdjective(
+		candidates: AdjectiveEntry[],
+		prog: Progress,
+		case_: Case,
+		number_: Number_,
+		word: WordEntry
+	): AdjectiveEntry {
+		const filtered = candidates.filter((a) => !recentAdjectiveLemmas.includes(a.lemma));
+		const pool = filtered.length > 0 ? filtered : candidates;
+		const picked = weightedRandomAdjective(pool, prog, case_, number_, word);
+		pushRecent(recentAdjectiveLemmas, picked.lemma, RECENT_LEMMA_LIMIT);
+		return picked;
+	}
+
+	function pickPronoun(
+		candidates: PronounEntry[],
+		prog: Progress,
+		case_: Case,
+		number_: Number_
+	): PronounEntry {
+		const filtered = candidates.filter((p) => !recentPronounLemmas.includes(p.lemma));
+		const pool = filtered.length > 0 ? filtered : candidates;
+		const picked = weightedRandomPronoun(pool, prog, case_, number_);
+		pushRecent(recentPronounLemmas, picked.lemma, RECENT_LEMMA_LIMIT);
+		return picked;
 	}
 
 	function generatePronounQuestion(): DrillQuestion | null {
@@ -2128,7 +2179,7 @@
 				}
 			}
 
-			const pronoun = weightedRandomPronoun(candidates, prog, fpCase, number_);
+			const pronoun = pickPronoun(candidates, prog, fpCase, number_);
 			return generatePronounFormProduction(pronoun, fpCase, number_);
 		} else if (drillType === 'sentence_fill_in') {
 			// Use pronoun templates
@@ -2148,7 +2199,7 @@
 					if (nonNom.length > 0) fpCase = nonNom[Math.floor(Math.random() * nonNom.length)];
 					else return null;
 				}
-				const pronoun = weightedRandomPronoun(candidates, prog, fpCase, number_);
+				const pronoun = pickPronoun(candidates, prog, fpCase, number_);
 				return generatePronounFormProduction(pronoun, fpCase, number_);
 			}
 
@@ -2169,16 +2220,11 @@
 
 			if (validCandidates.length === 0) {
 				// Fall back: pick any candidate and do form production
-				const pronoun = weightedRandomPronoun(candidates, prog, case_, number_);
+				const pronoun = pickPronoun(candidates, prog, case_, number_);
 				return generatePronounFormProduction(pronoun, case_, number_);
 			}
 
-			const pronoun = weightedRandomPronoun(
-				validCandidates,
-				prog,
-				template.requiredCase,
-				template.number
-			);
+			const pronoun = pickPronoun(validCandidates, prog, template.requiredCase, template.number);
 			return generatePronounSentenceDrill(template, pronoun);
 		} else {
 			// case_identification - use pronoun templates too
@@ -2205,12 +2251,7 @@
 
 			if (validCandidates.length === 0) return null;
 
-			const pronoun = weightedRandomPronoun(
-				validCandidates,
-				prog,
-				template.requiredCase,
-				template.number
-			);
+			const pronoun = pickPronoun(validCandidates, prog, template.requiredCase, template.number);
 			const placeholder = makePlaceholderWord(pronoun);
 
 			// For case identification, create a question where the answer is the case name
@@ -2259,7 +2300,7 @@
 			// Find a noun to pair the adjective with (determines gender key)
 			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
 			if (validWords.length === 0) return null;
-			const word = weightedRandom(validWords, prog, case_, number_);
+			const word = pickWord(validWords, prog, case_, number_);
 			const genderKey = getAdjectiveGenderKey(word);
 
 			// Filter adjectives that have a valid form for this combination,
@@ -2275,7 +2316,7 @@
 				);
 			});
 			if (validAdjs.length === 0) return null;
-			const adj = weightedRandomAdjective(validAdjs, prog, case_, number_, word);
+			const adj = pickAdjective(validAdjs, prog, case_, number_, word);
 			return generateAdjectiveFormProduction(adj, genderKey, case_, number_, word);
 		}
 
@@ -2302,16 +2343,10 @@
 		}
 		if (templateWords.length === 0) return null;
 
-		const word = weightedRandom(templateWords, prog, template.requiredCase, template.number);
+		const word = pickWord(templateWords, prog, template.requiredCase, template.number);
 		const compatibleAdjs = filterAdjectivesByTemplate(adjCandidates, template);
 		if (compatibleAdjs.length === 0) return null;
-		const adj = weightedRandomAdjective(
-			compatibleAdjs,
-			prog,
-			template.requiredCase,
-			template.number,
-			word
-		);
+		const adj = pickAdjective(compatibleAdjs, prog, template.requiredCase, template.number, word);
 		return generateAdjectiveSentenceDrill(template, adj, word);
 	}
 
@@ -2354,7 +2389,7 @@
 				lastResult = null;
 				paradigmNotes = null;
 				submitted = false;
-				lastTemplateId = fallbackQ.template.id;
+				pushRecent(recentTemplateIds, fallbackQ.template.id, RECENT_TEMPLATE_LIMIT);
 				if (advanceTimer !== null) {
 					clearTimeout(advanceTimer);
 					advanceTimer = null;
@@ -2413,7 +2448,7 @@
 				lastResult = null;
 				paradigmNotes = pronounQ.pronoun?.notes ?? null;
 				submitted = false;
-				lastTemplateId = pronounQ.template.id;
+				pushRecent(recentTemplateIds, pronounQ.template.id, RECENT_TEMPLATE_LIMIT);
 				if (advanceTimer !== null) {
 					clearTimeout(advanceTimer);
 					advanceTimer = null;
@@ -2508,7 +2543,7 @@
 				lastResult = null;
 				paradigmNotes = null;
 				submitted = false;
-				lastTemplateId = adjQ.template.id;
+				pushRecent(recentTemplateIds, adjQ.template.id, RECENT_TEMPLATE_LIMIT);
 				if (advanceTimer !== null) {
 					clearTimeout(advanceTimer);
 					advanceTimer = null;
@@ -2559,7 +2594,7 @@
 						.filter((w) => !w.irregular);
 				}
 				if (candidates.length > 0) {
-					const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
+					const word = pickWord(candidates, prog, template.requiredCase, template.number);
 					const showCaseStep = effectiveEnabledCases.length > 1;
 					const msq = generateMultiStepQuestion(word, template, showCaseStep);
 					if (msq) {
@@ -2596,7 +2631,7 @@
 									)
 								);
 								if (compatAdjs.length > 0) {
-									const adj = weightedRandomAdjective(
+									const adj = pickAdjective(
 										compatAdjs,
 										prog,
 										template.requiredCase,
@@ -2628,7 +2663,7 @@
 						lastResult = null;
 						paradigmNotes = lookupParadigmNotes(word.paradigm, word);
 						submitted = false;
-						lastTemplateId = template.id;
+						pushRecent(recentTemplateIds, template.id, RECENT_TEMPLATE_LIMIT);
 						if (advanceTimer !== null) {
 							clearTimeout(advanceTimer);
 							advanceTimer = null;
@@ -2667,9 +2702,9 @@
 						assignmentChapterLemmas!.has(w.lemma.toLowerCase())
 					);
 					const pool = chapterWords.length > 0 && Math.random() < 0.75 ? chapterWords : validWords;
-					word = weightedRandom(pool, prog, fpCase, number_);
+					word = pickWord(pool, prog, fpCase, number_);
 				} else {
-					word = validWords.length > 0 ? weightedRandom(validWords, prog, fpCase, number_) : null;
+					word = validWords.length > 0 ? pickWord(validWords, prog, fpCase, number_) : null;
 				}
 			}
 			if (!word) {
@@ -2706,8 +2741,7 @@
 					word = pickWordForChapter(eligibleWords, prog, fallbackCase, number_);
 				} else {
 					const validWords = eligibleWords.filter((w) => hasValidForm(w, fallbackCase, number_));
-					word =
-						validWords.length > 0 ? weightedRandom(validWords, prog, fallbackCase, number_) : null;
+					word = validWords.length > 0 ? pickWord(validWords, prog, fallbackCase, number_) : null;
 				}
 				if (!word) {
 					question = null;
@@ -2759,7 +2793,8 @@
 						lastResult = null;
 						paradigmNotes = null;
 						submitted = false;
-						lastTemplateId = question?.template.id ?? null;
+						const tid = question?.template.id;
+						if (tid) pushRecent(recentTemplateIds, tid, RECENT_TEMPLATE_LIMIT);
 						if (advanceTimer !== null) {
 							clearTimeout(advanceTimer);
 							advanceTimer = null;
@@ -2794,18 +2829,18 @@
 
 					if (hasCoreWords && Math.random() < 0.7) {
 						if (Math.random() < 0.75 && coreCurrent.length > 0) {
-							picked = weightedRandom(coreCurrent, prog, template.requiredCase, template.number);
+							picked = pickWord(coreCurrent, prog, template.requiredCase, template.number);
 						} else if (corePrevious.length > 0) {
-							picked = weightedRandom(corePrevious, prog, template.requiredCase, template.number);
+							picked = pickWord(corePrevious, prog, template.requiredCase, template.number);
 						} else {
-							picked = weightedRandom(coreCurrent, prog, template.requiredCase, template.number);
+							picked = pickWord(coreCurrent, prog, template.requiredCase, template.number);
 						}
 					} else if (hasCoreWords) {
 						// 30% chance we still pick from chapter words instead of general
 						const allCore = [...coreCurrent, ...corePrevious];
-						picked = weightedRandom(allCore, prog, template.requiredCase, template.number);
+						picked = pickWord(allCore, prog, template.requiredCase, template.number);
 					} else if (allowGeneral && general.length > 0) {
-						picked = weightedRandom(general, prog, template.requiredCase, template.number);
+						picked = pickWord(general, prog, template.requiredCase, template.number);
 					} else if (!allowGeneral) {
 						// Early chapter, no chapter words match this template — use the
 						// template with a chapter word directly (sentence fill-in is still
@@ -2832,7 +2867,7 @@
 						lastResult = null;
 						paradigmNotes = null;
 						submitted = false;
-						lastTemplateId = question.template.id;
+						pushRecent(recentTemplateIds, question.template.id, RECENT_TEMPLATE_LIMIT);
 						if (advanceTimer !== null) {
 							clearTimeout(advanceTimer);
 							advanceTimer = null;
@@ -2840,7 +2875,7 @@
 						autoPlayPrompt(question);
 						return;
 					} else {
-						picked = weightedRandom(baseCandidates, prog, template.requiredCase, template.number);
+						picked = pickWord(baseCandidates, prog, template.requiredCase, template.number);
 					}
 
 					if (drillType === 'case_identification') {
@@ -2870,10 +2905,10 @@
 							question = null;
 							return;
 						}
-						const word = weightedRandom(validWords, prog, fbCase2, number_);
+						const word = pickWord(validWords, prog, fbCase2, number_);
 						question = generateFormProduction(word, fbCase2, number_);
 					} else {
-						const word = weightedRandom(candidates, prog, template.requiredCase, template.number);
+						const word = pickWord(candidates, prog, template.requiredCase, template.number);
 
 						if (drillType === 'case_identification') {
 							question = generateCaseIdentification(template, word);
@@ -2889,7 +2924,8 @@
 		lastResult = null;
 		paradigmNotes = null;
 		submitted = false;
-		lastTemplateId = question?.template.id ?? null;
+		const tid = question?.template.id;
+		if (tid) pushRecent(recentTemplateIds, tid, RECENT_TEMPLATE_LIMIT);
 
 		if (advanceTimer !== null) {
 			clearTimeout(advanceTimer);
