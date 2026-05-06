@@ -1871,44 +1871,46 @@
 		}
 		wordsLoading = false;
 
-		// Flush pending syncs on page unload to avoid data loss
+		// Flush pending syncs on page unload to avoid data loss.
+		// sendBeacon does not reliably send Origin or Content-Type: application/json,
+		// so the server's CSRF/content-type checks would silently reject it.
+		// fetch with keepalive:true is the spec-recommended replacement and sends
+		// full headers while surviving page unload.
 		function handleBeforeUnload(): void {
 			if (syncTimer) {
 				clearTimeout(syncTimer);
 				syncTimer = null;
 				const current = get(progress);
-				const blob = new Blob(
-					[
-						JSON.stringify({
-							progress: {
-								level: current.level,
-								caseScores: current.caseScores,
-								paradigmScores: current.paradigmScores,
-								lastSession: current.lastSession
-							}
-						})
-					],
-					{ type: 'application/json' }
-				);
-				navigator.sendBeacon('/api/sync', blob);
+				fetch('/api/sync', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					keepalive: true,
+					body: JSON.stringify({
+						progress: {
+							level: current.level,
+							caseScores: current.caseScores,
+							paradigmScores: current.paradigmScores,
+							lastSession: current.lastSession
+						}
+					})
+				}).catch(() => {});
 			}
 			if (sessionSyncTimer) {
 				clearTimeout(sessionSyncTimer);
 				sessionSyncTimer = null;
-				const blob = new Blob(
-					[
-						JSON.stringify({
-							session: {
-								sessionDate: getTodayDate(),
-								questionsAttempted: todayAttempted,
-								questionsCorrect: todayCorrect,
-								caseScores: todayCaseScores
-							}
-						})
-					],
-					{ type: 'application/json' }
-				);
-				navigator.sendBeacon('/api/sync', blob);
+				fetch('/api/sync', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					keepalive: true,
+					body: JSON.stringify({
+						session: {
+							sessionDate: getTodayDate(),
+							questionsAttempted: todayAttempted,
+							questionsCorrect: todayCorrect,
+							caseScores: todayCaseScores
+						}
+					})
+				}).catch(() => {});
 			}
 		}
 
