@@ -1290,9 +1290,17 @@
 			const chapter = getSelectedKzkChapter();
 			if (chapter) {
 				enabledCases = [...chapter.unlockedCases];
-				if (!chapter.pluralUnlocked) {
-					drillSettings = { ...drillSettings, numberMode: 'sg' };
-					saveSettingsToStorage(drillSettings);
+				{
+					const updates: Partial<typeof drillSettings> = {};
+					if (!chapter.pluralUnlocked) updates.numberMode = 'sg';
+					if (book === 'kzk1') {
+						updates.wordMode = 'nouns';
+						updates.contentMode = 'nouns';
+					}
+					if (Object.keys(updates).length > 0) {
+						drillSettings = { ...drillSettings, ...updates };
+						saveSettingsToStorage(drillSettings);
+					}
 				}
 				// Set CEFR level based on chapter position (use setLevel directly
 				// to avoid double generateNextQuestion call)
