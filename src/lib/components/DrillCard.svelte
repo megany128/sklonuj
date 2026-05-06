@@ -101,7 +101,11 @@
 		}))
 	);
 
-	let isPivo = $derived(question?.word.lemma === 'pivo');
+	let isPivo = $derived(
+		question?.word.lemma === 'pivo' &&
+			question?.wordCategory !== 'adjective' &&
+			question?.wordCategory !== 'pronoun'
+	);
 	let cardEl: HTMLDivElement | undefined = $state(undefined);
 	let pivoCursorEl: HTMLDivElement | undefined = $state(undefined);
 	let pivoVisible = $state(false);
@@ -389,8 +393,7 @@
 		{#key question}
 			<div
 				bind:this={cardEl}
-				class="drill-fade-enter relative flex flex-col gap-4 rounded-[24px] border-2 sm:gap-6 sm:rounded-[40px] {question
-					.word.lemma === 'pivo'
+				class="drill-fade-enter relative flex flex-col gap-4 rounded-[24px] border-2 sm:gap-6 sm:rounded-[40px] {isPivo
 					? 'border-easter-egg-border pivo-glow'
 					: 'border-card-stroke'} {streak >= 10 && showFeedback && result?.correct
 					? 'streak-glow'
@@ -437,7 +440,7 @@
 														? (question!.pronoun?.lemma ?? question!.word.lemma)
 														: question!.word.lemma
 											);
-											if (question!.word.lemma === 'pivo') triggerCheers();
+											if (isPivo) triggerCheers();
 										}}
 										class="cursor-pointer text-3xl font-semibold sm:text-4xl {CASE_COLORS[
 											question.case
