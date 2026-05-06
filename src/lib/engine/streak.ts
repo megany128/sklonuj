@@ -119,6 +119,13 @@ export function recordPractice(supabase?: SupabaseClient): void {
 	}
 }
 
+/**
+ * Reset streak to defaults in localStorage and the in-memory store.
+ */
+export function clearStreak(): void {
+	streak.set({ ...DEFAULT_STREAK });
+}
+
 export function getStreakMessage(currentStreak: number): string {
 	if (currentStreak <= 0) return '';
 	if (currentStreak <= 2) return 'Keep going!';

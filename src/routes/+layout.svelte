@@ -6,9 +6,17 @@
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
-	import { syncBadgesToSupabase, loadBadgesFromSupabase } from '$lib/engine/achievements';
-	import { syncStreakToSupabase, loadStreakFromSupabase } from '$lib/engine/streak';
-	import { syncMistakesToSupabase, loadMistakesFromSupabase } from '$lib/engine/mistakes';
+	import {
+		syncBadgesToSupabase,
+		loadBadgesFromSupabase,
+		clearBadges
+	} from '$lib/engine/achievements';
+	import { syncStreakToSupabase, loadStreakFromSupabase, clearStreak } from '$lib/engine/streak';
+	import {
+		syncMistakesToSupabase,
+		loadMistakesFromSupabase,
+		clearMistakes
+	} from '$lib/engine/mistakes';
 	import { getGuestSessions, clearGuestSessions } from '$lib/engine/guest-sessions';
 	import { addPracticeDays } from '$lib/engine/achievements';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -187,6 +195,9 @@
 			lastSession: '',
 			longestStreak: 0
 		});
+		clearStreak();
+		clearMistakes();
+		clearBadges();
 	}
 
 	onMount(() => {

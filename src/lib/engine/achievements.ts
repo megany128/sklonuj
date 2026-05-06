@@ -536,6 +536,19 @@ export function getAllBadges(): BadgeWithStatus[] {
 }
 
 /**
+ * Clear all earned badges from localStorage and reset the store.
+ */
+export function clearBadges(): void {
+	if (typeof window === 'undefined') return;
+	try {
+		localStorage.removeItem(BADGES_STORAGE_KEY);
+		localStorage.removeItem(PRACTICE_DAYS_KEY);
+	} catch {
+		// localStorage may be unavailable
+	}
+}
+
+/**
  * Upsert all localStorage badges to the remote `user_badges` table.
  */
 export async function syncBadgesToSupabase(supabase: SupabaseClient): Promise<void> {

@@ -193,19 +193,39 @@ export const actions: Actions = {
 				level: 'A1',
 				case_scores: {},
 				paradigm_scores: {},
-				last_session: ''
+				last_session: '',
+				longest_answer_streak: 0,
+				current_streak: 0,
+				longest_streak: 0,
+				last_practice_date: null
 			})
 			.eq('user_id', user.id);
 
 		if (progressError) return fail(500, { message: 'Failed to reset progress' });
 
-		// Then delete practice sessions
+		// Delete practice sessions
 		const { error: sessionsError } = await adminClient
 			.from('practice_sessions')
 			.delete()
 			.eq('user_id', user.id);
 
 		if (sessionsError) return fail(500, { message: 'Failed to delete practice sessions' });
+
+		// Delete badges
+		const { error: badgesError } = await adminClient
+			.from('user_badges')
+			.delete()
+			.eq('user_id', user.id);
+
+		if (badgesError) return fail(500, { message: 'Failed to delete badges' });
+
+		// Delete mistakes
+		const { error: mistakesError } = await adminClient
+			.from('user_mistakes')
+			.delete()
+			.eq('user_id', user.id);
+
+		if (mistakesError) return fail(500, { message: 'Failed to delete mistakes' });
 
 		return { success: true };
 	},
