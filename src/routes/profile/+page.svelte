@@ -7,15 +7,17 @@
 	import {
 		getAllBadges,
 		recomputeProgressBasedBadges,
+		clearBadges,
 		type BadgeWithStatus
 	} from '$lib/engine/achievements';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
+	import { clearStreak } from '$lib/engine/streak';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import type { Case } from '$lib/types';
 	import type { AdjectiveGenderKey } from '$lib/types';
 	import { ALL_CASES, ALL_ADJECTIVE_GENDER_KEYS, CASE_LABELS, isCase } from '$lib/types';
-	import { progress as progressStore } from '$lib/engine/progress';
+	import { progress as progressStore, resetProgress } from '$lib/engine/progress';
 	import { onMount } from 'svelte';
 	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -2550,6 +2552,13 @@
 					resetError = null;
 					return async ({ result }) => {
 						if (result.type === 'success') {
+							// Clear all client-side progress stores so the UI reflects the
+							// reset immediately without waiting for a full page reload.
+							resetProgress();
+							clearStreak();
+							clearMistakes();
+							clearBadges();
+							badges = getAllBadges();
 							await invalidateAll();
 							confirmingReset = false;
 						} else if (result.type === 'failure') {
