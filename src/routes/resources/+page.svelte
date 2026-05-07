@@ -173,6 +173,32 @@
 			</div>
 		</section>
 
+		<!-- External resources -->
+		<section class="mb-10">
+			<h2 class="mb-3 text-sm font-semibold text-emphasis">External resources</h2>
+			<a
+				href="https://www.alllanguageresources.com/czech-courses/"
+				target="_blank"
+				rel="noopener"
+				class="group block rounded-2xl border border-card-stroke bg-card-bg p-5 transition-all hover:border-emphasis/40 hover:shadow-sm"
+			>
+				<div class="flex items-start justify-between gap-4">
+					<div>
+						<h3 class="mb-1 text-sm font-semibold text-text-default">
+							All Language Resources — Czech
+						</h3>
+						<p class="text-xs leading-relaxed text-text-subtitle">
+							Independent reviews of Czech learning apps, courses, and tools.
+						</p>
+					</div>
+					<ArrowRight
+						class="mt-0.5 size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
+						aria-hidden="true"
+					/>
+				</div>
+			</a>
+		</section>
+
 		<!-- CTA -->
 		<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 text-center">
 			<h2 class="mb-2 text-sm font-semibold text-text-default">Ready to practice?</h2>
