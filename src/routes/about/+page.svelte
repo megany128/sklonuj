@@ -183,5 +183,20 @@
 				</ul>
 			</section>
 		</div>
+
+		<!-- Featured on -->
+		<section class="mt-6 rounded-2xl border border-card-stroke bg-card-bg p-6">
+			<h2 class="mb-3 text-sm font-semibold text-emphasis">Featured on</h2>
+			<p class="text-sm leading-relaxed text-text-subtitle">
+				Check out
+				<a
+					href="https://www.alllanguageresources.com/sklonuj/"
+					target="_blank"
+					rel="noopener"
+					class="font-medium text-text-default underline decoration-dotted underline-offset-2 hover:text-emphasis"
+					>All Language Resources' review of Skloňuj</a
+				>. ALR is an independent site that reviews language-learning apps and courses.
+			</p>
+		</section>
 	</main>
 </div>
