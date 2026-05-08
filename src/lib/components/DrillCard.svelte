@@ -466,6 +466,11 @@
 									/>
 								{/if}
 							</div>
+							{#if question.wordCategory === 'adjective' && question.adjective}
+								<span class="text-lg font-normal text-text-subtitle sm:text-xl">
+									{question.word.lemma}
+								</span>
+							{/if}
 							{#if onSpeak}
 								<button
 									type="button"
@@ -486,7 +491,7 @@
 						</div>
 						<p class="mt-2 text-sm text-text-subtitle">
 							{question.wordCategory === 'adjective' && question.adjective
-								? `${question.adjective.translation} (with ${question.word.lemma})`
+								? question.adjective.translation
 								: question.wordCategory === 'pronoun'
 									? (question.pronoun?.translation ?? question.word.translation)
 									: question.word.translation}

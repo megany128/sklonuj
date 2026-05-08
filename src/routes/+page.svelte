@@ -96,7 +96,8 @@
 		generateAdjectiveFormProduction,
 		getAdjectiveGenderKey,
 		getAdjectiveForm,
-		getAllAdjectiveAcceptedForms
+		getAllAdjectiveAcceptedForms,
+		adjectiveMatchesNoun
 	} from '$lib/engine/adjective-drill';
 	import {
 		speak,
@@ -2323,16 +2324,13 @@
 			const genderKey = getAdjectiveGenderKey(word);
 
 			// Filter adjectives that have a valid form for this combination,
-			// then narrow by semantic compatibility with the noun (mirrors the
-			// multi_step pairing logic so form-production prompts don't surface
-			// awkward pairings like "studený učitel" or "jarní pes").
-			const PERSON_CATEGORIES = ['people', 'family', 'profession', 'nationality', 'animals'];
-			const isPersonNoun = word.categories.some((c) => PERSON_CATEGORIES.includes(c));
+			// then narrow by semantic compatibility with the noun. Uses the noun's
+			// own category tags so that mass/abstract nouns ("alkohol", "čas") only
+			// pair with universal/common adjectives — preventing surface bugs like
+			// "krátký alkohol" that the prior person/object binary missed.
 			const validAdjs = adjCandidates.filter((a) => {
 				if (getAdjectiveForm(a, genderKey, case_, number_) === null) return false;
-				return a.categories.some(
-					(c) => c === 'universal' || (isPersonNoun ? c === 'person' : c === 'object')
-				);
+				return adjectiveMatchesNoun(a, word);
 			});
 			if (validAdjs.length === 0) return null;
 			const adj = pickAdjective(validAdjs, prog, case_, number_, word);

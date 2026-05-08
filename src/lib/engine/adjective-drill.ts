@@ -476,6 +476,97 @@ export function getAdjectiveCandidates(unlockedDifficulties: string[]): Adjectiv
 	return bank.filter((adj) => unlockedDifficulties.includes(adj.difficulty));
 }
 
+// ---------------------------------------------------------------------------
+// Noun-aware adjective compatibility
+// ---------------------------------------------------------------------------
+
+const PERSON_NOUN_CATEGORIES: readonly string[] = [
+	'people',
+	'family',
+	'profession',
+	'nationality',
+	'animals'
+];
+
+// Noun categories that signal a concrete, physically-extended referent —
+// nouns whose form/dimensions/color/temperature can be meaningfully described.
+// Mass nouns (alkohol/voda) and abstracts (čas/problém) are excluded so adjs
+// like "krátký", "modrý", "studený" don't surface against them.
+const CONCRETE_NOUN_CATEGORIES: readonly string[] = [
+	'objects',
+	'clothing',
+	'transportation',
+	'vehicle',
+	'body',
+	'food',
+	'readable',
+	'weighable',
+	'sliceable',
+	'meal',
+	'nature',
+	'places',
+	'v_place',
+	'na_place',
+	'gathering'
+];
+
+/**
+ * Whether an adjective is semantically compatible with a given noun.
+ *
+ * Specific restrictor tags (person/emotion/object/color/temperature) narrow
+ * the noun's required type. They override the broader `universal` and `common`
+ * fallback tags — without that override, a tagging slip like `[color,universal]`
+ * on "modrý" would let "modrý problém" through, and `[common,person]` on
+ * "zkušený" would let "zkušený auto" through.
+ *
+ *   person/emotion (without an object-class tag) → person nouns only
+ *   object/color/temperature (with optional size) → concrete non-person nouns
+ *     · if also tagged `person` (e.g. "drahý"): both person and concrete OK
+ *   size alone (no object tag, e.g. "velký", "malý") → broad — these are
+ *     dimensionless in Czech and apply metaphorically (velký problém)
+ *   speed → person nouns or moving things
+ *   universal / common (no restrictor) → compatible with anything
+ */
+export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): boolean {
+	const isPerson = word.categories.some((c) => PERSON_NOUN_CATEGORIES.includes(c));
+	const isConcrete = word.categories.some((c) => CONCRETE_NOUN_CATEGORIES.includes(c));
+	const cats = new Set(adj.categories);
+
+	const hasPerson = cats.has('person');
+	const hasEmotion = cats.has('emotion');
+	const hasColor = cats.has('color');
+	const hasTemp = cats.has('temperature');
+	const hasObject = cats.has('object');
+	const hasSize = cats.has('size');
+	const hasSpeed = cats.has('speed');
+
+	const concreteRestricted = hasColor || hasTemp || hasObject;
+
+	// Concrete-class adj — may co-exist with `person` (e.g. "drahý" applies to both).
+	if (concreteRestricted) {
+		if (hasPerson) return isPerson || (isConcrete && !isPerson);
+		return isConcrete && !isPerson;
+	}
+
+	// Person-only / emotion-only (no concrete tag).
+	if (hasPerson || hasEmotion) {
+		return isPerson;
+	}
+
+	if (hasSpeed) {
+		return (
+			isPerson ||
+			word.categories.some((c) => c === 'transportation' || c === 'vehicle' || c === 'animals')
+		);
+	}
+
+	// `size` without `object` (velký/malý) is dimensionless in Czech — fall through
+	// to the broad branch.
+	if (cats.has('universal') || cats.has('common') || hasSize) return true;
+
+	return false;
+}
+
 /** Filter adjective candidates to only those semantically compatible with a template. */
 export function filterAdjectivesByTemplate(
 	candidates: AdjectiveEntry[],
