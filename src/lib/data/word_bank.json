@@ -23611,7 +23611,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["nature", "flora", "celestial"],
+		"categories": ["nature", "celestial"],
 		"forms": {
 			"sg": ["sluníčko", "sluníčka", "sluníčku", "sluníčko", "sluníčko", "sluníčku", "sluníčkem"],
 			"pl": ["sluníčka", "sluníček", "sluníčkům", "sluníčka", "sluníčka", "sluníčkách", "sluníčky"]
@@ -40874,7 +40874,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["nature", "flora"],
+		"categories": ["nature"],
 		"forms": {
 			"sg": ["mušle", "mušle", "mušli", "mušli", "mušle", "mušli", "mušlí"],
 			"pl": ["mušle", "mušlí", "mušlím", "mušle", "mušle", "mušlích", "mušlemi"]

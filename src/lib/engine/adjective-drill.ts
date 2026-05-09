@@ -838,6 +838,10 @@ export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): bool
 	if (adj.profile === 'wealth' && word.categories.includes('feeling')) return false;
 	// Block wealth adjectives on weather nouns: "drahý mráz" etc.
 	if (adj.profile === 'wealth' && word.categories.includes('weather')) return false;
+	// Block color adjectives on mealtime nouns: "modrý oběd" etc.
+	if (adj.profile === 'color' && word.categories.includes('mealtime')) return false;
+	// Block vitality on geological nouns: "zdravé zemětřesení" etc.
+	if (adj.profile === 'vitality' && word.categories.includes('geological')) return false;
 	const allowed = PROFILE_NOUN_COMPAT[adj.profile];
 	if (allowed === null) return true; // broad profile
 	const nounCats = word.categories;
