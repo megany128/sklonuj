@@ -102,7 +102,8 @@ const VALID_ADJECTIVE_PROFILES = new Set<string>([
 	'emotion',
 	'animate_quality',
 	'vitality',
-	'utility'
+	'utility',
+	'aggregate'
 ]);
 
 function isAdjectiveProfile(value: string): value is AdjectiveProfile {
@@ -777,7 +778,13 @@ const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = 
 		'gathering',
 		'quiet_event',
 		'travel'
-	]
+	],
+	// Aggregate (celkový) — only summable/assessable concepts.
+	// "Celkový" means "overall/total"; it does NOT apply to concrete objects,
+	// animals, individual foods, people, body parts, events, or readable things.
+	// Restricted to time/duration/era so the small remaining odd combos (calendar
+	// months, holidays) can be caught by the ban list.
+	aggregate: ['time', 'duration', 'era']
 };
 
 // Natural color+season pairings. All others are blocked.
@@ -842,6 +849,22 @@ export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): bool
 	if (adj.profile === 'color' && word.categories.includes('mealtime')) return false;
 	// Block vitality on geological nouns: "zdravé zemětřesení" etc.
 	if (adj.profile === 'vitality' && word.categories.includes('geological')) return false;
+	// Block správný on weather nouns: "správný déšť" etc.
+	if (adj.lemma === 'správný' && word.categories.includes('weather')) return false;
+	// Block současný on geological/celestial nouns: "současná sopka" etc.
+	if (adj.lemma === 'současný' && word.categories.includes('geological')) return false;
+	if (adj.lemma === 'současný' && word.categories.includes('celestial')) return false;
+	// Block tradiční on geological nouns: "tradiční zemětřesení" etc.
+	if (adj.lemma === 'tradiční' && word.categories.includes('geological')) return false;
+	// Block zkušený on animals: "zkušený pes" is marginal; user prefers profession-only.
+	if (adj.lemma === 'zkušený' && word.categories.includes('animals')) return false;
+	// Block současný on animals/body/food: "současný pes", "současný nos", "současná polévka".
+	if (adj.lemma === 'současný' && word.categories.includes('animals')) return false;
+	if (adj.lemma === 'současný' && word.categories.includes('body')) return false;
+	if (adj.lemma === 'současný' && word.categories.includes('food')) return false;
+	// Block nezbytný/hlavní on animals: "nezbytný ježek", "hlavní krokodýl".
+	if (adj.lemma === 'nezbytný' && word.categories.includes('animals')) return false;
+	if (adj.lemma === 'hlavní' && word.categories.includes('animals')) return false;
 	const allowed = PROFILE_NOUN_COMPAT[adj.profile];
 	if (allowed === null) return true; // broad profile
 	const nounCats = word.categories;

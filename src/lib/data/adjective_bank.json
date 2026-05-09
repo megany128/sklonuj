@@ -2242,7 +2242,7 @@
 		"difficulty": "B2",
 		"paradigmType": "hard",
 		"categories": ["common", "object"],
-		"profile": "quality",
+		"profile": "aggregate",
 		"forms": {
 			"m_anim": {
 				"sg": ["celkový", "celkového", "celkovému", "celkového", "celkový", "celkovém", "celkovým"],

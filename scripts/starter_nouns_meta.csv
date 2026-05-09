@@ -2270,7 +2270,7 @@ práva,right / rights,,B1,"misc,abstract"
 předsudk,prejudice,,B1,misc
 stereotyp,stereotype,,B1,misc
 figurka,statuette,,B1,misc
-herc,actor / actress,,B1,"misc,people"
+herc,actor / actress,pán,B1,"misc,people"
 horolezc,rock-climber,,B1,nature
 horolezkyně,rock-climber,,B1,nature
 kuželky,bowling,,B1,misc
@@ -2577,3 +2577,6 @@ pepř,pepper (spice),,A1,food
 rolák,turtleneck,,A1,clothing
 citrón,lemon,,A1,food
 sekretář,secretary,,A1,"family,people,profession"
+hořčice,mustard,růže,A2,food
+čočka,lentil,žena,A2,"food,weighable"
+polopenze,half board,růže,B1,"abstract,travel"

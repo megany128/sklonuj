@@ -289,7 +289,8 @@ export type AdjectiveProfile =
 	| 'emotion'
 	| 'animate_quality'
 	| 'vitality'
-	| 'utility';
+	| 'utility'
+	| 'aggregate';
 
 export interface AdjectiveEntry {
 	lemma: string;
