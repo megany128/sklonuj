@@ -41,6 +41,9 @@ dogfood-output/videos/
 .claude/
 .mcp.json
 
+# Audit scripts and output (throwaway)
+scripts/audit/
+
 # TTS generation venv
 scripts/.venv-tts/
 

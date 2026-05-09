@@ -5,7 +5,7 @@ dobrý,A1,,"common,universal",quality
 velký,A1,,"size,universal",dimensionless
 malý,A1,,"size,universal",dimensionless
 hezký,A1,,"common,universal",aesthetic
-mladý,A1,,"common,universal",quality
+mladý,A1,,"common,universal",animate_quality
 český,A1,,"common,universal",nationality
 první,A1,,"common,universal",ordinal
 krásný,A1,,"common,universal",aesthetic
@@ -43,7 +43,7 @@ různý,B1,,"common,universal",quality
 hlavní,B1,,"common,universal",quality
 příjemný,B1,,"emotion,universal",quality
 nemocný,B1,,"common,person",person_trait
-zdravý,B1,,"common,universal",quality
+zdravý,B1,,"common,universal",vitality
 spokojený,B2,,"emotion,person",emotion
 unavený,B2,,"emotion,person",person_trait
 překvapený,B2,,"emotion,person",emotion
@@ -52,7 +52,7 @@ historický,B2,,"common,object",domain
 politický,B2,,"common,universal",domain
 vědecký,B2,,"common,object",domain
 společenský,B2,,"common,universal",domain
-praktický,B2,,"common,universal",quality
+praktický,B2,,"common,universal",utility
 základní,B2,,"common,object",quality
 celkový,B2,,"common,object",quality
 současný,B2,,"common,universal",quality

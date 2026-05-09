@@ -281,6 +281,8 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 		(word) =>
 			word.categories.includes(template.lemmaCategory) &&
 			unlockedDifficulties.includes(word.difficulty) &&
+			// Skip pluralia tantum nouns for singular templates
+			!(template.number === 'sg' && word.pluralOnly === true) &&
 			!isBlockedTemplateNounPair(template.id, word.lemma)
 	);
 

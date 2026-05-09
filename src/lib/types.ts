@@ -286,7 +286,10 @@ export type AdjectiveProfile =
 	| 'aesthetic'
 	| 'speed'
 	| 'person_trait'
-	| 'emotion';
+	| 'emotion'
+	| 'animate_quality'
+	| 'vitality'
+	| 'utility';
 
 export interface AdjectiveEntry {
 	lemma: string;

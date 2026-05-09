@@ -1,1 +1,22 @@
-[["loc_po_217", "léto"]]
+[
+	["loc_po_217", "léto"],
+	["ins_bratr_183", "policie"],
+	["ins_stala_184", "policie"],
+	["ins_zustane_185", "policie"],
+	["ins_byt_235", "policie"],
+	["ins_byt_237", "policie"],
+	["ins_byt_050", "policie"],
+	["ins_stal_236", "policie"],
+	["acc_tesim_244", "trapas"],
+	["acc_tesim_244", "pohřeb"],
+	["acc_tesim_244", "tragédie"],
+	["acc_tesim_244", "revoluce"],
+	["acc_tesim_244", "varování"],
+	["acc_tesim_244", "bitva"],
+	["acc_tesim_244", "válka"],
+	["acc_tesim_244", "boj"],
+	["acc_tesim_244", "souboj"],
+	["acc_tesim_244", "demonstrace"],
+	["loc_v_129", "motorka"],
+	["loc_v_139", "motorka"]
+]

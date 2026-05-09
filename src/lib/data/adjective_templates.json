@@ -9,7 +9,7 @@
 		"requiredAnimate": false,
 		"why": "The adjective agrees with 'dům' (masc. inanimate) in nominative singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color", "temperature"]
+		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"]
 	},
 	{
 		"id": "adj_nom_sg_f_002",
@@ -21,7 +21,7 @@
 		"requiredAnimate": false,
 		"why": "The adjective agrees with 'kniha' (feminine) in nominative singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_nom_sg_n_003",
@@ -105,7 +105,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'knihu' (feminine) in accusative singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_acc_sg_n_010",
@@ -117,7 +117,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'auto' (neuter) in accusative singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "speed", "color"]
+		"adjectiveCategories": ["universal", "size", "speed", "color", "object"]
 	},
 	{
 		"id": "adj_loc_sg_m_011",
@@ -129,7 +129,7 @@
 		"requiredAnimate": false,
 		"why": "'V' (in) takes locative. The adjective agrees with 'domě' (masc. inanimate) in locative singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color", "temperature"]
+		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"]
 	},
 	{
 		"id": "adj_loc_sg_f_012",
@@ -165,7 +165,7 @@
 		"requiredAnimate": false,
 		"why": "Instrumental of means. The adjective agrees with 'autem' (neuter) in instrumental singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "speed", "color"]
+		"adjectiveCategories": ["universal", "size", "speed", "color", "object"]
 	},
 	{
 		"id": "adj_ins_sg_f_015",
@@ -177,7 +177,7 @@
 		"requiredAnimate": false,
 		"why": "Instrumental of path. The adjective agrees with 'ulicí' (feminine) in instrumental singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object", "temperature"]
 	},
 	{
 		"id": "adj_nom_pl_m_016",
@@ -201,7 +201,7 @@
 		"requiredAnimate": false,
 		"why": "The adjective agrees with 'knihy' (feminine plural) in nominative.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_gen_pl_m_018",
@@ -225,7 +225,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'věci' (feminine plural) in accusative.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_loc_pl_n_020",
@@ -285,7 +285,7 @@
 		"requiredAnimate": false,
 		"why": "'Vlakem' is instrumental — the adjective must agree in instrumental singular masculine inanimate.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "speed", "size", "color", "temperature"]
+		"adjectiveCategories": ["universal", "speed", "size", "color", "temperature", "object"]
 	},
 	{
 		"id": "adj_ins_sg_manim_027",
@@ -345,7 +345,7 @@
 		"requiredAnimate": false,
 		"why": "The adjective agrees with 'stůl' (masc. inanimate) in nominative singular.",
 		"difficulty": "A1",
-		"adjectiveCategories": ["universal", "size", "color", "temperature"]
+		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"]
 	},
 	{
 		"id": "adj_a1_nom_sg_f_001",
@@ -405,7 +405,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'tašku' (feminine) in accusative singular.",
 		"difficulty": "A1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_a1_acc_sg_n_001",
@@ -417,7 +417,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'auto' (neuter) in accusative singular.",
 		"difficulty": "A1",
-		"adjectiveCategories": ["universal", "size", "speed", "color"]
+		"adjectiveCategories": ["universal", "size", "speed", "color", "object"]
 	},
 	{
 		"id": "adj_a1_nom_pl_f_001",
@@ -465,7 +465,7 @@
 		"requiredAnimate": false,
 		"why": "'V' (in) takes locative. The adjective agrees with 'obchodě' (masc. inanimate) in locative singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_a2_loc_sg_n_001",
@@ -525,7 +525,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'svetr' (masc. inanimate) in accusative singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size", "color", "temperature"]
+		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"]
 	},
 	{
 		"id": "adj_a2_acc_sg_f_001",
@@ -537,7 +537,7 @@
 		"requiredAnimate": false,
 		"why": "Direct object takes accusative. The adjective agrees with 'školu' (feminine) in accusative singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_a2_acc_sg_n_001",
@@ -573,7 +573,7 @@
 		"requiredAnimate": false,
 		"why": "'Blízko' (near) takes genitive. The adjective agrees with 'školy' (feminine) in genitive singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_a2_dat_sg_minanim_001",
@@ -609,7 +609,7 @@
 		"requiredAnimate": false,
 		"why": "'V' (in) takes locative. The adjective agrees with 'restauraci' (feminine) in locative singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size"]
+		"adjectiveCategories": ["universal", "size", "object", "temperature"]
 	},
 	{
 		"id": "adj_a2_loc_sg_manim_001",
@@ -633,7 +633,7 @@
 		"requiredAnimate": false,
 		"why": "Instrumental of means. The adjective agrees with 'lžící' (feminine) in instrumental singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size", "color", "temperature"]
+		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"]
 	},
 	{
 		"id": "adj_a2_ins_sg_n_001",
@@ -645,7 +645,7 @@
 		"requiredAnimate": false,
 		"why": "Instrumental of means. The adjective agrees with 'perem' (neuter) in instrumental singular.",
 		"difficulty": "A2",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_a2_nom_pl_manim_001",
@@ -849,7 +849,7 @@
 		"requiredAnimate": false,
 		"why": "'K' (toward) takes dative. The adjective agrees with 'kostelu' (masc. inanimate) in dative singular.",
 		"difficulty": "B1",
-		"adjectiveCategories": ["universal", "size", "color"]
+		"adjectiveCategories": ["universal", "size", "color", "object"]
 	},
 	{
 		"id": "adj_b1_dat_sg_n_001",

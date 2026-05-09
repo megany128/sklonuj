@@ -99,7 +99,10 @@ const VALID_ADJECTIVE_PROFILES = new Set<string>([
 	'aesthetic',
 	'speed',
 	'person_trait',
-	'emotion'
+	'emotion',
+	'animate_quality',
+	'vitality',
+	'utility'
 ]);
 
 function isAdjectiveProfile(value: string): value is AdjectiveProfile {
@@ -727,8 +730,58 @@ const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = 
 		'v_place',
 		'na_place',
 		'food'
+	],
+	// Animate quality (mladý) — only living things + time expressions.
+	animate_quality: [
+		'people',
+		'family',
+		'profession',
+		'nationality',
+		'animals',
+		'flora',
+		'era',
+		'time',
+		'duration',
+		'calendar_unit'
+	],
+	// Vitality (zdravý) — people, animals, food, flora, nature.
+	vitality: [
+		'people',
+		'family',
+		'profession',
+		'nationality',
+		'animals',
+		'food',
+		'sliceable',
+		'weighable',
+		'meal',
+		'mealtime',
+		'flora',
+		'nature'
+	],
+	// Utility (praktický) — objects, places, concepts, people.
+	utility: [
+		'objects',
+		'clothing',
+		'transportation',
+		'vehicle',
+		'readable',
+		'abstract',
+		'places',
+		'v_place',
+		'na_place',
+		'people',
+		'profession',
+		'family',
+		'event',
+		'gathering',
+		'quiet_event',
+		'travel'
 	]
 };
+
+// Natural color+season pairings. All others are blocked.
+const COLOR_SEASON_ALLOW = new Set<string>(['bílý|zima', 'zelený|jaro', 'červený|podzim']);
 
 // Natural color+weather pairings. All others are blocked (no "červený mráz",
 // "modrý vítr"). Only combos that a native speaker would use literally.
@@ -769,6 +822,22 @@ export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): bool
 		!COLOR_WEATHER_ALLOW.has(`${adj.lemma}|${word.lemma}`)
 	)
 		return false;
+	// Block color adjectives on season nouns — only a few natural pairings.
+	if (adj.profile === 'color' && word.categories.includes('season')) {
+		if (!COLOR_SEASON_ALLOW.has(`${adj.lemma}|${word.lemma}`)) return false;
+	}
+	// Block seasonal adjectives on indoor places.
+	if (adj.profile === 'seasonal' && word.categories.includes('indoor')) return false;
+	// Block physical_extent on celestial and geological nouns.
+	if (adj.profile === 'physical_extent' && word.categories.includes('celestial')) return false;
+	if (adj.profile === 'physical_extent' && word.categories.includes('geological')) return false;
+	// Block abundance on weather and celestial nouns.
+	if (adj.profile === 'abundance' && word.categories.includes('weather')) return false;
+	if (adj.profile === 'abundance' && word.categories.includes('celestial')) return false;
+	// Block wealth adjectives on feeling nouns: "levná radost" etc.
+	if (adj.profile === 'wealth' && word.categories.includes('feeling')) return false;
+	// Block wealth adjectives on weather nouns: "drahý mráz" etc.
+	if (adj.profile === 'wealth' && word.categories.includes('weather')) return false;
 	const allowed = PROFILE_NOUN_COMPAT[adj.profile];
 	if (allowed === null) return true; // broad profile
 	const nounCats = word.categories;

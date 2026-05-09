@@ -308,7 +308,8 @@
 		"trigger": "přes",
 		"why": "'Přes' (across) always takes the accusative case.",
 		"difficulty": "A2",
-		"semanticTags": ["v_place", "na_place", "flora"]
+		"semanticTags": ["v_place", "na_place"],
+		"excludesCategories": ["flora"]
 	},
 	{
 		"id": "acc_znam_033",
@@ -1671,7 +1672,8 @@
 		"trigger": "pod",
 		"why": "'Pod' (under) takes the instrumental case when expressing location.",
 		"difficulty": "B1",
-		"semanticTags": ["flora"]
+		"semanticTags": ["nature"],
+		"excludesCategories": ["flora"]
 	},
 	{
 		"id": "nom_tady_152",
@@ -1841,6 +1843,7 @@
 		"id": "loc_na_168",
 		"template": "Mám to na ___.",
 		"lemmaCategory": "body",
+		"semanticTags": ["surface_body"],
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
@@ -1913,6 +1916,7 @@
 		"id": "nom_pada_175",
 		"template": "___ padá.",
 		"lemmaCategory": "nature",
+		"semanticTags": ["weather", "flora"],
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
@@ -2113,6 +2117,7 @@
 		"template": "Bratr je ___.",
 		"lemmaCategory": "people",
 		"semanticTags": ["profession"],
+		"requiredGender": "m",
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
@@ -2124,6 +2129,7 @@
 		"template": "Sestra se stala ___.",
 		"lemmaCategory": "people",
 		"semanticTags": ["profession"],
+		"requiredGender": "f",
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
@@ -2187,6 +2193,7 @@
 		"id": "gen_zucastnil_190",
 		"template": "Zúčastnil jsem se ___.",
 		"lemmaCategory": "misc",
+		"semanticTags": ["event", "gathering", "quiet_event"],
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
@@ -2540,6 +2547,7 @@
 		"template": "Sestra je ___.",
 		"lemmaCategory": "people",
 		"semanticTags": ["profession"],
+		"requiredGender": "f",
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
@@ -2562,6 +2570,7 @@
 		"template": "Otec je ___.",
 		"lemmaCategory": "people",
 		"semanticTags": ["profession"],
+		"requiredGender": "m",
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
