@@ -625,7 +625,6 @@ const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = 
 		'family',
 		'profession',
 		'nationality',
-		'animals',
 		'places',
 		'v_place',
 		'na_place',
@@ -731,6 +730,18 @@ const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = 
 	]
 };
 
+// Natural color+weather pairings. All others are blocked (no "červený mráz",
+// "modrý vítr"). Only combos that a native speaker would use literally.
+const COLOR_WEATHER_ALLOW = new Set<string>([
+	'bílý|sníh',
+	'bílý|mrak',
+	'bílý|oblak',
+	'bílý|mlha',
+	'bílý|pára',
+	'černý|mrak',
+	'černý|oblak'
+]);
+
 /**
  * Whether an adjective is semantically compatible with a given noun, based on
  * the adjective's `profile` and the noun's `categories`.
@@ -746,6 +757,18 @@ export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): bool
 	if (isBlockedAdjNounPair(adj.lemma, word.lemma)) return false;
 	// Block season-on-season pairings (e.g. "jarní léto").
 	if (adj.profile === 'seasonal' && word.categories.includes('season')) return false;
+	// Block domain adjectives on emotional/feeling abstracts: "vědecká radost"
+	// (scientific joy) etc. don't carry. Domain adjs apply to topics, not states.
+	if (adj.profile === 'domain' && word.categories.includes('feeling')) return false;
+	// Block abundance adjectives on feeling nouns: "bohatá radost" (rich joy) etc.
+	if (adj.profile === 'abundance' && word.categories.includes('feeling')) return false;
+	// Block color adjectives on weather nouns unless explicitly allowed.
+	if (
+		adj.profile === 'color' &&
+		word.categories.includes('weather') &&
+		!COLOR_WEATHER_ALLOW.has(`${adj.lemma}|${word.lemma}`)
+	)
+		return false;
 	const allowed = PROFILE_NOUN_COMPAT[adj.profile];
 	if (allowed === null) return true; // broad profile
 	const nounCats = word.categories;
