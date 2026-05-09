@@ -263,12 +263,38 @@ export type AdjectiveGenderKey = 'm_anim' | 'm_inanim' | 'f' | 'n';
 
 export type AdjectiveParadigmType = 'hard' | 'soft';
 
+/**
+ * Semantic compatibility profile for noun pairing. The legacy `categories`
+ * field continues to drive sentence-template filtering (templates declare
+ * `adjectiveCategories` using the old vocabulary), while `profile` is the
+ * single source of truth for adjective→noun semantic compatibility in
+ * `adjectiveMatchesNoun`.
+ */
+export type AdjectiveProfile =
+	| 'quality'
+	| 'dimensionless'
+	| 'physical_extent'
+	| 'color'
+	| 'temperature'
+	| 'taste'
+	| 'wealth'
+	| 'abundance'
+	| 'seasonal'
+	| 'domain'
+	| 'nationality'
+	| 'ordinal'
+	| 'aesthetic'
+	| 'speed'
+	| 'person_trait'
+	| 'emotion';
+
 export interface AdjectiveEntry {
 	lemma: string;
 	translation: string;
 	difficulty: Difficulty;
 	paradigmType: AdjectiveParadigmType;
 	categories: string[];
+	profile: AdjectiveProfile;
 	forms: Record<AdjectiveGenderKey, { sg: CaseForms; pl: CaseForms }>;
 	variantForms?: Partial<Record<AdjectiveGenderKey, { sg?: VariantForms; pl?: VariantForms }>>;
 }

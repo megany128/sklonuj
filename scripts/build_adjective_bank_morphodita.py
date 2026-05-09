@@ -589,6 +589,7 @@ def main() -> int:
         translation = m.get("translation_override") or wiktionary_translations.get(lemma, "")
         difficulty = m.get("difficulty", "")
         categories = m.get("categories", "")
+        profile = m.get("profile", "").strip()
 
         if not translation:
             missing_translations.append(lemma)
@@ -603,6 +604,7 @@ def main() -> int:
             "categories": [c.strip() for c in categories.split(",") if c.strip()]
             if categories
             else ["misc"],
+            "profile": profile or "quality",
             "forms": primary_forms,
             "variantForms": {},
         }

@@ -37,7 +37,8 @@
 		"number": "sg",
 		"trigger": "do",
 		"why": "'Do' (to/into) always takes the genitive case.",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"semanticTags": ["v_place"]
 	},
 	{
 		"id": "gen_z_012",
@@ -119,7 +120,8 @@
 		"number": "sg",
 		"trigger": "do",
 		"why": "'Do' (to/back to) always takes the genitive case.",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"semanticTags": ["v_place"]
 	},
 	{
 		"id": "gen_bez_020",
@@ -129,7 +131,8 @@
 		"number": "sg",
 		"trigger": "bez",
 		"why": "'Bez' (without) always takes the genitive case.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["portable"]
 	},
 	{
 		"id": "dat_k_021",
@@ -304,7 +307,8 @@
 		"number": "sg",
 		"trigger": "přes",
 		"why": "'Přes' (across) always takes the accusative case.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["v_place", "na_place", "flora"]
 	},
 	{
 		"id": "acc_znam_033",
@@ -442,7 +446,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "'Na' (on) takes the locative case when expressing the surface where someone is sitting.",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"semanticTags": ["sittable"]
 	},
 	{
 		"id": "loc_po_039",
@@ -474,7 +479,8 @@
 		"number": "sg",
 		"trigger": "v",
 		"why": "'V' (in) takes the locative case when expressing location.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["v_place"]
 	},
 	{
 		"id": "loc_o_042",
@@ -494,7 +500,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "'Na' (on) takes the locative case when expressing location on a surface.",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"semanticTags": ["na_place"]
 	},
 	{
 		"id": "ins_s_044",
@@ -892,7 +899,8 @@
 		"number": "pl",
 		"trigger": "do",
 		"why": "'Do' (to/into) always takes the genitive case.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["v_place"]
 	},
 	{
 		"id": "gen_bez_083",
@@ -1449,7 +1457,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "'Na' (on) takes the locative case when expressing location on a surface.",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"semanticTags": ["sittable"]
 	},
 	{
 		"id": "loc_po_131",
@@ -1459,7 +1468,8 @@
 		"number": "sg",
 		"trigger": "po",
 		"why": "'Po' (after) takes the locative case when expressing time sequence.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["calendar_unit", "holiday", "season", "era", "duration"]
 	},
 	{
 		"id": "loc_pri_132",
@@ -1511,7 +1521,8 @@
 		"number": "pl",
 		"trigger": "na",
 		"why": "'Na' (on/at) takes the locative case when expressing location.",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"semanticTags": ["na_place"]
 	},
 	{
 		"id": "loc_o_137",
@@ -1575,7 +1586,8 @@
 		"number": "sg",
 		"trigger": "za",
 		"why": "'Za' (behind) takes the instrumental case when expressing location.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["v_place", "na_place", "flora"]
 	},
 	{
 		"id": "ins_nad_144",
@@ -1626,7 +1638,8 @@
 		"number": "pl",
 		"trigger": "s",
 		"why": "'S' (with) always takes the instrumental case.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["portable"]
 	},
 	{
 		"id": "ins_mezi_149",
@@ -1657,7 +1670,8 @@
 		"number": "pl",
 		"trigger": "pod",
 		"why": "'Pod' (under) takes the instrumental case when expressing location.",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"semanticTags": ["flora"]
 	},
 	{
 		"id": "nom_tady_152",
@@ -1861,7 +1875,8 @@
 		"number": "sg",
 		"trigger": "do",
 		"why": "'Do' (by/before a time) takes the genitive case.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["calendar_unit", "era", "holiday"]
 	},
 	{
 		"id": "acc_mam_172",
@@ -2042,7 +2057,8 @@
 		"number": "sg",
 		"trigger": "od",
 		"why": "'Od' (of/from) always takes the genitive case to express belonging.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["v_place"]
 	},
 	{
 		"id": "acc_celou_181",
@@ -2053,7 +2069,8 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"why": "Time duration expressions take the accusative case. 'Celou' is the feminine accusative form of 'whole'.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["duration", "era"]
 	},
 	{
 		"id": "acc_cely_181b",
@@ -2064,7 +2081,8 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"why": "Time duration expressions ('celý den', 'celý týden') take the accusative case.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["duration", "era"]
 	},
 	{
 		"id": "acc_celou_182",
@@ -2075,7 +2093,8 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"why": "Time duration expressions take the accusative case. 'Celou' is the feminine accusative form of 'whole'.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["duration", "era"]
 	},
 	{
 		"id": "acc_cely_182b",
@@ -2086,7 +2105,8 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"why": "Time duration expressions take the accusative case. 'Celý' is the masculine accusative form of 'whole'.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["duration", "era"]
 	},
 	{
 		"id": "ins_bratr_183",
@@ -2349,7 +2369,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"semanticTags": ["v_place", "na_place", "flora"]
 	},
 	{
 		"id": "dat_dam_212",
@@ -2435,7 +2456,8 @@
 		"number": "pl",
 		"trigger": "na",
 		"why": "'Na' (on) takes the locative case when expressing location.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["sittable"]
 	},
 	{
 		"id": "loc_po_217",
@@ -2445,7 +2467,8 @@
 		"number": "pl",
 		"trigger": "po",
 		"why": "'Po' (after) takes the locative case when expressing time sequence.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["season"]
 	},
 	{
 		"id": "dat_dekuji_218",
@@ -2498,7 +2521,8 @@
 		"number": "sg",
 		"trigger": "od",
 		"why": "'Od' (from) takes the genitive case when expressing the starting point of a time period.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["calendar_unit", "era", "holiday", "duration"]
 	},
 	{
 		"id": "gen_do_234",
@@ -2508,7 +2532,8 @@
 		"number": "sg",
 		"trigger": "do",
 		"why": "'Do' (until/to) takes the genitive case when expressing the end point of a time period.",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"semanticTags": ["calendar_unit", "era", "holiday", "duration"]
 	},
 	{
 		"id": "ins_byt_235",

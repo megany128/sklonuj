@@ -19,12 +19,44 @@ import { CASE_INDEX, isCase, isNumber } from '../types';
 import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
+import blockedTemplateNounPairsData from '../data/blocked_template_noun_pairs.json';
 import { getBlockedLemmaSet } from './lemma-blocks';
 import { stripDiacritics } from '../utils/diacritics';
 import { checkAdjectiveAnswer as checkAdjectiveAnswerImpl } from './adjective-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
 
 export { applyPrepositionVoicing };
+
+// Hand-curated list of [template_id, noun_lemma] pairs that should never
+// surface, even when the template's lemmaCategory/semanticTags filter passes.
+// Used to suppress awkward combinations the rule system can't catch.
+function loadBlockedTemplateNounPairs(): ReadonlySet<string> {
+	const raw: unknown = blockedTemplateNounPairsData;
+	if (!Array.isArray(raw)) {
+		throw new Error('blocked_template_noun_pairs.json must be an array');
+	}
+	const set = new Set<string>();
+	for (const entry of raw) {
+		if (
+			!Array.isArray(entry) ||
+			entry.length !== 2 ||
+			typeof entry[0] !== 'string' ||
+			typeof entry[1] !== 'string'
+		) {
+			throw new Error(
+				'blocked_template_noun_pairs.json entries must be [template_id, noun_lemma] pairs'
+			);
+		}
+		set.add(`${entry[0]}|${entry[1]}`);
+	}
+	return set;
+}
+
+const BLOCKED_TEMPLATE_NOUN_PAIRS = loadBlockedTemplateNounPairs();
+
+function isBlockedTemplateNounPair(templateId: string, nounLemma: string): boolean {
+	return BLOCKED_TEMPLATE_NOUN_PAIRS.has(`${templateId}|${nounLemma}`);
+}
 
 export interface CurriculumLevel {
 	unlocked_cases: string[];
@@ -248,7 +280,8 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	const categoryMatches = wordBank.filter(
 		(word) =>
 			word.categories.includes(template.lemmaCategory) &&
-			unlockedDifficulties.includes(word.difficulty)
+			unlockedDifficulties.includes(word.difficulty) &&
+			!isBlockedTemplateNounPair(template.id, word.lemma)
 	);
 
 	// If template has semantic tags, only return words that match at least one tag.

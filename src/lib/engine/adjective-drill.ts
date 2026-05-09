@@ -2,6 +2,7 @@ import type {
 	AdjectiveEntry,
 	AdjectiveGenderKey,
 	AdjectiveParadigmType,
+	AdjectiveProfile,
 	Case,
 	CaseForms,
 	CaseIndex,
@@ -19,8 +20,41 @@ import type {
 import { CASE_INDEX, isCase, isNumber } from '../types';
 import adjectiveBankData from '../data/adjective_bank.json';
 import adjectiveTemplateData from '../data/adjective_templates.json';
+import blockedAdjNounPairsData from '../data/blocked_adj_noun_pairs.json';
 import { stripDiacritics } from '../utils/diacritics';
 import { getBlockedLemmaSet } from './lemma-blocks';
+
+// Hand-curated list of adjective+noun lemma pairs that the engine should never
+// surface, even when the profile/category compatibility check passes. Used for
+// the long-tail of awkward combinations that don't fit any clean rule —
+// season-on-season ("jarní léto"), unusual collocations, etc.
+function loadBlockedAdjNounPairs(): ReadonlySet<string> {
+	const raw: unknown = blockedAdjNounPairsData;
+	if (!Array.isArray(raw)) {
+		throw new Error('blocked_adj_noun_pairs.json must be an array');
+	}
+	const set = new Set<string>();
+	for (const entry of raw) {
+		if (
+			!Array.isArray(entry) ||
+			entry.length !== 2 ||
+			typeof entry[0] !== 'string' ||
+			typeof entry[1] !== 'string'
+		) {
+			throw new Error(
+				'blocked_adj_noun_pairs.json entries must be [adjective_lemma, noun_lemma] pairs'
+			);
+		}
+		set.add(`${entry[0]}|${entry[1]}`);
+	}
+	return set;
+}
+
+const BLOCKED_ADJ_NOUN_PAIRS = loadBlockedAdjNounPairs();
+
+function isBlockedAdjNounPair(adjLemma: string, nounLemma: string): boolean {
+	return BLOCKED_ADJ_NOUN_PAIRS.has(`${adjLemma}|${nounLemma}`);
+}
 
 // ---------------------------------------------------------------------------
 // Raw JSON interfaces (pre-validation)
@@ -37,6 +71,7 @@ interface RawAdjectiveEntry {
 	difficulty: string;
 	paradigmType: string;
 	categories: string[];
+	profile: string;
 	forms: Record<string, RawAdjectiveGenderForms>;
 	variantForms?: Record<string, Record<string, Record<string, string[] | undefined> | undefined>>;
 }
@@ -48,6 +83,28 @@ interface RawAdjectiveEntry {
 const VALID_DIFFICULTIES = new Set<string>(['A1', 'A2', 'B1', 'B2']);
 const VALID_PARADIGM_TYPES = new Set<string>(['hard', 'soft']);
 const VALID_GENDER_KEYS = new Set<string>(['m_anim', 'm_inanim', 'f', 'n']);
+const VALID_ADJECTIVE_PROFILES = new Set<string>([
+	'quality',
+	'dimensionless',
+	'physical_extent',
+	'color',
+	'temperature',
+	'taste',
+	'wealth',
+	'abundance',
+	'seasonal',
+	'domain',
+	'nationality',
+	'ordinal',
+	'aesthetic',
+	'speed',
+	'person_trait',
+	'emotion'
+]);
+
+function isAdjectiveProfile(value: string): value is AdjectiveProfile {
+	return VALID_ADJECTIVE_PROFILES.has(value);
+}
 
 function isDifficulty(value: string): value is Difficulty {
 	return VALID_DIFFICULTIES.has(value);
@@ -121,12 +178,17 @@ export function loadAdjectiveBank(): AdjectiveEntry[] {
 			n: validateGenderForms('n', entry.lemma)
 		};
 
+		if (!isAdjectiveProfile(entry.profile)) {
+			throw new Error(`Invalid profile "${entry.profile}" for adjective "${entry.lemma}"`);
+		}
+
 		const adjective: AdjectiveEntry = {
 			lemma: entry.lemma,
 			translation: entry.translation,
 			difficulty: entry.difficulty,
 			paradigmType: entry.paradigmType,
 			categories: entry.categories,
+			profile: entry.profile,
 			forms
 		};
 
@@ -477,7 +539,7 @@ export function getAdjectiveCandidates(unlockedDifficulties: string[]): Adjectiv
 }
 
 // ---------------------------------------------------------------------------
-// Noun-aware adjective compatibility
+// Noun-aware adjective compatibility (profile-driven)
 // ---------------------------------------------------------------------------
 
 const PERSON_NOUN_CATEGORIES: readonly string[] = [
@@ -488,82 +550,208 @@ const PERSON_NOUN_CATEGORIES: readonly string[] = [
 	'animals'
 ];
 
-// Noun categories that signal a concrete, physically-extended referent —
-// nouns whose form/dimensions/color/temperature can be meaningfully described.
-// Mass nouns (alkohol/voda) and abstracts (čas/problém) are excluded so adjs
-// like "krátký", "modrý", "studený" don't surface against them.
-const CONCRETE_NOUN_CATEGORIES: readonly string[] = [
-	'objects',
-	'clothing',
-	'transportation',
-	'vehicle',
-	'body',
-	'food',
-	'readable',
-	'weighable',
-	'sliceable',
-	'meal',
-	'nature',
-	'places',
-	'v_place',
-	'na_place',
-	'gathering'
-];
+// Per-profile lists of noun categories that the adjective can meaningfully
+// modify. `null` means "any noun" (broad applicability — abstract, time, mass,
+// concrete, person all accepted). All other profiles must match at least one
+// listed noun category.
+//
+// Curated to avoid awkward pairings like "krátký alkohol" (mass noun, no
+// physical extent) or "modrý problém" (abstract). The lists are conservative
+// for narrow profiles (taste, temperature, physical_extent) so any pair the
+// engine surfaces should sound natural to a native speaker.
+const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = {
+	// Broad — apply to anything (concrete, abstract, person, time, mass).
+	quality: null,
+	dimensionless: null,
+	nationality: null,
+	ordinal: null,
+	aesthetic: null,
+	// Wealth (drahý/levný) — price/value, applies broadly except to body parts.
+	wealth: [
+		'misc',
+		'people',
+		'family',
+		'profession',
+		'nationality',
+		'animals',
+		'objects',
+		'clothing',
+		'transportation',
+		'vehicle',
+		'readable',
+		'food',
+		'sliceable',
+		'weighable',
+		'meal',
+		'mealtime',
+		'places',
+		'v_place',
+		'na_place',
+		'gathering',
+		'event',
+		'quiet_event',
+		'travel',
+		'abstract',
+		'time',
+		'duration',
+		'nature'
+	],
+	// Domain (historický/vědecký/politický/společenský) — applies to topics,
+	// events, eras, places, people/professions, written/abstract things.
+	// `family` excluded: "politický strýc" (political uncle) is awkward.
+	// Time restricted to `era`: calendar_unit (prosinec/minuta) doesn't pair.
+	domain: [
+		'abstract',
+		'event',
+		'gathering',
+		'quiet_event',
+		'era',
+		'places',
+		'v_place',
+		'na_place',
+		'readable',
+		'profession',
+		'people',
+		'nationality',
+		'travel',
+		'mealtime'
+	],
+	// Abundance (bohatý/chudý) — describes richness/poverty in a non-price
+	// sense. Applies to people, places, abstract qualities, food (rich-flavored),
+	// nature (bohatá příroda), events. NOT to small objects ("chudá lžíce" odd)
+	// nor to body parts/calendar units.
+	abundance: [
+		'people',
+		'family',
+		'profession',
+		'nationality',
+		'animals',
+		'places',
+		'v_place',
+		'na_place',
+		'abstract',
+		'era',
+		'food',
+		'sliceable',
+		'weighable',
+		'meal',
+		'mealtime',
+		'nature',
+		'event',
+		'gathering',
+		'quiet_event',
+		'travel',
+		'readable'
+	],
+	// Person-restricted.
+	person_trait: PERSON_NOUN_CATEGORIES,
+	emotion: PERSON_NOUN_CATEGORIES,
+	// Speed: people, animals, things that move.
+	speed: ['people', 'family', 'profession', 'nationality', 'animals', 'transportation', 'vehicle'],
+	// Physical extent: countable concrete things + time/duration (dlouhý čas).
+	// Excludes plain `food` (catches mass items like mléko, voda); countable
+	// foods come in via `sliceable`/`meal`.
+	physical_extent: [
+		'objects',
+		'body',
+		'clothing',
+		'transportation',
+		'vehicle',
+		'readable',
+		'nature',
+		'places',
+		'v_place',
+		'na_place',
+		'sliceable',
+		'gathering',
+		'duration',
+		'time',
+		'event',
+		'quiet_event',
+		'travel',
+		'mealtime',
+		'meal'
+	],
+	// Color: things with surfaces / appearance. `readable` is intentionally
+	// excluded — abstract texts (zákon, smlouva, pravidlo) lack color; physical
+	// printed items (kniha, časopis) carry `objects` and still match here.
+	color: [
+		'objects',
+		'clothing',
+		'transportation',
+		'vehicle',
+		'body',
+		'food',
+		'sliceable',
+		'weighable',
+		'meal',
+		'nature',
+		'places',
+		'v_place',
+		'na_place',
+		'animals'
+	],
+	// Temperature: food/drinks, body, places, weather (in nature), clothing,
+	// physical objects (cold table). `gathering`/`event` excluded — "warm
+	// protest" / "cold meeting" don't pair literally.
+	temperature: [
+		'food',
+		'body',
+		'nature',
+		'places',
+		'v_place',
+		'na_place',
+		'clothing',
+		'objects',
+		'sliceable',
+		'meal',
+		'weighable'
+	],
+	// Taste: food only.
+	taste: ['food', 'sliceable', 'weighable', 'meal', 'mealtime'],
+	// Seasonal: time-of-year-relevant things. Uses fine-grained `weather` and
+	// `flora` sub-tags instead of bare `nature` so "jarní léto" (season + season)
+	// and "jarní zima" (mutual seasons via shared `nature`/`time`) don't surface.
+	seasonal: [
+		'calendar_unit',
+		'holiday',
+		'era',
+		'weather',
+		'flora',
+		'mealtime',
+		'clothing',
+		'event',
+		'gathering',
+		'duration',
+		'travel',
+		'places',
+		'v_place',
+		'na_place',
+		'food'
+	]
+};
 
 /**
- * Whether an adjective is semantically compatible with a given noun.
+ * Whether an adjective is semantically compatible with a given noun, based on
+ * the adjective's `profile` and the noun's `categories`.
  *
- * Specific restrictor tags (person/emotion/object/color/temperature) narrow
- * the noun's required type. They override the broader `universal` and `common`
- * fallback tags — without that override, a tagging slip like `[color,universal]`
- * on "modrý" would let "modrý problém" through, and `[common,person]` on
- * "zkušený" would let "zkušený auto" through.
- *
- *   person/emotion (without an object-class tag) → person nouns only
- *   object/color/temperature (with optional size) → concrete non-person nouns
- *     · if also tagged `person` (e.g. "drahý"): both person and concrete OK
- *   size alone (no object tag, e.g. "velký", "malý") → broad — these are
- *     dimensionless in Czech and apply metaphorically (velký problém)
- *   speed → person nouns or moving things
- *   universal / common (no restrictor) → compatible with anything
+ * The profile is the single source of truth for category-level compatibility.
+ * On top of that, two narrowing rules apply:
+ *   1. `blocked_adj_noun_pairs.json` — explicit ban list for awkward
+ *      collocations the rule system can't catch.
+ *   2. Season-on-season — `seasonal` adjectives (jarní, etc.) never pair with
+ *      season nouns (jaro, léto, podzim, zima): "jarní léto" is nonsensical.
  */
 export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): boolean {
-	const isPerson = word.categories.some((c) => PERSON_NOUN_CATEGORIES.includes(c));
-	const isConcrete = word.categories.some((c) => CONCRETE_NOUN_CATEGORIES.includes(c));
-	const cats = new Set(adj.categories);
-
-	const hasPerson = cats.has('person');
-	const hasEmotion = cats.has('emotion');
-	const hasColor = cats.has('color');
-	const hasTemp = cats.has('temperature');
-	const hasObject = cats.has('object');
-	const hasSize = cats.has('size');
-	const hasSpeed = cats.has('speed');
-
-	const concreteRestricted = hasColor || hasTemp || hasObject;
-
-	// Concrete-class adj — may co-exist with `person` (e.g. "drahý" applies to both).
-	if (concreteRestricted) {
-		if (hasPerson) return isPerson || (isConcrete && !isPerson);
-		return isConcrete && !isPerson;
+	if (isBlockedAdjNounPair(adj.lemma, word.lemma)) return false;
+	// Block season-on-season pairings (e.g. "jarní léto").
+	if (adj.profile === 'seasonal' && word.categories.includes('season')) return false;
+	const allowed = PROFILE_NOUN_COMPAT[adj.profile];
+	if (allowed === null) return true; // broad profile
+	const nounCats = word.categories;
+	for (const c of nounCats) {
+		if (allowed.includes(c)) return true;
 	}
-
-	// Person-only / emotion-only (no concrete tag).
-	if (hasPerson || hasEmotion) {
-		return isPerson;
-	}
-
-	if (hasSpeed) {
-		return (
-			isPerson ||
-			word.categories.some((c) => c === 'transportation' || c === 'vehicle' || c === 'animals')
-		);
-	}
-
-	// `size` without `object` (velký/malý) is dimensionless in Czech — fall through
-	// to the broad branch.
-	if (cats.has('universal') || cats.has('common') || hasSize) return true;
-
 	return false;
 }
 

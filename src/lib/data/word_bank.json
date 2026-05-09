@@ -274,7 +274,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["stromek", "stromku", "stromku", "stromek", "stromku", "stromku", "stromkem"],
 			"pl": ["stromky", "stromků", "stromkům", "stromky", "stromky", "stromcích", "stromky"]
@@ -292,7 +292,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["sešit", "sešitu", "sešitu", "sešit", "sešite", "sešitě", "sešitem"],
 			"pl": ["sešity", "sešitů", "sešitům", "sešity", "sešity", "sešitech", "sešity"]
@@ -310,7 +310,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["telefon", "telefonu", "telefonu", "telefon", "telefone", "telefonu", "telefonem"],
 			"pl": ["telefony", "telefonů", "telefonům", "telefony", "telefony", "telefonech", "telefony"]
@@ -426,7 +426,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place", "flora"],
 		"forms": {
 			"sg": ["les", "lesa", "lesu", "les", "lese", "lese", "lesem"],
 			"pl": ["lesy", "lesů", "lesům", "lesy", "lesy", "lesích", "lesy"]
@@ -616,7 +616,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["kniha", "knihy", "knize", "knihu", "kniho", "knize", "knihou"],
 			"pl": ["knihy", "knih", "knihám", "knihy", "knihy", "knihách", "knihami"]
@@ -733,7 +733,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["růže", "růže", "růži", "růži", "růže", "růži", "růží"],
 			"pl": ["růže", "růží", "růžím", "růže", "růže", "růžích", "růžemi"]
@@ -785,7 +785,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["noc", "noci", "noci", "noc", "noci", "noci", "nocí"],
 			"pl": ["noci", "nocí", "nocím", "noci", "noci", "nocích", "nocemi"]
@@ -861,7 +861,7 @@
 		"animate": false,
 		"paradigm": "moře",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["moře", "moře", "moři", "moře", "moře", "moři", "mořem"],
 			"pl": ["moře", "moří", "mořím", "moře", "moře", "mořích", "moři"]
@@ -962,7 +962,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["pivo", "piva", "pivu", "pivo", "pivo", "pivě", "pivem"],
 			"pl": ["piva", "piv", "pivům", "piva", "piva", "pivech", "pivy"]
@@ -980,7 +980,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["víno", "vína", "vínu", "víno", "víno", "víně", "vínem"],
 			"pl": ["vína", "vín", "vínům", "vína", "vína", "vínech", "víny"]
@@ -1104,7 +1104,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["pero", "pera", "peru", "pero", "pero", "peru", "perem"],
 			"pl": ["pera", "per", "perům", "pera", "pera", "perech", "pery"]
@@ -1117,7 +1117,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["tužka", "tužky", "tužce", "tužku", "tužko", "tužce", "tužkou"],
 			"pl": ["tužky", "tužek", "tužkám", "tužky", "tužky", "tužkách", "tužkami"]
@@ -1130,7 +1130,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["papír", "papíru", "papíru", "papír", "papíre", "papíře", "papírem"],
 			"pl": ["papíry", "papírů", "papírům", "papíry", "papíry", "papírech", "papíry"]
@@ -1148,7 +1148,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": [
 				"zápisník",
@@ -1182,7 +1182,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["taška", "tašky", "tašce", "tašku", "taško", "tašce", "taškou"],
 			"pl": ["tašky", "tašek", "taškám", "tašky", "tašky", "taškách", "taškami"]
@@ -1195,7 +1195,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["kabelka", "kabelky", "kabelce", "kabelku", "kabelko", "kabelce", "kabelkou"],
 			"pl": ["kabelky", "kabelek", "kabelkám", "kabelky", "kabelky", "kabelkách", "kabelkami"]
@@ -1208,7 +1208,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["bota", "boty", "botě", "botu", "boto", "botě", "botou"],
 			"pl": ["boty", "bot", "botám", "boty", "boty", "botách", "botami"]
@@ -1221,7 +1221,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["košile", "košile", "košili", "košili", "košile", "košili", "košilí"],
 			"pl": ["košile", "košilí", "košilím", "košile", "košile", "košilích", "košilemi"]
@@ -1348,7 +1348,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["mléko", "mléka", "mléku", "mléko", "mléko", "mléce", "mlékem"],
 			"pl": ["mléka", "mlék", "mlékům", "mléka", "mléka", "mlékách", "mléky"]
@@ -1428,7 +1428,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["káva", "kávy", "kávě", "kávu", "kávo", "kávě", "kávou"],
 			"pl": ["kávy", "káv", "kávám", "kávy", "kávy", "kávách", "kávami"]
@@ -1441,7 +1441,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["čaj", "čaje", "čaji", "čaj", "čaji", "čaji", "čajem"],
 			"pl": ["čaje", "čajů", "čajům", "čaje", "čaje", "čajích", "čaji"]
@@ -1454,7 +1454,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["voda", "vody", "vodě", "vodu", "vodo", "vodě", "vodou"],
 			"pl": ["vody", "vod", "vodám", "vody", "vody", "vodách", "vodami"]
@@ -1467,7 +1467,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration"],
+		"categories": ["time", "duration", "calendar_unit"],
 		"forms": {
 			"sg": ["den", "dne", "dnu", "den", "dne", "dnu", "dnem"],
 			"pl": ["dny", "dnů", "dnům", "dny", "dny", "dnech", "dny"]
@@ -1495,7 +1495,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration"],
+		"categories": ["time", "duration", "calendar_unit"],
 		"forms": {
 			"sg": ["týden", "týdne", "týdnu", "týden", "týdne", "týdnu", "týdnem"],
 			"pl": ["týdny", "týdnů", "týdnům", "týdny", "týdny", "týdnech", "týdny"]
@@ -1522,7 +1522,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration"],
+		"categories": ["time", "duration", "calendar_unit"],
 		"forms": {
 			"sg": ["měsíc", "měsíce", "měsíci", "měsíc", "měsíci", "měsíci", "měsícem"],
 			"pl": ["měsíce", "měsíců", "měsícům", "měsíce", "měsíce", "měsících", "měsíci"]
@@ -1535,7 +1535,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time", "duration"],
+		"categories": ["time", "duration", "calendar_unit"],
 		"forms": {
 			"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
 			"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
@@ -1707,7 +1707,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["strom", "stromu", "stromu", "strom", "strome", "stromě", "stromem"],
 			"pl": ["stromy", "stromů", "stromům", "stromy", "stromy", "stromech", "stromy"]
@@ -1725,7 +1725,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["květ", "květu", "květu", "květ", "květe", "květu", "květem"],
 			"pl": ["květy", "květů", "květům", "květy", "květy", "květech", "květy"]
@@ -1738,7 +1738,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora", "sittable"],
 		"forms": {
 			"sg": ["tráva", "trávy", "trávě", "trávu", "trávo", "trávě", "trávou"],
 			"pl": ["trávy", "trav", "trávám", "trávy", "trávy", "trávách", "trávami"]
@@ -1774,7 +1774,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["řeka", "řeky", "řece", "řeku", "řeko", "řece", "řekou"],
 			"pl": ["řeky", "řek", "řekám", "řeky", "řeky", "řekách", "řekami"]
@@ -1787,7 +1787,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["jezero", "jezera", "jezeru", "jezero", "jezero", "jezeru", "jezerem"],
 			"pl": ["jezera", "jezer", "jezerům", "jezera", "jezera", "jezerech", "jezery"]
@@ -1984,7 +1984,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["doba", "doby", "době", "dobu", "dobo", "době", "dobou"],
 			"pl": ["doby", "dob", "dobám", "doby", "doby", "dobách", "dobami"]
@@ -2109,7 +2109,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["konec", "konce", "konci", "konec", "konci", "konci", "koncem"],
 			"pl": ["konce", "konců", "koncům", "konce", "konce", "koncích", "konci"]
@@ -2632,7 +2632,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["začátek", "začátku", "začátku", "začátek", "začátku", "začátku", "začátkem"],
 			"pl": ["začátky", "začátků", "začátkům", "začátky", "začátky", "začátcích", "začátky"]
@@ -2988,7 +2988,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["time", "nature"],
+		"categories": ["time", "nature", "season"],
 		"forms": {
 			"sg": ["léto", "léta", "létu", "léto", "léto", "létě", "létem"],
 			"pl": ["léta", "lét", "létům", "léta", "léta", "létech", "léty"]
@@ -3032,7 +3032,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["století", "století", "století", "století", "století", "století", "stoletím"],
 			"pl": ["století", "století", "stoletím", "století", "století", "stoletích", "stoletími"]
@@ -3069,7 +3069,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["období", "období", "období", "období", "období", "období", "obdobím"],
 			"pl": ["období", "období", "obdobím", "období", "období", "obdobích", "obdobími"]
@@ -4071,7 +4071,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["věk", "věku", "věku", "věk", "věku", "věku", "věkem"],
 			"pl": ["věky", "věků", "věkům", "věky", "věky", "věcích", "věky"]
@@ -4089,7 +4089,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["počátek", "počátku", "počátku", "počátek", "počátku", "počátku", "počátkem"],
 			"pl": ["počátky", "počátků", "počátkům", "počátky", "počátky", "počátcích", "počátky"]
@@ -4250,7 +4250,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["večer", "večeru", "večeru", "večer", "večere", "večeru", "večerem"],
 			"pl": ["večery", "večerů", "večerům", "večery", "večery", "večerech", "večery"]
@@ -4354,7 +4354,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["neděle", "neděle", "neděli", "neděli", "neděle", "neděli", "nedělí"],
 			"pl": ["neděle", "nedělí", "nedělím", "neděle", "neděle", "nedělích", "nedělemi"]
@@ -4749,7 +4749,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time", "nature"],
+		"categories": ["time", "nature", "season"],
 		"forms": {
 			"sg": ["zima", "zimy", "zimě", "zimu", "zimo", "zimě", "zimou"],
 			"pl": ["zimy", "zim", "zimám", "zimy", "zimy", "zimách", "zimami"]
@@ -4814,7 +4814,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["sobota", "soboty", "sobotě", "sobotu", "soboto", "sobotě", "sobotou"],
 			"pl": ["soboty", "sobot", "sobotám", "soboty", "soboty", "sobotách", "sobotami"]
@@ -5209,7 +5209,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["pátek", "pátku", "pátku", "pátek", "pátku", "pátku", "pátkem"],
 			"pl": ["pátky", "pátků", "pátkům", "pátky", "pátky", "pátcích", "pátky"]
@@ -5437,7 +5437,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["list", "listu", "listu", "list", "liste", "listě", "listem"],
 			"pl": ["listy", "listů", "listům", "listy", "listy", "listech", "listy"]
@@ -5755,7 +5755,7 @@
 		"animate": false,
 		"paradigm": "píseň",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["postel", "postele", "posteli", "postel", "posteli", "posteli", "postelí"],
 			"pl": ["postele", "postelí", "postelím", "postele", "postele", "postelích", "postelemi"]
@@ -5781,7 +5781,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["září", "září", "září", "září", "září", "září", "zářím"],
 			"pl": ["září", "září", "zářím", "září", "září", "zářích", "zářími"]
@@ -5995,7 +5995,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": [
 				"minulost",
@@ -6167,7 +6167,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["dopis", "dopisu", "dopisu", "dopis", "dopise", "dopise", "dopisem"],
 			"pl": ["dopisy", "dopisů", "dopisům", "dopisy", "dopisy", "dopisech", "dopisy"]
@@ -6712,7 +6712,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["pondělí", "pondělí", "pondělí", "pondělí", "pondělí", "pondělí", "pondělím"],
 			"pl": ["pondělí", "pondělí", "pondělím", "pondělí", "pondělí", "pondělích", "pondělími"]
@@ -7160,7 +7160,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": [
 				"budoucnost",
@@ -7218,7 +7218,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["leden", "ledna", "lednu", "leden", "ledne", "lednu", "lednem"],
 			"pl": ["ledny", "lednů", "lednům", "ledny", "ledny", "lednech", "ledny"]
@@ -7283,7 +7283,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "sittable"],
 		"forms": {
 			"sg": ["kámen", "kamene", "kameni", "kámen", "kameni", "kameni", "kamenem"],
 			"pl": ["kameny", "kamenů", "kamenům", "kameny", "kameny", "kamenech", "kameny"]
@@ -7325,7 +7325,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["víkend", "víkendu", "víkendu", "víkend", "víkende", "víkendu", "víkendem"],
 			"pl": ["víkendy", "víkendů", "víkendům", "víkendy", "víkendy", "víkendech", "víkendy"]
@@ -7577,7 +7577,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["ráno", "rána", "ránu", "ráno", "ráno", "ránu", "ránem"],
 			"pl": ["rána", "rán", "ránům", "rána", "rána", "ránech", "rány"]
@@ -7923,7 +7923,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["červen", "června", "červnu", "červen", "červne", "červnu", "červnem"],
 			"pl": ["červny", "červnů", "červnům", "červny", "červny", "červnech", "červny"]
@@ -7949,7 +7949,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["květen", "května", "květnu", "květen", "květne", "květnu", "květnem"],
 			"pl": ["květny", "květnů", "květnům", "květny", "květny", "květnech", "květny"]
@@ -8075,7 +8075,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["time", "nature"],
+		"categories": ["time", "nature", "season"],
 		"forms": {
 			"sg": ["jaro", "jara", "jaru", "jaro", "jaro", "jaru", "jarem"],
 			"pl": ["jara", "jar", "jarům", "jara", "jara", "jarech", "jary"]
@@ -8202,7 +8202,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc", "readable"],
+		"categories": ["misc", "readable", "portable"],
 		"forms": {
 			"sg": ["časopis", "časopisu", "časopisu", "časopis", "časopise", "časopise", "časopisem"],
 			"pl": ["časopisy", "časopisů", "časopisům", "časopisy", "časopisy", "časopisech", "časopisy"]
@@ -8220,7 +8220,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["vítr", "větru", "větru", "vítr", "větře", "větru", "větrem"],
 			"pl": ["větry", "větrů", "větrům", "větry", "větry", "větrech", "větry"]
@@ -8233,7 +8233,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["datum", "data", "datu", "datum", "datum", "datu", "datem"],
 			"pl": ["data", "dat", "datům", "data", "data", "datech", "daty"]
@@ -8564,7 +8564,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["čtvrtek", "čtvrtku", "čtvrtku", "čtvrtek", "čtvrtku", "čtvrtku", "čtvrtkem"],
 			"pl": ["čtvrtky", "čtvrtků", "čtvrtkům", "čtvrtky", "čtvrtky", "čtvrtcích", "čtvrtky"]
@@ -8598,7 +8598,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": [
 				"fotografie",
@@ -8627,7 +8627,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["středa", "středy", "středě", "středu", "středo", "středě", "středou"],
 			"pl": ["středy", "střed", "středám", "středy", "středy", "středách", "středami"]
@@ -9031,7 +9031,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": [
 				"listopad",
@@ -9073,7 +9073,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["říjen", "října", "říjnu", "říjen", "říjne", "říjnu", "říjnem"],
 			"pl": ["říjny", "říjnů", "říjnům", "říjny", "říjny", "říjnech", "říjny"]
@@ -9308,7 +9308,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["březen", "března", "březnu", "březen", "březne", "březnu", "březnem"],
 			"pl": ["březny", "březnů", "březnům", "březny", "březny", "březnech", "březny"]
@@ -9609,7 +9609,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["duben", "dubna", "dubnu", "duben", "dubne", "dubnu", "dubnem"],
 			"pl": ["dubny", "dubnů", "dubnům", "dubny", "dubny", "dubnech", "dubny"]
@@ -9834,7 +9834,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["srpen", "srpna", "srpnu", "srpen", "srpne", "srpnu", "srpnem"],
 			"pl": ["srpny", "srpnů", "srpnům", "srpny", "srpny", "srpnech", "srpny"]
@@ -9889,7 +9889,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time", "nature"],
+		"categories": ["time", "nature", "season"],
 		"forms": {
 			"sg": ["podzim", "podzimu", "podzimu", "podzim", "podzime", "podzimu", "podzimem"],
 			"pl": ["podzimy", "podzimů", "podzimům", "podzimy", "podzimy", "podzimech", "podzimy"]
@@ -10033,7 +10033,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["sezóna", "sezóny", "sezóně", "sezónu", "sezóno", "sezóně", "sezónou"],
 			"pl": ["sezóny", "sezón", "sezónám", "sezóny", "sezóny", "sezónách", "sezónami"]
@@ -10046,7 +10046,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["knížka", "knížky", "knížce", "knížku", "knížko", "knížce", "knížkou"],
 			"pl": ["knížky", "knížek", "knížkám", "knížky", "knížky", "knížkách", "knížkami"]
@@ -10322,7 +10322,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["únor", "únoru", "únoru", "únor", "únore", "únoru", "únorem"],
 			"pl": ["únory", "únorů", "únorům", "únory", "únory", "únorech", "únory"]
@@ -10463,7 +10463,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["úterý", "úterý", "úterý", "úterý", "úterý", "úterý", "úterým"],
 			"pl": ["úterý", "úterý", "úterým", "úterý", "úterý", "úterý", "úterý"]
@@ -10513,7 +10513,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["ročník", "ročníku", "ročníku", "ročník", "ročníku", "ročníku", "ročníkem"],
 			"pl": ["ročníky", "ročníků", "ročníkům", "ročníky", "ročníky", "ročnících", "ročníky"]
@@ -10607,7 +10607,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["prosinec", "prosince", "prosinci", "prosinec", "prosinci", "prosinci", "prosincem"],
 			"pl": ["prosince", "prosinců", "prosincům", "prosince", "prosince", "prosincích", "prosinci"]
@@ -10633,7 +10633,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["červenec", "července", "červenci", "červenec", "červenci", "červenci", "červencem"],
 			"pl": ["července", "červenců", "červencům", "července", "července", "červencích", "červenci"]
@@ -11009,7 +11009,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["počasí", "počasí", "počasí", "počasí", "počasí", "počasí", "počasím"],
 			"pl": ["počasí", "počasí", "počasím", "počasí", "počasí", "počasích", "počasími"]
@@ -11058,7 +11058,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["podlaha", "podlahy", "podlaze", "podlahu", "podlaho", "podlaze", "podlahou"],
 			"pl": ["podlahy", "podlah", "podlahám", "podlahy", "podlahy", "podlahách", "podlahami"]
@@ -11132,7 +11132,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["schod", "schodu", "schodu", "schod", "schode", "schodě", "schodem"],
 			"pl": ["schody", "schodů", "schodům", "schody", "schody", "schodech", "schody"]
@@ -11289,7 +11289,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["klíč", "klíče", "klíči", "klíč", "klíči", "klíči", "klíčem"],
 			"pl": ["klíče", "klíčů", "klíčům", "klíče", "klíče", "klíčích", "klíči"]
@@ -11432,7 +11432,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["fotka", "fotky", "fotce", "fotku", "fotko", "fotce", "fotkou"],
 			"pl": ["fotky", "fotek", "fotkám", "fotky", "fotky", "fotkách", "fotkami"]
@@ -11562,7 +11562,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["židle", "židle", "židli", "židli", "židle", "židli", "židlí"],
 			"pl": ["židle", "židlí", "židlím", "židle", "židle", "židlích", "židlemi"]
@@ -11731,7 +11731,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["sníh", "sněhu", "sněhu", "sníh", "sněhu", "sněhu", "sněhem"],
 			"pl": ["sněhy", "sněhů", "sněhům", "sněhy", "sněhy", "snězích", "sněhy"]
@@ -12691,7 +12691,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["křeslo", "křesla", "křeslu", "křeslo", "křeslo", "křesle", "křeslem"],
 			"pl": ["křesla", "křesel", "křeslům", "křesla", "křesla", "křeslech", "křesly"]
@@ -12869,7 +12869,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": [
 				"současnost",
@@ -12976,7 +12976,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["lístek", "lístku", "lístku", "lístek", "lístku", "lístku", "lístkem"],
 			"pl": ["lístky", "lístků", "lístkům", "lístky", "lístky", "lístcích", "lístky"]
@@ -13219,7 +13219,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["déšť", "deště", "dešti", "déšť", "dešti", "dešti", "deštěm"],
 			"pl": ["deště", "dešťů", "dešťům", "deště", "deště", "deštích", "dešti"]
@@ -13238,7 +13238,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time", "event"],
+		"categories": ["time", "event", "holiday"],
 		"forms": {
 			"sg": ["svátek", "svátku", "svátku", "svátek", "svátku", "svátku", "svátkem"],
 			"pl": ["svátky", "svátků", "svátkům", "svátky", "svátky", "svátcích", "svátky"]
@@ -14760,7 +14760,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["nůž", "nože", "noži", "nůž", "noži", "noži", "nožem"],
 			"pl": ["nože", "nožů", "nožům", "nože", "nože", "nožích", "noži"]
@@ -14849,7 +14849,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["mapa", "mapy", "mapě", "mapu", "mapo", "mapě", "mapou"],
 			"pl": ["mapy", "map", "mapám", "mapy", "mapy", "mapách", "mapami"]
@@ -15160,7 +15160,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["doklad", "dokladu", "dokladu", "doklad", "doklade", "dokladě", "dokladem"],
 			"pl": ["doklady", "dokladů", "dokladům", "doklady", "doklady", "dokladech", "doklady"]
@@ -15280,7 +15280,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["budoucno", "budoucna", "budoucnu", "budoucno", "budoucno", "budoucnu", "budoucnem"],
 			"pl": ["", "", "", "", "", "", ""]
@@ -15332,7 +15332,7 @@
 		"animate": false,
 		"paradigm": "moře",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["kafe", "kafe", "kafi", "kafe", "kafe", "kafi", "kafem"],
 			"pl": ["kafe", "kafí", "kafím", "kafe", "kafe", "kafích", "kafi"]
@@ -15932,7 +15932,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["kořen", "kořene", "kořenu", "kořen", "kořeni", "kořenu", "kořenem"],
 			"pl": ["kořeny", "kořenů", "kořenům", "kořeny", "kořeny", "kořenech", "kořeny"]
@@ -16595,7 +16595,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["mobil", "mobilu", "mobilu", "mobil", "mobile", "mobile", "mobilem"],
 			"pl": ["mobily", "mobilů", "mobilům", "mobily", "mobily", "mobilech", "mobily"]
@@ -16870,7 +16870,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["dárek", "dárku", "dárku", "dárek", "dárku", "dárku", "dárkem"],
 			"pl": ["dárky", "dárků", "dárkům", "dárky", "dárky", "dárcích", "dárky"]
@@ -17404,7 +17404,7 @@
 		"animate": false,
 		"paradigm": "píseň",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["větev", "větve", "větvi", "větev", "větvi", "větvi", "větví"],
 			"pl": ["větve", "větví", "větvím", "větve", "větve", "větvích", "větvemi"]
@@ -17757,7 +17757,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["rostlina", "rostliny", "rostlině", "rostlinu", "rostlino", "rostlině", "rostlinou"],
 			"pl": ["rostliny", "rostlin", "rostlinám", "rostliny", "rostliny", "rostlinách", "rostlinami"]
@@ -17770,7 +17770,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["food", "nature"],
+		"categories": ["food", "nature", "flora"],
 		"forms": {
 			"sg": ["houba", "houby", "houbě", "houbu", "houbo", "houbě", "houbou"],
 			"pl": ["houby", "hub", "houbám", "houby", "houby", "houbách", "houbami"]
@@ -17830,7 +17830,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["kamera", "kamery", "kameře", "kameru", "kamero", "kameře", "kamerou"],
 			"pl": ["kamery", "kamer", "kamerám", "kamery", "kamery", "kamerách", "kamerami"]
@@ -19087,7 +19087,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "A2",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["půlnoc", "půlnoci", "půlnoci", "půlnoc", "půlnoci", "půlnoci", "půlnocí"],
 			"pl": ["půlnoci", "půlnocí", "půlnocím", "půlnoci", "půlnoci", "půlnocích", "půlnocemi"]
@@ -19657,7 +19657,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["údolí", "údolí", "údolí", "údolí", "údolí", "údolí", "údolím"],
 			"pl": ["údolí", "údolí", "údolím", "údolí", "údolí", "údolích", "údolími"]
@@ -20125,7 +20125,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["koberec", "koberce", "koberci", "koberec", "koberci", "koberci", "kobercem"],
 			"pl": ["koberce", "koberců", "kobercům", "koberce", "koberce", "kobercích", "koberci"]
@@ -20227,7 +20227,7 @@
 		"animate": false,
 		"paradigm": "moře",
 		"difficulty": "A2",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": [
 				"odpoledne",
@@ -20486,7 +20486,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["prádlo", "prádla", "prádlu", "prádlo", "prádlo", "prádle", "prádlem"],
 			"pl": ["prádla", "prádel", "prádlům", "prádla", "prádla", "prádlech", "prádly"]
@@ -20868,7 +20868,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["pití", "pití", "pití", "pití", "pití", "pití", "pitím"],
 			"pl": ["pití", "pití", "pitím", "pití", "pití", "pitích", "pitími"]
@@ -20894,7 +20894,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["klobouk", "klobouku", "klobouku", "klobouk", "klobouku", "klobouku", "kloboukem"],
 			"pl": ["klobouky", "klobouků", "kloboukům", "klobouky", "klobouky", "kloboucích", "klobouky"]
@@ -21336,7 +21336,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["kabát", "kabátu", "kabátu", "kabát", "kabáte", "kabátě", "kabátem"],
 			"pl": ["kabáty", "kabátů", "kabátům", "kabáty", "kabáty", "kabátech", "kabáty"]
@@ -21354,7 +21354,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["květina", "květiny", "květině", "květinu", "květino", "květině", "květinou"],
 			"pl": ["květiny", "květin", "květinám", "květiny", "květiny", "květinách", "květinami"]
@@ -21963,7 +21963,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["plášť", "pláště", "plášti", "plášť", "plášti", "plášti", "pláštěm"],
 			"pl": ["pláště", "plášťů", "plášťům", "pláště", "pláště", "pláštích", "plášti"]
@@ -22759,7 +22759,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["time"],
+		"categories": ["time", "calendar_unit"],
 		"forms": {
 			"sg": ["dnešek", "dnešku", "dnešku", "dnešek", "dnešku", "dnešku", "dneškem"],
 			"pl": ["dnešky", "dnešků", "dneškům", "dnešky", "dnešky", "dnešcích", "dnešky"]
@@ -23087,7 +23087,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["stolek", "stolku", "stolku", "stolek", "stolku", "stolku", "stolkem"],
 			"pl": ["stolky", "stolků", "stolkům", "stolky", "stolky", "stolcích", "stolky"]
@@ -23268,7 +23268,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["mrak", "mraku", "mraku", "mrak", "mraku", "mraku", "mrakem"],
 			"pl": ["mraky", "mraků", "mrakům", "mraky", "mraky", "mracích", "mraky"]
@@ -23546,7 +23546,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "sittable"],
 		"forms": {
 			"sg": ["lavice", "lavice", "lavici", "lavici", "lavice", "lavici", "lavicí"],
 			"pl": ["lavice", "lavic", "lavicím", "lavice", "lavice", "lavicích", "lavicemi"]
@@ -23611,7 +23611,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["sluníčko", "sluníčka", "sluníčku", "sluníčko", "sluníčko", "sluníčku", "sluníčkem"],
 			"pl": ["sluníčka", "sluníček", "sluníčkům", "sluníčka", "sluníčka", "sluníčkách", "sluníčky"]
@@ -24340,7 +24340,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["kufr", "kufru", "kufru", "kufr", "kufre", "kufru", "kufrem"],
 			"pl": ["kufry", "kufrů", "kufrům", "kufry", "kufry", "kufrech", "kufry"]
@@ -24395,7 +24395,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["lůžko", "lůžka", "lůžku", "lůžko", "lůžko", "lůžku", "lůžkem"],
 			"pl": ["lůžka", "lůžek", "lůžkům", "lůžka", "lůžka", "lůžkách", "lůžky"]
@@ -24664,7 +24664,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["planeta", "planety", "planetě", "planetu", "planeto", "planetě", "planetou"],
 			"pl": ["planety", "planet", "planetám", "planety", "planety", "planetách", "planetami"]
@@ -24711,7 +24711,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["food", "nature"],
+		"categories": ["food", "nature", "flora"],
 		"forms": {
 			"sg": ["plod", "plodu", "plodu", "plod", "plode", "plodu", "plodem"],
 			"pl": ["plody", "plodů", "plodům", "plody", "plody", "plodech", "plody"]
@@ -24724,7 +24724,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["kytka", "kytky", "kytce", "kytku", "kytko", "kytce", "kytkou"],
 			"pl": ["kytky", "kytek", "kytkám", "kytky", "kytky", "kytkách", "kytkami"]
@@ -25073,7 +25073,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["sedadlo", "sedadla", "sedadlu", "sedadlo", "sedadlo", "sedadle", "sedadlem"],
 			"pl": ["sedadla", "sedadel", "sedadlům", "sedadla", "sedadla", "sedadlech", "sedadly"]
@@ -25427,7 +25427,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["tričko", "trička", "tričku", "tričko", "tričko", "tričku", "tričkem"],
 			"pl": ["trička", "triček", "tričkům", "trička", "trička", "tričkách", "tričky"]
@@ -25466,7 +25466,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["krabička", "krabičky", "krabičce", "krabičku", "krabičko", "krabičce", "krabičkou"],
 			"pl": [
@@ -25579,7 +25579,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["bouře", "bouře", "bouři", "bouři", "bouře", "bouři", "bouří"],
 			"pl": ["bouře", "bouří", "bouřím", "bouře", "bouře", "bouřích", "bouřemi"]
@@ -26145,7 +26145,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["nápoj", "nápoje", "nápoji", "nápoj", "nápoji", "nápoji", "nápojem"],
 			"pl": ["nápoje", "nápojů", "nápojům", "nápoje", "nápoje", "nápojích", "nápoji"]
@@ -26158,7 +26158,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["mlha", "mlhy", "mlze", "mlhu", "mlho", "mlze", "mlhou"],
 			"pl": ["mlhy", "mlh", "mlhám", "mlhy", "mlhy", "mlhách", "mlhami"]
@@ -26493,7 +26493,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["balíček", "balíčku", "balíčku", "balíček", "balíčku", "balíčku", "balíčkem"],
 			"pl": ["balíčky", "balíčků", "balíčkům", "balíčky", "balíčky", "balíčcích", "balíčky"]
@@ -26659,7 +26659,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["sukně", "sukně", "sukni", "sukni", "sukně", "sukni", "sukní"],
 			"pl": ["sukně", "sukní", "sukním", "sukně", "sukně", "sukních", "sukněmi"]
@@ -27096,7 +27096,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["mráz", "mrazu", "mrazu", "mráz", "mraze", "mrazu", "mrazem"],
 			"pl": ["mrazy", "mrazů", "mrazům", "mrazy", "mrazy", "mrazech", "mrazy"]
@@ -27344,7 +27344,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["rybník", "rybníka", "rybníku", "rybník", "rybníku", "rybníku", "rybníkem"],
 			"pl": ["rybníky", "rybníků", "rybníkům", "rybníky", "rybníky", "rybnících", "rybníky"]
@@ -27465,7 +27465,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["places", "na_place"],
+		"categories": ["places", "na_place", "sittable"],
 		"forms": {
 			"sg": ["lavička", "lavičky", "lavičce", "lavičku", "lavičko", "lavičce", "lavičkou"],
 			"pl": ["lavičky", "laviček", "lavičkám", "lavičky", "lavičky", "lavičkách", "lavičkami"]
@@ -27628,7 +27628,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["šťáva", "šťávy", "šťávě", "šťávu", "šťávo", "šťávě", "šťávou"],
 			"pl": ["šťávy", "šťáv", "šťávám", "šťávy", "šťávy", "šťávách", "šťávami"]
@@ -27641,7 +27641,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["svah", "svahu", "svahu", "svah", "svahu", "svahu", "svahem"],
 			"pl": ["svahy", "svahů", "svahům", "svahy", "svahy", "svazích", "svahy"]
@@ -27920,7 +27920,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["zahrádka", "zahrádky", "zahrádce", "zahrádku", "zahrádko", "zahrádce", "zahrádkou"],
 			"pl": [
@@ -27941,7 +27941,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["body"],
+		"categories": ["abstract"],
 		"forms": {
 			"sg": ["únava", "únavy", "únavě", "únavu", "únavo", "únavě", "únavou"],
 			"pl": ["únavy", "únav", "únavám", "únavy", "únavy", "únavách", "únavami"]
@@ -28128,7 +28128,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["stáří", "stáří", "stáří", "stáří", "stáří", "stáří", "stářím"],
 			"pl": ["stáří", "stáří", "stářím", "stáří", "stáří", "stářích", "stářími"]
@@ -28141,7 +28141,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["oblek", "obleku", "obleku", "oblek", "obleku", "obleku", "oblekem"],
 			"pl": ["obleky", "obleků", "oblekům", "obleky", "obleky", "oblecích", "obleky"]
@@ -29015,7 +29015,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["bunda", "bundy", "bundě", "bundu", "bundo", "bundě", "bundou"],
 			"pl": ["bundy", "bund", "bundám", "bundy", "bundy", "bundách", "bundami"]
@@ -29307,7 +29307,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["hračka", "hračky", "hračce", "hračku", "hračko", "hračce", "hračkou"],
 			"pl": ["hračky", "hraček", "hračkám", "hračky", "hračky", "hračkách", "hračkami"]
@@ -29333,7 +29333,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["potok", "potoka", "potoku", "potok", "potoku", "potoku", "potokem"],
 			"pl": ["potoky", "potoků", "potokům", "potoky", "potoky", "potocích", "potoky"]
@@ -29538,7 +29538,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["kroužek", "kroužku", "kroužku", "kroužek", "kroužku", "kroužku", "kroužkem"],
 			"pl": ["kroužky", "kroužků", "kroužkům", "kroužky", "kroužky", "kroužcích", "kroužky"]
@@ -29623,7 +29623,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["míč", "míče", "míči", "míč", "míči", "míči", "míčem"],
 			"pl": ["míče", "míčů", "míčům", "míče", "míče", "míčích", "míči"]
@@ -30109,7 +30109,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["polštář", "polštáře", "polštáři", "polštář", "polštáři", "polštáři", "polštářem"],
 			"pl": ["polštáře", "polštářů", "polštářům", "polštáře", "polštáře", "polštářích", "polštáři"]
@@ -30308,7 +30308,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["objects"],
 		"forms": {
 			"sg": ["okénko", "okénka", "okénku", "okénko", "okénko", "okénku", "okénkem"],
 			"pl": ["okénka", "okének", "okénkům", "okénka", "okénka", "okénkách", "okénky"]
@@ -30486,7 +30486,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["průkaz", "průkazu", "průkazu", "průkaz", "průkaze", "průkaze", "průkazem"],
 			"pl": ["průkazy", "průkazů", "průkazům", "průkazy", "průkazy", "průkazech", "průkazy"]
@@ -31308,7 +31308,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["oceán", "oceánu", "oceánu", "oceán", "oceáne", "oceáně", "oceánem"],
 			"pl": ["oceány", "oceánů", "oceánům", "oceány", "oceány", "oceánech", "oceány"]
@@ -32089,7 +32089,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place", "flora", "sittable"],
 		"forms": {
 			"sg": ["trávník", "trávníku", "trávníku", "trávník", "trávníku", "trávníku", "trávníkem"],
 			"pl": ["trávníky", "trávníků", "trávníkům", "trávníky", "trávníky", "trávnících", "trávníky"]
@@ -33418,7 +33418,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": [
 				"peněženka",
@@ -33536,7 +33536,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["rukavice", "rukavice", "rukavici", "rukavici", "rukavice", "rukavici", "rukavicí"],
 			"pl": ["rukavice", "rukavic", "rukavicím", "rukavice", "rukavice", "rukavicích", "rukavicemi"]
@@ -33554,7 +33554,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["čepice", "čepice", "čepici", "čepici", "čepice", "čepici", "čepicí"],
 			"pl": ["čepice", "čepic", "čepicím", "čepice", "čepice", "čepicích", "čepicemi"]
@@ -33763,7 +33763,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["pára", "páry", "páře", "páru", "páro", "páře", "párou"],
 			"pl": ["páry", "par", "párám", "páry", "páry", "párách", "párami"]
@@ -33833,7 +33833,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["trvání", "trvání", "trvání", "trvání", "trvání", "trvání", "trváním"],
 			"pl": ["trvání", "trvání", "trváním", "trvání", "trvání", "trváních", "trváními"]
@@ -33888,7 +33888,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["plakát", "plakátu", "plakátu", "plakát", "plakáte", "plakátě", "plakátem"],
 			"pl": ["plakáty", "plakátů", "plakátům", "plakáty", "plakáty", "plakátech", "plakáty"]
@@ -34370,7 +34370,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["lžíce", "lžíce", "lžíci", "lžíci", "lžíce", "lžíci", "lžicí"],
 			"pl": ["lžíce", "lžic", "lžicím", "lžíce", "lžíce", "lžicích", "lžicemi"]
@@ -35377,7 +35377,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["učebnice", "učebnice", "učebnici", "učebnici", "učebnice", "učebnici", "učebnicí"],
 			"pl": ["učebnice", "učebnic", "učebnicím", "učebnice", "učebnice", "učebnicích", "učebnicemi"]
@@ -35598,7 +35598,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["keř", "keře", "keři", "keř", "keři", "keři", "keřem"],
 			"pl": ["keře", "keřů", "keřům", "keře", "keře", "keřích", "keři"]
@@ -35668,7 +35668,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["aparát", "aparátu", "aparátu", "aparát", "aparáte", "aparátě", "aparátem"],
 			"pl": ["aparáty", "aparátů", "aparátům", "aparáty", "aparáty", "aparátech", "aparáty"]
@@ -36390,7 +36390,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["prsten", "prstenu", "prstenu", "prsten", "prstene", "prstenu", "prstenem"],
 			"pl": ["prsteny", "prstenů", "prstenům", "prsteny", "prsteny", "prstenech", "prsteny"]
@@ -36589,7 +36589,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["horko", "horka", "horku", "horko", "horko", "horku", "horkem"],
 			"pl": ["horka", "hork", "horkům", "horka", "horka", "horkách", "horky"]
@@ -36672,7 +36672,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["katalog", "katalogu", "katalogu", "katalog", "katalogu", "katalogu", "katalogem"],
 			"pl": ["katalogy", "katalogů", "katalogům", "katalogy", "katalogy", "katalozích", "katalogy"]
@@ -37104,7 +37104,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": [
 				"sluchátko",
@@ -37596,7 +37596,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["oblak", "oblaku", "oblaku", "oblak", "oblaku", "oblaku", "oblakem"],
 			"pl": ["oblaky", "oblaků", "oblakům", "oblaky", "oblaky", "oblacích", "oblaky"]
@@ -38179,7 +38179,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A2",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["sako", "saka", "saku", "sako", "sako", "saku", "sakem"],
 			"pl": ["saka", "sak", "sakům", "saka", "saka", "sakách", "saky"]
@@ -38729,7 +38729,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["chlad", "chladu", "chladu", "chlad", "chlade", "chladu", "chladem"],
 			"pl": ["chlady", "chladů", "chladům", "chlady", "chlady", "chladech", "chlady"]
@@ -38815,7 +38815,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["ponožka", "ponožky", "ponožce", "ponožku", "ponožko", "ponožce", "ponožkou"],
 			"pl": ["ponožky", "ponožek", "ponožkám", "ponožky", "ponožky", "ponožkách", "ponožkami"]
@@ -39258,7 +39258,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": [
 				"stravenka",
@@ -40802,7 +40802,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["objects"],
 		"forms": {
 			"sg": [
 				"květináč",
@@ -40887,7 +40887,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["mušle", "mušle", "mušli", "mušli", "mušle", "mušli", "mušlí"],
 			"pl": ["mušle", "mušlí", "mušlím", "mušle", "mušle", "mušlích", "mušlemi"]
@@ -41108,7 +41108,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "flora"],
 		"forms": {
 			"sg": ["kytice", "kytice", "kytici", "kytici", "kytice", "kytici", "kyticí"],
 			"pl": ["kytice", "kytic", "kyticím", "kytice", "kytice", "kyticích", "kyticemi"]
@@ -41168,7 +41168,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "holiday"],
 		"forms": {
 			"sg": [
 				"čarodějnice",
@@ -41202,7 +41202,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "holiday"],
 		"forms": {
 			"sg": ["dušička", "dušičky", "dušičce", "dušičku", "dušičko", "dušičce", "dušičkou"],
 			"pl": ["dušičky", "dušiček", "dušičkám", "dušičky", "dušičky", "dušičkách", "dušičkami"]
@@ -41215,7 +41215,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "holiday"],
 		"forms": {
 			"sg": [
 				"valentýn",
@@ -41295,7 +41295,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["time"],
+		"categories": ["time", "holiday"],
 		"forms": {
 			"sg": [
 				"silvestr",
@@ -41553,7 +41553,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["people", "profession"],
 		"forms": {
 			"sg": [
 				"horolezkyně",
@@ -41688,7 +41688,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["people", "profession"],
 		"forms": {
 			"sg": [
 				"drvoštěp",
@@ -41870,7 +41870,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
@@ -42101,7 +42101,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": [
 				"vstupenka",
@@ -42563,7 +42563,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
@@ -42818,7 +42818,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["abstract"],
 		"forms": {
 			"sg": [
 				"oteplování",
@@ -42847,7 +42847,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place", "flora"],
 		"forms": {
 			"sg": ["prales", "pralesa", "pralesu", "prales", "pralese", "pralese", "pralesem"],
 			"pl": ["pralesy", "pralesů", "pralesům", "pralesy", "pralesy", "pralesích", "pralesy"]
@@ -43143,7 +43143,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["bačkora", "bačkory", "bačkoře", "bačkoru", "bačkoro", "bačkoře", "bačkorou"],
 			"pl": ["bačkory", "bačkor", "bačkorám", "bačkory", "bačkory", "bačkorách", "bačkorami"]
@@ -43156,7 +43156,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
@@ -43245,7 +43245,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["kožich", "kožichu", "kožichu", "kožich", "kožichu", "kožichu", "kožichem"],
 			"pl": ["kožichy", "kožichů", "kožichům", "kožichy", "kožichy", "kožiších", "kožichy"]
@@ -43281,7 +43281,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["mikina", "mikiny", "mikině", "mikinu", "mikino", "mikině", "mikinou"],
 			"pl": ["mikiny", "mikin", "mikinám", "mikiny", "mikiny", "mikinách", "mikinami"]
@@ -43294,7 +43294,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["náušnice", "náušnice", "náušnici", "náušnici", "náušnice", "náušnici", "náušnicí"],
 			"pl": ["náušnice", "náušnic", "náušnicím", "náušnice", "náušnice", "náušnicích", "náušnicemi"]
@@ -43412,7 +43412,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
@@ -43520,7 +43520,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
@@ -43539,7 +43539,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
@@ -43561,7 +43561,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["body"],
+		"categories": ["clothing", "body"],
 		"forms": {
 			"sg": ["výstřih", "výstřihu", "výstřihu", "výstřih", "výstřihu", "výstřihu", "výstřihem"],
 			"pl": ["výstřihy", "výstřihů", "výstřihům", "výstřihy", "výstřihy", "výstřizích", "výstřihy"]
@@ -43615,7 +43615,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["bankovka", "bankovky", "bankovce", "bankovku", "bankovko", "bankovce", "bankovkou"],
 			"pl": [
@@ -43744,7 +43744,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["objects"],
+		"categories": ["abstract", "event"],
 		"forms": {
 			"sg": ["okupace", "okupace", "okupaci", "okupaci", "okupace", "okupaci", "okupací"],
 			"pl": ["okupace", "okupací", "okupacím", "okupace", "okupace", "okupacích", "okupacemi"]
@@ -44395,7 +44395,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["peníz", "peníze", "penízi", "peníz", "penízi", "penízi", "penízem"],
 			"pl": ["peníze", "penízů", "penízům", "peníze", "peníze", "penízích", "penízi"]
@@ -45096,7 +45096,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B2",
-		"categories": ["misc", "objects", "readable"],
+		"categories": ["misc", "objects", "readable", "portable"],
 		"forms": {
 			"sg": ["pozvánka", "pozvánky", "pozvánce", "pozvánku", "pozvánko", "pozvánce", "pozvánkou"],
 			"pl": [
@@ -45117,7 +45117,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B2",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": [
 				"pohlednice",
@@ -45305,7 +45305,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B2",
-		"categories": ["objects"],
+		"categories": ["objects", "sittable"],
 		"forms": {
 			"sg": ["stolice", "stolice", "stolici", "stolici", "stolice", "stolici", "stolicí"],
 			"pl": ["stolice", "stolic", "stolicím", "stolice", "stolice", "stolicích", "stolicemi"]
@@ -45731,7 +45731,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "B2",
-		"categories": ["misc", "objects"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["platidlo", "platidla", "platidlu", "platidlo", "platidlo", "platidle", "platidlem"],
 			"pl": ["platidla", "platidel", "platidlům", "platidla", "platidla", "platidlech", "platidly"]
@@ -46284,7 +46284,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["bažina", "bažiny", "bažině", "bažinu", "bažino", "bažině", "bažinou"],
 			"pl": ["bažiny", "bažin", "bažinám", "bažiny", "bažiny", "bažinách", "bažinami"]
@@ -46297,7 +46297,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["mokřad", "mokřadu", "mokřadu", "mokřad", "mokřade", "mokřadě", "mokřadem"],
 			"pl": ["mokřady", "mokřadů", "mokřadům", "mokřady", "mokřady", "mokřadech", "mokřady"]
@@ -46315,7 +46315,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["útes", "útesu", "útesu", "útes", "útese", "útese", "útesem"],
 			"pl": ["útesy", "útesů", "útesům", "útesy", "útesy", "útesech", "útesy"]
@@ -46333,7 +46333,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B2",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "na_place"],
 		"forms": {
 			"sg": ["ledovec", "ledovce", "ledovci", "ledovec", "ledovci", "ledovci", "ledovcem"],
 			"pl": ["ledovce", "ledovců", "ledovcům", "ledovce", "ledovce", "ledovcích", "ledovci"]
@@ -46564,7 +46564,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B2",
-		"categories": ["time", "nature"],
+		"categories": ["time", "nature", "calendar_unit"],
 		"forms": {
 			"sg": ["úsvit", "úsvitu", "úsvitu", "úsvit", "úsvite", "úsvitě", "úsvitem"],
 			"pl": ["úsvity", "úsvitů", "úsvitům", "úsvity", "úsvity", "úsvitech", "úsvity"]
@@ -46582,7 +46582,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B2",
-		"categories": ["time", "nature"],
+		"categories": ["time", "nature", "calendar_unit"],
 		"forms": {
 			"sg": ["soumrak", "soumraku", "soumraku", "soumrak", "soumraku", "soumraku", "soumrakem"],
 			"pl": ["soumraky", "soumraků", "soumrakům", "soumraky", "soumraky", "soumracích", "soumraky"]
@@ -46600,7 +46600,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "B2",
-		"categories": ["time"],
+		"categories": ["time", "era"],
 		"forms": {
 			"sg": ["mezidobí", "mezidobí", "mezidobí", "mezidobí", "mezidobí", "mezidobí", "mezidobím"],
 			"pl": [
@@ -46795,7 +46795,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["přezka", "přezky", "přezce", "přezku", "přezko", "přezce", "přezkou"],
 			"pl": ["přezky", "přezek", "přezkám", "přezky", "přezky", "přezkách", "přezkami"]
@@ -47088,7 +47088,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["kakao", "kakaa", "kakau", "kakao", "kakao", "kakau", "kakaem"],
 			"pl": ["kakaa", "kakaí", "kakaům", "kakaa", "kakaa", "kakaech", "kakay"]
@@ -47114,7 +47114,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": [
 				"minerálka",
@@ -47385,7 +47385,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": ["diář", "diáře", "diáři", "diář", "diáři", "diáři", "diářem"],
 			"pl": ["diáře", "diářů", "diářům", "diáře", "diáře", "diářích", "diáři"]
@@ -48031,7 +48031,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["abstract", "objects"],
+		"categories": ["abstract"],
 		"forms": {
 			"sg": [
 				"basketbal",
@@ -48060,7 +48060,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects", "readable"],
+		"categories": ["objects", "readable", "portable"],
 		"forms": {
 			"sg": [
 				"detektivka",
@@ -48118,7 +48118,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["abstract", "objects"],
+		"categories": ["abstract"],
 		"forms": {
 			"sg": ["golf", "golfu", "golfu", "golf", "golfe", "golfu", "golfem"],
 			"pl": ["golfy", "golfů", "golfům", "golfy", "golfy", "golfech", "golfy"]
@@ -48157,7 +48157,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["abstract", "family"],
+		"categories": ["abstract"],
 		"forms": {
 			"sg": ["lekce", "lekce", "lekci", "lekci", "lekce", "lekci", "lekcí"],
 			"pl": ["lekce", "lekcí", "lekcím", "lekce", "lekce", "lekcích", "lekcemi"]
@@ -48183,7 +48183,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["abstract", "objects"],
+		"categories": ["abstract"],
 		"forms": {
 			"sg": [
 				"volejbal",
@@ -48327,7 +48327,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["džus", "džusu", "džusu", "džus", "džuse", "džusu", "džusem"],
 			"pl": ["džusy", "džusů", "džusům", "džusy", "džusy", "džusech", "džusy"]
@@ -48359,7 +48359,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["kola", "koly", "kole", "kolu", "kolo", "kole", "kolou"],
 			"pl": ["koly", "kol", "kolám", "koly", "koly", "kolách", "kolami"]
@@ -48372,7 +48372,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["food", "objects"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["limonáda", "limonády", "limonádě", "limonádu", "limonádo", "limonádě", "limonádou"],
 			"pl": ["limonády", "limonád", "limonádám", "limonády", "limonády", "limonádách", "limonádami"]
@@ -48623,7 +48623,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["food"],
+		"categories": ["food", "drink"],
 		"forms": {
 			"sg": ["koňak", "koňaku", "koňaku", "koňak", "koňaku", "koňaku", "koňakem"],
 			"pl": ["koňaky", "koňaků", "koňakům", "koňaky", "koňaky", "koňacích", "koňaky"]
@@ -48721,7 +48721,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["parfém", "parfému", "parfému", "parfém", "parféme", "parfému", "parfémem"],
 			"pl": ["parfémy", "parfémů", "parfémům", "parfémy", "parfémy", "parfémech", "parfémy"]
@@ -49280,7 +49280,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A1",
-		"categories": ["nature", "profession"],
+		"categories": ["people", "profession"],
 		"forms": {
 			"sg": ["lyžař", "lyžaře", "lyžaři", "lyžaře", "lyžaři", "lyžaři", "lyžařem"],
 			"pl": ["lyžaři", "lyžařů", "lyžařům", "lyžaře", "lyžaři", "lyžařích", "lyžaři"]
@@ -49312,7 +49312,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["lžička", "lžičky", "lžičce", "lžičku", "lžičko", "lžičce", "lžičkou"],
 			"pl": ["lžičky", "lžiček", "lžičkám", "lžičky", "lžičky", "lžičkách", "lžičkami"]
@@ -49529,7 +49529,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["food", "objects", "weighable"],
+		"categories": ["food", "weighable"],
 		"forms": {
 			"sg": ["zelí", "zelí", "zelí", "zelí", "zelí", "zelí", "zelím"],
 			"pl": ["zelí", "zelí", "zelím", "zelí", "zelí", "zelích", "zelími"]
@@ -49688,7 +49688,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["džungle", "džungle", "džungli", "džungli", "džungle", "džungli", "džunglí"],
 			"pl": ["džungle", "džunglí", "džunglím", "džungle", "džungle", "džunglích", "džunglemi"]
@@ -49701,7 +49701,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["event", "abstract"],
 		"forms": {
 			"sg": ["exploze", "exploze", "explozi", "explozi", "exploze", "explozi", "explozí"],
 			"pl": ["exploze", "explozí", "explozím", "exploze", "exploze", "explozích", "explozemi"]
@@ -49857,7 +49857,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["nature", "objects"],
+		"categories": ["nature"],
 		"forms": {
 			"sg": ["sopka", "sopky", "sopce", "sopku", "sopko", "sopce", "sopkou"],
 			"pl": ["sopky", "sopek", "sopkám", "sopky", "sopky", "sopkách", "sopkami"]
@@ -50018,7 +50018,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["bouřka", "bouřky", "bouřce", "bouřku", "bouřko", "bouřce", "bouřkou"],
 			"pl": ["bouřky", "bouřek", "bouřkám", "bouřky", "bouřky", "bouřkách", "bouřkami"]
@@ -50031,7 +50031,7 @@
 		"animate": false,
 		"paradigm": "píseň",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["food"],
 		"forms": {
 			"sg": ["broskev", "broskve", "broskvi", "broskev", "broskvi", "broskvi", "broskví"],
 			"pl": ["broskve", "broskví", "broskvím", "broskve", "broskve", "broskvích", "broskvemi"]
@@ -50076,7 +50076,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["nature"],
+		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["náledí", "náledí", "náledí", "náledí", "náledí", "náledí", "náledím"],
 			"pl": ["náledí", "náledí", "náledím", "náledí", "náledí", "náledích", "náledími"]
@@ -50181,7 +50181,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["kravata", "kravaty", "kravatě", "kravatu", "kravato", "kravatě", "kravatou"],
 			"pl": ["kravaty", "kravat", "kravatám", "kravaty", "kravaty", "kravatách", "kravatami"]
@@ -50363,7 +50363,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects", "clothing"],
+		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["svetr", "svetru", "svetru", "svetr", "svetre", "svetru", "svetrem"],
 			"pl": ["svetry", "svetrů", "svetrům", "svetry", "svetry", "svetrech", "svetry"]
@@ -50668,7 +50668,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["vidlička", "vidličky", "vidličce", "vidličku", "vidličko", "vidličce", "vidličkou"],
 			"pl": [
@@ -50967,7 +50967,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["ubrousek", "ubrousku", "ubrousku", "ubrousek", "ubrousku", "ubrousku", "ubrouskem"],
 			"pl": ["ubrousky", "ubrousků", "ubrouskům", "ubrousky", "ubrousky", "ubrouscích", "ubrousky"]
@@ -50980,7 +50980,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["oříšek", "oříšku", "oříšku", "oříšek", "oříšku", "oříšku", "oříškem"],
 			"pl": ["oříšky", "oříšků", "oříškům", "oříšky", "oříšky", "oříšcích", "oříšky"]
@@ -51054,7 +51054,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["nature", "people", "profession"],
+		"categories": ["people", "profession"],
 		"forms": {
 			"sg": [
 				"horolezec",
@@ -51102,7 +51102,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["míček", "míčku", "míčku", "míček", "míčku", "míčku", "míčkem"],
 			"pl": ["míčky", "míčků", "míčkům", "míčky", "míčky", "míčcích", "míčky"]
@@ -51864,7 +51864,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["sáček", "sáčku", "sáčku", "sáček", "sáčku", "sáčku", "sáčkem"],
 			"pl": ["sáčky", "sáčků", "sáčkům", "sáčky", "sáčky", "sáčcích", "sáčky"]
@@ -51983,7 +51983,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["balon", "balonu", "balonu", "balon", "balone", "balonu", "balonem"],
 			"pl": ["balony", "balonů", "balonům", "balony", "balony", "balonech", "balony"]
@@ -52035,7 +52035,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["šampon", "šamponu", "šamponu", "šampon", "šampone", "šamponu", "šamponem"],
 			"pl": ["šampony", "šamponů", "šamponům", "šampony", "šampony", "šamponech", "šampony"]
@@ -52048,7 +52048,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["objects"],
+		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["korálek", "korálku", "korálku", "korálek", "korálku", "korálku", "korálkem"],
 			"pl": ["korálky", "korálků", "korálkům", "korálky", "korálky", "korálcích", "korálky"]
