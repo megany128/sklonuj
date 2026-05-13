@@ -62,15 +62,9 @@
 			<h2 id="display-name-prompt-title" class="text-lg font-semibold text-text-default">
 				What should we call you?
 			</h2>
-			<p class="mt-2 text-sm text-text-subtitle">
-				Add a display name so your progress, leaderboard rankings, and reactions show up correctly.
-			</p>
 		</div>
 
 		<form onsubmit={handleSubmit}>
-			<label for="layout_display_name" class="mb-1 block text-sm font-medium text-text-default">
-				Display name
-			</label>
 			<input
 				type="text"
 				id="layout_display_name"

@@ -392,7 +392,7 @@
 				</h1>
 				<p class="mb-5 text-center text-xs text-text-subtitle">
 					{mode === 'signup'
-						? 'Free forever — your future Czech self will thank you.'
+						? 'Your future Czech self will thank you.'
 						: 'Your personalized practice is waiting.'}
 				</p>
 

@@ -233,7 +233,7 @@
 			showFeedback = false;
 			showCheers = false;
 			canAdvance = false;
-			queueMicrotask(() => {
+			requestAnimationFrame(() => {
 				inputEl?.focus();
 			});
 		}

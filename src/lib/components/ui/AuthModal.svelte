@@ -1,13 +1,14 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
 	import PartyPopper from '@lucide/svelte/icons/party-popper';
+	import UserCircle from '@lucide/svelte/icons/user-circle';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { getSupabaseBrowserClient, sendPasswordResetEmail } from '$lib/supabase';
 	import Confetti from '$lib/components/ui/Confetti.svelte';
 	import posthog from '$lib/posthog';
 
-	type Mode = 'login' | 'signup' | 'forgot' | 'welcome';
+	type Mode = 'login' | 'signup' | 'forgot' | 'name' | 'welcome';
 
 	let {
 		open = false,
@@ -25,6 +26,7 @@
 	});
 	let email = $state('');
 	let password = $state('');
+	let displayName = $state('');
 	let loading = $state(false);
 	let error = $state('');
 	let confirmationSent = $state(false);
@@ -88,6 +90,7 @@
 		mode = 'login';
 		email = '';
 		password = '';
+		displayName = '';
 		error = '';
 		loading = false;
 		confirmationSent = false;
@@ -124,7 +127,7 @@
 				error = err.message;
 			} else if (data.session) {
 				posthog.capture('signed_up', { method: 'email' });
-				mode = 'welcome';
+				mode = 'name';
 			} else {
 				posthog.capture('signed_up', { method: 'email' });
 				confirmationSent = true;
@@ -140,6 +143,29 @@
 		}
 
 		loading = false;
+	}
+
+	async function handleSaveName() {
+		const trimmed = displayName.trim();
+		if (!trimmed || loading) return;
+		loading = true;
+		error = '';
+		try {
+			const res = await fetch('/api/profile/display-name', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ display_name: trimmed })
+			});
+			if (!res.ok) {
+				error = 'Could not save your name. Please try again.';
+				return;
+			}
+			mode = 'welcome';
+		} catch {
+			error = 'Network error. Please try again.';
+		} finally {
+			loading = false;
+		}
 	}
 
 	async function handleForgotPassword() {
@@ -204,9 +230,11 @@
 			aria-modal="true"
 			aria-label={mode === 'welcome'
 				? 'Welcome'
-				: mode === 'signup'
-					? 'Create your account'
-					: 'Sign in'}
+				: mode === 'name'
+					? 'Set your display name'
+					: mode === 'signup'
+						? 'Create your account'
+						: 'Sign in'}
 		>
 			<div class="rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl">
 				<!-- Close button -->
@@ -244,6 +272,58 @@
 							Let's go
 						</button>
 					</div>
+				{:else if mode === 'name'}
+					<div class="mb-4 text-center">
+						<div
+							class="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-emphasis/10"
+						>
+							<UserCircle class="size-7 text-emphasis" aria-hidden="true" />
+						</div>
+						<h2 class="text-lg font-semibold text-text-default">What should we call you?</h2>
+						<p class="mt-1 text-sm text-text-subtitle">
+							Your name shows on leaderboards and in class.
+						</p>
+					</div>
+					<form
+						onsubmit={(e) => {
+							e.preventDefault();
+							handleSaveName();
+						}}
+						class="flex flex-col gap-3"
+					>
+						<input
+							type="text"
+							bind:value={displayName}
+							placeholder="Your name"
+							required
+							maxlength={50}
+							autocomplete="name"
+							aria-label="Display name"
+							oninput={() => {
+								error = '';
+							}}
+							class="w-full rounded-xl border border-card-stroke bg-card-bg px-4 py-2.5 text-base text-text-default placeholder:text-text-subtitle focus:border-emphasis focus:outline-none"
+						/>
+						<div aria-live="assertive">
+							{#if error}
+								<p class="text-xs text-negative-stroke" role="alert">{error}</p>
+							{/if}
+						</div>
+						<button
+							type="submit"
+							disabled={loading || displayName.trim().length === 0}
+							class="rounded-xl bg-emphasis px-4 py-2.5 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90 disabled:opacity-50"
+						>
+							{loading ? '...' : 'Continue'}
+						</button>
+					</form>
+					<button
+						type="button"
+						onclick={() => (mode = 'welcome')}
+						class="mt-3 block w-full text-center text-xs text-text-subtitle underline underline-offset-2 hover:text-text-default"
+					>
+						Skip for now
+					</button>
 				{:else if confirmationSent}
 					<div class="text-center">
 						<p class="mb-2 text-lg font-semibold text-text-default">Check your email</p>
@@ -346,7 +426,7 @@
 					</h1>
 					<p class="mb-5 text-center text-xs text-text-subtitle">
 						{mode === 'signup'
-							? 'Free forever — your future Czech self will thank you.'
+							? 'Your future Czech self will thank you.'
 							: 'Your personalized practice is waiting.'}
 					</p>
 

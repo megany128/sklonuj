@@ -264,6 +264,15 @@
 				})();
 			} else {
 				progress.set(serverProgress);
+				// Local data belongs to a different user — discard it so badges,
+				// streaks, and mistakes from the previous account don't bleed into
+				// this one. syncBadgesAndStreaks below will then load clean server
+				// data (empty for a brand-new account).
+				if (isOrphanedFromOtherUser) {
+					clearStreak();
+					clearMistakes();
+					clearBadges();
+				}
 			}
 			localStorage.setItem(STORAGE_USER_KEY, pageData.user.id);
 			lastMergedUserId = pageData.user.id;

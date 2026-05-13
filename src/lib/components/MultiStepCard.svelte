@@ -258,7 +258,7 @@
 			currentStep = 'case';
 		} else {
 			currentStep = 'form';
-			queueMicrotask(() => formInputEl?.focus());
+			requestAnimationFrame(() => formInputEl?.focus());
 		}
 		canAdvance = false;
 	}
@@ -275,7 +275,7 @@
 	function advanceFromCase() {
 		currentStep = 'form';
 		canAdvance = false;
-		queueMicrotask(() => formInputEl?.focus());
+		requestAnimationFrame(() => formInputEl?.focus());
 	}
 
 	function handleFormSubmit() {
@@ -292,7 +292,7 @@
 		if (hasAdjectiveStep) {
 			currentStep = 'adjective';
 			canAdvance = false;
-			queueMicrotask(() => adjFormInputEl?.focus());
+			requestAnimationFrame(() => adjFormInputEl?.focus());
 		} else {
 			currentStep = 'summary';
 			canAdvance = false;
