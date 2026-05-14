@@ -783,7 +783,7 @@
 								</div>
 							{/if}
 							{#if question.wordCategory === 'adjective' && question.adjective}
-								<div class="w-full max-w-md">
+								<div class="w-full">
 									<FeedbackAdjectiveDeclensionChart
 										lemma={question.adjective.lemma}
 										genderKey={getAdjectiveGenderKey(question.word)}
@@ -793,7 +793,7 @@
 								</div>
 							{/if}
 							{#if question.wordCategory === 'pronoun' && question.pronoun}
-								<div class="w-full max-w-md">
+								<div class="w-full">
 									<FeedbackPronounDeclensionChart
 										lemma={question.pronoun.lemma}
 										case_={question.case}

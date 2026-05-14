@@ -953,7 +953,7 @@
 						{/if}
 
 						{#if question.adjective}
-							<div class="w-full max-w-md">
+							<div class="w-full">
 								<FeedbackAdjectiveDeclensionChart
 									lemma={question.adjective.lemma}
 									genderKey={getAdjectiveGenderKey(question.word)}
