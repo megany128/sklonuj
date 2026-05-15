@@ -20033,7 +20033,7 @@
 		"animate": true,
 		"paradigm": "předseda",
 		"difficulty": "A2",
-		"categories": ["misc", "people", "profession"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"fotbalista",
@@ -28755,7 +28755,7 @@
 		"animate": true,
 		"paradigm": "předseda",
 		"difficulty": "A2",
-		"categories": ["misc", "people", "profession"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"hokejista",
@@ -33595,7 +33595,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc", "people", "profession"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"sportovec",
@@ -41540,7 +41540,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "B1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"horolezkyně",
@@ -47253,7 +47253,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"milionářka",
@@ -47311,7 +47311,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"optimistka",
@@ -47354,7 +47354,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["family", "people", "profession"],
+		"categories": ["family", "people"],
 		"forms": {
 			"sg": [
 				"partnerka",
@@ -47412,7 +47412,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"pesimistka",
@@ -47499,7 +47499,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["family", "people", "profession"],
+		"categories": ["family", "people"],
 		"forms": {
 			"sg": [
 				"puberťačka",
@@ -47679,7 +47679,7 @@
 		"animate": true,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"sportovkyně",
@@ -48478,7 +48478,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"nekuřáčka",
@@ -49117,7 +49117,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": ["maniačka", "maniačky", "maniačce", "maniačku", "maniačko", "maniačce", "maniačkou"],
 			"pl": [
@@ -49432,7 +49432,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"cyklistka",
@@ -49588,7 +49588,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"realistka",
@@ -49933,7 +49933,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": ["klientka", "klientky", "klientce", "klientku", "klientko", "klientce", "klientkou"],
 			"pl": [
@@ -50076,7 +50076,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": ["komička", "komičky", "komičce", "komičku", "komičko", "komičce", "komičkou"],
 			"pl": ["komičky", "komiček", "komičkám", "komičky", "komičky", "komičkách", "komičkami"]
@@ -50102,7 +50102,7 @@
 		"animate": true,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["people", "profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": ["punkerka", "punkerky", "punkerce", "punkerku", "punkerko", "punkerce", "punkerkou"],
 			"pl": [
@@ -51150,7 +51150,7 @@
 		"animate": true,
 		"paradigm": "růže",
 		"difficulty": "A2",
-		"categories": ["profession"],
+		"categories": ["people"],
 		"forms": {
 			"sg": [
 				"zákaznice",

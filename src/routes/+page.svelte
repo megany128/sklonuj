@@ -62,6 +62,7 @@
 		checkAnswer,
 		weightedRandom,
 		hasValidForm,
+		canVocative,
 		applyPrepositionVoicing,
 		type CurriculumLevel
 	} from '$lib/engine/drill';
@@ -77,6 +78,7 @@
 		updateLongestStreak
 	} from '$lib/engine/progress';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
+	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { recordPractice } from '$lib/engine/streak';
 	import {
 		loadPronounBank,
@@ -1007,7 +1009,15 @@
 				const newScore = myGlobalEntry.score + pointsGained;
 				globalLeaderboardPointsDelta += pointsGained;
 
-				globalLeaderboardData = globalLeaderboardData.map((e) => {
+				// Capture the rank slots in window order before mutating, then re-sort
+				// by score and reassign each slot to whoever now occupies that position.
+				// This handles overtaking neighbors within the windowed view while
+				// preserving gaps between non-contiguous server-side ranks.
+				const rankSlots = [...globalLeaderboardData]
+					.sort((a, b) => a.rank - b.rank)
+					.map((e) => e.rank);
+
+				const updated = globalLeaderboardData.map((e) => {
 					if (e.userId !== user!.id) return e;
 					return {
 						...e,
@@ -1016,6 +1026,18 @@
 						correctAnswers: e.correctAnswers + (correct ? 1 : 0)
 					};
 				});
+
+				updated.sort((a, b) => {
+					if (b.score !== a.score) return b.score - a.score;
+					return b.correctAnswers - a.correctAnswers;
+				});
+
+				for (let i = 0; i < updated.length; i++) {
+					const slot = rankSlots[i] ?? updated[i].rank;
+					updated[i] = { ...updated[i], rank: slot };
+				}
+
+				globalLeaderboardData = updated;
 			}
 		}
 	}
@@ -2534,8 +2556,35 @@
 		// Use effective cases (constrained by chapter if active)
 		const activeCasesForPick = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 
+		// In chapter mode, the chapter's coreLemmas often contain very few words
+		// that can sensibly take vocative (people/animals only). With vocative
+		// enabled, the picker would otherwise serve those 1–2 words on roughly
+		// 1/N turns, drowning out the other vocab. Dampen voc to roughly match
+		// its share of the chapter pool.
+		const damped = (() => {
+			if (selectedCase !== 'all') return effectiveEnabledCases;
+			if (!chapterBook || !chapterSelection) return effectiveEnabledCases;
+			if (!effectiveEnabledCases.includes('voc')) return effectiveEnabledCases;
+			const { currentLemmas, previousLemmas } = getChapterLemmas();
+			const allLemmas = [...currentLemmas, ...previousLemmas];
+			if (allLemmas.length === 0) return effectiveEnabledCases;
+			const wb = loadWordBank();
+			const lemmaSet = new Set(allLemmas.map((l) => l.toLowerCase()));
+			const chapterWords = wb.filter((w) => lemmaSet.has(w.lemma.toLowerCase()));
+			if (chapterWords.length === 0) return effectiveEnabledCases;
+			const vocableCount = chapterWords.filter((w) => canVocative(w)).length;
+			const ratio = vocableCount / chapterWords.length;
+			const baselineShare = 1 / effectiveEnabledCases.length;
+			if (ratio >= baselineShare) return effectiveEnabledCases;
+			const keepProb = Math.max(ratio / baselineShare, 0.1);
+			if (Math.random() > keepProb) {
+				return effectiveEnabledCases.filter((c) => c !== 'voc');
+			}
+			return effectiveEnabledCases;
+		})();
+
 		// Pick case: either the selected one, or weighted random from effective enabled cases
-		const case_ = selectedCase === 'all' ? pickWeightedCase(effectiveEnabledCases) : selectedCase;
+		const case_ = selectedCase === 'all' ? pickWeightedCase(damped) : selectedCase;
 
 		// Pick number (respecting chapter constraints)
 		let number_: Number_;
@@ -3001,7 +3050,8 @@
 			}
 		}
 
-		return Object.keys(notes).length > 0 ? notes : null;
+		if (Object.keys(notes).length === 0) return null;
+		return filterParadigmNotes(notes, word);
 	}
 
 	function trackSessionStats(result: DrillResult): void {
@@ -3011,16 +3061,14 @@
 			sessionWrong++;
 			const caseKey = `${result.question.case}_${result.question.number}`;
 			sessionCaseMisses[caseKey] = (sessionCaseMisses[caseKey] ?? 0) + 1;
-			// Only add new mistakes (not re-served ones)
-			const isReserved = mistakes.some(
-				(m) =>
-					m.question.word.lemma === result.question.word.lemma &&
-					m.question.case === result.question.case &&
-					m.question.number === result.question.number &&
-					m.question.drillType === result.question.drillType &&
-					(m.question.adjective?.lemma ?? null) === (result.question.adjective?.lemma ?? null)
-			);
-			if (!isReserved) {
+			// Skip queueing only if this exact mistake item is still in the queue
+			// (i.e. a re-served review question the user just missed again). That
+			// keeps the queue from ballooning while a single form is being drilled,
+			// but every fresh wrong attempt on a new question becomes its own item.
+			const isCurrentlyQueued =
+				result.question === lastResult?.question &&
+				mistakes.some((m) => m.question === result.question);
+			if (!isCurrentlyQueued) {
 				mistakes = [...mistakes, result];
 			}
 

@@ -69,6 +69,9 @@
 		return prefix;
 	}
 
+	// Always show singular column. Only show plural column when the drill
+	// itself is in plural — for singular drills, the plural column adds noise.
+	let showPlural = $derived(number_ === 'pl');
 	let sgStem = $derived(forms ? computeStem(forms.sg) : '');
 	let plStem = $derived(forms ? computeStem(forms.pl) : '');
 </script>
@@ -99,14 +102,20 @@
 							>
 								Case
 							</th>
-							<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
+							<th
+								class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle {showPlural
+									? ''
+									: 'rounded-tr-lg'}"
+							>
 								Singular
 							</th>
-							<th
-								class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
-							>
-								Plural
-							</th>
+							{#if showPlural}
+								<th
+									class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+								>
+									Plural
+								</th>
+							{/if}
 						</tr>
 					</thead>
 					<tbody>
@@ -139,24 +148,28 @@
 										>
 									{/if}
 								</td>
-								<td class="px-3 py-2">
-									{#if plStem && forms.pl[idx].startsWith(plStem)}
-										<span
-											class={isCurrentPl
-												? `font-bold ${CASE_COLORS[c].text}`
-												: 'text-text-subtitle'}>{plStem}</span
-										><span
-											class={isCurrentPl
-												? `font-bold ${CASE_COLORS[c].text}`
-												: 'font-semibold text-emphasis'}>{forms.pl[idx].slice(plStem.length)}</span
-										>
-									{:else}
-										<span
-											class={isCurrentPl ? `font-bold ${CASE_COLORS[c].text}` : 'text-text-default'}
-											>{forms.pl[idx]}</span
-										>
-									{/if}
-								</td>
+								{#if showPlural}
+									<td class="px-3 py-2">
+										{#if plStem && forms.pl[idx].startsWith(plStem)}
+											<span
+												class={isCurrentPl
+													? `font-bold ${CASE_COLORS[c].text}`
+													: 'text-text-subtitle'}>{plStem}</span
+											><span
+												class={isCurrentPl
+													? `font-bold ${CASE_COLORS[c].text}`
+													: 'font-semibold text-emphasis'}
+												>{forms.pl[idx].slice(plStem.length)}</span
+											>
+										{:else}
+											<span
+												class={isCurrentPl
+													? `font-bold ${CASE_COLORS[c].text}`
+													: 'text-text-default'}>{forms.pl[idx]}</span
+											>
+										{/if}
+									</td>
+								{/if}
 							</tr>
 						{/each}
 					</tbody>

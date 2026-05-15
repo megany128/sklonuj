@@ -326,11 +326,31 @@ const PLACEHOLDER_TEMPLATE: SentenceTemplate = {
 	difficulty: 'A1'
 };
 
+/** Categories where vocative is sensible — direct address requires an
+ * animate-or-personifiable referent. Inanimate objects (postel, hrad, dům)
+ * never get vocatived in practice. */
+const VOCATIVE_CATEGORIES: ReadonlySet<string> = new Set([
+	'people',
+	'family',
+	'profession',
+	'nationality',
+	'animals'
+]);
+
 /** Check if a word has a non-empty form for the given case and number. */
 export function hasValidForm(word: WordEntry, case_: Case, number_: Number_): boolean {
 	if (word.pluralOnly && number_ === 'sg') return false;
+	if (case_ === 'voc' && !canVocative(word)) return false;
 	const form = word.forms[number_][CASE_INDEX[case_]];
 	return typeof form === 'string' && form.trim().length > 0;
+}
+
+/** True if this noun can sensibly be addressed in vocative. Animate masculines
+ * always qualify; for other genders we gate on semantic category since Czech
+ * grammatical animacy is only marked on masculines. */
+export function canVocative(word: WordEntry): boolean {
+	if (word.animate) return true;
+	return word.categories.some((c) => VOCATIVE_CATEGORIES.has(c));
 }
 
 export function generateFormProduction(

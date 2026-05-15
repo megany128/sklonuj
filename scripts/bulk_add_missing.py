@@ -211,10 +211,13 @@ def categorize_word(lemma, translation, chapter_subtitle):
         if not cats:
             cats.update(hints)
 
-    # Profession detection: feminine forms ending in -ka/-čka/-kyně
+    # Feminine -ka/-čka/-kyně/-ářka forms referring to people. Tag as "people"
+    # but NOT "profession" — many -ka feminines are not occupations
+    # (nekuřáčka = non-smoker, puberťačka = teenage girl, cizinka = foreigner,
+    # vegetariánka = vegetarian, etc.). Profession tagging happens only via the
+    # keyword loop above when the translation explicitly names an occupation.
     if any(lemma.endswith(s) for s in ("ka", "čka", "kyně", "ářka")):
         if "female" in trans_lower or "woman" in trans_lower:
-            cats.add("profession")
             cats.add("people")
 
     # Person suffixes
@@ -342,8 +345,9 @@ for item in missing:
             pl = [f"{stem}y", f"{stem}", f"{stem}ám", f"{stem}y", f"{stem}y", f"{stem}ách", f"{stem}ami"]
 
             categories = categorize_word(lemma, translation, subtitle)
-            if "profession" not in categories:
-                categories.append("profession")
+            # Always tag -ka feminines referring to humans as "people". Profession
+            # is left to categorize_word's keyword matcher — many -ka feminines
+            # (non-smoker, teenager, foreigner) are not occupations.
             if "people" not in categories:
                 categories.append("people")
             categories = sorted(set(categories))
@@ -376,7 +380,12 @@ for item in missing:
             sg = [lemma, lemma, f"{stem}i", f"{stem}i", lemma, f"{stem}i", f"{stem}í"]
             pl = [lemma, f"{stem}í", f"{stem}ím", lemma, lemma, f"{stem}ích", f"{stem}ěmi"]
 
-            categories = ["people", "profession"]
+            # -kyně is overwhelmingly used for female occupational/agent nouns
+            # (učitelkyně, lékařkyně, vyznavačkyně), so profession is a fair default
+            # here. The keyword matcher will add more if relevant.
+            categories = set(categorize_word(lemma, translation, subtitle))
+            categories.update(["people", "profession"])
+            categories = sorted(categories)
             new_entries.append({
                 "lemma": lemma,
                 "translation": translation,
@@ -396,8 +405,12 @@ for item in missing:
             sg = [lemma, f"{stem}e", f"{stem}i", f"{stem}e", f"{stem}i", f"{stem}i", f"{stem}em"]
             pl = [f"{stem}i", f"{stem}ů", f"{stem}ům", f"{stem}e", f"{stem}i", f"{stem}ích", f"{stem}i"]
 
-            # Check if we have a known translation from kzk extraction files
-            categories = ["people", "profession"]
+            # -ář is the classic Czech agent suffix (lékař, kuchař, malíř,
+            # filmář), so profession is a sound default. Keyword matcher
+            # contributes any additional tags from the translation.
+            categories = set(categorize_word(lemma, translation, subtitle))
+            categories.update(["people", "profession"])
+            categories = sorted(categories)
             new_entries.append({
                 "lemma": lemma,
                 "translation": translation,
@@ -414,7 +427,11 @@ for item in missing:
             sg = [lemma, f"{stem}a", f"{stem}ovi", f"{stem}a", f"{stem}e", f"{stem}ovi", f"{stem}em"]
             pl = [f"{stem}i", f"{stem}ů", f"{stem}ům", f"{stem}y", f"{stem}i", f"{stem}ech", f"{stem}y"]
 
-            categories = ["people", "profession"]
+            # -ér is a borrowed agent suffix (manažér, masér, milionér) — almost
+            # always an occupation/role.
+            categories = sorted(
+                set(categorize_word(lemma, lemma, subtitle)) | {"people", "profession"}
+            )
             new_entries.append({
                 "lemma": lemma,
                 "translation": lemma,
@@ -432,7 +449,12 @@ for item in missing:
             sg = [lemma, f"{stem}y", f"{stem}ovi", f"{stem}u", f"{stem}o", f"{stem}ovi", f"{stem}ou"]
             pl = [f"{stem}é", f"{stem}ů", f"{stem}ům", f"{stem}y", f"{stem}é", f"{stem}ech", f"{stem}y"]
 
-            categories = ["people", "profession"]
+            # -ista nouns are mostly occupation/ideology adherents (cyklista,
+            # turista, optimista, kytarista). Tag as people; profession is
+            # usually accurate but not strict — keep both to match prior data.
+            categories = sorted(
+                set(categorize_word(lemma, lemma, subtitle)) | {"people", "profession"}
+            )
             new_entries.append({
                 "lemma": lemma,
                 "translation": lemma,

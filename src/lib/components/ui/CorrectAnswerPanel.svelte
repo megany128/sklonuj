@@ -11,6 +11,7 @@
 	let {
 		correctAnswer,
 		nominative,
+		chartLemma = undefined,
 		targetForm,
 		translation,
 		case_,
@@ -29,6 +30,7 @@
 	}: {
 		correctAnswer: string;
 		nominative?: string;
+		chartLemma?: string;
 		targetForm?: string;
 		translation?: string;
 		case_: Case;
@@ -172,8 +174,8 @@
 		</div>
 	{/if}
 
-	{#if nominative && number_}
-		<FeedbackDeclensionChart lemma={nominative} {case_} {number_} />
+	{#if (chartLemma ?? nominative) && number_}
+		<FeedbackDeclensionChart lemma={chartLemma ?? nominative ?? ''} {case_} {number_} />
 	{/if}
 
 	{#if adjectiveLemma && adjectiveGenderKey && number_}

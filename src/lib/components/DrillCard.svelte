@@ -16,7 +16,9 @@
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import FeedbackPronounDeclensionChart from '$lib/components/ui/FeedbackPronounDeclensionChart.svelte';
+	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import NextButton from '$lib/components/ui/NextButton.svelte';
+	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 
 	let {
 		question,
@@ -414,13 +416,15 @@
 								: question.wordCategory === 'pronoun'
 									? (question.pronoun?.lemma ?? question.word.lemma)
 									: question.word.lemma}
-						<p class="-ml-3 text-center text-sm font-medium text-text-default">
+						<p class="-ml-3 text-center text-base font-medium text-text-default">
 							<span
 								class="mr-1 inline-flex size-5 translate-y-[1px] items-center justify-center rounded-full text-xs font-bold text-white"
 								style="background-color: {CASE_HEX[question.case]}"
 								>{CASE_NUMBER[question.case]}</span
 							><span class="{CASE_COLORS[question.case].text} font-semibold">{prompt.caseName}</span
-							>{prompt.isPlural ? ' plural' : ''} of
+							>{#if prompt.isPlural}
+								<span class="font-bold {CASE_COLORS[question.case].text}"> plural</span>
+							{/if} of
 						</p>
 						<div class="mt-2 flex items-center justify-center gap-2">
 							<div class="relative flex flex-col items-center">
@@ -752,6 +756,24 @@
 									more common
 								</p>
 							{/if}
+							{@const isAltNounForm =
+								question.wordCategory !== 'adjective' &&
+								question.wordCategory !== 'pronoun' &&
+								(question.drillType === 'form_production' ||
+									question.drillType === 'sentence_fill_in') &&
+								!result.nearMiss &&
+								result.userAnswer.trim().toLowerCase() !==
+									question.correctAnswer.trim().toLowerCase() &&
+								result.userAnswer.trim() !== ''}
+							{#if isAltNounForm}
+								<p class="text-center text-sm text-text-subtitle">
+									You typed <span class="font-semibold">{result.userAnswer.trim()}</span> — also
+									accepted. The more common form is
+									<span class="font-semibold {CASE_COLORS[question.case].text}"
+										>{question.correctAnswer}</span
+									>.
+								</p>
+							{/if}
 							{@const correctNoteKey = `${question.case}_${question.number}`}
 							{@const correctWhyNote = paradigmNotes?.[correctNoteKey] ?? null}
 							{@const correctTemplateWhy =
@@ -796,6 +818,15 @@
 								<div class="w-full">
 									<FeedbackPronounDeclensionChart
 										lemma={question.pronoun.lemma}
+										case_={question.case}
+										number_={question.number}
+									/>
+								</div>
+							{/if}
+							{#if question.wordCategory !== 'adjective' && question.wordCategory !== 'pronoun'}
+								<div class="w-full">
+									<FeedbackDeclensionChart
+										lemma={question.word.lemma}
 										case_={question.case}
 										number_={question.number}
 									/>
@@ -847,7 +878,14 @@
 									? (question.adjective?.translation ?? question.word.translation)
 									: question.wordCategory === 'pronoun'
 										? (question.pronoun?.translation ?? question.word.translation)
-										: question.word.translation}
+										: question.number === 'pl'
+											? pluralizeTranslation(question.word.translation)
+											: question.word.translation}
+								chartLemma={question.wordCategory === 'adjective'
+									? (question.adjective?.lemma ?? question.word.lemma)
+									: question.wordCategory === 'pronoun'
+										? (question.pronoun?.lemma ?? '')
+										: question.word.lemma}
 								case_={question.case}
 								drillType={question.drillType}
 								nearMiss={result.nearMiss}
