@@ -16,9 +16,13 @@ function hasFleetingE(word: WordEntry): boolean {
 }
 
 function splitSentences(text: string): string[] {
-	const matches = text.match(/[^.!?]+[.!?]+/g);
+	// Protect abbreviations whose internal period would otherwise split the sentence.
+	const protectedText = text
+		.replace(/\be\.g\./gi, 'e__DOT__g__DOT__')
+		.replace(/\bi\.e\./gi, 'i__DOT__e__DOT__');
+	const matches = protectedText.match(/[^.!?]+[.!?]+/g);
 	if (!matches) return [text];
-	return matches.map((s) => s.trim()).filter(Boolean);
+	return matches.map((s) => s.replace(/__DOT__/g, '.').trim()).filter(Boolean);
 }
 
 interface LemmaTraits {

@@ -477,8 +477,9 @@ export function checkAnswer(
 
 		// Exact match
 		for (const form of accepted) {
-			if (trimmedUser === form.trim().toLowerCase()) {
-				return { question, userAnswer, correct: true, nearMiss: false };
+			const trimmedForm = form.trim();
+			if (trimmedUser === trimmedForm.toLowerCase()) {
+				return { question, userAnswer, correct: true, nearMiss: false, matchedForm: trimmedForm };
 			}
 		}
 
@@ -521,13 +522,15 @@ export function checkAnswer(
 		// Near-miss (diacritics) — only reached if not an exact match for another case
 		const strippedUser = stripDiacritics(trimmedUser);
 		for (const form of accepted) {
-			const stripped = stripDiacritics(form.trim().toLowerCase());
+			const trimmedForm = form.trim();
+			const stripped = stripDiacritics(trimmedForm.toLowerCase());
 			if (strippedUser === stripped) {
 				return {
 					question,
 					userAnswer,
 					correct: nearMissIsCorrect(level),
-					nearMiss: true
+					nearMiss: true,
+					matchedForm: trimmedForm
 				};
 			}
 		}
@@ -546,8 +549,9 @@ export function checkAnswer(
 
 	// Check exact match against any accepted form
 	for (const form of acceptedForms) {
-		if (trimmedUser === form.trim().toLowerCase()) {
-			return { question, userAnswer, correct: true, nearMiss: false };
+		const trimmedForm = form.trim();
+		if (trimmedUser === trimmedForm.toLowerCase()) {
+			return { question, userAnswer, correct: true, nearMiss: false, matchedForm: trimmedForm };
 		}
 	}
 
@@ -557,13 +561,15 @@ export function checkAnswer(
 	// unrelated form (in this example "dome" also happens to be voc-sg).
 	const strippedUser = stripDiacritics(trimmedUser);
 	for (const form of acceptedForms) {
-		const strippedForm = stripDiacritics(form.trim().toLowerCase());
+		const trimmedForm = form.trim();
+		const strippedForm = stripDiacritics(trimmedForm.toLowerCase());
 		if (strippedUser === strippedForm) {
 			return {
 				question,
 				userAnswer,
 				correct: nearMissIsCorrect(level),
-				nearMiss: true
+				nearMiss: true,
+				matchedForm: trimmedForm
 			};
 		}
 	}

@@ -454,8 +454,9 @@ export function checkAdjectiveAnswer(
 
 	// Exact match against any accepted form
 	for (const form of question.acceptedAnswers) {
-		if (trimmedUser === form.trim().toLowerCase()) {
-			return { question, userAnswer, correct: true, nearMiss: false };
+		const trimmedForm = form.trim();
+		if (trimmedUser === trimmedForm.toLowerCase()) {
+			return { question, userAnswer, correct: true, nearMiss: false, matchedForm: trimmedForm };
 		}
 	}
 
@@ -487,9 +488,10 @@ export function checkAdjectiveAnswer(
 	const strippedUser = stripDiacritics(trimmedUser);
 	const lenient = level === 'A1' || level === 'A2';
 	for (const form of question.acceptedAnswers) {
-		const stripped = stripDiacritics(form.trim().toLowerCase());
+		const trimmedForm = form.trim();
+		const stripped = stripDiacritics(trimmedForm.toLowerCase());
 		if (strippedUser === stripped) {
-			return { question, userAnswer, correct: lenient, nearMiss: true };
+			return { question, userAnswer, correct: lenient, nearMiss: true, matchedForm: trimmedForm };
 		}
 	}
 

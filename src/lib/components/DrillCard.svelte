@@ -732,10 +732,18 @@
 										? getPronounForm(question)
 										: question.word.forms[question.number][CASE_INDEX[question.case]]}
 							{#if result.nearMiss}
+								{@const matched = result.matchedForm ?? question.correctAnswer}
+								{@const isVariant =
+									matched.trim().toLowerCase() !== question.correctAnswer.trim().toLowerCase()}
 								<p class="text-center text-sm text-warning-text">
-									Almost! Check your diacritics: <span class="font-semibold"
-										>{question.correctAnswer}</span
-									>
+									Almost! Check your diacritics: <span class="font-semibold">{matched}</span>
+									{#if isVariant}
+										<span class="text-text-subtitle"
+											>— accepted variant of <span class="font-semibold"
+												>{question.correctAnswer}</span
+											></span
+										>
+									{/if}
 								</p>
 							{:else if nomForm !== targetForm}
 								<p class="text-center text-sm text-text-subtitle">
@@ -874,13 +882,15 @@
 									: question.wordCategory === 'pronoun'
 										? getPronounForm(question)
 										: question.word.forms[question.number][CASE_INDEX[question.case]]}
-								translation={question.wordCategory === 'adjective'
-									? (question.adjective?.translation ?? question.word.translation)
-									: question.wordCategory === 'pronoun'
-										? (question.pronoun?.translation ?? question.word.translation)
-										: question.number === 'pl'
-											? pluralizeTranslation(question.word.translation)
-											: question.word.translation}
+								translation={question.drillType === 'case_identification'
+									? question.wordCategory === 'adjective'
+										? (question.adjective?.translation ?? question.word.translation)
+										: question.wordCategory === 'pronoun'
+											? (question.pronoun?.translation ?? question.word.translation)
+											: question.number === 'pl'
+												? pluralizeTranslation(question.word.translation)
+												: question.word.translation
+									: undefined}
 								chartLemma={question.wordCategory === 'adjective'
 									? (question.adjective?.lemma ?? question.word.lemma)
 									: question.wordCategory === 'pronoun'

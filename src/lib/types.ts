@@ -188,6 +188,8 @@ export interface DrillResult {
 	correct: boolean;
 	nearMiss: boolean;
 	accidentalCase?: { case: Case; number: Number_ };
+	/** The accepted form (primary or variant) the user's answer matched, when applicable. */
+	matchedForm?: string;
 }
 
 export interface MultiStepQuestion {
