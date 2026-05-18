@@ -3407,6 +3407,10 @@
 		autoPlayAnswer(question);
 	}
 
+	function handleMultiStepStepCorrect(): void {
+		if (autoplayAudio) playCorrectSound();
+	}
+
 	function handleMultiStepComplete(result: MultiStepResult): void {
 		if (!hasInteracted) {
 			posthog.capture('practice_started', { level: currentLevel, drillType: 'multi_step' });
@@ -3434,12 +3438,11 @@
 			streak++;
 			if (streak > bestStreak) bestStreak = streak;
 			updateLongestStreak(streak);
-			if (autoplayAudio) {
-				if (streak >= 3) {
-					playStreakSound(streak);
-				} else {
-					playCorrectSound();
-				}
+			// Per-step correct sounds already played via handleMultiStepStepCorrect;
+			// summary view stays silent. Streak sound still fires for 3+ to mark
+			// the milestone after the composite question completes.
+			if (autoplayAudio && streak >= 3) {
+				playStreakSound(streak);
 			}
 		} else {
 			sessionWrong++;
@@ -4342,6 +4345,7 @@
 				<MultiStepCard
 					question={multiStepQuestion}
 					onComplete={handleMultiStepComplete}
+					onStepCorrect={handleMultiStepStepCorrect}
 					{paradigmNotes}
 					onSpeak={ttsAvailable ? handleSpeak : null}
 					level={currentLevel}

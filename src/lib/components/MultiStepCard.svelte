@@ -117,12 +117,14 @@
 	let {
 		question,
 		onComplete,
+		onStepCorrect = null,
 		paradigmNotes = null,
 		onSpeak = null,
 		level = 'A1'
 	}: {
 		question: MultiStepQuestion;
 		onComplete: (result: MultiStepResult) => void;
+		onStepCorrect?: (() => void) | null;
 		paradigmNotes?: Record<string, string> | null;
 		onSpeak?: ((text: string) => void) | null;
 		level?: Difficulty;
@@ -249,6 +251,7 @@
 		if (paradigmSubmitted || !selectedParadigm) return;
 		paradigmSubmitted = true;
 		paradigmCorrect = selectedParadigm === question.correctParadigm;
+		if (paradigmCorrect) onStepCorrect?.();
 		canAdvance = false;
 		enableAdvance();
 	}
@@ -268,6 +271,7 @@
 		selectedCase = c;
 		caseSubmitted = true;
 		caseCorrect = c === question.correctCase;
+		if (caseCorrect) onStepCorrect?.();
 		canAdvance = false;
 		enableAdvance();
 	}
@@ -284,6 +288,7 @@
 		const result = checkMultiStepForm(question, formInput, level);
 		formCorrect = result.correct;
 		formNearMiss = result.nearMiss;
+		if (formCorrect) onStepCorrect?.();
 		canAdvance = false;
 		enableAdvance();
 	}
@@ -306,6 +311,7 @@
 		const result = checkAdjForm();
 		adjFormCorrect = result.correct;
 		adjFormNearMiss = result.nearMiss;
+		if (adjFormCorrect) onStepCorrect?.();
 		canAdvance = false;
 		enableAdvance();
 	}
