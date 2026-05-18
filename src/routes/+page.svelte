@@ -135,6 +135,7 @@
 		recordPracticeDay,
 		type BadgeCheckContext
 	} from '$lib/engine/achievements';
+	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import LeaderboardBanner from '$lib/components/ui/LeaderboardBanner.svelte';
 
 	const kzkChapters: KzkChaptersConfig = kzkChaptersData as KzkChaptersConfig;
@@ -3214,7 +3215,8 @@
 			sessionQuestionCount: sessionCorrect + sessionWrong,
 			now: new Date()
 		};
-		const newBadges = checkAndAwardBadges(badgeContext);
+		const supabaseClient = user ? getSupabaseBrowserClient() : undefined;
+		const newBadges = checkAndAwardBadges(badgeContext, supabaseClient);
 		for (const badge of newBadges) {
 			addToast(`${badge.name} — Achievement unlocked!`, '', {
 				icon: BADGE_ICONS[badge.id],

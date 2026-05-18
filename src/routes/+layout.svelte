@@ -3,12 +3,14 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
 	import {
 		syncBadgesToSupabase,
 		loadBadgesFromSupabase,
+		recomputeProgressBasedBadges,
 		clearBadges
 	} from '$lib/engine/achievements';
 	import { syncStreakToSupabase, loadStreakFromSupabase, clearStreak } from '$lib/engine/streak';
@@ -60,6 +62,12 @@
 		badgeStreakSyncInFlight = (async () => {
 			try {
 				await loadBadgesFromSupabase(client);
+				// Backfill context-free badges (centurion, case_cracker, etc.) from
+				// server-loaded progress so badges aren't lost when localStorage was
+				// empty / cleared but progress lives on the server.
+				const lastSession = get(progress).lastSession;
+				const proxy = lastSession ? `${lastSession}T00:00:00.000Z` : undefined;
+				recomputeProgressBasedBadges(client, proxy);
 				await syncBadgesToSupabase(client);
 				await loadStreakFromSupabase(client);
 				await syncStreakToSupabase(client);
