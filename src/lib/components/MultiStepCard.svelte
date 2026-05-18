@@ -983,8 +983,6 @@
 				<!-- SUMMARY -->
 			{:else if currentStep === 'summary'}
 				<div class="flex flex-col items-center gap-4">
-					<p class="text-sm font-semibold text-text-default">Summary</p>
-
 					<!-- Full sentence revealed -->
 					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 						{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
