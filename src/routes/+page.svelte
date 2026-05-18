@@ -3407,8 +3407,18 @@
 		autoPlayAnswer(question);
 	}
 
-	function handleMultiStepStepCorrect(): void {
-		if (autoplayAudio) playCorrectSound();
+	function handleMultiStepStepResult(correct: boolean): void {
+		// Each sub-step of a multi-step question counts as its own scoring event so
+		// the leaderboard awards points per step (paradigm/case/form/adjective)
+		// rather than only the all-or-nothing final result.
+		if (correct) {
+			sessionCorrect++;
+			if (autoplayAudio) playCorrectSound();
+		} else {
+			sessionWrong++;
+		}
+		recordSessionActivity(correct, multiStepQuestion?.case);
+		updateLeaderboardAfterAnswer(correct);
 	}
 
 	function handleMultiStepComplete(result: MultiStepResult): void {
@@ -3434,18 +3444,16 @@
 			adjectiveOk;
 
 		if (allCorrect) {
-			sessionCorrect++;
 			streak++;
 			if (streak > bestStreak) bestStreak = streak;
 			updateLongestStreak(streak);
-			// Per-step correct sounds already played via handleMultiStepStepCorrect;
-			// summary view stays silent. Streak sound still fires for 3+ to mark
-			// the milestone after the composite question completes.
+			// Per-step correct sounds + session/leaderboard updates already happen
+			// in handleMultiStepStepResult, so the summary view stays silent except
+			// for the streak milestone sound.
 			if (autoplayAudio && streak >= 3) {
 				playStreakSound(streak);
 			}
 		} else {
-			sessionWrong++;
 			streak = 0;
 			// Record a mistake when ANY sub-step is wrong, not just the form. We
 			// inspect each step explicitly so paradigm-only or case-only slips
@@ -3474,7 +3482,6 @@
 		}
 
 		if (chapterSelection) recordChapterResult(chapterSelection, allCorrect);
-		recordSessionActivity(allCorrect, result.question.case);
 		if (!allCorrect && assignmentId) {
 			let msSentence: string | undefined;
 			let msPrompt: string | undefined;
@@ -3507,7 +3514,6 @@
 			assignmentMistakes = [...assignmentMistakes, msMistake].slice(-20);
 		}
 		recordAssignmentProgress(allCorrect, result.question.case, result.question.number);
-		updateLeaderboardAfterAnswer(allCorrect);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
 			correct: allCorrect,
@@ -4345,7 +4351,7 @@
 				<MultiStepCard
 					question={multiStepQuestion}
 					onComplete={handleMultiStepComplete}
-					onStepCorrect={handleMultiStepStepCorrect}
+					onStepResult={handleMultiStepStepResult}
 					{paradigmNotes}
 					onSpeak={ttsAvailable ? handleSpeak : null}
 					level={currentLevel}
