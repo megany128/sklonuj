@@ -9,7 +9,7 @@ interface ProfileData {
 	display_name: string | null;
 	created_at: string;
 	email_reminders: boolean;
-	reminder_day: number;
+	reminder_days: number[];
 	reminder_hour_utc: number;
 }
 
@@ -43,7 +43,8 @@ function isProfileData(v: unknown): v is ProfileData {
 		(typeof v.display_name === 'string' || v.display_name === null) &&
 		typeof v.created_at === 'string' &&
 		typeof v.email_reminders === 'boolean' &&
-		typeof v.reminder_day === 'number' &&
+		Array.isArray(v.reminder_days) &&
+		v.reminder_days.every((d) => typeof d === 'number') &&
 		typeof v.reminder_hour_utc === 'number'
 	);
 }
@@ -95,7 +96,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const [profileResult, progressResult, sessionsResult] = await Promise.all([
 		supabase
 			.from('profiles')
-			.select('display_name, created_at, email_reminders, reminder_day, reminder_hour_utc')
+			.select('display_name, created_at, email_reminders, reminder_days, reminder_hour_utc')
 			.eq('id', user.id)
 			.maybeSingle(),
 		supabase
@@ -237,13 +238,21 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const emailReminders = formData.get('email_reminders') === 'true';
-		const reminderDayRaw = Number(formData.get('reminder_day'));
+		const reminderDaysRaw = formData.get('reminder_days');
 		const reminderHourUtcRaw = Number(formData.get('reminder_hour_utc'));
 
-		const reminderDay =
-			Number.isInteger(reminderDayRaw) && reminderDayRaw >= 0 && reminderDayRaw <= 6
-				? reminderDayRaw
-				: 1;
+		const parsedDays =
+			typeof reminderDaysRaw === 'string'
+				? reminderDaysRaw
+						.split(',')
+						.map((s) => s.trim())
+						.filter((s) => s !== '')
+						.map((s) => Number(s))
+						.filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
+				: [];
+		const dedupedDays = Array.from(new Set(parsedDays)).sort((a, b) => a - b);
+		const reminderDays = dedupedDays.length > 0 ? dedupedDays.slice(0, 7) : [1];
+
 		const reminderHourUtc =
 			Number.isInteger(reminderHourUtcRaw) && reminderHourUtcRaw >= 0 && reminderHourUtcRaw <= 23
 				? reminderHourUtcRaw
@@ -253,7 +262,8 @@ export const actions: Actions = {
 			.from('profiles')
 			.update({
 				email_reminders: emailReminders,
-				reminder_day: reminderDay,
+				reminder_days: reminderDays,
+				reminder_day: reminderDays[0],
 				reminder_hour_utc: reminderHourUtc
 			})
 			.eq('id', user.id);

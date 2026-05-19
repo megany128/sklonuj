@@ -37,7 +37,7 @@
 		display_name: string | null;
 		created_at: string;
 		email_reminders: boolean;
-		reminder_day: number;
+		reminder_days: number[];
 		reminder_hour_utc: number;
 	}
 
@@ -72,7 +72,8 @@
 			(typeof v.display_name === 'string' || v.display_name === null) &&
 			typeof v.created_at === 'string' &&
 			typeof v.email_reminders === 'boolean' &&
-			typeof v.reminder_day === 'number' &&
+			Array.isArray(v.reminder_days) &&
+			v.reminder_days.every((d) => typeof d === 'number') &&
 			typeof v.reminder_hour_utc === 'number'
 		);
 	}
@@ -301,14 +302,14 @@
 
 	// Email preferences
 	let emailReminders = $state(false);
-	let reminderDay = $state(1);
+	let reminderDaysUtc = $state<number[]>([1]);
 	let reminderHourUtc = $state(14);
 	let savingEmailPrefs = $state(false);
 	let emailPrefsMessage = $state<string | null>(null);
 
 	let displayName = $derived(serverProfile?.display_name ?? '');
 
-	const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+	const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 	// Convert local day+hour to UTC day+hour using timezone offset
 	function localToUtc(lDay: number, lHour: number): { day: number; hour: number } {
@@ -334,10 +335,49 @@
 		};
 	}
 
-	// Derived local values from UTC stored values
-	let localPrefs = $derived(utcToLocal(reminderDay, reminderHourUtc));
-	let localDay = $derived(localPrefs.day);
-	let localHour = $derived(localPrefs.hour);
+	// Project the stored UTC days onto the user's local week. Hour conversion
+	// is the same across days, so we just shift each day independently.
+	let localDays = $derived.by<number[]>(() => {
+		const out: number[] = [];
+		for (const uDay of reminderDaysUtc) {
+			const d = utcToLocal(uDay, reminderHourUtc).day;
+			if (!out.includes(d)) out.push(d);
+		}
+		return out.sort((a, b) => a - b);
+	});
+	let localHour = $derived(utcToLocal(0, reminderHourUtc).hour);
+	let localHour12 = $derived(localHour === 0 ? 12 : localHour > 12 ? localHour - 12 : localHour);
+	let localAmPm = $derived<'AM' | 'PM'>(localHour < 12 ? 'AM' : 'PM');
+
+	function setLocalDays(nextLocalDays: number[]) {
+		const out: number[] = [];
+		for (const lDay of nextLocalDays) {
+			const d = localToUtc(lDay, localHour).day;
+			if (!out.includes(d)) out.push(d);
+		}
+		reminderDaysUtc = out.sort((a, b) => a - b);
+	}
+
+	function toggleLocalDay(lDay: number) {
+		const next = localDays.includes(lDay)
+			? localDays.filter((d) => d !== lDay)
+			: [...localDays, lDay];
+		if (next.length === 0) {
+			// Last day removed — turn reminders off rather than store an empty schedule.
+			emailReminders = false;
+			return;
+		}
+		setLocalDays(next);
+	}
+
+	function setLocalHour12(h12: number, ampm: 'AM' | 'PM') {
+		const base = h12 % 12; // 12 → 0, 1–11 → 1–11
+		const nextLocalHour = ampm === 'PM' ? base + 12 : base;
+		// Re-fold day shifts using the new local hour.
+		const captured = localDays;
+		reminderHourUtc = localToUtc(0, nextLocalHour).hour;
+		setLocalDays(captured);
+	}
 
 	function openNameModal() {
 		nameInput = displayName;
@@ -809,7 +849,8 @@
 	$effect(() => {
 		if (serverProfile) {
 			emailReminders = serverProfile.email_reminders;
-			reminderDay = serverProfile.reminder_day;
+			reminderDaysUtc =
+				serverProfile.reminder_days.length > 0 ? [...serverProfile.reminder_days] : [1];
 			reminderHourUtc = serverProfile.reminder_hour_utc;
 		}
 	});
@@ -2291,16 +2332,17 @@
 						>
 							<div class="flex items-center justify-between gap-4">
 								<div>
-									<p class="text-sm font-medium text-text-default">Weekly practice reminder</p>
+									<p class="text-sm font-medium text-text-default">Practice reminders</p>
 									<p class="text-xs text-text-subtitle">
-										Get a weekly email with your stats and a nudge to practice.
+										Get an email summary with your stats and a nudge to practice — on the days you
+										pick.
 									</p>
 								</div>
 								<button
 									type="button"
 									role="switch"
 									aria-checked={emailReminders}
-									aria-label="Toggle weekly practice reminder"
+									aria-label="Toggle practice reminders"
 									onclick={() => (emailReminders = !emailReminders)}
 									class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emphasis focus:ring-offset-2 {emailReminders
 										? 'bg-emphasis'
@@ -2315,48 +2357,56 @@
 							</div>
 
 							{#if emailReminders}
-								<div class="mt-4 flex flex-wrap items-center gap-3">
-									<label class="flex items-center gap-2 text-sm text-text-default">
-										<span class="text-text-subtitle">Day:</span>
-										<select
-											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default focus:border-emphasis focus:outline-none"
-											value={localDay}
-											onchange={(e) => {
-												const newLocalDay = Number(e.currentTarget.value);
-												const utc = localToUtc(newLocalDay, localHour);
-												reminderDay = utc.day;
-												reminderHourUtc = utc.hour;
-											}}
-										>
-											{#each DAY_NAMES as dayName, i (i)}
-												<option value={i}>{dayName}</option>
+								<div class="mt-4 space-y-3">
+									<div>
+										<p class="mb-2 text-xs text-text-subtitle">Days</p>
+										<div class="flex flex-wrap gap-2" role="group" aria-label="Reminder days">
+											{#each DAY_NAMES_SHORT as dayName, i (i)}
+												{@const selected = localDays.includes(i)}
+												<button
+													type="button"
+													aria-pressed={selected}
+													onclick={() => toggleLocalDay(i)}
+													class="rounded-full border px-3 py-1 text-sm transition-colors {selected
+														? 'border-emphasis bg-emphasis text-text-inverted'
+														: 'border-card-stroke text-text-default hover:border-emphasis'}"
+												>
+													{dayName}
+												</button>
 											{/each}
-										</select>
-									</label>
-									<label class="flex items-center gap-2 text-sm text-text-default">
+										</div>
+										{#if localDays.length === 0}
+											<p class="mt-2 text-xs text-text-subtitle">
+												Pick at least one day to receive reminders.
+											</p>
+										{/if}
+									</div>
+									<label class="flex flex-wrap items-center gap-2 text-sm text-text-default">
 										<span class="text-text-subtitle">Time:</span>
 										<select
 											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default focus:border-emphasis focus:outline-none"
-											value={localHour}
-											onchange={(e) => {
-												const newLocalHour = Number(e.currentTarget.value);
-												const utc = localToUtc(localDay, newLocalHour);
-												reminderDay = utc.day;
-												reminderHourUtc = utc.hour;
-											}}
+											value={localHour12}
+											onchange={(e) => setLocalHour12(Number(e.currentTarget.value), localAmPm)}
 										>
-											{#each Array.from({ length: 24 }, (_, i) => i) as hour (hour)}
-												<option value={hour}>
-													{hour.toString().padStart(2, '0')}:00
-												</option>
+											{#each Array.from({ length: 12 }, (_, i) => i + 1) as h (h)}
+												<option value={h}>{h}:00</option>
 											{/each}
+										</select>
+										<select
+											class="rounded-lg border border-card-stroke bg-card-bg px-3 py-1.5 text-sm text-text-default focus:border-emphasis focus:outline-none"
+											value={localAmPm}
+											onchange={(e) =>
+												setLocalHour12(localHour12, e.currentTarget.value === 'PM' ? 'PM' : 'AM')}
+										>
+											<option value="AM">AM</option>
+											<option value="PM">PM</option>
 										</select>
 									</label>
 								</div>
 							{/if}
 
 							<input type="hidden" name="email_reminders" value={emailReminders.toString()} />
-							<input type="hidden" name="reminder_day" value={reminderDay.toString()} />
+							<input type="hidden" name="reminder_days" value={reminderDaysUtc.join(',')} />
 							<input type="hidden" name="reminder_hour_utc" value={reminderHourUtc.toString()} />
 
 							<div class="mt-4 flex items-center gap-3">

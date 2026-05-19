@@ -200,21 +200,18 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	const now = new Date();
 	const currentDayUtc = now.getUTCDay(); // 0 = Sunday
 	const currentHourUtc = now.getUTCHours();
-	const sixDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+	// 20-hour cooldown supports daily-cadence users without double-sending
+	// within the same UTC day. Long enough to skip the same-day catch-up window;
+	// short enough that consecutive scheduled days both fire.
+	const cooldownStart = new Date(now.getTime() - 20 * 60 * 60 * 1000);
 
-	// Find users whose preferred day matches today, whose preferred hour has
-	// already passed (or is now), and who haven't been emailed in the last 6
-	// days. Using `<=` instead of `=` on the hour gives us a same-day catch-up
-	// window: GitHub Actions occasionally drops scheduled runs (free-tier is
-	// best-effort), so the next hourly run picks up anyone the missed slot
-	// was meant to email. The 6-day guard prevents double-sends within a week.
 	const { data: profilesData, error: profilesError } = await adminClient
 		.from('profiles')
 		.select('id, display_name')
 		.eq('email_reminders', true)
-		.eq('reminder_day', currentDayUtc)
+		.contains('reminder_days', [currentDayUtc])
 		.lte('reminder_hour_utc', currentHourUtc)
-		.or(`last_weekly_email_at.is.null,last_weekly_email_at.lt.${sixDaysAgo.toISOString()}`);
+		.or(`last_weekly_email_at.is.null,last_weekly_email_at.lt.${cooldownStart.toISOString()}`);
 
 	if (profilesError) {
 		console.error('weekly-summary: failed to query profiles', profilesError);
