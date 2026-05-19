@@ -513,7 +513,7 @@
 		"number": "sg",
 		"trigger": "s",
 		"why": "'S' (with) always takes the instrumental case.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "ins_za_045",
@@ -584,7 +584,7 @@
 		"number": "sg",
 		"trigger": "s",
 		"why": "'S' (with) always takes the instrumental case.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "ins_s_052",
@@ -594,7 +594,7 @@
 		"number": "sg",
 		"trigger": "s",
 		"why": "'S' (with) always takes the instrumental case.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "ins_pod_053",
@@ -982,7 +982,7 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "'Rozumět' (to understand) governs the dative case.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "dat_gratulovat_091",
@@ -1003,7 +1003,7 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "'Patřit' (to belong to) governs the dative case.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "dat_podobat_093",
@@ -1035,7 +1035,7 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "The indirect object of 'ukázat' (to show) takes the dative case — the person being shown something.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "dat_k_096",
@@ -1608,7 +1608,7 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "The means of transport takes the instrumental case when no preposition is used.",
-		"difficulty": "B1"
+		"difficulty": "A1"
 	},
 	{
 		"id": "ins_s_146",
@@ -1618,7 +1618,7 @@
 		"number": "sg",
 		"trigger": "s",
 		"why": "'S' (with) always takes the instrumental case.",
-		"difficulty": "A2"
+		"difficulty": "A1"
 	},
 	{
 		"id": "ins_zabyvat_147",

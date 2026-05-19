@@ -288,12 +288,8 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 
 	const unlockedDifficulties = level.unlocked_difficulty;
 
-	// Template-level difficulty is intentionally NOT filtered here: the user's
-	// case selection (handled upstream via `activeCases`) is what gates which
-	// cases are drillable. Otherwise A1 users get zero `ins` templates and a
-	// handful of `gen`/`dat` ones, which makes those cases feel "blocked"
-	// even when the user explicitly opted into them. Vocabulary difficulty
-	// (`word.difficulty` below) is still level-gated.
+	// Check curriculum constraints: is the template's difficulty unlocked?
+	if (!unlockedDifficulties.includes(template.difficulty)) return [];
 
 	const categoryMatches = wordBank.filter(
 		(word) =>

@@ -2001,10 +2001,13 @@
 		);
 		if (needsTemplates) {
 			const templates = loadTemplates();
-			// Template-difficulty gate intentionally dropped: user-selected cases
-			// govern what's drillable. See `getCandidates` in engine/drill.ts.
+			const prog = get(progress);
+			const levelDifficulties = curriculum[prog.level].unlocked_difficulty;
 			const eligibleTemplates = templates.filter(
-				(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
+				(t) =>
+					activeCases.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					levelDifficulties.includes(t.difficulty)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -2230,7 +2233,10 @@
 			// Use pronoun templates
 			const templates = loadPronounTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) => pronounCases.includes(t.requiredCase) && matchesNumberMode(t.number)
+				(t) =>
+					pronounCases.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -2272,7 +2278,10 @@
 			// case_identification - use pronoun templates too
 			const templates = loadPronounTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) => pronounCases.includes(t.requiredCase) && matchesNumberMode(t.number)
+				(t) =>
+					pronounCases.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
 			);
 
 			if (eligibleTemplates.length === 0) return null;
@@ -2359,7 +2368,10 @@
 		// For sentence_fill_in and case_identification: use sentence templates
 		const templates = loadAdjectiveTemplates();
 		const eligibleTemplates = templates.filter(
-			(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
+			(t) =>
+				activeCases.includes(t.requiredCase) &&
+				matchesNumberMode(t.number) &&
+				unlockedDifficulties.includes(t.difficulty)
 		);
 		if (eligibleTemplates.length === 0) return null;
 
@@ -2618,7 +2630,10 @@
 			// Multi-step: needs a template + word, produces a MultiStepQuestion
 			const templates = loadTemplates();
 			const msEligibleTemplates = templates.filter(
-				(t) => activeCasesForPick.includes(t.requiredCase) && matchesNumberMode(t.number)
+				(t) =>
+					activeCasesForPick.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
 			);
 			if (msEligibleTemplates.length > 0) {
 				// Prefer templates matching the weighted case pick to respect spaced repetition
@@ -2775,7 +2790,10 @@
 			multiStepQuestion = null;
 			const templates = loadTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) => activeCasesForPick.includes(t.requiredCase) && matchesNumberMode(t.number)
+				(t) =>
+					activeCasesForPick.includes(t.requiredCase) &&
+					matchesNumberMode(t.number) &&
+					unlockedDifficulties.includes(t.difficulty)
 			);
 
 			if (eligibleTemplates.length === 0) {
