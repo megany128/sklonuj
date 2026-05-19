@@ -51,6 +51,7 @@ const PROGRESS_B2: Progress = {
 	level: 'B2',
 	caseScores: {},
 	paradigmScores: {},
+	lemmaScores: {},
 	lastSession: '',
 	longestStreak: 0
 };
@@ -79,7 +80,10 @@ describe('lemma blocks · sentence (noun) drill', () => {
 		_resetLemmaBlockCacheForTests();
 		const blocked = getCandidates(template, PROGRESS_B2);
 		const hrad = loadWordBank().find((w) => w.lemma === 'hrad');
-		if (hrad && hrad.categories.includes(template.lemmaCategory)) {
+		const lemmaCats = Array.isArray(template.lemmaCategory)
+			? template.lemmaCategory
+			: [template.lemmaCategory];
+		if (hrad && hrad.categories.some((c) => lemmaCats.includes(c))) {
 			expect(blocked.some((w) => w.lemma === 'hrad')).toBe(true);
 		}
 	});

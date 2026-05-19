@@ -47,6 +47,7 @@ describe('getCandidates', () => {
 			level: 'B1',
 			caseScores: {},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -295,6 +296,7 @@ describe('weightedRandom', () => {
 			level: 'A1',
 			caseScores: {},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -302,9 +304,8 @@ describe('weightedRandom', () => {
 		expect(candidates).toContainEqual(picked);
 	});
 
-	it('favors words with lower per-paradigm accuracy', () => {
+	it('favors unseen lemmas over well-known ones', () => {
 		const bank = loadWordBank();
-		// Pick candidates with different paradigms so we can mark some as known
 		const hrad = bank.find((w) => w.paradigm === 'hrad');
 		const zena = bank.find((w) => w.paradigm === 'žena');
 		const mesto = bank.find((w) => w.paradigm === 'město');
@@ -313,29 +314,30 @@ describe('weightedRandom', () => {
 		expect(mesto).toBeDefined();
 		if (!hrad || !zena || !mesto) return;
 		const candidates = [hrad, zena, mesto];
-		// Mark hrad and žena paradigms as well-known, leave město unseen
+		// Mark hrad and žena lemmas as well-known, leave město unseen
 		const progress: Progress = {
 			level: 'A1',
 			caseScores: {},
-			paradigmScores: {
-				['hrad_loc_sg']: { attempts: 20, correct: 20 },
-				['žena_loc_sg']: { attempts: 20, correct: 20 }
+			paradigmScores: {},
+			lemmaScores: {
+				[`${hrad.lemma}_loc_sg`]: { attempts: 20, correct: 20 },
+				[`${zena.lemma}_loc_sg`]: { attempts: 20, correct: 20 }
 			},
 			lastSession: '',
 			longestStreak: 0
 		};
 
 		const counts: Record<string, number> = {};
-		for (const c of candidates) counts[c.paradigm] = 0;
+		for (const c of candidates) counts[c.lemma] = 0;
 
 		const iterations = 1000;
 		for (let i = 0; i < iterations; i++) {
 			const picked = weightedRandom(candidates, progress, 'loc', 'sg');
-			counts[picked.paradigm]++;
+			counts[picked.lemma]++;
 		}
 
-		// The unseen paradigm (accuracy=0, weight~10) should be picked much more often
-		// than the well-known paradigms (accuracy=1, weight~0.91)
-		expect(counts['město']).toBeGreaterThan(iterations * 0.7);
+		// Unseen lemma (město): lemma_weight ~10. Seen lemmas: lemma_weight ~0.91.
+		// město should dominate the picks heavily.
+		expect(counts[mesto.lemma]).toBeGreaterThan(iterations * 0.7);
 	});
 });

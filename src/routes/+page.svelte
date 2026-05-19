@@ -64,6 +64,7 @@
 		hasValidForm,
 		canVocative,
 		applyPrepositionVoicing,
+		templateMatchesWordCategory,
 		type CurriculumLevel
 	} from '$lib/engine/drill';
 	import {
@@ -168,6 +169,7 @@
 						level: current.level,
 						caseScores: current.caseScores,
 						paradigmScores: current.paradigmScores,
+						lemmaScores: current.lemmaScores,
 						lastSession: current.lastSession,
 						longestStreak: current.longestStreak
 					}
@@ -1855,6 +1857,7 @@
 					level: savedProgress.level,
 					caseScores: savedProgress.case_scores,
 					paradigmScores: savedProgress.paradigm_scores,
+					lemmaScores: savedProgress.lemma_scores ?? {},
 					lastSession: savedProgress.last_session ?? '',
 					longestStreak: savedProgress.longest_answer_streak ?? 0
 				};
@@ -1915,6 +1918,7 @@
 							level: current.level,
 							caseScores: current.caseScores,
 							paradigmScores: current.paradigmScores,
+							lemmaScores: current.lemmaScores,
 							lastSession: current.lastSession
 						}
 					})
@@ -2652,7 +2656,7 @@
 						(w) =>
 							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
 							!diffLemmas.has(w.lemma) &&
-							w.categories.includes(template.lemmaCategory) &&
+							templateMatchesWordCategory(template, w) &&
 							hasValidForm(w, template.requiredCase, template.number)
 					);
 					candidates = [...diffFiltered, ...chapterExtras].filter((w) => !w.irregular);
@@ -2837,7 +2841,7 @@
 						(w) =>
 							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
 							!diffLemmas.has(w.lemma) &&
-							w.categories.includes(template.lemmaCategory) &&
+							templateMatchesWordCategory(template, w) &&
 							hasValidForm(w, template.requiredCase, template.number)
 					);
 					const baseCandidates = [...diffFiltered, ...chapterExtras];

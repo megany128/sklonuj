@@ -80,8 +80,9 @@
 	function exampleCategoryLabel(row: TemplateRowVm, ex: { subCategories: string[] }): string {
 		if (ex.subCategories.length > 0) return ex.subCategories.join(' + ');
 		const t = row.template;
+		const lemmaLabel = Array.isArray(t.lemmaCategory) ? t.lemmaCategory.join('+') : t.lemmaCategory;
 		return (
-			t.lemmaCategory ??
+			lemmaLabel ??
 			t.pronounCategory ??
 			(t.adjectiveCategories && t.adjectiveCategories[0]) ??
 			'(any)'

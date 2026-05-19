@@ -39,7 +39,8 @@ const TYPE_ORDER: Record<TemplateType, number> = { sentence: 0, adjective: 1, pr
  */
 function getGroupKey(t: RenderedTemplate): { key: string; label: string } {
 	if (t.type === 'sentence') {
-		const base = t.lemmaCategory ?? 'other';
+		const rawBase = t.lemmaCategory;
+		const base = Array.isArray(rawBase) ? rawBase.join('+') : (rawBase ?? 'other');
 		const tagSuffix =
 			t.semanticTags && t.semanticTags.length > 0 ? ` · +${t.semanticTags.join('+')}` : '';
 		const label = `${base}${tagSuffix}`;
@@ -52,7 +53,9 @@ function getGroupKey(t: RenderedTemplate): { key: string; label: string } {
 				: 'any adjective';
 		return { key: `adjective::${cats}`, label: cats };
 	}
-	const label = t.pronounCategory ?? t.lemmaCategory ?? t.requiredPronoun ?? 'any pronoun';
+	const rawLemma = t.lemmaCategory;
+	const lemmaLabel = Array.isArray(rawLemma) ? rawLemma.join('+') : rawLemma;
+	const label = t.pronounCategory ?? lemmaLabel ?? t.requiredPronoun ?? 'any pronoun';
 	return { key: `pronoun::${label}`, label };
 }
 

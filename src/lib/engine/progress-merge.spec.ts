@@ -7,6 +7,7 @@ function emptyProgress(overrides: Partial<Progress> = {}): Progress {
 		level: 'A1',
 		caseScores: {},
 		paradigmScores: {},
+		lemmaScores: {},
 		lastSession: '',
 		longestStreak: 0,
 		...overrides
@@ -124,6 +125,7 @@ describe('mergeProgress', () => {
 			level: 'A1',
 			caseScores: { gen_sg: { attempts: 2, correct: 1 } },
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -144,6 +146,7 @@ describe('mergeProgress', () => {
 			paradigmScores: {
 				hrad_gen_sg: { attempts: 10, correct: 8 }
 			},
+			lemmaScores: {},
 			lastSession: '2024-06-15',
 			longestStreak: 7
 		};
@@ -156,6 +159,7 @@ describe('mergeProgress', () => {
 			paradigmScores: {
 				žena_dat_pl: { attempts: 3, correct: 3 }
 			},
+			lemmaScores: {},
 			lastSession: '2024-05-01',
 			longestStreak: 4
 		};

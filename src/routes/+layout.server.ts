@@ -4,6 +4,7 @@ interface SavedProgress {
 	level: string;
 	case_scores: Record<string, { attempts: number; correct: number }>;
 	paradigm_scores: Record<string, { attempts: number; correct: number }>;
+	lemma_scores: Record<string, { attempts: number; correct: number }>;
 	last_session: string;
 	longest_answer_streak: number;
 }
@@ -30,12 +31,15 @@ function parseSavedProgress(data: unknown): SavedProgress | null {
 	if (typeof data.last_session !== 'string') return null;
 	if (!isScoresRecord(data.case_scores)) return null;
 	if (!isScoresRecord(data.paradigm_scores)) return null;
+	// lemma_scores is optional for backwards compatibility (column added later).
+	const lemmaScores = isScoresRecord(data.lemma_scores) ? data.lemma_scores : {};
 	const rawLongest = data.longest_answer_streak;
 	const longestAnswerStreak = typeof rawLongest === 'number' ? rawLongest : 0;
 	return {
 		level: data.level,
 		case_scores: data.case_scores,
 		paradigm_scores: data.paradigm_scores,
+		lemma_scores: lemmaScores,
 		last_session: data.last_session,
 		longest_answer_streak: longestAnswerStreak
 	};
@@ -53,7 +57,9 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 		const progressPromise = supabase
 			.from('user_progress')
-			.select('level, case_scores, paradigm_scores, last_session, longest_answer_streak')
+			.select(
+				'level, case_scores, paradigm_scores, lemma_scores, last_session, longest_answer_streak'
+			)
 			.eq('user_id', user.id)
 			.maybeSingle();
 

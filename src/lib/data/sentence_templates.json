@@ -421,7 +421,7 @@
 	{
 		"id": "loc_o_003",
 		"template": "Mluvím o ___.",
-		"lemmaCategory": "abstract",
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
@@ -486,7 +486,7 @@
 	{
 		"id": "loc_o_042",
 		"template": "Přemýšlím o ___.",
-		"lemmaCategory": "people",
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
@@ -1110,7 +1110,7 @@
 	{
 		"id": "acc_o_103",
 		"template": "Zajímám se o ___.",
-		"lemmaCategory": "abstract",
+		"lemmaCategory": "any",
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "o",
@@ -1432,7 +1432,7 @@
 	{
 		"id": "loc_o_128",
 		"template": "Mluvíme o ___.",
-		"lemmaCategory": "misc",
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
@@ -1486,7 +1486,7 @@
 	{
 		"id": "loc_o_133",
 		"template": "Čtu o ___.",
-		"lemmaCategory": "nature",
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
@@ -1507,7 +1507,7 @@
 	{
 		"id": "loc_o_135",
 		"template": "Mluvíme o ___.",
-		"lemmaCategory": "animals",
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "o",
@@ -1528,7 +1528,7 @@
 	{
 		"id": "loc_o_137",
 		"template": "Přemýšlím o ___.",
-		"lemmaCategory": "misc",
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "o",
@@ -1560,8 +1560,7 @@
 	{
 		"id": "loc_o_140",
 		"template": "Povídáme si o ___.",
-		"lemmaCategory": "family",
-		"semanticTags": ["people"],
+		"lemmaCategory": "any",
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",

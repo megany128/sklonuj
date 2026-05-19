@@ -392,10 +392,17 @@ export function getPronounCandidates(
 	}
 
 	const unlockedDifficulties = getUnlockedDifficulties(progress.level);
-	const category = template.pronounCategory ?? template.lemmaCategory;
+	const fallback = template.lemmaCategory;
+	const categoryCandidates: string[] = template.pronounCategory
+		? [template.pronounCategory]
+		: Array.isArray(fallback)
+			? fallback
+			: [fallback];
 
 	let candidates = bank.filter(
-		(p) => p.categories.includes(category) && unlockedDifficulties.includes(p.difficulty)
+		(p) =>
+			p.categories.some((c) => categoryCandidates.includes(c)) &&
+			unlockedDifficulties.includes(p.difficulty)
 	);
 
 	if (chapterPronounLemmas) {

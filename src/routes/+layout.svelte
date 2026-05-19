@@ -179,17 +179,20 @@
 
 		const caseScores = row.case_scores ?? {};
 		const paradigmScores = row.paradigm_scores ?? {};
+		const lemmaScoresRaw = row.lemma_scores ?? {};
 		const lastSession = row.last_session;
 		const longestAnswerStreak = row.longest_answer_streak;
 
 		if (!isValidScoresRecord(caseScores)) return null;
 		if (!isValidScoresRecord(paradigmScores)) return null;
+		const lemmaScores = isValidScoresRecord(lemmaScoresRaw) ? lemmaScoresRaw : {};
 		if (typeof row.user_id !== 'string') return null;
 
 		return {
 			level,
 			caseScores,
 			paradigmScores,
+			lemmaScores,
 			lastSession: typeof lastSession === 'string' ? lastSession : '',
 			longestStreak: typeof longestAnswerStreak === 'number' ? longestAnswerStreak : 0
 		};
@@ -200,6 +203,7 @@
 			level: 'A1',
 			caseScores: {},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -226,6 +230,7 @@
 				level: spLevel,
 				caseScores: spRaw.case_scores,
 				paradigmScores: spRaw.paradigm_scores,
+				lemmaScores: spRaw.lemma_scores ?? {},
 				lastSession: spRaw.last_session,
 				longestStreak: spRaw.longest_answer_streak ?? 0
 			};
@@ -256,6 +261,7 @@
 							level: merged.level,
 							case_scores: merged.caseScores,
 							paradigm_scores: merged.paradigmScores,
+							lemma_scores: merged.lemmaScores,
 							last_session: merged.lastSession,
 							longest_answer_streak: merged.longestStreak,
 							updated_at: new Date().toISOString()
@@ -353,6 +359,7 @@
 										level: merged.level,
 										case_scores: merged.caseScores,
 										paradigm_scores: merged.paradigmScores,
+										lemma_scores: merged.lemmaScores,
 										last_session: merged.lastSession,
 										longest_answer_streak: merged.longestStreak,
 										updated_at: new Date().toISOString()
@@ -375,6 +382,7 @@
 									level: usableLocalProgress.level,
 									case_scores: usableLocalProgress.caseScores,
 									paradigm_scores: usableLocalProgress.paradigmScores,
+									lemma_scores: usableLocalProgress.lemmaScores,
 									last_session: usableLocalProgress.lastSession,
 									longest_answer_streak: usableLocalProgress.longestStreak,
 									updated_at: new Date().toISOString()

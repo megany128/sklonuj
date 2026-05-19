@@ -58,7 +58,7 @@ export interface RenderedTemplate {
 	trigger: string;
 	why: string;
 	requiredGender?: Gender;
-	lemmaCategory?: string;
+	lemmaCategory?: string | string[];
 	semanticTags?: string[];
 	excludesCategories?: string[];
 	pronounCategory?: string;
@@ -94,7 +94,7 @@ export interface CandidateGroup {
 interface RawSentenceTemplate {
 	id: string;
 	template: string;
-	lemmaCategory: string;
+	lemmaCategory: string | string[];
 	semanticTags?: string[];
 	excludesCategories?: string[];
 	requiredCase: string;
@@ -229,7 +229,11 @@ function pronounLemmaMatches(lemma: string, required: string): boolean {
 // ─── Sentence candidates ─────────────────────────────────────────────────
 
 function getSentenceCandidates(t: RawSentenceTemplate): RawWordEntry[] {
-	let matches = wordBank.filter((w) => w.categories.includes(t.lemmaCategory));
+	const lemmaCats = Array.isArray(t.lemmaCategory) ? t.lemmaCategory : [t.lemmaCategory];
+	const acceptsAny = lemmaCats.includes('any');
+	let matches = wordBank.filter(
+		(w) => acceptsAny || w.categories.some((c) => lemmaCats.includes(c))
+	);
 	if (t.semanticTags && t.semanticTags.length > 0) {
 		const tags = t.semanticTags;
 		matches = matches.filter((w) => tags.some((tag) => w.categories.includes(tag)));
@@ -397,7 +401,7 @@ function stratifiedSample<T>(
 }
 
 function sentenceTemplateFilterSet(t: RawSentenceTemplate): ReadonlySet<string> {
-	const set = new Set<string>([t.lemmaCategory]);
+	const set = new Set<string>(Array.isArray(t.lemmaCategory) ? t.lemmaCategory : [t.lemmaCategory]);
 	if (t.semanticTags) for (const tag of t.semanticTags) set.add(tag);
 	return set;
 }

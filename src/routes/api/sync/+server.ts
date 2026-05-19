@@ -83,6 +83,7 @@ interface ValidatedProgress {
 	level: Level;
 	caseScores: Record<string, { attempts: number; correct: number }>;
 	paradigmScores: Record<string, { attempts: number; correct: number }>;
+	lemmaScores: Record<string, { attempts: number; correct: number }>;
 	lastSession: string;
 	longestStreak: number;
 }
@@ -117,11 +118,19 @@ function validateProgress(
 			reason: 'progress.paradigmScores must be a record of { attempts: number, correct: number }'
 		};
 
+	const rawLemmaScores = value['lemmaScores'];
+	if (rawLemmaScores !== undefined && !isValidScoresRecord(rawLemmaScores))
+		return {
+			valid: false,
+			reason: 'progress.lemmaScores must be a record of { attempts: number, correct: number }'
+		};
+
 	const lastSession = value['lastSession'];
 	if (!isValidIsoDateString(lastSession))
 		return { valid: false, reason: 'progress.lastSession must be a valid ISO date string' };
 
 	const paradigmScores = isValidScoresRecord(rawParadigmScores) ? rawParadigmScores : {};
+	const lemmaScores = isValidScoresRecord(rawLemmaScores) ? rawLemmaScores : {};
 
 	// longestStreak is optional for backwards compatibility; default to 0.
 	const rawLongestStreak = value['longestStreak'];
@@ -147,6 +156,7 @@ function validateProgress(
 			level,
 			caseScores,
 			paradigmScores,
+			lemmaScores,
 			lastSession,
 			longestStreak
 		}
@@ -277,7 +287,8 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			return json({ error: progressResult.reason }, { status: 400 });
 		}
 
-		const { level, caseScores, paradigmScores, lastSession, longestStreak } = progressResult.data;
+		const { level, caseScores, paradigmScores, lemmaScores, lastSession, longestStreak } =
+			progressResult.data;
 
 		// Read existing longest_answer_streak so a stale client payload can't
 		// shrink the all-time maximum. We take MAX(existing, incoming).
@@ -301,6 +312,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 				level,
 				case_scores: caseScores,
 				paradigm_scores: paradigmScores,
+				lemma_scores: lemmaScores,
 				last_session: lastSession,
 				longest_answer_streak: mergedLongestStreak,
 				updated_at: new Date().toISOString()

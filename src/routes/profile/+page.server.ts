@@ -193,6 +193,7 @@ export const actions: Actions = {
 				level: 'A1',
 				case_scores: {},
 				paradigm_scores: {},
+				lemma_scores: {},
 				last_session: '',
 				longest_answer_streak: 0,
 				current_streak: 0,

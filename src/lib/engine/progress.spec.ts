@@ -73,6 +73,7 @@ describe('isValidProgress', () => {
 			level: 'A1',
 			caseScores: { gen_sg: { attempts: 5, correct: 3 } },
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '2024-01-01',
 			longestStreak: 0
 		};
@@ -258,6 +259,7 @@ describe('resetProgress', () => {
 			level: 'A1',
 			caseScores: {},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -282,6 +284,7 @@ describe('getCombinedCaseStrength', () => {
 				gen_pl: { attempts: 10, correct: 6 }
 			},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -298,6 +301,7 @@ describe('getCombinedCaseStrength', () => {
 				dat_sg: { attempts: 5, correct: 3 }
 			},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -332,6 +336,7 @@ describe('pickWeightedCase', () => {
 				dat_pl: { attempts: 20, correct: 20 }
 			},
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -363,6 +368,7 @@ describe('getAccuracy', () => {
 			level: 'A1',
 			caseScores: { gen_sg: { attempts: 10, correct: 7 } },
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -386,6 +392,7 @@ describe('setLevel', () => {
 			level: 'A1',
 			caseScores: { gen_sg: { attempts: 5, correct: 3 } },
 			paradigmScores: {},
+			lemmaScores: {},
 			lastSession: '2024-01-01',
 			longestStreak: 0
 		});

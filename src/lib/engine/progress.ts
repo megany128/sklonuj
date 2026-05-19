@@ -16,6 +16,7 @@ const DEFAULT_PROGRESS: Progress = {
 	level: 'A1',
 	caseScores: {},
 	paradigmScores: {},
+	lemmaScores: {},
 	lastSession: '',
 	longestStreak: 0
 };
@@ -56,6 +57,11 @@ export function isValidProgress(value: unknown): value is Progress {
 		return false;
 	}
 
+	// lemmaScores is optional for backwards compatibility — accept when missing.
+	if (rec['lemmaScores'] !== undefined && !isValidScoresRecord(rec['lemmaScores'])) {
+		return false;
+	}
+
 	// longestStreak is optional for backwards compatibility (older payloads
 	// didn't have it). When present it must be a non-negative number.
 	const longestStreak = rec['longestStreak'];
@@ -71,24 +77,44 @@ export function isValidProgress(value: unknown): value is Progress {
 
 function loadFromStorage(): Progress {
 	if (typeof window === 'undefined')
-		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, longestStreak: 0 };
+		return {
+			...DEFAULT_PROGRESS,
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			longestStreak: 0
+		};
 
 	try {
 		const raw = localStorage.getItem(STORAGE_KEY);
-		if (raw === null) return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {} };
+		if (raw === null)
+			return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, lemmaScores: {} };
 
 		const parsed: unknown = JSON.parse(raw);
 		if (isValidProgress(parsed)) {
 			parsed.paradigmScores ??= {};
+			parsed.lemmaScores ??= {};
 			// Backwards compat: older payloads didn't track longestStreak.
 			if (typeof parsed.longestStreak !== 'number') {
 				parsed.longestStreak = 0;
 			}
 			return parsed;
 		}
-		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, longestStreak: 0 };
+		return {
+			...DEFAULT_PROGRESS,
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			longestStreak: 0
+		};
 	} catch {
-		return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, longestStreak: 0 };
+		return {
+			...DEFAULT_PROGRESS,
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			longestStreak: 0
+		};
 	}
 }
 
@@ -133,6 +159,25 @@ export function recordResult(result: DrillResult): void {
 			correct: existingParadigm.correct + (result.correct ? 1 : 0)
 		};
 
+		// Per-lemma score for noun drills only — drives the noun selector's
+		// preference for unseen / weakly-known lemmas. Adjective and pronoun
+		// drills have their own pool logic, so don't record there.
+		const lemmaScoreUpdates: Record<string, CaseScore> = {};
+		if (
+			result.question.wordCategory !== 'adjective' &&
+			result.question.wordCategory !== 'pronoun'
+		) {
+			const lemmaKey = `${result.question.word.lemma}_${result.question.case}_${result.question.number}`;
+			const existingLemma: CaseScore = current.lemmaScores?.[lemmaKey] ?? {
+				attempts: 0,
+				correct: 0
+			};
+			lemmaScoreUpdates[lemmaKey] = {
+				attempts: existingLemma.attempts + 1,
+				correct: existingLemma.correct + (result.correct ? 1 : 0)
+			};
+		}
+
 		return {
 			...current,
 			caseScores: {
@@ -142,6 +187,10 @@ export function recordResult(result: DrillResult): void {
 			paradigmScores: {
 				...current.paradigmScores,
 				[paradigmKey]: updatedParadigm
+			},
+			lemmaScores: {
+				...(current.lemmaScores ?? {}),
+				...lemmaScoreUpdates
 			},
 			lastSession: new Date().toISOString().slice(0, 10)
 		};
@@ -205,6 +254,20 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			};
 		}
 
+		// Per-lemma score for the noun in the multi-step question, gated on the
+		// form-production correctness (the only step that exercises the noun's
+		// declension knowledge).
+		const lemmaScoreUpdates: Record<string, CaseScore> = {};
+		const lemmaKey = `${result.question.word.lemma}_${result.question.case}_${result.question.number}`;
+		const existingLemma: CaseScore = current.lemmaScores?.[lemmaKey] ?? {
+			attempts: 0,
+			correct: 0
+		};
+		lemmaScoreUpdates[lemmaKey] = {
+			attempts: existingLemma.attempts + 1,
+			correct: existingLemma.correct + (result.formCorrect ? 1 : 0)
+		};
+
 		return {
 			...current,
 			caseScores: {
@@ -214,6 +277,10 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			paradigmScores: {
 				...current.paradigmScores,
 				...updates
+			},
+			lemmaScores: {
+				...(current.lemmaScores ?? {}),
+				...lemmaScoreUpdates
 			},
 			lastSession: new Date().toISOString().slice(0, 10)
 		};
@@ -239,6 +306,7 @@ export function resetProgress(): void {
 		level: 'A1',
 		caseScores: {},
 		paradigmScores: {},
+		lemmaScores: {},
 		lastSession: '',
 		longestStreak: 0
 	});

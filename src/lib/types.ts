@@ -146,7 +146,13 @@ export interface WordEntry {
 export interface SentenceTemplate {
 	id: string;
 	template: string;
-	lemmaCategory: string;
+	/**
+	 * Noun category gate. Either a single category string (e.g. "abstract")
+	 * or an array — words match if any of their `categories` overlaps the list.
+	 * The special string `"any"` (alone or in the array) skips the gate entirely
+	 * for semantically permissive templates like "Mluvím o ___".
+	 */
+	lemmaCategory: string | string[];
 	semanticTags?: string[];
 	/** Words with any of these categories are excluded as candidates. */
 	excludesCategories?: string[];
@@ -377,6 +383,12 @@ export interface Progress {
 	level: Difficulty;
 	caseScores: { [caseKey: string]: CaseScore };
 	paradigmScores: { [paradigmKey: string]: CaseScore };
+	/**
+	 * Per-noun-lemma attempts/correct, keyed as `${lemma}_${case}_${number}`.
+	 * Used by the noun selector to bias toward unseen or weakly-known lemmas
+	 * instead of weighting purely by paradigm.
+	 */
+	lemmaScores: { [lemmaKey: string]: CaseScore };
 	lastSession: string;
 	/**
 	 * All-time longest run of consecutive correct answers (in-the-moment streak

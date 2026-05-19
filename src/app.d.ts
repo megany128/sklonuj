@@ -19,6 +19,7 @@ declare global {
 				level: string;
 				case_scores: Record<string, { attempts: number; correct: number }>;
 				paradigm_scores: Record<string, { attempts: number; correct: number }>;
+				lemma_scores: Record<string, { attempts: number; correct: number }>;
 				last_session: string;
 				longest_answer_streak: number;
 			} | null;

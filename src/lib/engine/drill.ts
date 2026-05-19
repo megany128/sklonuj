@@ -124,7 +124,7 @@ interface RawWordBankEntry {
 interface RawTemplateEntry {
 	id: string;
 	template: string;
-	lemmaCategory: string;
+	lemmaCategory: string | string[];
 	semanticTags?: string[];
 	excludesCategories?: string[];
 	requiredCase: string;
@@ -245,6 +245,20 @@ export function loadTemplates(): SentenceTemplate[] {
 	return cachedTemplates;
 }
 
+/**
+ * True when the word's category list satisfies the template's `lemmaCategory`
+ * gate. Handles single-string, array, and the special `"any"` sentinel which
+ * disables the category check entirely (used for semantically open templates
+ * like "Mluvím o ___").
+ */
+export function templateMatchesWordCategory(template: SentenceTemplate, word: WordEntry): boolean {
+	const cats = Array.isArray(template.lemmaCategory)
+		? template.lemmaCategory
+		: [template.lemmaCategory];
+	if (cats.includes('any')) return true;
+	return word.categories.some((c) => cats.includes(c));
+}
+
 export function getCandidates(template: SentenceTemplate, progress: Progress): WordEntry[] {
 	const wordBank = loadWordBank();
 	const level = curriculum[progress.level];
@@ -279,7 +293,7 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 
 	const categoryMatches = wordBank.filter(
 		(word) =>
-			word.categories.includes(template.lemmaCategory) &&
+			templateMatchesWordCategory(template, word) &&
 			unlockedDifficulties.includes(word.difficulty) &&
 			// Skip pluralia tantum nouns for singular templates
 			!(template.number === 'sg' && word.pluralOnly === true) &&
@@ -660,12 +674,32 @@ export function weightedRandom(
 		throw new Error('weightedRandom called with empty candidates array');
 	}
 
+	// Per-lemma weight dominates: unseen lemmas (attempts=0) get the maximum
+	// weight (1 / 0.1 = 10), so the selector tries each lemma before recycling
+	// any. Multiply by a smaller paradigm signal so weak paradigms still drift
+	// upward in priority once every lemma has been seen at least once.
+	const lemmaScores = progress.lemmaScores ?? {};
 	const weights = candidates.map((word) => {
+		const lemmaKey = `${word.lemma}_${case_}_${number_}`;
+		const lemmaScore: CaseScore | undefined = lemmaScores[lemmaKey];
+		const lemmaAccuracy =
+			lemmaScore && lemmaScore.attempts > 0
+				? Math.min(lemmaScore.correct / lemmaScore.attempts, 1)
+				: 0;
+		const lemmaAttempts = lemmaScore?.attempts ?? 0;
+		// Unseen lemmas: weight = 1/0.1 = 10. Seen lemmas decay toward 1/(1+0.1) ~ 0.91.
+		const lemmaWeight = lemmaAttempts === 0 ? 10 : 1 / (lemmaAccuracy + 0.1);
+
 		const paradigmKey = `${word.paradigm}_${case_}_${number_}`;
-		const score: CaseScore | undefined = progress.paradigmScores[paradigmKey];
-		const rawAccuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
-		const accuracy = Math.min(rawAccuracy, 1);
-		return 1 / (accuracy + 0.1);
+		const paradigmScore: CaseScore | undefined = progress.paradigmScores[paradigmKey];
+		const paradigmAccuracy =
+			paradigmScore && paradigmScore.attempts > 0
+				? Math.min(paradigmScore.correct / paradigmScore.attempts, 1)
+				: 0;
+		// Compressed paradigm signal in [~0.5, ~1.0] so it nudges without overriding.
+		const paradigmWeight = 0.5 + (1 - paradigmAccuracy) * 0.5;
+
+		return lemmaWeight * paradigmWeight;
 	});
 
 	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
