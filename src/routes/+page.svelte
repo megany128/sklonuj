@@ -77,6 +77,7 @@
 		pickWeightedCase,
 		updateLongestStreak
 	} from '$lib/engine/progress';
+	import { hasMasteryCelebrated, markMasteryCelebrated } from '$lib/engine/mastery-celebrations';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { recordPractice } from '$lib/engine/streak';
@@ -3174,15 +3175,18 @@
 			}
 		}
 
-		// Case mastery: 80%+ accuracy after 10+ attempts (skip nom)
+		// Case mastery: 80%+ accuracy after 10+ attempts (skip nom).
+		// Only fire for the case the user just answered, and persist celebration
+		// across sessions so it doesn't re-trigger on every page load.
 		if (result.correct) {
-			const casesToCheck: Case[] = ['gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
-			for (const c of casesToCheck) {
+			const c = result.question.case;
+			if (c !== 'nom') {
 				const strength = getCombinedCaseStrength(c);
 				if (strength.attempts >= 10 && strength.accuracy >= 0.8) {
 					const key = `mastery_${c}`;
-					if (!celebratedMilestones.has(key)) {
+					if (!celebratedMilestones.has(key) && !hasMasteryCelebrated(key)) {
 						celebratedMilestones = new Set([...celebratedMilestones, key]);
+						markMasteryCelebrated(key);
 						candidates.push({
 							message: `You're mastering ${CASE_LABELS[c]}!`,
 							icon: Brain,
