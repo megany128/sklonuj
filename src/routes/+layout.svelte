@@ -20,6 +20,7 @@
 		clearMistakes
 	} from '$lib/engine/mistakes';
 	import { getGuestSessions, clearGuestSessions } from '$lib/engine/guest-sessions';
+	import { clearMasteryCelebrations } from '$lib/engine/mastery-celebrations';
 	import { addPracticeDays } from '$lib/engine/achievements';
 	import type { SupabaseClient } from '@supabase/supabase-js';
 	import type { Progress, CaseScore, Difficulty } from '$lib/types';
@@ -210,6 +211,7 @@
 		clearStreak();
 		clearMistakes();
 		clearBadges();
+		clearMasteryCelebrations();
 	}
 
 	onMount(() => {
@@ -286,6 +288,7 @@
 					clearStreak();
 					clearMistakes();
 					clearBadges();
+					clearMasteryCelebrations();
 				}
 			}
 			localStorage.setItem(STORAGE_USER_KEY, pageData.user.id);

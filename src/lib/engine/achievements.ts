@@ -236,26 +236,25 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 	{
 		id: 'case_cracker',
 		name: 'Case Cracker',
-		description: 'Reach 80%+ accuracy on any single case (min 10 attempts)',
+		description: 'Reach 80%+ accuracy on any single case (min 20 attempts)',
 		icon: '\u{1F9E0}',
 		condition: '80%+ on one case',
 		check: () => {
 			const strengths = getAllCaseStrengths();
 			for (const c of ALL_CASES) {
 				const s = strengths[c];
-				if (s.attempts >= 10 && s.accuracy >= 0.8) return true;
+				if (s.attempts >= 20 && s.accuracy >= 0.8) return true;
 			}
 			return false;
 		},
-		// Best accuracy on any case with at least 10 attempts. Cases with fewer
-		// attempts contribute their attempt count proportionally so the bar still
-		// moves while the user is ramping up.
+		// Best accuracy on any case with at least 20 attempts. Cases with fewer
+		// attempts don't contribute — accuracy isn't trustworthy until then.
 		getProgress: () => {
 			const strengths = getAllCaseStrengths();
 			let bestAccuracyPct = 0;
 			for (const c of ALL_CASES) {
 				const s = strengths[c];
-				if (s.attempts < 10) continue;
+				if (s.attempts < 20) continue;
 				const pct = Math.round(s.accuracy * 100);
 				if (pct > bestAccuracyPct) bestAccuracyPct = pct;
 			}
@@ -265,14 +264,14 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 	{
 		id: 'polyglot_cases',
 		name: 'Polyglot Cases',
-		description: 'Reach 60%+ accuracy on all 7 cases (min 5 attempts each)',
+		description: 'Reach 60%+ accuracy on all 7 cases (min 20 attempts each)',
 		icon: '\u{1F30D}',
 		condition: '60%+ on all 7 cases',
 		check: () => {
 			const strengths = getAllCaseStrengths();
 			for (const c of ALL_CASES) {
 				const s = strengths[c];
-				if (s.attempts < 5 || s.accuracy < 0.6) return false;
+				if (s.attempts < 20 || s.accuracy < 0.6) return false;
 			}
 			return true;
 		},
@@ -282,7 +281,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 			let qualified = 0;
 			for (const c of ALL_CASES) {
 				const s = strengths[c];
-				if (s.attempts >= 5 && s.accuracy >= 0.6) qualified++;
+				if (s.attempts >= 20 && s.accuracy >= 0.6) qualified++;
 			}
 			return { current: qualified, target: ALL_CASES.length };
 		}

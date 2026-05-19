@@ -2001,13 +2001,10 @@
 		);
 		if (needsTemplates) {
 			const templates = loadTemplates();
-			const prog = get(progress);
-			const levelDifficulties = curriculum[prog.level].unlocked_difficulty;
+			// Template-difficulty gate intentionally dropped: user-selected cases
+			// govern what's drillable. See `getCandidates` in engine/drill.ts.
 			const eligibleTemplates = templates.filter(
-				(t) =>
-					activeCases.includes(t.requiredCase) &&
-					matchesNumberMode(t.number) &&
-					levelDifficulties.includes(t.difficulty)
+				(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -2233,10 +2230,7 @@
 			// Use pronoun templates
 			const templates = loadPronounTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) =>
-					pronounCases.includes(t.requiredCase) &&
-					matchesNumberMode(t.number) &&
-					unlockedDifficulties.includes(t.difficulty)
+				(t) => pronounCases.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -2278,10 +2272,7 @@
 			// case_identification - use pronoun templates too
 			const templates = loadPronounTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) =>
-					pronounCases.includes(t.requiredCase) &&
-					matchesNumberMode(t.number) &&
-					unlockedDifficulties.includes(t.difficulty)
+				(t) => pronounCases.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) return null;
@@ -2368,10 +2359,7 @@
 		// For sentence_fill_in and case_identification: use sentence templates
 		const templates = loadAdjectiveTemplates();
 		const eligibleTemplates = templates.filter(
-			(t) =>
-				activeCases.includes(t.requiredCase) &&
-				matchesNumberMode(t.number) &&
-				unlockedDifficulties.includes(t.difficulty)
+			(t) => activeCases.includes(t.requiredCase) && matchesNumberMode(t.number)
 		);
 		if (eligibleTemplates.length === 0) return null;
 
@@ -2630,10 +2618,7 @@
 			// Multi-step: needs a template + word, produces a MultiStepQuestion
 			const templates = loadTemplates();
 			const msEligibleTemplates = templates.filter(
-				(t) =>
-					activeCasesForPick.includes(t.requiredCase) &&
-					matchesNumberMode(t.number) &&
-					unlockedDifficulties.includes(t.difficulty)
+				(t) => activeCasesForPick.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 			if (msEligibleTemplates.length > 0) {
 				// Prefer templates matching the weighted case pick to respect spaced repetition
@@ -2790,10 +2775,7 @@
 			multiStepQuestion = null;
 			const templates = loadTemplates();
 			const eligibleTemplates = templates.filter(
-				(t) =>
-					activeCasesForPick.includes(t.requiredCase) &&
-					matchesNumberMode(t.number) &&
-					unlockedDifficulties.includes(t.difficulty)
+				(t) => activeCasesForPick.includes(t.requiredCase) && matchesNumberMode(t.number)
 			);
 
 			if (eligibleTemplates.length === 0) {
@@ -3179,14 +3161,14 @@
 			}
 		}
 
-		// Case mastery: 80%+ accuracy after 10+ attempts (skip nom).
+		// Case mastery: 80%+ accuracy after 20+ attempts (skip nom).
 		// Only fire for the case the user just answered, and persist celebration
 		// across sessions so it doesn't re-trigger on every page load.
 		if (result.correct) {
 			const c = result.question.case;
 			if (c !== 'nom') {
 				const strength = getCombinedCaseStrength(c);
-				if (strength.attempts >= 10 && strength.accuracy >= 0.8) {
+				if (strength.attempts >= 20 && strength.accuracy >= 0.8) {
 					const key = `mastery_${c}`;
 					if (!celebratedMilestones.has(key) && !hasMasteryCelebrated(key)) {
 						celebratedMilestones = new Set([...celebratedMilestones, key]);

@@ -13,6 +13,7 @@
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { mistakeRecords, clearMistakes, type MistakeRecord } from '$lib/engine/mistakes';
 	import { clearStreak } from '$lib/engine/streak';
+	import { clearMasteryCelebrations } from '$lib/engine/mastery-celebrations';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import type { Case } from '$lib/types';
 	import type { AdjectiveGenderKey } from '$lib/types';
@@ -2558,6 +2559,7 @@
 							clearStreak();
 							clearMistakes();
 							clearBadges();
+							clearMasteryCelebrations();
 							badges = getAllBadges();
 							await invalidateAll();
 							confirmingReset = false;

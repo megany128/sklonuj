@@ -32,3 +32,12 @@ export function markMasteryCelebrated(key: string): void {
 	set.add(key);
 	save(set);
 }
+
+export function clearMasteryCelebrations(): void {
+	if (typeof window === 'undefined') return;
+	try {
+		localStorage.removeItem(STORAGE_KEY);
+	} catch {
+		// ignore
+	}
+}
