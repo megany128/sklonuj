@@ -2190,7 +2190,16 @@
 			selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]
 		).filter((c) => c !== 'voc');
 		if (pronounCases.length === 0) return null;
-		const case_ = pronounCases.length === 1 ? pronounCases[0] : pickWeightedCase(pronounCases);
+		// case_identification: drop nominative when there's an alternative — the
+		// answer is too obvious from the slot ("To je on" → nom).
+		const caseIdPool =
+			drillType === 'case_identification' && selectedCase === 'all'
+				? (() => {
+						const nonNom = pronounCases.filter((c) => c !== 'nom');
+						return nonNom.length > 0 ? nonNom : pronounCases;
+					})()
+				: pronounCases;
+		const case_ = caseIdPool.length === 1 ? caseIdPool[0] : pickWeightedCase(caseIdPool);
 
 		// Pick number - for pronouns, we need to respect whether the pronoun has sg or pl forms
 		let number_: Number_;
@@ -2589,8 +2598,18 @@
 			return effectiveEnabledCases;
 		})();
 
-		// Pick case: either the selected one, or weighted random from effective enabled cases
-		const case_ = selectedCase === 'all' ? pickWeightedCase(damped) : selectedCase;
+		// Pick case: either the selected one, or weighted random from effective enabled cases.
+		// For case_identification specifically, drop nominative from the pool when the
+		// user is in 'all' mode and another case is available — "To je ___" → nom is a
+		// give-away once the learner spots the pattern, so it shouldn't dominate the mix.
+		const casePool =
+			drillType === 'case_identification' && selectedCase === 'all'
+				? (() => {
+						const nonNom = damped.filter((c) => c !== 'nom');
+						return nonNom.length > 0 ? nonNom : damped;
+					})()
+				: damped;
+		const case_ = selectedCase === 'all' ? pickWeightedCase(casePool) : selectedCase;
 
 		// Pick number (respecting chapter constraints)
 		let number_: Number_;
