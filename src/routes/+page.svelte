@@ -48,7 +48,8 @@
 		CASE_SHORT_LABELS,
 		CASE_HEX,
 		CASE_INDEX,
-		isCase
+		isCase,
+		isParadigm
 	} from '$lib/types';
 
 	import {
@@ -1174,6 +1175,14 @@
 	let selectedCase = $state<Case | 'all'>('all');
 	let enabledCases = $state<Case[]>([...ALL_CASES]);
 
+	// Paradigm filter (set via ?selectParadigm=pán from /resources/paradigms).
+	// When set, restrict noun candidates to this paradigm and force noun-only drills.
+	let selectedParadigm = $state<string | null>(null);
+
+	function filterByParadigm<T extends { paradigm: string }>(words: T[]): T[] {
+		return selectedParadigm ? words.filter((w) => w.paradigm === selectedParadigm) : words;
+	}
+
 	// KzK chapter mode
 	let chapterBook = $state<'kzk1' | 'kzk2' | null>(null);
 	let chapterSelection = $state<string | null>(null);
@@ -1382,6 +1391,7 @@
 
 	// Derived: effective word mode (constrained by unlock state)
 	let effectiveWordMode: WordMode = $derived.by(() => {
+		if (selectedParadigm) return 'nouns';
 		if (!adjectivesUnlocked) return 'nouns';
 		return drillSettings.wordMode ?? 'nouns';
 	});
@@ -1514,6 +1524,7 @@
 		// Read reactive dependencies to track them
 		void selectedCase;
 		void enabledCases;
+		void selectedParadigm;
 
 		if (initialized) {
 			syncStateToUrl();
@@ -1808,6 +1819,12 @@
 
 		// Apply URL query params for shareable filter links
 		const params = page.url.searchParams;
+
+		// ?selectParadigm= restricts noun candidates to one paradigm (from /resources/paradigms)
+		const selectParadigmParam = params.get('selectParadigm');
+		if (selectParadigmParam && isParadigm(selectParadigmParam)) {
+			selectedParadigm = selectParadigmParam;
+		}
 
 		// ?selectCase= auto-selects a single case pill (e.g. from resources/czech-cases)
 		const selectCaseParam = params.get('selectCase');
@@ -2338,7 +2355,9 @@
 
 		// Get eligible nouns to pair with
 		const wordBank = loadWordBank();
-		const eligibleWords = wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty));
+		const eligibleWords = filterByParadigm(
+			wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty))
+		);
 		if (eligibleWords.length === 0) return null;
 
 		// Pick case
@@ -2408,8 +2427,8 @@
 		const wordBank = loadWordBank();
 		const prog = get(progress);
 		const levelConfig = curriculum[prog.level];
-		const eligibleWords = wordBank.filter((w) =>
-			levelConfig.unlocked_difficulty.includes(w.difficulty)
+		const eligibleWords = filterByParadigm(
+			wordBank.filter((w) => levelConfig.unlocked_difficulty.includes(w.difficulty))
 		);
 		const fallbackCases: Case[] = ['gen', 'acc', 'dat', 'loc', 'ins', 'voc'];
 		for (const fc of fallbackCases) {
@@ -2556,10 +2575,12 @@
 
 		// Filter eligible words — for chapter assignments, include all words from the chapter
 		// regardless of difficulty (textbook may teach higher-level words early)
-		const eligibleWords = wordBank.filter((w) => {
-			if (assignmentChapterLemmas?.has(w.lemma.toLowerCase())) return true;
-			return unlockedDifficulties.includes(w.difficulty);
-		});
+		const eligibleWords = filterByParadigm(
+			wordBank.filter((w) => {
+				if (assignmentChapterLemmas?.has(w.lemma.toLowerCase())) return true;
+				return unlockedDifficulties.includes(w.difficulty);
+			})
+		);
 
 		if (eligibleWords.length === 0) {
 			question = null;
@@ -2662,7 +2683,7 @@
 				);
 				let candidates: WordEntry[];
 				if (isChapterMode) {
-					const diffFiltered = getCandidates(template, prog).filter((w) =>
+					const diffFiltered = filterByParadigm(getCandidates(template, prog)).filter((w) =>
 						hasValidForm(w, template.requiredCase, template.number)
 					);
 					const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
@@ -2671,7 +2692,7 @@
 						...prevL.map((l) => l.toLowerCase())
 					]);
 					const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
-					const chapterExtras = loadWordBank().filter(
+					const chapterExtras = filterByParadigm(loadWordBank()).filter(
 						(w) =>
 							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
 							!diffLemmas.has(w.lemma) &&
@@ -2680,7 +2701,7 @@
 					);
 					candidates = [...diffFiltered, ...chapterExtras].filter((w) => !w.irregular);
 				} else {
-					candidates = getCandidates(template, prog)
+					candidates = filterByParadigm(getCandidates(template, prog))
 						.filter((w) => hasValidForm(w, template.requiredCase, template.number))
 						.filter((w) => !w.irregular);
 				}
@@ -2847,7 +2868,7 @@
 					// In chapter mode, get candidates but bias toward coreLemmas.
 					// Chapter coreLemmas bypass CEFR difficulty — include them from
 					// the full word bank even if their level isn't unlocked yet.
-					const diffFiltered = getCandidates(template, prog).filter((w) =>
+					const diffFiltered = filterByParadigm(getCandidates(template, prog)).filter((w) =>
 						hasValidForm(w, template.requiredCase, template.number)
 					);
 					const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
@@ -2856,7 +2877,7 @@
 						...prevL.map((l) => l.toLowerCase())
 					]);
 					const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
-					const chapterExtras = loadWordBank().filter(
+					const chapterExtras = filterByParadigm(loadWordBank()).filter(
 						(w) =>
 							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
 							!diffLemmas.has(w.lemma) &&
@@ -2975,7 +2996,7 @@
 						question = generateSentenceDrill(template, picked);
 					}
 				} else {
-					candidates = getCandidates(template, prog).filter((w) =>
+					candidates = filterByParadigm(getCandidates(template, prog)).filter((w) =>
 						hasValidForm(w, template.requiredCase, template.number)
 					);
 
@@ -3597,11 +3618,16 @@
 
 		// Clear filter-related params first, then set only non-default ones
 		params.delete('selectCase');
+		params.delete('selectParadigm');
 		params.delete('cases');
 		params.delete('mode');
 
 		if (selectedCase !== 'all') {
 			params.set('selectCase', selectedCase);
+		}
+
+		if (selectedParadigm) {
+			params.set('selectParadigm', selectedParadigm);
 		}
 
 		const sortedEnabled = [...enabledCases].sort(
@@ -3765,6 +3791,32 @@
 					class="ml-2 cursor-pointer text-red-500 hover:text-red-700"
 				>
 					&times;
+				</button>
+			</div>
+		{/if}
+
+		<!-- Paradigm filter banner (active when ?selectParadigm= is set) -->
+		{#if selectedParadigm}
+			{@const activeParadigm = paradigms.find((p) => p.id === selectedParadigm)}
+			<div
+				class="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-emphasis/40 bg-emphasis/5 px-4 py-3"
+			>
+				<p class="text-sm text-text-default">
+					Practicing the
+					<span class="font-semibold italic"
+						>{activeParadigm?.exampleLemma ?? selectedParadigm}</span
+					>
+					paradigm only.
+				</p>
+				<button
+					type="button"
+					onclick={() => {
+						selectedParadigm = null;
+						generateNextQuestion();
+					}}
+					class="shrink-0 rounded-full border border-emphasis/40 px-3 py-1 text-xs font-semibold text-emphasis transition-colors hover:bg-emphasis/10"
+				>
+					Clear filter
 				</button>
 			</div>
 		{/if}

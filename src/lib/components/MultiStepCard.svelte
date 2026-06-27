@@ -146,6 +146,7 @@
 	let formSubmitted = $state(false);
 	let formCorrect = $state(false);
 	let formNearMiss = $state(false);
+	let formMatchedForm = $state<string | undefined>(undefined);
 	let formInputEl: HTMLInputElement | undefined = $state(undefined);
 
 	let adjFormInput = $state('');
@@ -171,6 +172,7 @@
 			formSubmitted = false;
 			formCorrect = false;
 			formNearMiss = false;
+			formMatchedForm = undefined;
 			adjFormInput = '';
 			adjFormSubmitted = false;
 			adjFormCorrect = false;
@@ -288,6 +290,7 @@
 		const result = checkMultiStepForm(question, formInput, level);
 		formCorrect = result.correct;
 		formNearMiss = result.nearMiss;
+		formMatchedForm = result.matchedForm;
 		onStepResult?.(formCorrect);
 		canAdvance = false;
 		enableAdvance();
@@ -781,12 +784,23 @@
 								<p class="text-sm font-semibold text-positive-stroke">
 									{#if formNearMiss}
 										Correct (watch the diacritics): <span class="font-semibold"
-											>{question.correctForm}</span
+											>{formMatchedForm ?? question.correctForm}</span
 										>
+									{:else if formMatchedForm && formMatchedForm !== question.correctForm}
+										Correct! <span class="font-semibold">{formMatchedForm}</span> is an accepted
+										variant. Standard form:
+										<span class="font-semibold">{question.correctForm}</span>.
 									{:else}
 										Correct!
 									{/if}
 								</p>
+								{#if formNearMiss && formMatchedForm && formMatchedForm !== question.correctForm}
+									<p class="mt-1 text-xs text-positive-stroke">
+										<span class="font-semibold">{formMatchedForm}</span> is an accepted variant.
+										Standard form:
+										<span class="font-semibold">{question.correctForm}</span>.
+									</p>
+								{/if}
 							</div>
 						{:else}
 							<div class="flex w-full max-w-md flex-col gap-3">

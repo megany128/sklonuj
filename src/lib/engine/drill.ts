@@ -623,7 +623,7 @@ export function checkMultiStepForm(
 	question: MultiStepQuestion,
 	userForm: string,
 	level: Difficulty = 'A1'
-): { correct: boolean; nearMiss: boolean } {
+): { correct: boolean; nearMiss: boolean; matchedForm?: string } {
 	const trimmedUser = userForm.trim().toLowerCase();
 	const trimmedCorrect = question.correctForm.trim().toLowerCase();
 
@@ -647,17 +647,23 @@ export function checkMultiStepForm(
 
 	// Exact match
 	for (const form of acceptedForms) {
-		if (trimmedUser === form.trim().toLowerCase()) {
-			return { correct: true, nearMiss: false };
+		const trimmedForm = form.trim();
+		if (trimmedUser === trimmedForm.toLowerCase()) {
+			return { correct: true, nearMiss: false, matchedForm: trimmedForm };
 		}
 	}
 
 	// Near-miss (diacritics only)
 	const strippedUser = stripDiacritics(trimmedUser);
 	for (const form of acceptedForms) {
-		const strippedForm = stripDiacritics(form.trim().toLowerCase());
+		const trimmedForm = form.trim();
+		const strippedForm = stripDiacritics(trimmedForm.toLowerCase());
 		if (strippedUser === strippedForm) {
-			return { correct: nearMissIsCorrect(level), nearMiss: true };
+			return {
+				correct: nearMissIsCorrect(level),
+				nearMiss: true,
+				matchedForm: trimmedForm
+			};
 		}
 	}
 

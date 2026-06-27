@@ -2514,16 +2514,6 @@
 		"difficulty": "A1"
 	},
 	{
-		"id": "gen_neni_a1",
-		"template": "Není tu ___.",
-		"lemmaCategory": "food",
-		"requiredCase": "gen",
-		"number": "sg",
-		"trigger": "",
-		"why": "Genitive of negation: the subject of negated existence ('není') takes the genitive.",
-		"difficulty": "A1"
-	},
-	{
 		"id": "gen_dost_a1",
 		"template": "Mám dost ___.",
 		"lemmaCategory": "food",
