@@ -221,7 +221,7 @@ function splitForms(value: string): string[] {
 // Helper: look up pronoun form
 // ---------------------------------------------------------------------------
 
-function getPronounForm(
+export function getPronounForm(
 	pronoun: PronounEntry,
 	case_: Case,
 	number_: Number_

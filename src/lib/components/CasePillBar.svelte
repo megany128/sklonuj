@@ -5,9 +5,12 @@
 		selectedCase: Case | 'all';
 		caseStrengths: Record<Case, { accuracy: number; attempts: number }>;
 		onSelect: (selected: Case | 'all') => void;
+		/** Cases to show as pills; defaults to all 7. Cases the current level
+		 * can't fill are omitted so users can never select an empty case. */
+		availableCases?: Case[];
 	}
 
-	let { selectedCase, caseStrengths, onSelect }: Props = $props();
+	let { selectedCase, caseStrengths, onSelect, availableCases = ALL_CASES }: Props = $props();
 
 	const ACCURACY_COLORS = {
 		red: '#d73e3e',
@@ -39,7 +42,7 @@
 		All
 	</button>
 
-	{#each ALL_CASES as c (c)}
+	{#each availableCases as c (c)}
 		{@const isSelected = selectedCase === c}
 		{@const strength = caseStrengths[c]}
 		{@const hex = CASE_HEX[c]}

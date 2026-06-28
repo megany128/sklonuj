@@ -66,6 +66,7 @@
 		canVocative,
 		applyPrepositionVoicing,
 		templateMatchesWordCategory,
+		casesWithContent,
 		type CurriculumLevel
 	} from '$lib/engine/drill';
 	import {
@@ -1183,6 +1184,25 @@
 		return selectedParadigm ? words.filter((w) => w.paradigm === selectedParadigm) : words;
 	}
 
+	/**
+	 * Resolve the CEFR level that should drive content gating. An assignment's
+	 * content_level (a CEFR level or a KzK chapter id) overrides the student's
+	 * own level; otherwise the fallback (the student's level) is used.
+	 */
+	function resolveEffectiveLevel(
+		contentLevel: string | null | undefined,
+		fallback: Difficulty
+	): Difficulty {
+		if (!contentLevel) return fallback;
+		if (isDifficulty(contentLevel)) return contentLevel;
+		if (/^kzk[12]_\d{2}$/.test(contentLevel)) {
+			if (contentLevel.startsWith('kzk2')) return 'B1';
+			const chIdx = kzkChapters.kzk1.chapters.findIndex((ch) => ch.id === contentLevel);
+			return chIdx >= 13 ? 'A2' : 'A1';
+		}
+		return fallback;
+	}
+
 	// KzK chapter mode
 	let chapterBook = $state<'kzk1' | 'kzk2' | null>(null);
 	let chapterSelection = $state<string | null>(null);
@@ -1374,11 +1394,16 @@
 		return '#40c607';
 	}
 
-	// Derived: whether pronouns are unlocked at the current level
-	let pronounsUnlocked = $derived(curriculum[currentLevel]?.pronouns_unlocked ?? false);
+	// Derived: whether pronouns are unlocked. KzK1 stays nouns-only regardless of
+	// the chapter's mapped CEFR level; KzK2 and free practice follow the level.
+	let pronounsUnlocked = $derived(
+		chapterBook === 'kzk1' ? false : (curriculum[currentLevel]?.pronouns_unlocked ?? false)
+	);
 
-	// Derived: whether adjectives are unlocked at the current level
-	let adjectivesUnlocked = $derived(curriculum[currentLevel]?.adjectives_unlocked ?? false);
+	// Derived: whether adjectives are unlocked (same KzK1 nouns-only rule).
+	let adjectivesUnlocked = $derived(
+		chapterBook === 'kzk1' ? false : (curriculum[currentLevel]?.adjectives_unlocked ?? false)
+	);
 
 	// Derived: effective content mode (constrained by unlock state)
 	let effectiveContentMode: ContentMode = $derived.by(() => {
@@ -1396,16 +1421,20 @@
 		return drillSettings.wordMode ?? 'nouns';
 	});
 
-	// Derived: effective enabled cases (constrained by chapter if active)
+	// Derived: effective enabled cases (constrained by chapter if active, else by
+	// the level's available cases — the single chokepoint for "all-mode" pools).
 	let effectiveEnabledCases = $derived.by(() => {
 		const chapter = getSelectedKzkChapter();
 		if (chapter) {
-			// Intersect user-enabled cases with chapter's unlocked cases
+			// Intersect user-enabled cases with chapter's unlocked cases.
+			// Chapter cases ⊆ CEFR cases by construction, so no extra gating needed.
 			const unlocked = chapter.unlockedCases;
 			const filtered = enabledCases.filter((c) => unlocked.includes(c));
 			return filtered.length > 0 ? filtered : unlocked;
 		}
-		return enabledCases;
+		// Free practice: drop any enabled case the level can't currently fill.
+		const filtered = enabledCases.filter((c) => availableCases.includes(c));
+		return filtered.length > 0 ? filtered : availableCases;
 	});
 
 	// Derived: whether number mode should be forced to sg
@@ -1416,6 +1445,43 @@
 		}
 		return drillSettings.numberMode;
 	});
+
+	// Derived: which content types can actually be generated, mirroring the
+	// contentDecision precedence (wordMode 'adjectives' => adjectives only).
+	let enabledContentTypes = $derived.by(() => {
+		const wm = effectiveWordMode;
+		const cm = effectiveContentMode;
+		if (wm === 'adjectives') {
+			return { nouns: false, pronouns: false, adjectives: true };
+		}
+		return {
+			nouns: cm === 'nouns' || cm === 'both',
+			pronouns: cm === 'pronouns' || cm === 'both',
+			adjectives: wm === 'both'
+		};
+	});
+
+	// Derived: cases that have ≥1 eligible item at this level/mode (auto-hide-empty
+	// safety net). Recomputes only on level/mode/settings change, never per question.
+	// In assignment mode the teacher's explicit case selection governs, so we keep
+	// the full set here and let `enabledCases` (= assignment.selectedCases) constrain.
+	let availableCases: Case[] = $derived.by(() => {
+		if (assignmentInfo) return [...ALL_CASES];
+		return casesWithContent({
+			level: currentLevel,
+			includeNouns: enabledContentTypes.nouns,
+			includePronouns: enabledContentTypes.pronouns,
+			includeAdjectives: enabledContentTypes.adjectives,
+			numberMode: effectiveNumberMode,
+			nounFilter: selectedParadigm ? (w) => w.paradigm === selectedParadigm : undefined
+		});
+	});
+
+	// How many of the *available* cases the user has enabled — drives the filter
+	// badge/Reset against the gated universe rather than all 7.
+	let availableEnabledCount = $derived(
+		enabledCases.filter((c) => availableCases.includes(c)).length
+	);
 
 	// Settings expanded state
 	let settingsExpanded = $state(false);
@@ -1528,6 +1594,15 @@
 
 		if (initialized) {
 			syncStateToUrl();
+		}
+	});
+
+	// Reset a single-case filter that the current level no longer exposes (e.g.
+	// dropping to A1 with `ins` selected, or a stale `?selectCase=ins` URL).
+	// Prevents the single-case generation path from drilling a hidden case.
+	$effect(() => {
+		if (initialized && selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
+			selectedCase = 'all';
 		}
 	});
 
@@ -1836,6 +1911,18 @@
 				chapterBook = null;
 				chapterSelection = null;
 				saveChapterToStorage();
+				// Honor the deep-link's intent: if this case is gated at the current
+				// level, raise to the lowest level that unlocks it (unlocked_cases is
+				// monotonic, so this only ever raises). Otherwise the reset effect
+				// below would silently bounce the selection back to "All".
+				if (!curriculum[currentLevel]?.unlocked_cases.includes(matchedCase)) {
+					const order: Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
+					const target = order.find((lvl) => curriculum[lvl]?.unlocked_cases.includes(matchedCase));
+					if (target && target !== currentLevel) {
+						setLevel(target);
+						scheduleSyncToSupabase();
+					}
+				}
 			}
 		}
 
@@ -2202,10 +2289,12 @@
 		const drillType = pickDrillType();
 		// multi_step is a noun-specific drill type (paradigm + case + form) — skip pronouns
 		if (drillType === 'multi_step') return null;
-		// Exclude vocative for pronoun drills (almost no pronoun has a vocative form)
+		// Exclude vocative for pronoun drills (almost no pronoun has a vocative form),
+		// and gate by the level's unlocked cases so the single-case branch can't
+		// surface a pronoun in a case this level hides.
 		const pronounCases: Case[] = (
 			selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]
-		).filter((c) => c !== 'voc');
+		).filter((c) => c !== 'voc' && levelConfig.unlocked_cases.includes(c));
 		if (pronounCases.length === 0) return null;
 		// case_identification: drop nominative when there's an alternative — the
 		// answer is too obvious from the slot ("To je on" → nom).
@@ -2360,8 +2449,12 @@
 		);
 		if (eligibleWords.length === 0) return null;
 
-		// Pick case
-		const activeCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+		// Pick case — gate by the level's unlocked cases so the single-case branch
+		// can't surface an adjective in a case this level hides.
+		const activeCases = (selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]).filter(
+			(c) => levelConfig.unlocked_cases.includes(c)
+		);
+		if (activeCases.length === 0) return null;
 
 		// For form_production: pick a case/number directly and generate without a sentence template
 		if (requestedDrillType === 'form_production') {
@@ -2541,22 +2634,7 @@
 		const prog = get(progress);
 
 		// Determine difficulty filtering: assignment content_level overrides student level
-		let effectiveLevel = prog.level;
-		if (assignmentInfo?.contentLevel) {
-			const cl = assignmentInfo.contentLevel;
-			if (cl === 'A1' || cl === 'A2' || cl === 'B1') {
-				effectiveLevel = cl;
-			} else if (/^kzk[12]_\d{2}$/.test(cl)) {
-				// Map KZK chapter to CEFR level
-				const book = cl.startsWith('kzk1') ? 'kzk1' : 'kzk2';
-				if (book === 'kzk2') {
-					effectiveLevel = 'B1';
-				} else {
-					const chIdx = kzkChapters.kzk1.chapters.findIndex((ch) => ch.id === cl);
-					effectiveLevel = chIdx >= 13 ? 'A2' : 'A1';
-				}
-			}
-		}
+		const effectiveLevel = resolveEffectiveLevel(assignmentInfo?.contentLevel, prog.level);
 		const levelConfig = curriculum[effectiveLevel];
 		const unlockedDifficulties = levelConfig.unlocked_difficulty;
 
@@ -3585,6 +3663,12 @@
 	function handleLevelChange(level: Difficulty): void {
 		const previousLevel = currentLevel;
 		setLevel(level);
+		// setLevel updates the progress store synchronously, so availableCases is
+		// already fresh here. Clamp a now-hidden single-case filter before
+		// generating so we never flash a question for a case the level hides.
+		if (selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
+			selectedCase = 'all';
+		}
 		posthog.capture('level_changed', { from: previousLevel, to: level });
 		scheduleSyncToSupabase();
 		generateNextQuestion();
@@ -4087,7 +4171,12 @@
 				{#if wordsLoading}
 					<CasePillBarSkeleton />
 				{:else}
-					<CasePillBar {selectedCase} {caseStrengths} onSelect={handleCaseSelect} />
+					<CasePillBar
+						{selectedCase}
+						{caseStrengths}
+						{availableCases}
+						onSelect={handleCaseSelect}
+					/>
 				{/if}
 			</div>
 		{/if}
@@ -4258,8 +4347,8 @@
 						class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-darker-subtitle transition-colors hover:text-text-default"
 					>
 						Filter cases
-						{#if enabledCases.length < ALL_CASES.length}
-							<span class="text-emphasis">({enabledCases.length}/{ALL_CASES.length})</span>
+						{#if availableEnabledCount < availableCases.length}
+							<span class="text-emphasis">({availableEnabledCount}/{availableCases.length})</span>
 						{/if}
 						<ChevronDown
 							class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
@@ -4333,7 +4422,7 @@
 				transition:slide={{ duration: 200 }}
 				class="flex flex-wrap justify-center gap-1.5 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3"
 			>
-				{#each ALL_CASES as c (c)}
+				{#each availableCases as c (c)}
 					{@const enabled = enabledCases.includes(c)}
 					<button
 						onclick={() => toggleEnabledCase(c)}
@@ -4347,7 +4436,7 @@
 						{CASE_LABELS[c]}
 					</button>
 				{/each}
-				{#if enabledCases.length < ALL_CASES.length}
+				{#if availableEnabledCount < availableCases.length}
 					<button
 						onclick={() => {
 							enabledCases = [...ALL_CASES];

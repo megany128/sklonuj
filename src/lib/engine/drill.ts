@@ -15,14 +15,18 @@ import type {
 	VariantForms,
 	WordEntry
 } from '../types';
-import { CASE_INDEX, isCase, isNumber } from '../types';
+import { ALL_CASES, CASE_INDEX, isCase, isNumber } from '../types';
 import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
 import blockedTemplateNounPairsData from '../data/blocked_template_noun_pairs.json';
 import { getBlockedLemmaSet } from './lemma-blocks';
 import { stripDiacritics } from '../utils/diacritics';
-import { checkAdjectiveAnswer as checkAdjectiveAnswerImpl } from './adjective-drill';
+import {
+	checkAdjectiveAnswer as checkAdjectiveAnswerImpl,
+	getAdjectiveCandidates
+} from './adjective-drill';
+import { loadPronounBank, getPronounForm } from './pronoun-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
 
 export { applyPrepositionVoicing };
@@ -365,6 +369,61 @@ export function hasValidForm(word: WordEntry, case_: Case, number_: Number_): bo
 export function canVocative(word: WordEntry): boolean {
 	if (word.animate) return true;
 	return word.categories.some((c) => VOCATIVE_CATEGORIES.has(c));
+}
+
+export interface CasesWithContentOptions {
+	level: Difficulty;
+	includeNouns: boolean;
+	includePronouns: boolean;
+	includeAdjectives: boolean;
+	numberMode: 'sg' | 'pl' | 'both';
+	/** Optional extra noun restriction (e.g. a selected paradigm filter). */
+	nounFilter?: (word: WordEntry) => boolean;
+}
+
+/**
+ * Cases that have at least one eligible drill item at the given level, across
+ * the enabled content types. Starts from the level's `unlocked_cases` and keeps
+ * only those a generator can actually produce — the auto-hide-empty safety net
+ * that makes the historical silent-fallback bug (e.g. selecting `ins` with zero
+ * eligible content) structurally impossible. Pure; reuses the same predicates
+ * the generators use so availability can never diverge from generation.
+ */
+export function casesWithContent(opts: CasesWithContentOptions): Case[] {
+	const config = curriculum[opts.level];
+	if (!config) return [];
+	const unlockedCases = ALL_CASES.filter((c) => config.unlocked_cases.includes(c));
+	const numbers: Number_[] = opts.numberMode === 'both' ? ['sg', 'pl'] : [opts.numberMode];
+
+	// Adjectives carry the full gender × case paradigm, so any non-empty
+	// candidate pool covers every unlocked case.
+	const adjectivesCover =
+		opts.includeAdjectives && getAdjectiveCandidates(config.unlocked_difficulty).length > 0;
+
+	const nounCandidates = opts.includeNouns
+		? loadWordBank().filter(
+				(w) =>
+					config.unlocked_difficulty.includes(w.difficulty) &&
+					(opts.nounFilter ? opts.nounFilter(w) : true)
+			)
+		: [];
+
+	const pronounCandidates = opts.includePronouns
+		? loadPronounBank().filter((p) => config.unlocked_difficulty.includes(p.difficulty))
+		: [];
+
+	return unlockedCases.filter((c) => {
+		if (adjectivesCover) return true;
+		if (nounCandidates.some((w) => numbers.some((num) => hasValidForm(w, c, num)))) {
+			return true;
+		}
+		return pronounCandidates.some((p) =>
+			numbers.some((num) => {
+				const form = getPronounForm(p, c, num);
+				return form !== null && (form.prep.trim().length > 0 || form.bare.trim().length > 0);
+			})
+		);
+	});
 }
 
 export function generateFormProduction(

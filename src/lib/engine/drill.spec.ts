@@ -8,9 +8,11 @@ import {
 	loadTemplates,
 	loadWordBank,
 	weightedRandom,
-	applyPrepositionVoicing
+	applyPrepositionVoicing,
+	casesWithContent,
+	hasValidForm
 } from './drill.ts';
-import type { Progress } from '../types.ts';
+import type { Case, Difficulty, Progress } from '../types.ts';
 
 describe('loadWordBank', () => {
 	it('returns non-empty array with expected shape', () => {
@@ -339,5 +341,71 @@ describe('weightedRandom', () => {
 		// Unseen lemma (město): lemma_weight ~10. Seen lemmas: lemma_weight ~0.91.
 		// město should dominate the picks heavily.
 		expect(counts[mesto.lemma]).toBeGreaterThan(iterations * 0.7);
+	});
+});
+
+describe('casesWithContent', () => {
+	const nounsOnly = (level: Difficulty, numberMode: 'sg' | 'pl' | 'both' = 'sg'): Case[] =>
+		casesWithContent({
+			level,
+			includeNouns: true,
+			includePronouns: false,
+			includeAdjectives: false,
+			numberMode
+		});
+
+	it('A1 nouns-only stays within the unlocked case set and excludes dat/ins/voc', () => {
+		const cases = nounsOnly('A1');
+		const allowed: Case[] = ['nom', 'acc', 'gen', 'loc'];
+		for (const c of cases) expect(allowed).toContain(c);
+		expect(cases).not.toContain('dat');
+		expect(cases).not.toContain('ins');
+		expect(cases).not.toContain('voc');
+		// nom always has content
+		expect(cases).toContain('nom');
+	});
+
+	it('higher levels expose the full 7-case set', () => {
+		for (const level of ['A2', 'B1', 'B2'] as Difficulty[]) {
+			const cases = nounsOnly(level);
+			expect(cases.length).toBe(7);
+		}
+	});
+
+	it('no-silent-empty invariant: every returned case has ≥1 backing word', () => {
+		const bank = loadWordBank();
+		for (const level of ['A1', 'A2', 'B1', 'B2'] as Difficulty[]) {
+			const cases = nounsOnly(level);
+			for (const c of cases) {
+				const hasWord = bank.some((w) => hasValidForm(w, c, 'sg'));
+				expect(hasWord).toBe(true);
+			}
+		}
+	});
+
+	it('paradigm filter to a never-vocative paradigm (stavení) excludes voc', () => {
+		// stavení is neuter inanimate with no vocative-eligible lemmas, so the
+		// auto-hide-empty net must drop voc even though the level unlocks it.
+		const cases = casesWithContent({
+			level: 'B2',
+			includeNouns: true,
+			includePronouns: false,
+			includeAdjectives: false,
+			numberMode: 'sg',
+			nounFilter: (w) => w.paradigm === 'stavení'
+		});
+		expect(cases).not.toContain('voc');
+		expect(cases).toContain('acc');
+	});
+
+	it('pronoun-only at B1 returns cases that all have a pronoun form', () => {
+		const cases = casesWithContent({
+			level: 'B1',
+			includeNouns: false,
+			includePronouns: true,
+			includeAdjectives: false,
+			numberMode: 'sg'
+		});
+		expect(cases.length).toBeGreaterThan(0);
 	});
 });
