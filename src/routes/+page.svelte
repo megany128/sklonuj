@@ -69,6 +69,7 @@
 		casesWithContent,
 		type CurriculumLevel
 	} from '$lib/engine/drill';
+	import { levelDefaultSettings } from '$lib/engine/level-settings';
 	import {
 		progress,
 		STORAGE_USER_KEY,
@@ -271,6 +272,7 @@
 	const curriculum: Record<string, CurriculumLevel> = curriculumData;
 
 	const SETTINGS_STORAGE_KEY = 'sklonuj_settings';
+	const LEVEL_SETTINGS_STORAGE_KEY = 'sklonuj_level_settings';
 	const ANON_SESSION_STASH_KEY = 'sklonuj_anon_session';
 
 	/** Stash current anon session stats so they can be synced after sign-up. */
@@ -327,21 +329,6 @@
 		};
 	}
 
-	function loadSettingsFromStorage(): DrillSettings {
-		if (typeof window === 'undefined') return getDefaultSettings();
-		try {
-			const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-			if (raw === null) return getDefaultSettings();
-			const parsed: unknown = JSON.parse(raw);
-			if (isValidDrillSettings(parsed)) {
-				return { ...parsed, selectedCases: ALL_CASES };
-			}
-			return getDefaultSettings();
-		} catch {
-			return getDefaultSettings();
-		}
-	}
-
 	function isValidDrillSettings(value: unknown): value is DrillSettings {
 		if (!isRecord(value)) return false;
 		const obj = value;
@@ -382,9 +369,52 @@
 		}
 	}
 
+	const ALL_LEVELS: readonly Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
+
+	function loadLevelSettings(): Partial<Record<Difficulty, DrillSettings>> {
+		if (typeof window === 'undefined') return {};
+		try {
+			const raw = localStorage.getItem(LEVEL_SETTINGS_STORAGE_KEY);
+			if (raw === null) return {};
+			const parsed: unknown = JSON.parse(raw);
+			if (!isRecord(parsed)) return {};
+			const out: Partial<Record<Difficulty, DrillSettings>> = {};
+			for (const lvl of ALL_LEVELS) {
+				const entry = parsed[lvl];
+				if (isValidDrillSettings(entry)) out[lvl] = { ...entry, selectedCases: ALL_CASES };
+			}
+			return out;
+		} catch {
+			return {};
+		}
+	}
+
+	function saveLevelSettings(): void {
+		if (typeof window === 'undefined') return;
+		try {
+			localStorage.setItem(LEVEL_SETTINGS_STORAGE_KEY, JSON.stringify(levelSettingsMap));
+		} catch {
+			// localStorage may be unavailable
+		}
+	}
+
+	// Restore a level's saved config, or fall back to its curriculum defaults.
+	function applyLevelSettings(level: Difficulty): void {
+		const saved = levelSettingsMap[level];
+		drillSettings = saved
+			? { ...saved, selectedCases: ALL_CASES }
+			: levelDefaultSettings(
+					level,
+					drillSettings.selectedDrillTypes ?? getDefaultSettings().selectedDrillTypes
+				);
+	}
+
 	let currentProgress = $state(get(progress));
 	let currentLevel: Difficulty = $derived(currentProgress.level);
 	let drillSettings: DrillSettings = $state(getDefaultSettings());
+	// Per-level settings memory: a level auto-enables its curriculum defaults
+	// until the user customizes it, after which that level's config is restored.
+	let levelSettingsMap: Partial<Record<Difficulty, DrillSettings>> = $state({});
 	let question: DrillQuestion | null = $state(null);
 	let multiStepQuestion: MultiStepQuestion | null = $state(null);
 	let lastResult: DrillResult | null = $state(null);
@@ -1867,8 +1897,8 @@
 		if (localStorage.getItem('sklonuj_onboarded') === '1') {
 			showOnboarding = false;
 		}
-		const savedSettings = loadSettingsFromStorage();
-		drillSettings = savedSettings;
+		levelSettingsMap = loadLevelSettings();
+		applyLevelSettings(currentLevel);
 		loadChapterFromStorage();
 		loadChapterScores();
 
@@ -3663,6 +3693,10 @@
 	function handleLevelChange(level: Difficulty): void {
 		const previousLevel = currentLevel;
 		setLevel(level);
+		// Auto-enable the new level's content toggles (pronouns/adjectives/plural),
+		// restoring a saved per-level config if the user has one. Must run before the
+		// clamp below so availableCases reflects the level's enabled content types.
+		applyLevelSettings(level);
 		// setLevel updates the progress store synchronously, so availableCases is
 		// already fresh here. Clamp a now-hidden single-case filter before
 		// generating so we never flash a question for a case the level hides.
@@ -3682,6 +3716,10 @@
 	}): void {
 		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
+		// Remember this as the active level's config so it's restored on return
+		// instead of being overwritten by the level's auto-enable defaults.
+		levelSettingsMap = { ...levelSettingsMap, [currentLevel]: { ...drillSettings } };
+		saveLevelSettings();
 		generateNextQuestion();
 	}
 
@@ -4685,7 +4723,7 @@
 					onclick={() => {
 						showExitAssignmentConfirm = false;
 						exitAssignmentMode();
-						drillSettings = loadSettingsFromStorage();
+						applyLevelSettings(currentLevel);
 						settingsExpanded = true;
 					}}
 					class="flex-1 cursor-pointer rounded-xl border border-card-stroke px-4 py-2.5 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
