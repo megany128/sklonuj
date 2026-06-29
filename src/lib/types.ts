@@ -165,6 +165,12 @@ export interface SentenceTemplate {
 	difficulty: Difficulty;
 	// Adjective template fields (optional)
 	adjectiveCategories?: string[];
+	/**
+	 * Lemma of the noun baked into an adjective template (the word the adjective
+	 * agrees with). Lets the engine apply the semantic `adjectiveMatchesNoun`
+	 * profile gate to template drills, not just free adjective-noun pairing.
+	 */
+	nounLemma?: string;
 	// Pronoun template fields (optional)
 	pronounCategory?: string;
 	requiredPronoun?: string;

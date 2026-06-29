@@ -21,6 +21,7 @@ import { CASE_INDEX, isCase, isNumber } from '../types';
 import adjectiveBankData from '../data/adjective_bank.json';
 import adjectiveTemplateData from '../data/adjective_templates.json';
 import blockedAdjNounPairsData from '../data/blocked_adj_noun_pairs.json';
+import wordBankData from '../data/word_bank.json';
 import { stripDiacritics } from '../utils/diacritics';
 import { getBlockedLemmaSet } from './lemma-blocks';
 
@@ -240,6 +241,7 @@ interface RawAdjectiveTemplate {
 	requiredGender?: string;
 	requiredAnimate?: boolean;
 	adjectiveCategories?: string[];
+	nounLemma?: string;
 	why: string;
 	difficulty: string;
 }
@@ -285,6 +287,9 @@ export function loadAdjectiveTemplates(): SentenceTemplate[] {
 		}
 		if (Array.isArray(entry.adjectiveCategories) && entry.adjectiveCategories.length > 0) {
 			mapped.adjectiveCategories = entry.adjectiveCategories;
+		}
+		if (typeof entry.nounLemma === 'string' && entry.nounLemma.length > 0) {
+			mapped.nounLemma = entry.nounLemma;
 		}
 
 		return mapped;
@@ -815,7 +820,10 @@ const COLOR_WEATHER_ALLOW = new Set<string>([
  *   2. Season-on-season — `seasonal` adjectives (jarní, etc.) never pair with
  *      season nouns (jaro, léto, podzim, zima): "jarní léto" is nonsensical.
  */
-export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): boolean {
+export function adjectiveMatchesNoun(
+	adj: AdjectiveEntry,
+	word: Pick<WordEntry, 'lemma' | 'categories'>
+): boolean {
 	if (isBlockedAdjNounPair(adj.lemma, word.lemma)) return false;
 	// Block season-on-season pairings (e.g. "jarní léto").
 	if (adj.profile === 'seasonal' && word.categories.includes('season')) return false;
@@ -876,6 +884,20 @@ export function adjectiveMatchesNoun(adj: AdjectiveEntry, word: WordEntry): bool
 	return false;
 }
 
+// Lazy lemma -> {lemma, categories} index over the noun bank. Only the fields
+// `adjectiveMatchesNoun` reads, so we avoid pulling in the full WordEntry loader
+// (and the circular import with drill.ts).
+let nounCategoryIndex: Map<string, { lemma: string; categories: string[] }> | null = null;
+function getNounCategories(lemma: string): { lemma: string; categories: string[] } | undefined {
+	if (nounCategoryIndex === null) {
+		nounCategoryIndex = new Map();
+		for (const w of wordBankData) {
+			nounCategoryIndex.set(w.lemma, { lemma: w.lemma, categories: w.categories });
+		}
+	}
+	return nounCategoryIndex.get(lemma);
+}
+
 /** Filter adjective candidates to only those semantically compatible with a template. */
 export function filterAdjectivesByTemplate(
 	candidates: AdjectiveEntry[],
@@ -886,6 +908,18 @@ export function filterAdjectivesByTemplate(
 		allowed && allowed.length > 0
 			? candidates.filter((adj) => adj.categories.some((c) => allowed.includes(c)))
 			: candidates;
+	// Semantic profile gate: drop adjectives that don't make sense with the
+	// template's baked noun (e.g. "sladký vlak", "vědecká lžíce"). The category
+	// gate above is coarse; `adjectiveMatchesNoun` applies the curated
+	// profile-vs-noun rules. Fall back to the category-filtered set if the gate
+	// would empty the pool, so a template never becomes ungeneratable.
+	if (template.nounLemma) {
+		const noun = getNounCategories(template.nounLemma);
+		if (noun) {
+			const semantic = filtered.filter((adj) => adjectiveMatchesNoun(adj, noun));
+			if (semantic.length > 0) filtered = semantic;
+		}
+	}
 	// Drop lemmas a reviewer has flagged via the admin dashboard.
 	const blocked = getBlockedLemmaSet('adjective', template.id);
 	if (blocked.size > 0) {

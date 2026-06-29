@@ -760,7 +760,7 @@
 		"translation": "sweet",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["common", "object"],
+		"categories": ["common", "taste"],
 		"profile": "taste",
 		"forms": {
 			"m_anim": {
@@ -787,7 +787,7 @@
 		"translation": "sour",
 		"difficulty": "A2",
 		"paradigmType": "hard",
-		"categories": ["common", "object"],
+		"categories": ["common", "taste"],
 		"profile": "taste",
 		"forms": {
 			"m_anim": {

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	adjectiveMatchesNoun,
 	filterAdjectivesByTemplate,
-	loadAdjectiveBank
+	loadAdjectiveBank,
+	loadAdjectiveTemplates
 } from './adjective-drill.ts';
 import type { AdjectiveEntry, AdjectiveProfile, SentenceTemplate, WordEntry } from '../types.ts';
 
@@ -349,6 +350,63 @@ describe('filterAdjectivesByTemplate', () => {
 		const lemmas = result.map((a) => a.lemma);
 		expect(lemmas).toContain('červený');
 		expect(lemmas).toContain('nový');
+	});
+
+	it('37. nounLemma gate prunes semantically incompatible adjectives but keeps a pool', () => {
+		const tasteAdj = stubAdj('sladký', 'taste', ['object']);
+		const colorAdj = stubAdj('červený', 'color', ['object']);
+		const broadAdj = stubAdj('nový', 'quality', ['object']);
+		const template: SentenceTemplate = {
+			id: 'test_gate',
+			template: 'Vidím ___ stůl.',
+			lemmaCategory: 'adjective',
+			requiredCase: 'acc',
+			number: 'sg',
+			trigger: '',
+			why: '',
+			difficulty: 'A1',
+			adjectiveCategories: ['object'],
+			nounLemma: 'stůl' // concrete object noun in the bank
+		};
+		const result = filterAdjectivesByTemplate([tasteAdj, colorAdj, broadAdj], template);
+		const lemmas = result.map((a) => a.lemma);
+		expect(lemmas).not.toContain('sladký'); // "sladký stůl" (sweet table) is nonsense
+		expect(lemmas).toContain('červený');
+		expect(lemmas).toContain('nový');
+	});
+
+	it('38. unknown nounLemma falls through to the category filter (no over-pruning)', () => {
+		const colorAdj = stubAdj('červený', 'color', ['object']);
+		const template: SentenceTemplate = {
+			id: 'test_gate_unknown',
+			template: '{adj} {noun}',
+			lemmaCategory: 'adjective',
+			requiredCase: 'nom',
+			number: 'sg',
+			trigger: '',
+			why: '',
+			difficulty: 'A1',
+			adjectiveCategories: ['object'],
+			nounLemma: '___not_a_real_lemma___'
+		};
+		const result = filterAdjectivesByTemplate([colorAdj], template);
+		expect(result.map((a) => a.lemma)).toContain('červený');
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Every real adjective template must keep a usable, diverse adjective pool
+// after the semantic gate (guards against over-pruning / ungeneratable drills).
+// ---------------------------------------------------------------------------
+
+describe('adjective template pools stay diverse', () => {
+	it('every template yields a non-empty pool across all difficulties', () => {
+		const bank = loadAdjectiveBank();
+		const templates = loadAdjectiveTemplates();
+		for (const t of templates) {
+			const pool = filterAdjectivesByTemplate(bank, t);
+			expect(pool.length, `${t.id} (${t.nounLemma}) pool`).toBeGreaterThanOrEqual(5);
+		}
 	});
 });
 

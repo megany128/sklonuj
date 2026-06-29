@@ -27,8 +27,8 @@ silný,A2,,"common,universal",quality
 slabý,A2,weak,"common,universal",quality
 levný,A2,,"common,object",wealth
 drahý,A2,,"common,object,person",wealth
-sladký,A2,,"common,object",taste
-kyselý,A2,,"common,object",taste
+sladký,A2,,"common,taste",taste
+kyselý,A2,,"common,taste",taste
 důležitý,B1,,"common,universal",quality
 zajímavý,B1,,"common,universal",quality
 nebezpečný,B1,,"common,universal",quality
