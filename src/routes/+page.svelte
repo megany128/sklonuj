@@ -67,6 +67,7 @@
 		applyPrepositionVoicing,
 		templateMatchesWordCategory,
 		casesWithContent,
+		lockedCasesForLevel,
 		type CurriculumLevel
 	} from '$lib/engine/drill';
 	import { levelDefaultSettings } from '$lib/engine/level-settings';
@@ -1506,6 +1507,16 @@
 			nounFilter: selectedParadigm ? (w) => w.paradigm === selectedParadigm : undefined
 		});
 	});
+
+	// Cases this CEFR level hasn't unlocked yet but a higher one does — shown as
+	// greyed "locked" pills that upsell the unlocking level. Suppressed in
+	// assignment mode (the teacher's case selection governs there).
+	let lockedCases: { case: Case; unlockLevel: Difficulty }[] = $derived.by(() =>
+		assignmentInfo || getSelectedKzkChapter() ? [] : lockedCasesForLevel(currentLevel)
+	);
+
+	// The locked case whose upsell modal is open, if any.
+	let lockedCaseModal: { case: Case; unlockLevel: Difficulty } | null = $state(null);
 
 	// How many of the *available* cases the user has enabled — drives the filter
 	// badge/Reset against the gated universe rather than all 7.
@@ -4213,7 +4224,9 @@
 						{selectedCase}
 						{caseStrengths}
 						{availableCases}
+						{lockedCases}
 						onSelect={handleCaseSelect}
+						onLockedSelect={(locked) => (lockedCaseModal = locked)}
 					/>
 				{/if}
 			</div>
@@ -4704,6 +4717,56 @@
 	onClose={() => (authModalOpen = false)}
 	initialMode={authModalInitialMode}
 />
+
+{#if lockedCaseModal}
+	{@const locked = lockedCaseModal}
+	<div
+		class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+		transition:fade={{ duration: 150 }}
+		role="button"
+		tabindex="-1"
+		onclick={() => (lockedCaseModal = null)}
+		onkeydown={(e) => e.key === 'Escape' && (lockedCaseModal = null)}
+	>
+		<div
+			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+		>
+			<h2 class="text-lg font-semibold text-text-default">
+				{CASE_LABELS[locked.case]} unlocks at {locked.unlockLevel}
+			</h2>
+			<p class="mt-2 text-sm text-text-subtitle">
+				{currentLevel} doesn't cover {CASE_LABELS[locked.case].toLowerCase()}. Move up to {locked.unlockLevel}
+				to start practicing it?
+			</p>
+			<div class="mt-5 flex gap-3">
+				<button
+					type="button"
+					onclick={() => (lockedCaseModal = null)}
+					class="flex-1 cursor-pointer rounded-xl border border-card-stroke px-4 py-2.5 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				>
+					Not yet
+				</button>
+				<button
+					type="button"
+					onclick={() => {
+						const target = locked.unlockLevel;
+						lockedCaseModal = null;
+						handleLevelChange(target);
+						handleCaseSelect(locked.case);
+					}}
+					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+				>
+					Move up to {locked.unlockLevel}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 {#if showExitAssignmentConfirm && assignmentInfo}
 	<div

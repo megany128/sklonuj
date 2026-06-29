@@ -426,6 +426,35 @@ export function casesWithContent(opts: CasesWithContentOptions): Case[] {
 	});
 }
 
+const LEVEL_ORDER: readonly Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
+
+/**
+ * The lowest CEFR level whose curriculum unlocks `case_`, or null if no level
+ * does. Used to tell a learner which level introduces a case they can't yet
+ * drill (e.g. "Instrumental unlocks at A2"). Pure — reads curriculum.json only.
+ */
+export function caseUnlockLevel(case_: Case): Difficulty | null {
+	return LEVEL_ORDER.find((lvl) => curriculum[lvl]?.unlocked_cases.includes(case_)) ?? null;
+}
+
+/**
+ * Cases not yet unlocked at `level` but unlocked at a higher one, each paired
+ * with the level that introduces it — shown as locked pills with an upsell.
+ * Returned in `ALL_CASES` order.
+ */
+export function lockedCasesForLevel(level: Difficulty): { case: Case; unlockLevel: Difficulty }[] {
+	const curIdx = LEVEL_ORDER.indexOf(level);
+	const result: { case: Case; unlockLevel: Difficulty }[] = [];
+	for (const c of ALL_CASES) {
+		if (curriculum[level]?.unlocked_cases.includes(c)) continue;
+		const unlockLevel = caseUnlockLevel(c);
+		if (unlockLevel && LEVEL_ORDER.indexOf(unlockLevel) > curIdx) {
+			result.push({ case: c, unlockLevel });
+		}
+	}
+	return result;
+}
+
 export function generateFormProduction(
 	word: WordEntry,
 	case_: Case,

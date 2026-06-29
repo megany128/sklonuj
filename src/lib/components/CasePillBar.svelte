@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { type Case, ALL_CASES, CASE_SHORT_LABELS, CASE_NUMBER, CASE_HEX } from '$lib/types';
+	import Lock from '@lucide/svelte/icons/lock';
+	import {
+		type Case,
+		type Difficulty,
+		ALL_CASES,
+		CASE_SHORT_LABELS,
+		CASE_NUMBER,
+		CASE_HEX
+	} from '$lib/types';
 
 	interface Props {
 		selectedCase: Case | 'all';
@@ -8,9 +16,20 @@
 		/** Cases to show as pills; defaults to all 7. Cases the current level
 		 * can't fill are omitted so users can never select an empty case. */
 		availableCases?: Case[];
+		/** Cases locked by CEFR level, each with the level that unlocks it.
+		 * Rendered greyed-out; clicking surfaces an upsell modal via onLockedSelect. */
+		lockedCases?: { case: Case; unlockLevel: Difficulty }[];
+		onLockedSelect?: (locked: { case: Case; unlockLevel: Difficulty }) => void;
 	}
 
-	let { selectedCase, caseStrengths, onSelect, availableCases = ALL_CASES }: Props = $props();
+	let {
+		selectedCase,
+		caseStrengths,
+		onSelect,
+		availableCases = ALL_CASES,
+		lockedCases = [],
+		onLockedSelect
+	}: Props = $props();
 
 	const ACCURACY_COLORS = {
 		red: '#d73e3e',
@@ -72,6 +91,19 @@
 					style="color: {isSelected ? 'rgba(255,255,255,0.85)' : accColor}">{accuracyPct}%</span
 				>
 			{/if}
+		</button>
+	{/each}
+
+	{#each lockedCases as locked (locked.case)}
+		<button
+			type="button"
+			aria-disabled="true"
+			title="Unlocks at {locked.unlockLevel}"
+			class="case-locked flex cursor-pointer items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-card-stroke bg-transparent px-1.5 py-1.5 text-sm font-semibold text-text-subtitle/60 opacity-60 transition-opacity duration-200 hover:opacity-90 sm:px-2 sm:py-2"
+			onclick={() => onLockedSelect?.(locked)}
+		>
+			<Lock class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+			<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[locked.case]}</span>
 		</button>
 	{/each}
 </div>

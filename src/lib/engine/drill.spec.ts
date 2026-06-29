@@ -10,6 +10,8 @@ import {
 	weightedRandom,
 	applyPrepositionVoicing,
 	casesWithContent,
+	caseUnlockLevel,
+	lockedCasesForLevel,
 	hasValidForm
 } from './drill.ts';
 import type { Case, Difficulty, Progress } from '../types.ts';
@@ -407,5 +409,48 @@ describe('casesWithContent', () => {
 			numberMode: 'sg'
 		});
 		expect(cases.length).toBeGreaterThan(0);
+	});
+});
+
+describe('caseUnlockLevel', () => {
+	it('nom unlocks at A1 (every level has it)', () => {
+		expect(caseUnlockLevel('nom')).toBe('A1');
+	});
+
+	it('dat and ins first unlock at A2', () => {
+		expect(caseUnlockLevel('dat')).toBe('A2');
+		expect(caseUnlockLevel('ins')).toBe('A2');
+	});
+});
+
+describe('lockedCasesForLevel', () => {
+	it('A1 locks dat and ins, each pointing at A2', () => {
+		const locked = lockedCasesForLevel('A1');
+		const map = new Map(locked.map((l) => [l.case, l.unlockLevel]));
+		expect(map.get('dat')).toBe('A2');
+		expect(map.get('ins')).toBe('A2');
+		// A1-unlocked cases are never reported as locked.
+		expect(map.has('nom')).toBe(false);
+		expect(map.has('acc')).toBe(false);
+	});
+
+	it('A2+ unlock all 7 cases, so nothing is locked', () => {
+		for (const level of ['A2', 'B1', 'B2'] as Difficulty[]) {
+			expect(lockedCasesForLevel(level)).toEqual([]);
+		}
+	});
+
+	it('locked + unlocked partition is exactly the cases a higher level adds', () => {
+		// Honesty check against casesWithContent: a case is either available now
+		// or locked-for-later, never both, and never silently dropped.
+		const locked = lockedCasesForLevel('A1').map((l) => l.case);
+		const available = casesWithContent({
+			level: 'A1',
+			includeNouns: true,
+			includePronouns: true,
+			includeAdjectives: true,
+			numberMode: 'both'
+		});
+		for (const c of locked) expect(available).not.toContain(c);
 	});
 });
