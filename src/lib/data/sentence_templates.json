@@ -1561,12 +1561,13 @@
 	},
 	{
 		"id": "ins_mezi_149",
-		"template": "Stůl je mezi ___.",
+		"template": "Klíč je mezi ___.",
 		"lemmaCategory": "objects",
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "mezi",
-		"why": "'Mezi' (between/among) takes the instrumental case when expressing location or static position.",
+		"semanticTags": ["portable"],
+		"why": "'Mezi' (between/among) takes the instrumental case when expressing static location. 'Mezi' needs several things to lie among, so the noun is plural.",
 		"difficulty": "B1"
 	},
 	{
@@ -2233,7 +2234,8 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "mezi",
-		"why": "'Mezi' (among) takes the instrumental case when expressing location.",
+		"semanticTags": ["nature"],
+		"why": "'Mezi' (among) takes the instrumental case when expressing location. 'Mezi' needs several things to live among, so the noun is plural.",
 		"difficulty": "A2"
 	},
 	{
