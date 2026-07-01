@@ -4252,9 +4252,13 @@
 			</div>
 		{/if}
 
-		<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings -->
-		<div class="relative z-30 mb-2 grid min-h-[44px] grid-cols-[1fr_auto_1fr] items-center gap-3">
-			<div></div>
+		<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings.
+		     Stacks on mobile (stepper row, then icons row) so a long chapter title
+		     has room to truncate instead of crowding the icons; a 3-col grid on sm+. -->
+		<div
+			class="relative z-30 mb-2 flex min-h-[44px] flex-col items-stretch gap-2 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3"
+		>
+			<div class="hidden sm:block"></div>
 			<div class="flex min-w-0 justify-center">
 				{#if chapterBook !== null}
 					{@const kzkChapter = getSelectedKzkChapter()}
@@ -4280,11 +4284,13 @@
 								<button
 									type="button"
 									onclick={() => (chapterPickerOpen = !chapterPickerOpen)}
-									class="flex items-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
+									class="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
 									aria-expanded={chapterPickerOpen}
 									aria-haspopup="listbox"
 								>
-									<span class="truncate text-base font-semibold leading-tight text-text-default">
+									<span
+										class="min-w-0 truncate text-base font-semibold leading-tight text-text-default"
+									>
 										{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
 									</span>
 									{#if chapterAccPct !== null && chapterAccColor}
@@ -4410,7 +4416,7 @@
 					</button>
 				{/if}
 			</div>
-			<div class="flex items-center justify-end gap-2">
+			<div class="flex items-center justify-center gap-2 sm:justify-end">
 				{#if relevantMistakeCount > 0}
 					<button
 						type="button"
