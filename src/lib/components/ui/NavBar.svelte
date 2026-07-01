@@ -1,5 +1,7 @@
 <script lang="ts">
 	import Flame from '@lucide/svelte/icons/flame';
+	import Menu from '@lucide/svelte/icons/menu';
+	import X from '@lucide/svelte/icons/x';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { streak } from '$lib/engine/streak';
@@ -59,6 +61,34 @@
 	function closeMenu() {
 		menuOpen = false;
 	}
+
+	// Mobile hamburger menu (holds the primary nav links, plus Sign in when
+	// logged out, on screens too narrow for the inline nav).
+	let mobileMenuOpen = $state(false);
+	let mobileMenuRef: HTMLDivElement | undefined = $state(undefined);
+	let hamburgerRef: HTMLButtonElement | undefined = $state(undefined);
+	function closeMobileMenu() {
+		mobileMenuOpen = false;
+	}
+
+	$effect(() => {
+		if (!mobileMenuOpen) return;
+
+		function handleDocumentClick(e: MouseEvent) {
+			const target = e.target as Node | null;
+			if (target && (mobileMenuRef?.contains(target) || hamburgerRef?.contains(target))) return;
+			closeMobileMenu();
+		}
+
+		const frameId = requestAnimationFrame(() => {
+			document.addEventListener('click', handleDocumentClick);
+		});
+
+		return () => {
+			cancelAnimationFrame(frameId);
+			document.removeEventListener('click', handleDocumentClick);
+		};
+	});
 
 	function cancelHoverClose() {
 		if (hoverCloseTimer !== null) {
@@ -175,34 +205,37 @@
 		<span class="hidden text-sm text-text-subtitle sm:inline">decline it!</span>
 	</a>
 	<div class="flex items-center gap-2 sm:gap-4">
-		<a
-			href={resolve('/')}
-			class="nav-tab text-xs transition-colors sm:text-sm {isPracticePage
-				? 'font-semibold text-text-default'
-				: 'text-text-subtitle hover:text-text-default'}"
-			data-label="Practice"
-		>
-			Practice
-		</a>
-		<a
-			href={resolve('/resources')}
-			class="nav-tab text-xs transition-colors sm:text-sm {isResourcesPage
-				? 'font-semibold text-text-default'
-				: 'text-text-subtitle hover:text-text-default'}"
-			data-label="Resources"
-		>
-			Resources
-		</a>
-		<a
-			href={resolve('/classes')}
-			class="nav-tab text-xs transition-colors sm:text-sm {isClassesPage
-				? 'font-semibold text-text-default'
-				: 'text-text-subtitle hover:text-text-default'}"
-			data-label="Classes"
-			data-tour="classes-link"
-		>
-			Classes
-		</a>
+		<!-- Primary nav: inline on sm+, collapsed into the hamburger menu on mobile -->
+		<div class="hidden items-center gap-4 sm:flex">
+			<a
+				href={resolve('/')}
+				class="nav-tab text-xs transition-colors sm:text-sm {isPracticePage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle hover:text-text-default'}"
+				data-label="Practice"
+			>
+				Practice
+			</a>
+			<a
+				href={resolve('/resources')}
+				class="nav-tab text-xs transition-colors sm:text-sm {isResourcesPage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle hover:text-text-default'}"
+				data-label="Resources"
+			>
+				Resources
+			</a>
+			<a
+				href={resolve('/classes')}
+				class="nav-tab text-xs transition-colors sm:text-sm {isClassesPage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle hover:text-text-default'}"
+				data-label="Classes"
+				data-tour="classes-link"
+			>
+				Classes
+			</a>
+		</div>
 		{#if $streak.currentStreak > 0}
 			<span
 				class="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-600 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-400"
@@ -272,7 +305,7 @@
 			<button
 				type="button"
 				onclick={() => onSignIn?.()}
-				class="cursor-pointer rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+				class="hidden cursor-pointer rounded-full border border-card-stroke px-3 py-1.5 text-xs font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default sm:inline-block"
 			>
 				Sign in
 			</button>
@@ -326,7 +359,71 @@
 				/>
 			</svg>
 		</button>
+		<!-- Hamburger: mobile-only entry point to the primary nav -->
+		<button
+			type="button"
+			bind:this={hamburgerRef}
+			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
+			class="flex size-8 cursor-pointer items-center justify-center rounded-full text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default sm:hidden"
+			aria-label="Menu"
+			aria-expanded={mobileMenuOpen}
+			aria-controls="mobile-nav-menu"
+		>
+			{#if mobileMenuOpen}
+				<X class="size-5" aria-hidden="true" />
+			{:else}
+				<Menu class="size-5" aria-hidden="true" />
+			{/if}
+		</button>
 	</div>
+
+	{#if mobileMenuOpen}
+		<div
+			id="mobile-nav-menu"
+			bind:this={mobileMenuRef}
+			class="absolute inset-x-0 top-full z-50 flex flex-col border-b border-card-stroke bg-card-bg px-3 py-2 shadow-lg sm:hidden"
+		>
+			<a
+				href={resolve('/')}
+				onclick={closeMobileMenu}
+				class="rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-shaded-background {isPracticePage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle'}"
+			>
+				Practice
+			</a>
+			<a
+				href={resolve('/resources')}
+				onclick={closeMobileMenu}
+				class="rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-shaded-background {isResourcesPage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle'}"
+			>
+				Resources
+			</a>
+			<a
+				href={resolve('/classes')}
+				onclick={closeMobileMenu}
+				class="rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-shaded-background {isClassesPage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle'}"
+			>
+				Classes
+			</a>
+			{#if !user}
+				<button
+					type="button"
+					onclick={() => {
+						closeMobileMenu();
+						onSignIn?.();
+					}}
+					class="mt-1 cursor-pointer rounded-lg border border-card-stroke px-3 py-2.5 text-left text-sm font-medium text-text-subtitle transition-colors hover:border-emphasis hover:text-text-default"
+				>
+					Sign in
+				</button>
+			{/if}
+		</div>
+	{/if}
 </nav>
 
 <style>
