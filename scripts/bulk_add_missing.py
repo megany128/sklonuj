@@ -245,6 +245,27 @@ for book in ["kzk1", "kzk2"]:
                     }
 
 
+# Lesson-based CEFR split: KzK1 spans A1->A2, so its first half (lessons
+# 1-10) is A1 and its second half (11-19) is A2; KzK2 is A2 throughout.
+# recognition_only tracks production vs. recognition and does not affect the
+# CEFR level.
+KZK1_A1_MAX_LESSON = 10
+kzk1_lesson = {}
+with open(os.path.join(BASE, "scripts/kzk1_nouns.json")) as f:
+    for n in json.load(f).get("nouns", []):
+        for part in n["lemma"].split("/"):
+            kzk1_lesson.setdefault(part.strip(), n["lesson"])
+
+
+def difficulty_for(lemma, book):
+    if book == "kzk1":
+        lesson = kzk1_lesson.get(lemma)
+        if lesson is not None:
+            return "A1" if lesson <= KZK1_A1_MAX_LESSON else "A2"
+        return "A1"
+    return "A2"
+
+
 # Generate entries
 new_entries = []
 skipped = []
@@ -255,7 +276,7 @@ for item in missing:
         continue
 
     ch_info = chapter_info.get(lemma, {"book": "kzk1", "subtitle": ""})
-    difficulty = "A1" if ch_info["book"] == "kzk1" else "A2"
+    difficulty = difficulty_for(lemma, ch_info["book"])
     subtitle = ch_info.get("subtitle", "")
 
     if lemma in dict_by_lemma:

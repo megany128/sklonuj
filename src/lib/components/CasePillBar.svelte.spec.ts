@@ -38,6 +38,34 @@ describe('CasePillBar', () => {
 			.toBeInTheDocument();
 	});
 
+	it('keeps available and locked pills in canonical case order', async () => {
+		// gen/dat are locked; they must hold their natural slots between the
+		// available nom and acc pills rather than being appended at the end, so
+		// pills never reflow when a level unlocks a case.
+		render(CasePillBar, {
+			selectedCase: 'all',
+			caseStrengths: emptyStrengths(),
+			availableCases: ['nom', 'acc'],
+			lockedCases: [
+				{ case: 'gen', unlockLevel: 'A2' },
+				{ case: 'dat', unlockLevel: 'B1' }
+			],
+			onSelect: () => {},
+			onLockedSelect: () => {}
+		});
+
+		const group = page.getByRole('group', { name: 'Case filter' }).element();
+		const labels = Array.from(group.querySelectorAll('button'))
+			.map((b) => b.textContent ?? '')
+			.filter((t) => t.trim().length > 0);
+		const posOf = (label: string) => labels.findIndex((t) => t.includes(label));
+
+		expect(posOf(CASE_SHORT_LABELS.nom)).toBeGreaterThanOrEqual(0);
+		expect(posOf(CASE_SHORT_LABELS.nom)).toBeLessThan(posOf(CASE_SHORT_LABELS.gen));
+		expect(posOf(CASE_SHORT_LABELS.gen)).toBeLessThan(posOf(CASE_SHORT_LABELS.dat));
+		expect(posOf(CASE_SHORT_LABELS.dat)).toBeLessThan(posOf(CASE_SHORT_LABELS.acc));
+	});
+
 	it('defaults to all 7 cases when availableCases is omitted', async () => {
 		render(CasePillBar, {
 			selectedCase: 'all',

@@ -31,6 +31,12 @@
 		onLockedSelect
 	}: Props = $props();
 
+	// Render pills in the canonical 7-case order regardless of available/locked
+	// status. A locked case holds its natural slot (and simply swaps its greyed
+	// pill for an interactive one when a higher level unlocks it) so pills never
+	// reflow. Cases in neither set stay hidden — the auto-hide-empty safety net.
+	// Both lists have at most 7 entries, so linear lookups are trivially cheap.
+
 	const ACCURACY_COLORS = {
 		red: '#d73e3e',
 		amber: '#e5a000',
@@ -61,50 +67,51 @@
 		All
 	</button>
 
-	{#each availableCases as c (c)}
-		{@const isSelected = selectedCase === c}
-		{@const strength = caseStrengths[c]}
-		{@const hex = CASE_HEX[c]}
-		{@const accuracyPct = strength.attempts > 0 ? Math.round(strength.accuracy * 100) : null}
-		{@const accColor = strength.attempts > 0 ? accuracyColor(strength.accuracy) : null}
-		<button
-			aria-pressed={isSelected}
-			class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-[background-color,border-color] duration-200 ease-out sm:px-2 sm:py-2
-				{accColor && !isSelected ? '' : 'border-card-stroke'}"
-			style={isSelected
-				? `background-color: ${hex}; border-color: ${hex}; --case-color: ${hex}`
-				: `--case-color: ${hex}; ${accColor ? `background-color: ${accColor}18; border-color: ${accColor}70` : ''}`}
-			onclick={() => handleCaseClick(c)}
-		>
-			<span class="flex items-center gap-1" style="color: {isSelected ? 'white' : hex}">
-				<span
-					class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-					style="background-color: {isSelected ? 'rgba(255,255,255,0.25)' : hex}; color: white"
-				>
-					{CASE_NUMBER[c]}
+	{#each ALL_CASES as c (c)}
+		{@const locked = lockedCases.find((l) => l.case === c)}
+		{#if availableCases.includes(c)}
+			{@const isSelected = selectedCase === c}
+			{@const strength = caseStrengths[c]}
+			{@const hex = CASE_HEX[c]}
+			{@const accuracyPct = strength.attempts > 0 ? Math.round(strength.accuracy * 100) : null}
+			{@const accColor = strength.attempts > 0 ? accuracyColor(strength.accuracy) : null}
+			<button
+				aria-pressed={isSelected}
+				class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-[background-color,border-color] duration-200 ease-out sm:px-2 sm:py-2
+					{accColor && !isSelected ? '' : 'border-card-stroke'}"
+				style={isSelected
+					? `background-color: ${hex}; border-color: ${hex}; --case-color: ${hex}`
+					: `--case-color: ${hex}; ${accColor ? `background-color: ${accColor}18; border-color: ${accColor}70` : ''}`}
+				onclick={() => handleCaseClick(c)}
+			>
+				<span class="flex items-center gap-1" style="color: {isSelected ? 'white' : hex}">
+					<span
+						class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+						style="background-color: {isSelected ? 'rgba(255,255,255,0.25)' : hex}; color: white"
+					>
+						{CASE_NUMBER[c]}
+					</span>
+					<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[c]}</span>
 				</span>
+				{#if accuracyPct !== null && accColor}
+					<span
+						class="text-xs font-bold"
+						style="color: {isSelected ? 'rgba(255,255,255,0.85)' : accColor}">{accuracyPct}%</span
+					>
+				{/if}
+			</button>
+		{:else if locked}
+			<button
+				type="button"
+				aria-disabled="true"
+				title="Unlocks at {locked.unlockLevel}"
+				class="case-locked flex cursor-pointer items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-card-stroke bg-transparent px-1.5 py-1.5 text-sm font-semibold text-text-subtitle/60 opacity-60 transition-opacity duration-200 hover:opacity-90 sm:px-2 sm:py-2"
+				onclick={() => onLockedSelect?.(locked)}
+			>
+				<Lock class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
 				<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[c]}</span>
-			</span>
-			{#if accuracyPct !== null && accColor}
-				<span
-					class="text-xs font-bold"
-					style="color: {isSelected ? 'rgba(255,255,255,0.85)' : accColor}">{accuracyPct}%</span
-				>
-			{/if}
-		</button>
-	{/each}
-
-	{#each lockedCases as locked (locked.case)}
-		<button
-			type="button"
-			aria-disabled="true"
-			title="Unlocks at {locked.unlockLevel}"
-			class="case-locked flex cursor-pointer items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-card-stroke bg-transparent px-1.5 py-1.5 text-sm font-semibold text-text-subtitle/60 opacity-60 transition-opacity duration-200 hover:opacity-90 sm:px-2 sm:py-2"
-			onclick={() => onLockedSelect?.(locked)}
-		>
-			<Lock class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-			<span class="text-xs sm:text-sm">{CASE_SHORT_LABELS[locked.case]}</span>
-		</button>
+			</button>
+		{/if}
 	{/each}
 </div>
 

@@ -48915,7 +48915,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": [
@@ -48944,7 +48944,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["jahoda", "jahody", "jahodě", "jahodu", "jahodo", "jahodě", "jahodou"],
@@ -48957,7 +48957,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": [
@@ -48986,7 +48986,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["kečup", "kečupu", "kečupu", "kečup", "kečupe", "kečupu", "kečupem"],
@@ -48999,7 +48999,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["krém", "krému", "krému", "krém", "kréme", "krému", "krémem"],
@@ -49012,7 +49012,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["profession"],
 		"forms": {
 			"sg": ["kuchař", "kuchaře", "kuchaři", "kuchaře", "kuchaři", "kuchaři", "kuchařem"],
@@ -49031,7 +49031,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "profession"],
 		"forms": {
 			"sg": ["kuchařka", "kuchařky", "kuchařce", "kuchařku", "kuchařko", "kuchařce", "kuchařkou"],
@@ -49052,7 +49052,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people", "profession"],
 		"forms": {
 			"sg": ["lyžař", "lyžaře", "lyžaři", "lyžaře", "lyžaři", "lyžaři", "lyžařem"],
@@ -49071,7 +49071,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people", "profession"],
 		"forms": {
 			"sg": ["lyžařka", "lyžařky", "lyžařce", "lyžařku", "lyžařko", "lyžařce", "lyžařkou"],
@@ -49084,7 +49084,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["lžička", "lžičky", "lžičce", "lžičku", "lžičko", "lžičce", "lžičkou"],
@@ -49097,7 +49097,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["maniak", "maniaka", "maniakovi", "maniaka", "maniaku", "maniakovi", "maniakem"],
@@ -49116,7 +49116,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["maniačka", "maniačky", "maniačce", "maniačku", "maniačko", "maniačce", "maniačkou"],
@@ -49137,7 +49137,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["med", "medu", "medu", "med", "mede", "medu", "medem"],
@@ -49163,7 +49163,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["meal"],
 		"forms": {
 			"sg": ["porce", "porce", "porci", "porci", "porce", "porci", "porcí"],
@@ -49176,7 +49176,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["animals"],
 		"forms": {
 			"sg": [
@@ -49211,7 +49211,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food", "weighable", "sliceable"],
 		"forms": {
 			"sg": ["slanina", "slaniny", "slanině", "slaninu", "slanino", "slanině", "slaninou"],
@@ -49224,7 +49224,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["animals"],
 		"forms": {
 			"sg": ["sova", "sovy", "sově", "sovu", "sovo", "sově", "sovou"],
@@ -49237,7 +49237,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["misc", "people", "family"],
 		"forms": {
 			"sg": ["strýček", "strýčka", "strýčkovi", "strýčka", "strýčku", "strýčkovi", "strýčkem"],
@@ -49256,7 +49256,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["family"],
 		"forms": {
 			"sg": ["tchyně", "tchyně", "tchyni", "tchyni", "tchyně", "tchyni", "tchyní"],
@@ -49269,7 +49269,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["family"],
 		"forms": {
 			"sg": ["tchán", "tchána", "tchánovi", "tchána", "tcháne", "tchánovi", "tchánem"],
@@ -49288,7 +49288,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food", "weighable"],
 		"forms": {
 			"sg": ["tvaroh", "tvarohu", "tvarohu", "tvaroh", "tvarohu", "tvarohu", "tvarohem"],
@@ -49301,7 +49301,7 @@
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food", "weighable"],
 		"forms": {
 			"sg": ["zelí", "zelí", "zelí", "zelí", "zelí", "zelí", "zelím"],
@@ -49327,7 +49327,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["family"],
 		"forms": {
 			"sg": ["švagr", "švagra", "švagrovi", "švagra", "švagře", "švagrovi", "švagrem"],
@@ -49346,7 +49346,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["family"],
 		"forms": {
 			"sg": ["švagrová", "švagrové", "švagrové", "švagrovou", "švagrová", "švagrové", "švagrovou"],
@@ -49368,7 +49368,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": [
@@ -49397,7 +49397,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["úklid", "úklidu", "úklidu", "úklid", "úklide", "úklidu", "úklidem"],
@@ -49410,7 +49410,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "předseda",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": [
@@ -49431,7 +49431,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": [
@@ -49460,7 +49460,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["nature", "places", "v_place"],
 		"forms": {
 			"sg": ["džungle", "džungle", "džungli", "džungli", "džungle", "džungli", "džunglí"],
@@ -49473,7 +49473,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["event", "abstract"],
 		"forms": {
 			"sg": ["exploze", "exploze", "explozi", "explozi", "exploze", "explozi", "explozí"],
@@ -49486,7 +49486,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["animals"],
 		"forms": {
 			"sg": [
@@ -49521,7 +49521,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["abstract", "travel"],
 		"forms": {
 			"sg": ["odlet", "odletu", "odletu", "odlet", "odlete", "odletu", "odletem"],
@@ -49534,7 +49534,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["pirát", "piráta", "pirátovi", "piráta", "piráte", "pirátovi", "pirátem"],
@@ -49553,7 +49553,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["travel"],
 		"forms": {
 			"sg": ["přestup", "přestupu", "přestupu", "přestup", "přestupe", "přestupu", "přestupem"],
@@ -49566,7 +49566,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "předseda",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": [
@@ -49587,7 +49587,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": [
@@ -49616,7 +49616,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["semafor", "semaforu", "semaforu", "semafor", "semafore", "semaforu", "semaforem"],
@@ -49629,7 +49629,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["nature", "geological"],
 		"forms": {
 			"sg": ["sopka", "sopky", "sopce", "sopku", "sopko", "sopce", "sopkou"],
@@ -49642,7 +49642,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "předseda",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people", "profession"],
 		"forms": {
 			"sg": [
@@ -49671,7 +49671,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people", "profession"],
 		"forms": {
 			"sg": [
@@ -49700,7 +49700,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": ["směnárna", "směnárny", "směnárně", "směnárnu", "směnárno", "směnárně", "směnárnou"],
@@ -49721,7 +49721,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": [
@@ -49750,7 +49750,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["upír", "upíra", "upírovi", "upíra", "upíre", "upírovi", "upírem"],
@@ -49769,7 +49769,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": ["ordinace", "ordinace", "ordinaci", "ordinaci", "ordinace", "ordinaci", "ordinací"],
@@ -49790,7 +49790,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["bouřka", "bouřky", "bouřce", "bouřku", "bouřko", "bouřce", "bouřkou"],
@@ -49803,7 +49803,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["broskev", "broskve", "broskvi", "broskev", "broskvi", "broskvi", "broskví"],
@@ -49816,7 +49816,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["abstract"],
 		"forms": {
 			"sg": ["intuice", "intuice", "intuici", "intuici", "intuice", "intuici", "intuicí"],
@@ -49829,7 +49829,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["losos", "lososa", "lososovi", "lososa", "losose", "lososovi", "lososem"],
@@ -49848,7 +49848,7 @@
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["nature", "weather"],
 		"forms": {
 			"sg": ["náledí", "náledí", "náledí", "náledí", "náledí", "náledí", "náledím"],
@@ -49861,7 +49861,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["animals"],
 		"forms": {
 			"sg": ["pavouk", "pavouka", "pavoukovi", "pavouka", "pavouku", "pavoukovi", "pavoukem"],
@@ -49880,7 +49880,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["rybíz", "rybízu", "rybízu", "rybíz", "rybíze", "rybízu", "rybízem"],
@@ -49893,7 +49893,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["sud", "sudu", "sudu", "sud", "sude", "sudě", "sudem"],
@@ -49906,7 +49906,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["animals"],
 		"forms": {
 			"sg": ["velryba", "velryby", "velrybě", "velrybu", "velrybo", "velrybě", "velrybou"],
@@ -49919,7 +49919,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["kabinka", "kabinky", "kabince", "kabinku", "kabinko", "kabince", "kabinkou"],
@@ -49932,7 +49932,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["klientka", "klientky", "klientce", "klientku", "klientko", "klientce", "klientkou"],
@@ -49953,7 +49953,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["kravata", "kravaty", "kravatě", "kravatu", "kravato", "kravatě", "kravatou"],
@@ -49966,7 +49966,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": [
@@ -50001,7 +50001,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
@@ -50030,7 +50030,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["zavináč", "zavináče", "zavináči", "zavináč", "zavináči", "zavináči", "zavináčem"],
@@ -50043,7 +50043,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["clothing"],
 		"forms": {
 			"sg": ["blůza", "blůzy", "blůze", "blůzu", "blůzo", "blůze", "blůzou"],
@@ -50056,7 +50056,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["komik", "komika", "komikovi", "komika", "komiku", "komikovi", "komikem"],
@@ -50075,7 +50075,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["komička", "komičky", "komičce", "komičku", "komičko", "komičce", "komičkou"],
@@ -50088,7 +50088,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["konzerva", "konzervy", "konzervě", "konzervu", "konzervo", "konzervě", "konzervou"],
@@ -50101,7 +50101,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["punkerka", "punkerky", "punkerce", "punkerku", "punkerko", "punkerce", "punkerkou"],
@@ -50135,7 +50135,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "clothing", "portable"],
 		"forms": {
 			"sg": ["svetr", "svetru", "svetru", "svetr", "svetre", "svetru", "svetrem"],
@@ -50148,7 +50148,7 @@
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["triko", "trika", "triku", "triko", "triko", "triku", "trikem"],
@@ -50174,7 +50174,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["abstract"],
 		"forms": {
 			"sg": [
@@ -50203,7 +50203,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": [
@@ -50245,7 +50245,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["abstract"],
 		"forms": {
 			"sg": ["hádka", "hádky", "hádce", "hádku", "hádko", "hádce", "hádkou"],
@@ -50258,7 +50258,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["inkoust", "inkoustu", "inkoustu", "inkoust", "inkouste", "inkoustě", "inkoustem"],
@@ -50271,7 +50271,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["family", "people", "profession"],
 		"forms": {
 			"sg": [
@@ -50313,7 +50313,7 @@
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["mýdlo", "mýdla", "mýdlu", "mýdlo", "mýdlo", "mýdle", "mýdlem"],
@@ -50326,7 +50326,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["příbor", "příboru", "příboru", "příbor", "příbore", "příboru", "příborem"],
@@ -50339,7 +50339,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects"],
 		"forms": {
 			"sg": ["raketa", "rakety", "raketě", "raketu", "raketo", "raketě", "raketou"],
@@ -50352,7 +50352,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["sendvič", "sendviče", "sendviči", "sendvič", "sendviči", "sendviči", "sendvičem"],
@@ -50365,7 +50365,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people", "profession"],
 		"forms": {
 			"sg": [
@@ -50392,7 +50392,7 @@
 		"gender": "f",
 		"animate": true,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["family", "people", "profession"],
 		"forms": {
 			"sg": [
@@ -50421,7 +50421,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["tuňák", "tuňáka", "tuňákovi", "tuňáka", "tuňáku", "tuňákovi", "tuňákem"],
@@ -50440,7 +50440,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["vidlička", "vidličky", "vidličce", "vidličku", "vidličko", "vidličce", "vidličkou"],
@@ -50461,7 +50461,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": ["čajovna", "čajovny", "čajovně", "čajovnu", "čajovno", "čajovně", "čajovnou"],
@@ -50474,7 +50474,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food", "weighable"],
 		"forms": {
 			"sg": ["česnek", "česneku", "česneku", "česnek", "česneku", "česneku", "česnekem"],
@@ -50500,7 +50500,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food", "weighable"],
 		"forms": {
 			"sg": ["špenát", "špenátu", "špenátu", "špenát", "špenáte", "špenátě", "špenátem"],
@@ -51610,7 +51610,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["pórek", "pórku", "pórku", "pórek", "pórku", "pórku", "pórkem"],
@@ -51623,7 +51623,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["sáček", "sáčku", "sáčku", "sáček", "sáčku", "sáčku", "sáčkem"],
@@ -51655,7 +51655,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["abstract"],
 		"forms": {
 			"sg": ["přijezd", "příjezdu", "příjezdu", "přijezd", "příjezde", "příjezdu", "příjezdem"],
@@ -51681,7 +51681,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": ["bufet", "bufetu", "bufetu", "bufet", "bufete", "bufetu", "bufetem"],
@@ -51694,7 +51694,7 @@
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["transportation"],
 		"forms": {
 			"sg": [
@@ -51723,7 +51723,7 @@
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["people"],
 		"forms": {
 			"sg": ["punker", "punkera", "punkerovi", "punkera", "punkere", "punkerovi", "punkerem"],
@@ -51742,7 +51742,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["balon", "balonu", "balonu", "balon", "balone", "balonu", "balonem"],
@@ -51755,7 +51755,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["misc", "abstract"],
 		"forms": {
 			"sg": ["biliár", "biliáru", "biliáru", "biliár", "biliáre", "biliáru", "biliárem"],
@@ -51768,7 +51768,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["food"],
 		"forms": {
 			"sg": ["karamel", "karamelu", "karamelu", "karamel", "karamele", "karamelu", "karamelem"],
@@ -51781,7 +51781,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["places", "v_place"],
 		"forms": {
 			"sg": ["salón", "salónu", "salónu", "salón", "salóne", "salónu", "salónem"],
@@ -51794,7 +51794,7 @@
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"categories": ["objects", "portable"],
 		"forms": {
 			"sg": ["šampon", "šamponu", "šamponu", "šampon", "šampone", "šamponu", "šamponem"],
