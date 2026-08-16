@@ -1562,6 +1562,13 @@
 	let refSidebarPronoun = $state('');
 	let refSidebarTab = $state<'declension' | 'pronouns' | 'cases'>('cases');
 
+	// Gender paradigm the current adjective question agrees with — the sidebar's
+	// adjective table outlines this column so learners can find the relevant forms.
+	let refSidebarAdjGenderKey = $derived.by(() => {
+		const q = question;
+		return q?.wordCategory === 'adjective' && q.adjective ? getAdjectiveGenderKey(q.word) : null;
+	});
+
 	function handleWordClick(lemma: string) {
 		const pronounBank = loadPronounBank();
 		const isPronoun = pronounBank.some((p) => p.lemma === lemma);
@@ -1578,7 +1585,15 @@
 	}
 
 	function openReferenceSidebar() {
-		refSidebarWord = question?.word.lemma ?? multiStepQuestion?.word.lemma ?? '';
+		// Same lemma resolution as the sync effect: for adjective/pronoun questions,
+		// question.word is a hidden agreement noun, not the word shown on screen.
+		if (question?.wordCategory === 'pronoun' && question.pronoun) {
+			refSidebarPronoun = question.pronoun.lemma;
+		} else if (question?.wordCategory === 'adjective' && question.adjective) {
+			refSidebarWord = question.adjective.lemma;
+		} else {
+			refSidebarWord = question?.word.lemma ?? multiStepQuestion?.word.lemma ?? '';
+		}
 		refSidebarTab = 'cases';
 		refSidebarOpen = true;
 	}
@@ -1600,18 +1615,25 @@
 		}
 	}
 
-	// Keep sidebar word in sync with the current question
+	// Keep sidebar word in sync with the current question. Reacts only to question
+	// changes — refSidebarOpen is read untracked so that opening the sidebar (e.g.
+	// via a lemma click, which sets the word explicitly) doesn't re-run this and
+	// clobber the clicked word with the question's hidden agreement noun.
 	$effect(() => {
-		if (!refSidebarOpen) return;
-		if (question) {
-			if (question.wordCategory === 'pronoun' && question.pronoun) {
-				refSidebarPronoun = question.pronoun.lemma;
+		const q = question;
+		const msq = multiStepQuestion;
+		if (!untrack(() => refSidebarOpen)) return;
+		if (q) {
+			if (q.wordCategory === 'pronoun' && q.pronoun) {
+				refSidebarPronoun = q.pronoun.lemma;
+			} else if (q.wordCategory === 'adjective' && q.adjective) {
+				refSidebarWord = q.adjective.lemma;
 			} else {
-				const lemma = question.word.lemma;
+				const lemma = q.word.lemma;
 				if (lemma) refSidebarWord = lemma;
 			}
-		} else if (multiStepQuestion) {
-			const lemma = multiStepQuestion.word.lemma;
+		} else if (msq) {
+			const lemma = msq.word.lemma;
 			if (lemma) refSidebarWord = lemma;
 		}
 	});
@@ -4656,6 +4678,7 @@
 				initialWord={refSidebarWord}
 				initialPronoun={refSidebarPronoun}
 				initialTab={refSidebarTab}
+				adjGenderKey={refSidebarAdjGenderKey}
 				onClose={() => (refSidebarOpen = false)}
 			/>
 		</aside>

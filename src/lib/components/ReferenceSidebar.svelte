@@ -7,6 +7,7 @@
 	import LookupSearch, { type LookupKind } from './LookupSearch.svelte';
 	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
 	import { stripDiacritics } from '$lib/utils/diacritics';
+	import type { AdjectiveGenderKey } from '$lib/types';
 
 	type TabId = 'declension' | 'pronouns' | 'cases';
 
@@ -14,11 +15,14 @@
 		initialWord = '',
 		initialPronoun = '',
 		initialTab = 'declension',
+		adjGenderKey = null,
 		onClose
 	}: {
 		initialWord?: string;
 		initialPronoun?: string;
 		initialTab?: TabId;
+		/** Gender paradigm of the current adjective question, outlined in the adjective table. */
+		adjGenderKey?: AdjectiveGenderKey | null;
 		onClose: () => void;
 	} = $props();
 
@@ -143,7 +147,11 @@
 					onClear={handleClear}
 				/>
 				{#if selectedKind === 'adjective'}
-					<AdjectiveDeclensionTable {selectedLemma} alwaysExpanded={true} />
+					<AdjectiveDeclensionTable
+						{selectedLemma}
+						alwaysExpanded={true}
+						highlightGenderKey={adjGenderKey}
+					/>
 				{:else}
 					<DeclensionTable
 						{selectedLemma}

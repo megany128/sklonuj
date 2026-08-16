@@ -7,10 +7,13 @@
 
 	let {
 		selectedLemma = '',
-		alwaysExpanded = false
+		alwaysExpanded = false,
+		highlightGenderKey = null
 	}: {
 		selectedLemma?: string;
 		alwaysExpanded?: boolean;
+		/** Gender paradigm to outline (e.g. the one the current drill question agrees with). */
+		highlightGenderKey?: AdjectiveGenderKey | null;
 	} = $props();
 
 	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
@@ -100,6 +103,20 @@
 		const forms: CaseForms = entry.forms[gk][num];
 		return forms[CASE_INDEX[c]];
 	}
+
+	// Scroll the outlined gender column into view — the table is wider than the
+	// sidebar, so the relevant paradigm may otherwise sit off-screen.
+	let scrollContainer: HTMLDivElement | undefined = $state(undefined);
+	$effect(() => {
+		void displayEntry;
+		const gk = highlightGenderKey;
+		const container = scrollContainer;
+		if (!gk || !container) return;
+		const th = container.querySelector(`th[data-gender="${gk}"]`);
+		if (th instanceof HTMLElement) {
+			container.scrollLeft = Math.max(0, th.offsetLeft - 80);
+		}
+	});
 </script>
 
 <div class="w-full">
@@ -145,9 +162,10 @@
 				</span>
 			</div>
 
-			<!-- Declension table: 7 case rows × (4 genders × sg/pl) = 8 form columns -->
-			<div class="overflow-x-auto">
-				<table class="w-full text-left text-xs">
+			<!-- Declension table: 7 case rows × (4 genders × sg/pl) = 8 form columns.
+			     border-separate (not collapse) so the highlight outline can have rounded corners. -->
+			<div class="overflow-x-auto" bind:this={scrollContainer}>
+				<table class="w-full border-separate border-spacing-0 text-left text-xs">
 					<thead>
 						<tr>
 							<th
@@ -157,12 +175,16 @@
 								Case
 							</th>
 							{#each GENDER_GROUPS as g, idx (g.key)}
+								{@const hl = g.key === highlightGenderKey}
 								<th
 									colspan="2"
-									class="bg-shaded-background px-2 py-2 text-center text-xs font-semibold text-text-subtitle {idx ===
+									data-gender={g.key}
+									class="bg-shaded-background px-2 py-2 text-center text-xs font-semibold {idx ===
 									GENDER_GROUPS.length - 1
 										? 'rounded-tr-lg'
-										: ''}"
+										: ''} {hl
+										? 'rounded-t-lg border-2 border-b-0 border-emphasis text-text-default'
+										: 'text-text-subtitle'}"
 								>
 									{g.label}
 								</th>
@@ -170,10 +192,19 @@
 						</tr>
 						<tr>
 							{#each GENDER_GROUPS as g (g.key + '-sub')}
-								<th class="bg-shaded-background px-2 pb-2 text-xs font-normal text-text-subtitle">
+								{@const hl = g.key === highlightGenderKey}
+								<th
+									class="bg-shaded-background px-2 pb-2 text-xs font-normal text-text-subtitle {hl
+										? 'border-l-2 border-l-emphasis'
+										: ''}"
+								>
 									Sg
 								</th>
-								<th class="bg-shaded-background px-2 pb-2 text-xs font-normal text-text-subtitle">
+								<th
+									class="bg-shaded-background px-2 pb-2 text-xs font-normal text-text-subtitle {hl
+										? 'border-r-2 border-r-emphasis'
+										: ''}"
+								>
 									Pl
 								</th>
 							{/each}
@@ -181,16 +212,22 @@
 					</thead>
 					<tbody>
 						{#each CASE_ORDER as caseKey, i (caseKey)}
-							<tr
-								class="border-t border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
-							>
-								<td class="whitespace-nowrap px-2 py-2 font-medium text-text-subtitle">
+							{@const lastRow = i === CASE_ORDER.length - 1}
+							<tr class={i % 2 === 0 ? 'bg-shaded-background/50' : ''}>
+								<td
+									class="whitespace-nowrap border-t border-card-stroke px-2 py-2 font-medium text-text-subtitle"
+								>
 									{CASE_NUMBER[caseKey]}. {CASE_LABELS[caseKey]}
 								</td>
 								{#each GENDER_GROUPS as g (g.key + '-' + caseKey)}
+									{@const hl = g.key === highlightGenderKey}
 									{@const sgForm = formAt(displayEntry, g.key, 'sg', caseKey)}
 									{@const plForm = formAt(displayEntry, g.key, 'pl', caseKey)}
-									<td class="whitespace-nowrap px-2 py-2">
+									<td
+										class="whitespace-nowrap border-t border-card-stroke px-2 py-2 {hl
+											? `border-l-2 border-l-emphasis ${lastRow ? 'rounded-bl-lg border-b-2 border-b-emphasis' : ''}`
+											: ''}"
+									>
 										{#if sgForm === ''}
 											<span class="text-darker-shaded-background">&mdash;</span>
 										{:else if stem.length > 0}
@@ -201,7 +238,11 @@
 											<span class="text-text-default">{sgForm}</span>
 										{/if}
 									</td>
-									<td class="whitespace-nowrap px-2 py-2">
+									<td
+										class="whitespace-nowrap border-t border-card-stroke px-2 py-2 {hl
+											? `border-r-2 border-r-emphasis ${lastRow ? 'rounded-br-lg border-b-2 border-b-emphasis' : ''}`
+											: ''}"
+									>
 										{#if plForm === ''}
 											<span class="text-darker-shaded-background">&mdash;</span>
 										{:else if stem.length > 0}
