@@ -88,4 +88,9 @@ See the docstring in `scripts/generate_tts.py` for flags and troubleshooting.
 
 ## License
 
-This project is licensed under CC BY-NC-SA 4.0. See [DATA_SOURCES.md](DATA_SOURCES.md) for upstream data licenses.
+Sklonuj is free for non-commercial use. It is dual-licensed by content type:
+
+- **Source code** (everything not listed below) — [PolyForm Noncommercial 1.0.0](LICENSE). A software licence that permits use, modification and redistribution for any non-commercial purpose.
+- **Linguistic data and audio** (`src/lib/data/**`, `static/audio/**`, the word lists in `scripts/`) — [CC BY-NC-SA 4.0](LICENSE-DATA). This is required by the upstream MorfFlex CZ licence and cannot be relaxed.
+
+Commercial use of either part requires separate permission (and, for the data, a commercial licence from ÚFAL for MorfFlex CZ). See [DATA_SOURCES.md](DATA_SOURCES.md) for upstream attribution.

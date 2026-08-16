@@ -35,6 +35,13 @@ The build pipeline works as follows:
 3. English translations are sourced from Wiktionary data dumps processed by kaikki.org.
 4. The combined data (lemma, gender, declension forms, translations) is stored and served to the application at runtime.
 
-## License Compatibility
+## Licensing
 
-MorfFlex CZ 2.1 is distributed under CC BY-NC-SA 3.0. Wiktionary content is under CC BY-SA 3.0. This project uses CC BY-NC-SA 4.0, which is compatible with both upstream licenses under the ShareAlike and NonCommercial terms.
+The repository is dual-licensed:
+
+- **Source code** — [PolyForm Noncommercial 1.0.0](LICENSE).
+- **Data and audio** (`src/lib/data/**`, `static/audio/**`, curated word lists in `scripts/`) — [CC BY-NC-SA 4.0](LICENSE-DATA).
+
+**MorfFlex CZ 2.1** is CC BY-NC-SA 3.0. Its ShareAlike clause permits adaptations under a later version with the same licence elements, so the declension data is distributed under CC BY-NC-SA 4.0. The NonCommercial term binds the deployed application as well as the data files.
+
+**Wiktionary translations** are CC BY-SA 3.0. CC BY-SA does not permit adding a NonCommercial restriction to adaptations, so the English gloss (`translation` field) in each entry is not relicensed: it remains available under CC BY-SA 3.0, with attribution to Wiktionary/kaikki.org. Only the MorfFlex-derived declension data carries the NC term.
