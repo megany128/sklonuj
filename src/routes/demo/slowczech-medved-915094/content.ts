@@ -217,7 +217,7 @@ const story: string[] = [
 	'Bylo už po sezóně, takže tam nebyli moc turisti. Šli jsme na túru. Turisty jsme opravdu neviděli, ale viděli jsme horská zvířata. Nejdřív jsme viděli kamzíky a muflony. To jsou horský kozy. Věděli jsme, že tam jsou i medvědi, ale nečekali jsme, že medvěda uvidíme.',
 	'A potom se manžel zastavil a říká, podívej, támhle je medvěd. Nejdřív jsem mu nevěřila, ale pak jsem se podívala a uviděla jsem ho taky. Byl veliký a byl docela blízko. Asi 300 metrů a šel k nám. Nevěděla jsem, co mám dělat. Byla jsem totálně paralyzovaná. Když jsem se zeptala manžela, co mám dělat, dal mi do ruky foťák a řekl, foť.',
 	'A tak jsem fotila. Medvěd o nás nevěděl. Chvíli jsme tam stáli a dívali se na něj a potom jsme šli dál. Byl to ale adrenalin. A to není všechno.',
-	'Když jsme potom přišli do vesnice, museli jsme stopovat auta, protože vlák ani autobus už žádný nejel. No a koho jsme si stopli? Policajty. Z dálky jsme neviděli, že je to policejní auto a když byli blízko a už jsme věděli, že je to policie, tak už zastavovali.',
+	'Když jsme potom přišli do vesnice, museli jsme stopovat auta, protože vlak ani autobus už žádný nejel. No a koho jsme si stopli? Policajty. Z dálky jsme neviděli, že je to policejní auto a když byli blízko a už jsme věděli, že je to policie, tak už zastavovali.',
 	'Takže nás domů dovezli policajti a v autě jsme jim ukazovali naše video medvěda. Nemohli tomu uvěřit. Říkali, že chodí do hor často, ale medvěda tam nikdy nepotkali.',
 	'A co ty? Umíš vyprávět historky v češtině nebo ti chybí slova, když mluvíš česky? S tím ti ve slowczech rádi pomůžeme. Přidej se k nám a taky nám dej hvězdičku na Spotify a řekni o nás svým kamarádům, co se učí česky. Nás tak budeš motivovat dělat to, co děláme a kamarádům pomůžeš zlepšit si češtinu a bavit se přitom.'
 ];
@@ -228,7 +228,7 @@ const story: string[] = [
 const sections: DemoSectionDef[] = [
 	{
 		id: 'acc',
-		label: ['Koho?', 'Accusative'],
+		label: ['Koho? Co?', 'Accusative'],
 		emoji: '🐻',
 		usage: 'The direct object — whom or what the action lands on.',
 		blurb:
@@ -302,7 +302,7 @@ const sections: DemoSectionDef[] = [
 				number: 'pl',
 				template: 'Museli jsme stopovat ___.',
 				source: 'verbatim',
-				why: 'Stopovat co? → accusative plural. Auto is město-type (neuter): acc. pl. = nom. pl. → auta. Only masculine animate nouns change in the accusative.'
+				why: 'Stopovat co? → accusative plural. Auto is město-type (neuter): acc. pl. = nom. pl. → auta. In the plural, only masculine animate nouns have a distinct accusative form.'
 			},
 			{
 				id: 'acc-08',
@@ -331,7 +331,7 @@ const sections: DemoSectionDef[] = [
 				case: 'acc',
 				number: 'sg',
 				template: 'Dej nám ___ na Spotify! ⭐',
-				source: 'verbatim',
+				source: 'inspired',
 				why: 'Dej nám co? → accusative. Hvězdička is žena-type: acc. sg. -a → -u → hvězdičku.'
 			},
 			{
@@ -368,7 +368,7 @@ const sections: DemoSectionDef[] = [
 				number: 'sg',
 				template: 'Jela jsem s ___ na Slovensko.',
 				source: 'verbatim',
-				why: 'Jela jsem s kým? → s always takes the instrumental. Manžel, pán-type: ins. sg. -em → s manželem.'
+				why: 'Jela jsem s kým? → s (with) takes the instrumental. Manžel, pán-type: ins. sg. -em → s manželem.'
 			},
 			{
 				id: 'ins-02',
@@ -578,7 +578,7 @@ const sections: DemoSectionDef[] = [
 				// Spoken Czech, exactly as in the story. The textbook form is accepted too.
 				overrideForm: 'turisti',
 				acceptAlso: ['turisté'],
-				why: 'Nebyli tam kdo? → subject, nominative plural. Turista, předseda-type: nom. pl. turisté — but Veronika says turisti, everyday spoken Czech (hovorová čeština); both are accepted.'
+				why: 'Kdo tam nebyl? → subject, nominative plural. Turista, předseda-type: nom. pl. turisté — but Veronika says turisti, everyday spoken Czech (hovorová čeština); both are accepted.'
 			},
 			{
 				id: 'acc-11',
@@ -598,7 +598,7 @@ const sections: DemoSectionDef[] = [
 				case: 'acc',
 				number: 'sg',
 				template: 'Policajti ___ tam nikdy nepotkali.',
-				source: 'verbatim',
+				source: 'inspired',
 				caseOptions: ['acc', 'gen', 'nom'],
 				why: 'Policajti nepotkali koho? → accusative: medvěda is the object of nepotkali. Pán-type acc. sg. -a, same shape as the genitive.'
 			},
