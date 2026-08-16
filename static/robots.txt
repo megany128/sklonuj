@@ -3,5 +3,6 @@ Disallow: /api/
 Disallow: /auth/callback
 Disallow: /profile
 Disallow: /auth
+Disallow: /demo/
 
 Sitemap: https://sklonuj.com/sitemap.xml
