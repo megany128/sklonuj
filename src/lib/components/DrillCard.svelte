@@ -423,7 +423,7 @@
 								>{CASE_NUMBER[question.case]}</span
 							><span class="{CASE_COLORS[question.case].text} font-semibold">{prompt.caseName}</span
 							>{#if prompt.isPlural}
-								<span class="font-bold {CASE_COLORS[question.case].text}"> plural</span>
+								<span class="font-bold {CASE_COLORS[question.case].text}">&nbsp;plural</span>
 							{/if} of
 						</p>
 						<div class="mt-2 flex items-center justify-center gap-2">
@@ -686,7 +686,9 @@
 					{/if}
 
 					{#if !submitted}
-						<p class="mt-2 text-center text-xs text-text-subtitle">Press enter to submit</p>
+						<p class="mt-2 text-center text-xs text-text-subtitle">
+							{userInput.trim() === '' ? 'Press enter to skip' : 'Press enter to submit'}
+						</p>
 					{/if}
 				{/if}
 
