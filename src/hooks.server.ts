@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { createSupabaseServerClient } from '$lib/supabase-server';
+import { handlePostHogProxy, isPostHogProxyRequest } from '$lib/posthog-proxy';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Redirect www to apex domain
@@ -8,6 +9,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 			status: 301,
 			headers: { Location: `https://sklonuj.com${event.url.pathname}${event.url.search}` }
 		});
+	}
+
+	// PostHog reverse proxy — must run before auth/CSP so analytics requests
+	// never touch Supabase and aren't blocked by tracker lists.
+	if (isPostHogProxyRequest(event)) {
+		return handlePostHogProxy(event);
 	}
 
 	const supabase = createSupabaseServerClient(event.cookies);

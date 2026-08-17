@@ -3416,9 +3416,32 @@
 		}
 	}
 
+	/**
+	 * Shared PostHog properties for drill events: CEFR level plus the KZK
+	 * chapter dimension (`book`/`chapter` are null in free practice) so
+	 * dashboards can break down by textbook chapter, not just level.
+	 */
+	function drillAnalyticsProps(): {
+		level: Difficulty;
+		mode: 'chapter' | 'free';
+		book: 'kzk1' | 'kzk2' | null;
+		chapter: string | null;
+	} {
+		const inChapterMode = chapterBook !== null && chapterSelection !== null;
+		return {
+			level: currentLevel,
+			mode: inChapterMode ? 'chapter' : 'free',
+			book: inChapterMode ? chapterBook : null,
+			chapter: inChapterMode ? chapterSelection : null
+		};
+	}
+
 	function handleSubmit(answer: string): void {
 		if (!hasInteracted) {
-			posthog.capture('practice_started', { level: currentLevel, drillType: question?.drillType });
+			posthog.capture('practice_started', {
+				...drillAnalyticsProps(),
+				drillType: question?.drillType
+			});
 		}
 		hasInteracted = true;
 
@@ -3442,10 +3465,10 @@
 			recordAssignmentProgress(false, question?.case, question?.number);
 			checkAssignmentMatchToast();
 			posthog.capture('question_answered', {
+				...drillAnalyticsProps(),
 				correct: false,
 				drillType: question?.drillType,
 				case: question?.case,
-				level: currentLevel,
 				skipped: true
 			});
 			streak = 0;
@@ -3558,13 +3581,13 @@
 		updateLeaderboardAfterAnswer(result.correct);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
+			...drillAnalyticsProps(),
 			correct: result.correct,
 			drillType: result.question.drillType,
-			case: result.question.case,
-			level: currentLevel
+			case: result.question.case
 		});
 		if (sessionCount === 3) {
-			posthog.capture('three_questions_completed', { level: currentLevel });
+			posthog.capture('three_questions_completed', drillAnalyticsProps());
 		}
 
 		if (result.correct) {
@@ -3612,7 +3635,7 @@
 
 	function handleMultiStepComplete(result: MultiStepResult): void {
 		if (!hasInteracted) {
-			posthog.capture('practice_started', { level: currentLevel, drillType: 'multi_step' });
+			posthog.capture('practice_started', { ...drillAnalyticsProps(), drillType: 'multi_step' });
 		}
 		hasInteracted = true;
 
@@ -3705,17 +3728,17 @@
 		recordAssignmentProgress(allCorrect, result.question.case, result.question.number);
 		checkAssignmentMatchToast();
 		posthog.capture('question_answered', {
+			...drillAnalyticsProps(),
 			correct: allCorrect,
 			drillType: 'multi_step',
 			case: result.question.case,
-			level: currentLevel,
 			paradigmCorrect: result.paradigmCorrect,
 			caseCorrect: result.caseCorrect,
 			formCorrect: result.formCorrect,
 			adjectiveCorrect: result.adjectiveCorrect
 		});
 		if (sessionCount === 3) {
-			posthog.capture('three_questions_completed', { level: currentLevel });
+			posthog.capture('three_questions_completed', drillAnalyticsProps());
 		}
 
 		checkAchievementBadges(allCorrect);
@@ -3736,7 +3759,7 @@
 		if (selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
 			selectedCase = 'all';
 		}
-		posthog.capture('level_changed', { from: previousLevel, to: level });
+		posthog.capture('level_changed', { ...drillAnalyticsProps(), from: previousLevel, to: level });
 		scheduleSyncToSupabase();
 		generateNextQuestion();
 	}
