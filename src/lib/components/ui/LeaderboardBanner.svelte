@@ -29,6 +29,10 @@
 		onToggleVisibility?: () => void;
 		isAnonymous?: boolean;
 		onSignUp?: () => void;
+		/** Data hasn't arrived yet — render the bar with skeleton content so the layout is stable. */
+		loading?: boolean;
+		/** Loading finished without usable data. */
+		unavailable?: boolean;
 	}
 
 	let {
@@ -43,8 +47,13 @@
 		showOnLeaderboard = true,
 		onToggleVisibility = () => {},
 		isAnonymous = false,
-		onSignUp = () => {}
+		onSignUp = () => {},
+		loading = false,
+		unavailable = false
 	}: Props = $props();
+
+	// Name widths for the expanded-state skeleton rows (Tailwind needs literal class names).
+	const SKELETON_ROW_WIDTHS = ['w-28', 'w-20', 'w-32', 'w-24'];
 
 	let expanded = $state(false);
 	let reactionMenuOpen = $state<string | null>(null);
@@ -249,7 +258,7 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
-{#if mode === 'global' && !showOnLeaderboard}
+{#if !loading && mode === 'global' && !showOnLeaderboard}
 	<!-- Leaderboard off — minimal strip with toggle -->
 	<div
 		class="flex w-full items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-3 py-2"
@@ -274,11 +283,13 @@
 			></span>
 		</button>
 	</div>
-{:else if leaderboard.length > 0 && (myEntry || isAnonymous)}
+{:else if loading || (leaderboard.length > 0 && (myEntry || isAnonymous))}
 	<!-- Collapsed banner -->
 	<div
 		role="button"
 		tabindex="0"
+		aria-busy={loading}
+		aria-label={loading ? 'Loading weekly leaderboard' : undefined}
 		onclick={toggleExpanded}
 		onkeydown={(e: KeyboardEvent) => {
 			if (e.key === 'Enter' || e.key === ' ') {
@@ -288,27 +299,43 @@
 		}}
 		class="flex w-full cursor-pointer items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-3 py-2 transition-colors hover:bg-shaded-background/50"
 	>
+		{#if loading}
+			<!-- h-5 matches the text-sm line box so the bar height is identical once loaded -->
+			<div class="flex h-5 items-center gap-2">
+				<Trophy class="size-4 text-warning-text" aria-hidden="true" />
+				<span class="h-3.5 w-36 animate-pulse rounded bg-shaded-background"></span>
+				<span class="hidden h-3 w-24 animate-pulse rounded bg-shaded-background sm:inline-block"
+				></span>
+			</div>
+		{:else}
+			<div class="flex items-center gap-2">
+				<Trophy class="size-4 text-warning-text" aria-hidden="true" />
+				<span class="text-sm font-medium text-text-default">
+					You're #{myRank}{getRankSuffix(myRank)} this week
+				</span>
+				{#if pointsBehind > 0 && nextRankEntry}
+					<span class="hidden text-xs text-text-subtitle sm:inline">
+						{formatScore(pointsBehind)} pts behind {nextRankEntry.firstName}
+					</span>
+				{/if}
+			</div>
+		{/if}
 		<div class="flex items-center gap-2">
-			<Trophy class="size-4 text-warning-text" aria-hidden="true" />
-			<span class="text-sm font-medium text-text-default">
-				You're #{myRank}{getRankSuffix(myRank)} this week
-			</span>
-			{#if pointsBehind > 0 && nextRankEntry}
-				<span class="hidden text-xs text-text-subtitle sm:inline">
-					{formatScore(pointsBehind)} pts behind {nextRankEntry.firstName}
+			{#if loading}
+				<span class="h-3 w-10 animate-pulse rounded bg-shaded-background"></span>
+			{:else}
+				<span class="relative text-xs font-semibold text-text-subtitle">
+					{formatScore(myScore)} pts
+					{#each floatingPoints as fp (fp.id)}
+						<span
+							class="points-float absolute -top-1 right-0 text-xs font-medium text-text-subtitle"
+						>
+							+{fp.value}
+						</span>
+					{/each}
 				</span>
 			{/if}
-		</div>
-		<div class="flex items-center gap-2">
-			<span class="relative text-xs font-semibold text-text-subtitle">
-				{formatScore(myScore)} pts
-				{#each floatingPoints as fp (fp.id)}
-					<span class="points-float absolute -top-1 right-0 text-xs font-medium text-text-subtitle">
-						+{fp.value}
-					</span>
-				{/each}
-			</span>
-			{#if mode === 'global' && !isAnonymous}
+			{#if mode === 'global' && !isAnonymous && !loading}
 				<button
 					type="button"
 					role="switch"
@@ -344,163 +371,184 @@
 				<div class="mb-2">
 					<span class="text-xs font-semibold text-text-subtitle">Weekly Leaderboard</span>
 				</div>
-				<div class="flex flex-col gap-0.5">
-					{#each displayRows as row, i (row.kind === 'entry' ? row.entry.userId : `sep-${i}`)}
-						{#if row.kind === 'separator'}
-							<div
-								class="flex items-center justify-center py-1 text-xs text-text-subtitle"
-								aria-hidden="true"
-							>
-								&middot;&middot;&middot;
+				<div class="flex flex-col gap-0.5" aria-busy={loading}>
+					{#if loading}
+						{#each SKELETON_ROW_WIDTHS as width (width)}
+							<div class="flex min-h-8 items-center gap-2 rounded-lg px-2 py-1.5">
+								<span class="h-3 w-5 shrink-0 animate-pulse rounded bg-shaded-background"></span>
+								<span class="h-3.5 {width} animate-pulse rounded bg-shaded-background"></span>
+								<span class="ml-auto h-3 w-10 shrink-0 animate-pulse rounded bg-shaded-background"
+								></span>
 							</div>
-						{:else}
-							{@const entry = row.entry}
-							{@const isMe = entry.userId === currentUserId}
-							{@const canReact = !isMe && !hasSentToday(entry.userId)}
-							{@const showMenu = reactionMenuOpen === entry.userId}
-							{@const entryFloats = floatingReactions.filter((r) => r.userId === entry.userId)}
-							<div
-								class="relative flex items-center gap-2 rounded-lg px-2 py-1.5 {isMe
-									? 'bg-brand-50'
-									: ''}"
-							>
-								<!-- Rank -->
-								<span
-									class="w-5 shrink-0 text-center text-xs font-bold {isMe
-										? 'text-brand-600'
-										: entry.rank === 1
-											? 'text-amber-500'
-											: entry.rank === 2
-												? 'text-slate-400'
-												: entry.rank === 3
-													? 'text-amber-700'
-													: 'text-text-subtitle'}"
+						{/each}
+					{:else}
+						{#each displayRows as row, i (row.kind === 'entry' ? row.entry.userId : `sep-${i}`)}
+							{#if row.kind === 'separator'}
+								<div
+									class="flex items-center justify-center py-1 text-xs text-text-subtitle"
+									aria-hidden="true"
 								>
-									{entry.rank}
-								</span>
-
-								<!-- Name -->
-								<span
-									class="min-w-0 flex-1 truncate text-sm {isMe
-										? 'font-semibold text-brand-700'
-										: 'text-text-default'}"
+									&middot;&middot;&middot;
+								</div>
+							{:else}
+								{@const entry = row.entry}
+								{@const isMe = entry.userId === currentUserId}
+								{@const canReact = !isMe && !hasSentToday(entry.userId)}
+								{@const showMenu = reactionMenuOpen === entry.userId}
+								{@const entryFloats = floatingReactions.filter((r) => r.userId === entry.userId)}
+								<div
+									class="relative flex items-center gap-2 rounded-lg px-2 py-1.5 {isMe
+										? 'bg-brand-50'
+										: ''}"
 								>
-									{entry.firstName}
-									{#if isMe}
-										<span class="text-xs font-normal text-brand-500">(you)</span>
-									{/if}
-								</span>
+									<!-- Rank -->
+									<span
+										class="w-5 shrink-0 text-center text-xs font-bold {isMe
+											? 'text-brand-600'
+											: entry.rank === 1
+												? 'text-amber-500'
+												: entry.rank === 2
+													? 'text-slate-400'
+													: entry.rank === 3
+														? 'text-amber-700'
+														: 'text-text-subtitle'}"
+									>
+										{entry.rank}
+									</span>
 
-								<!-- Score -->
-								<span class="shrink-0 text-xs font-medium text-text-subtitle">
-									{formatScore(entry.score)} pts
-								</span>
+									<!-- Name -->
+									<span
+										class="min-w-0 flex-1 truncate text-sm {isMe
+											? 'font-semibold text-brand-700'
+											: 'text-text-default'}"
+									>
+										{entry.firstName}
+										{#if isMe}
+											<span class="text-xs font-normal text-brand-500">(you)</span>
+										{/if}
+									</span>
 
-								<!-- Reaction button (class mode only) -->
-								{#if mode === 'class'}
-									{#if !isMe}
-										<div
-											class="relative -m-2 p-2"
-											role="group"
-											onmouseenter={() => openReactionMenu(entry.userId)}
-											onmouseleave={() => closeReactionMenu(entry.userId)}
-										>
-											{#if hasSentToday(entry.userId)}
-												<span
-													class="inline-flex size-6 items-center justify-center text-text-subtitle opacity-40"
-													title="Already sent today"
-												>
-													<Smile class="size-3.5" aria-hidden="true" />
-												</span>
-											{:else}
-												<span
-													class="inline-flex size-6 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-												>
-													<Smile class="size-3.5" aria-hidden="true" />
-												</span>
-											{/if}
+									<!-- Score -->
+									<span class="shrink-0 text-xs font-medium text-text-subtitle">
+										{formatScore(entry.score)} pts
+									</span>
 
-											<!-- Reaction picker popup -->
-											{#if showMenu && canReact}
-												<div class="absolute right-0 top-full z-50 pt-1">
-													<div
-														class="flex flex-col items-center gap-1 rounded-lg border border-card-stroke bg-card-bg px-2 py-1.5 shadow-lg"
+									<!-- Reaction button (class mode only) -->
+									{#if mode === 'class'}
+										{#if !isMe}
+											<div
+												class="relative -m-2 p-2"
+												role="group"
+												onmouseenter={() => openReactionMenu(entry.userId)}
+												onmouseleave={() => closeReactionMenu(entry.userId)}
+											>
+												{#if hasSentToday(entry.userId)}
+													<span
+														class="inline-flex size-6 items-center justify-center text-text-subtitle opacity-40"
+														title="Already sent today"
 													>
-														<span class="whitespace-nowrap text-[10px] text-text-subtitle">
-															Send {entry.firstName} a reaction
-														</span>
-														<div class="flex gap-1 whitespace-nowrap">
-															<button
-																type="button"
-																onclick={() =>
-																	sendReaction(entry.userId, entry.firstName, '\u{1F525}', 'flame')}
-																class="inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-orange-500 transition-colors hover:bg-orange-50 hover:text-orange-600"
-																title="Watch out!"
-																disabled={sendingReaction}
-															>
-																<Flame class="size-3.5" fill="currentColor" aria-hidden="true" />
-																<span class="text-[10px] font-medium">Watch out!</span>
-															</button>
-															<button
-																type="button"
-																onclick={() =>
-																	sendReaction(entry.userId, entry.firstName, '\u{1F44F}', 'party')}
-																class="inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-teal-500 transition-colors hover:bg-teal-50 hover:text-teal-600"
-																title="Keep it up!"
-																disabled={sendingReaction}
-															>
-																<PartyPopper
-																	class="size-3.5"
-																	fill="currentColor"
-																	aria-hidden="true"
-																/>
-																<span class="text-[10px] font-medium">Keep it up!</span>
-															</button>
+														<Smile class="size-3.5" aria-hidden="true" />
+													</span>
+												{:else}
+													<span
+														class="inline-flex size-6 items-center justify-center rounded-md text-text-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+													>
+														<Smile class="size-3.5" aria-hidden="true" />
+													</span>
+												{/if}
+
+												<!-- Reaction picker popup -->
+												{#if showMenu && canReact}
+													<div class="absolute right-0 top-full z-50 pt-1">
+														<div
+															class="flex flex-col items-center gap-1 rounded-lg border border-card-stroke bg-card-bg px-2 py-1.5 shadow-lg"
+														>
+															<span class="whitespace-nowrap text-[10px] text-text-subtitle">
+																Send {entry.firstName} a reaction
+															</span>
+															<div class="flex gap-1 whitespace-nowrap">
+																<button
+																	type="button"
+																	onclick={() =>
+																		sendReaction(
+																			entry.userId,
+																			entry.firstName,
+																			'\u{1F525}',
+																			'flame'
+																		)}
+																	class="inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-orange-500 transition-colors hover:bg-orange-50 hover:text-orange-600"
+																	title="Watch out!"
+																	disabled={sendingReaction}
+																>
+																	<Flame class="size-3.5" fill="currentColor" aria-hidden="true" />
+																	<span class="text-[10px] font-medium">Watch out!</span>
+																</button>
+																<button
+																	type="button"
+																	onclick={() =>
+																		sendReaction(
+																			entry.userId,
+																			entry.firstName,
+																			'\u{1F44F}',
+																			'party'
+																		)}
+																	class="inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-teal-500 transition-colors hover:bg-teal-50 hover:text-teal-600"
+																	title="Keep it up!"
+																	disabled={sendingReaction}
+																>
+																	<PartyPopper
+																		class="size-3.5"
+																		fill="currentColor"
+																		aria-hidden="true"
+																	/>
+																	<span class="text-[10px] font-medium">Keep it up!</span>
+																</button>
+															</div>
 														</div>
 													</div>
-												</div>
-											{/if}
-										</div>
-									{:else}
-										<span class="size-6"></span>
-									{/if}
+												{/if}
+											</div>
+										{:else}
+											<span class="size-6"></span>
+										{/if}
 
-									<!-- Floating reaction feedback -->
-									{#each entryFloats as float (float.id)}
-										<span
-											class="reaction-float pointer-events-none absolute right-2"
-											style="--float-x: {float.x}px; --float-y: {float.y}px; --float-delay: {float.delay}ms; --float-scale: {float.scale}; --float-opacity: {float.opacity}; --float-rotation: {float.rotation}deg;"
-										>
-											{#if float.type === 'flame'}
-												<Flame
-													class="size-4 text-orange-500"
-													fill="currentColor"
-													aria-hidden="true"
-												/>
-											{:else}
-												<PartyPopper
-													class="size-4 text-teal-500"
-													fill="currentColor"
-													aria-hidden="true"
-												/>
-											{/if}
-										</span>
-									{/each}
-								{/if}
-							</div>
-							{#if mode === 'class' && cheeredUserId === entry.userId && cheeredMessage}
-								<div
-									class="cheered-text -mt-0.5 mb-0.5 text-right text-[10px] font-medium text-brand-600 pr-2"
-								>
-									{cheeredMessage}
+										<!-- Floating reaction feedback -->
+										{#each entryFloats as float (float.id)}
+											<span
+												class="reaction-float pointer-events-none absolute right-2"
+												style="--float-x: {float.x}px; --float-y: {float.y}px; --float-delay: {float.delay}ms; --float-scale: {float.scale}; --float-opacity: {float.opacity}; --float-rotation: {float.rotation}deg;"
+											>
+												{#if float.type === 'flame'}
+													<Flame
+														class="size-4 text-orange-500"
+														fill="currentColor"
+														aria-hidden="true"
+													/>
+												{:else}
+													<PartyPopper
+														class="size-4 text-teal-500"
+														fill="currentColor"
+														aria-hidden="true"
+													/>
+												{/if}
+											</span>
+										{/each}
+									{/if}
 								</div>
+								{#if mode === 'class' && cheeredUserId === entry.userId && cheeredMessage}
+									<div
+										class="cheered-text -mt-0.5 mb-0.5 text-right text-[10px] font-medium text-brand-600 pr-2"
+									>
+										{cheeredMessage}
+									</div>
+								{/if}
 							{/if}
+						{/each}
+						{#if peopleBelowNotShown > 0}
+							<div class="py-1 text-center text-xs text-text-subtitle">
+								{peopleBelowNotShown} more below
+							</div>
 						{/if}
-					{/each}
-					{#if peopleBelowNotShown > 0}
-						<div class="py-1 text-center text-xs text-text-subtitle">
-							{peopleBelowNotShown} more below
-						</div>
 					{/if}
 				</div>
 				{#if isAnonymous}
@@ -520,6 +568,19 @@
 			</div>
 		</div>
 	{/if}
+{:else}
+	<!-- No usable data (empty board or failed load) — keep the bar so the layout doesn't shift -->
+	<div
+		class="flex w-full items-center justify-between rounded-xl border border-card-stroke bg-card-bg px-3 py-2"
+	>
+		<div class="flex items-center gap-2">
+			<Trophy class="size-4 text-text-subtitle" aria-hidden="true" />
+			<span class="text-sm text-text-subtitle">Weekly Leaderboard</span>
+		</div>
+		<span class="text-xs text-text-subtitle">
+			{unavailable ? 'Unavailable right now' : 'No scores yet'}
+		</span>
+	</div>
 {/if}
 
 <style>

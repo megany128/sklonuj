@@ -1,4 +1,8 @@
 import { redirect } from '@sveltejs/kit';
+import {
+	computeGlobalLeaderboard,
+	type GlobalLeaderboardResult
+} from '$lib/server/global-leaderboard';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url, locals }) => {
@@ -13,5 +17,16 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 		throw redirect(303, `/auth?returnTo=${encodeURIComponent(returnTo)}`);
 	}
 
-	return {};
+	// Streamed (not awaited): the page renders immediately and the leaderboard
+	// arrives in the same response as soon as the query finishes, instead of
+	// waiting for hydration + a separate client fetch. Never rejects — a
+	// failure resolves to null and the banner shows an "unavailable" state.
+	const globalLeaderboard: Promise<GlobalLeaderboardResult | null> = computeGlobalLeaderboard(
+		locals.user
+	).catch((e: unknown) => {
+		console.error('global leaderboard: initial load failed', e);
+		return null;
+	});
+
+	return { globalLeaderboard };
 };

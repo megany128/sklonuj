@@ -975,49 +975,60 @@
 	let globalLeaderboardTotal = $state(0);
 	let globalShowOnLeaderboard = $state(true);
 	let globalLeaderboardPointsDelta = $state(0);
+	// The banner is always rendered (skeleton while loading) so the layout
+	// doesn't shift once the data arrives.
+	let globalLeaderboardStatus = $state<'loading' | 'ready' | 'error'>('loading');
+
+	/** Parses a global leaderboard payload into state. Returns false if the payload is unusable. */
+	function applyGlobalLeaderboardData(data: unknown): boolean {
+		if (!isRecord(data) || !Array.isArray(data.leaderboard)) return false;
+		const entries: LeaderboardEntry[] = [];
+		for (const item of data.leaderboard) {
+			if (
+				isRecord(item) &&
+				typeof item.rank === 'number' &&
+				typeof item.userId === 'string' &&
+				typeof item.displayName === 'string' &&
+				typeof item.firstName === 'string' &&
+				typeof item.score === 'number' &&
+				typeof item.questionsAnswered === 'number' &&
+				typeof item.correctAnswers === 'number'
+			) {
+				entries.push({
+					rank: item.rank,
+					userId: item.userId,
+					displayName: item.displayName,
+					firstName: item.firstName,
+					score: item.score,
+					questionsAnswered: item.questionsAnswered,
+					correctAnswers: item.correctAnswers
+				});
+			}
+		}
+		globalLeaderboardData = entries;
+		if (typeof data.totalUsers === 'number') {
+			globalLeaderboardTotal = data.totalUsers;
+		}
+		if (typeof data.showOnLeaderboard === 'boolean') {
+			globalShowOnLeaderboard = data.showOnLeaderboard;
+		}
+		globalLeaderboardStatus = 'ready';
+		return true;
+	}
+
+	function markGlobalLeaderboardFailed(): void {
+		// Only downgrade to the error state if nothing has loaded yet; a failed
+		// periodic refresh keeps showing the last good data.
+		if (globalLeaderboardStatus === 'loading') globalLeaderboardStatus = 'error';
+	}
 
 	function fetchGlobalLeaderboard(): void {
 		fetch('/api/leaderboard/global')
-			.then((res) => {
-				if (!res.ok) return null;
-				return res.json();
-			})
+			.then((res) => (res.ok ? res.json() : null))
 			.then((data: unknown) => {
-				if (!isRecord(data)) return;
-				if (Array.isArray(data.leaderboard)) {
-					const entries: LeaderboardEntry[] = [];
-					for (const item of data.leaderboard) {
-						if (
-							isRecord(item) &&
-							typeof item.rank === 'number' &&
-							typeof item.userId === 'string' &&
-							typeof item.displayName === 'string' &&
-							typeof item.firstName === 'string' &&
-							typeof item.score === 'number' &&
-							typeof item.questionsAnswered === 'number' &&
-							typeof item.correctAnswers === 'number'
-						) {
-							entries.push({
-								rank: item.rank,
-								userId: item.userId,
-								displayName: item.displayName,
-								firstName: item.firstName,
-								score: item.score,
-								questionsAnswered: item.questionsAnswered,
-								correctAnswers: item.correctAnswers
-							});
-						}
-					}
-					globalLeaderboardData = entries;
-				}
-				if (typeof data.totalUsers === 'number') {
-					globalLeaderboardTotal = data.totalUsers;
-				}
-				if (typeof data.showOnLeaderboard === 'boolean') {
-					globalShowOnLeaderboard = data.showOnLeaderboard;
-				}
+				if (!applyGlobalLeaderboardData(data)) markGlobalLeaderboardFailed();
 			})
-			.catch(() => {});
+			.catch(markGlobalLeaderboardFailed);
 	}
 
 	function handleGlobalLeaderboardToggle(): void {
@@ -1162,10 +1173,6 @@
 		merged.sort((a, b) => a.rank - b.rank || b.score - a.score);
 		return merged;
 	});
-
-	let showGlobalLeaderboard = $derived(
-		mergedGlobalLeaderboard.length > 0 || (user !== null && !globalShowOnLeaderboard)
-	);
 
 	// Streak tracking
 	let streak = $state(0);
@@ -2040,8 +2047,20 @@
 			}
 		}
 
-		// Global leaderboard for all users (including anonymous)
-		fetchGlobalLeaderboard();
+		// Global leaderboard for all users (including anonymous). The initial
+		// payload is streamed from +page.server.ts (its query starts during SSR,
+		// well before hydration); fall back to the API if it's missing or failed.
+		const streamedLeaderboard: unknown = page.data.globalLeaderboard;
+		if (streamedLeaderboard instanceof Promise) {
+			streamedLeaderboard.then(
+				(data: unknown) => {
+					if (!applyGlobalLeaderboardData(data)) fetchGlobalLeaderboard();
+				},
+				() => fetchGlobalLeaderboard()
+			);
+		} else {
+			fetchGlobalLeaderboard();
+		}
 		leaderboardRefreshTimer = setInterval(() => {
 			fetchGlobalLeaderboard();
 		}, 300_000);
@@ -4277,25 +4296,26 @@
 			</div>
 		{/if}
 
-		<!-- Global leaderboard banner -->
-		{#if showGlobalLeaderboard}
-			<div class="mb-3">
-				<LeaderboardBanner
-					mode="global"
-					leaderboard={mergedGlobalLeaderboard}
-					totalStudents={globalLeaderboardTotal}
-					pointsDelta={globalLeaderboardPointsDelta}
-					currentUserId={user?.id ?? ANON_USER_ID}
-					showOnLeaderboard={globalShowOnLeaderboard}
-					onToggleVisibility={handleGlobalLeaderboardToggle}
-					isAnonymous={user === null}
-					onSignUp={() => {
-						stashAnonSession();
-						authModalOpen = true;
-					}}
-				/>
-			</div>
-		{/if}
+		<!-- Global leaderboard banner — always rendered (skeleton while loading) so
+		     the layout doesn't shift once the data arrives -->
+		<div class="mb-3">
+			<LeaderboardBanner
+				mode="global"
+				loading={globalLeaderboardStatus === 'loading'}
+				unavailable={globalLeaderboardStatus === 'error'}
+				leaderboard={mergedGlobalLeaderboard}
+				totalStudents={globalLeaderboardTotal}
+				pointsDelta={globalLeaderboardPointsDelta}
+				currentUserId={user?.id ?? ANON_USER_ID}
+				showOnLeaderboard={globalShowOnLeaderboard}
+				onToggleVisibility={handleGlobalLeaderboardToggle}
+				isAnonymous={user === null}
+				onSignUp={() => {
+					stashAnonSession();
+					authModalOpen = true;
+				}}
+			/>
+		</div>
 
 		<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings.
 		     Stacks on mobile (stepper row, then icons row) so a long chapter title
