@@ -3,6 +3,7 @@ import { resolve } from '$app/paths';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
+import { resolveUserEmails } from '$lib/server/auth-users';
 import type { Actions, PageServerLoad } from './$types';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -183,12 +184,51 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const adminClient =
 		supabaseUrl && serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null;
 
-	// Fetch student roster
-	const { data: memberships } = await supabase
+	const viewerId = locals.user?.id ?? null;
+
+	// Snapshot window (last 30 days) — computed up front so the snapshot query can join wave 1
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+	const snapshotDateFrom = thirtyDaysAgo.toISOString().slice(0, 10);
+
+	// Wave 1: everything keyed only on the class id (roster, assignments, snapshots) runs concurrently.
+	const membershipsPromise = supabase
 		.from('class_memberships')
 		.select('student_id, joined_at')
 		.eq('class_id', classData.id)
 		.order('joined_at', { ascending: true });
+
+	const assignmentsPromise = supabase
+		.from('assignments')
+		.select(
+			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, include_adjectives, content_level, target_questions, due_date, created_at'
+		)
+		.eq('class_id', classData.id)
+		.order('created_at', { ascending: false });
+
+	// Snapshots go through the admin client (bypasses RLS), so students must be scoped
+	// to their own rows at the query rather than filtered afterwards in memory.
+	const snapshotsPromise = adminClient
+		? (() => {
+				let query = adminClient
+					.from('class_progress_snapshots')
+					.select(
+						'student_id, snapshot_date, overall_accuracy, total_questions, nom_accuracy, gen_accuracy, dat_accuracy, acc_accuracy, voc_accuracy, loc_accuracy, ins_accuracy'
+					)
+					.eq('class_id', classData.id)
+					.gte('snapshot_date', snapshotDateFrom);
+				if (role === 'student' && viewerId) {
+					query = query.eq('student_id', viewerId);
+				}
+				return query.order('snapshot_date', { ascending: true });
+			})()
+		: null;
+
+	const [{ data: memberships }, { data: assignmentData }, snapshotResult] = await Promise.all([
+		membershipsPromise,
+		assignmentsPromise,
+		snapshotsPromise
+	]);
 
 	const studentIds: string[] = [];
 	if (Array.isArray(memberships)) {
@@ -198,47 +238,6 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 			}
 		}
 	}
-
-	// Fetch display names from profiles using admin client (RLS prevents teacher from reading student profiles)
-	const profileMap = new Map<string, string | null>();
-	if (adminClient && studentIds.length > 0) {
-		const { data: profiles } = await adminClient
-			.from('profiles')
-			.select('id, display_name')
-			.in('id', studentIds);
-
-		if (Array.isArray(profiles)) {
-			for (const p of profiles) {
-				if (isRecord(p) && typeof p.id === 'string') {
-					profileMap.set(p.id, typeof p.display_name === 'string' ? p.display_name : null);
-				}
-			}
-		}
-	}
-
-	// Fetch emails for all students via admin auth API using parallel getUserById calls
-	// This is O(students) instead of O(total_users) since we look up each student directly
-	const emailMap = new Map<string, string | null>();
-	if (adminClient && studentIds.length > 0) {
-		const userResults = await Promise.all(
-			studentIds.map((id) => adminClient.auth.admin.getUserById(id))
-		);
-		for (const result of userResults) {
-			if (result.data?.user) {
-				const user = result.data.user;
-				emailMap.set(user.id, typeof user.email === 'string' ? user.email : null);
-			}
-		}
-	}
-
-	// Fetch assignments
-	const { data: assignmentData } = await supabase
-		.from('assignments')
-		.select(
-			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, include_adjectives, content_level, target_questions, due_date, created_at'
-		)
-		.eq('class_id', classData.id)
-		.order('created_at', { ascending: false });
 
 	const assignmentIds: string[] = [];
 	const assignmentTitleMap = new Map<string, string>();
@@ -256,17 +255,78 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Fetch assignment progress (including mistakes and case_scores) for all students in this class
+	// Wave 2: roster-dependent lookups (profiles, emails, user_progress) and the
+	// assignment-dependent progress query are independent of each other — run them together.
+
+	// Display names via admin client (RLS prevents teacher from reading student profiles)
+	const profilesPromise =
+		adminClient && studentIds.length > 0
+			? adminClient.from('profiles').select('id, display_name').in('id', studentIds)
+			: null;
+
+	// Emails via admin auth API: O(students) direct lookups, bounded to a small number in flight
+	const emailsPromise =
+		adminClient && studentIds.length > 0 ? resolveUserEmails(adminClient, studentIds) : null;
+
+	// user_progress (paradigm_scores only) via admin client — teacher-only view, RLS blocks it otherwise
+	const userProgressPromise =
+		adminClient && studentIds.length > 0 && role === 'teacher'
+			? adminClient
+					.from('user_progress')
+					.select('user_id, paradigm_scores')
+					.in('user_id', studentIds)
+			: null;
+
+	// Assignment progress for this class. Only teachers ever read `mistakes` (see the role gate
+	// in the parse loop below), so students skip that JSONB column and are pinned to their own
+	// rows — RLS already guarantees the latter; the explicit filter keeps it cheap and obvious.
+	const progressPromise =
+		assignmentIds.length === 0
+			? null
+			: role === 'student' && viewerId
+				? supabase
+						.from('assignment_progress')
+						.select(
+							'assignment_id, student_id, questions_attempted, questions_correct, completed_at, case_scores'
+						)
+						.in('assignment_id', assignmentIds)
+						.eq('student_id', viewerId)
+				: supabase
+						.from('assignment_progress')
+						.select(
+							'assignment_id, student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
+						)
+						.in('assignment_id', assignmentIds);
+
+	const [profilesResult, userResults, userProgressResult, progressResult] = await Promise.all([
+		profilesPromise,
+		emailsPromise,
+		userProgressPromise,
+		progressPromise
+	]);
+
+	const profileMap = new Map<string, string | null>();
+	if (profilesResult) {
+		const profiles = profilesResult.data;
+		if (Array.isArray(profiles)) {
+			for (const p of profiles) {
+				if (isRecord(p) && typeof p.id === 'string') {
+					profileMap.set(p.id, typeof p.display_name === 'string' ? p.display_name : null);
+				}
+			}
+		}
+	}
+
+	const emailMap = userResults ?? new Map<string, string>();
+
+	// Parse assignment progress (including mistakes and case_scores) for all students in this class
 	const progressByStudentAssignment = new Map<string, Map<string, AssignmentStatus>>();
 	const mistakesByStudent = new Map<string, MistakeEntry[]>();
 	let allProgressData: unknown[] = [];
-	if (assignmentIds.length > 0) {
-		const { data: progressData } = await supabase
-			.from('assignment_progress')
-			.select(
-				'assignment_id, student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
-			)
-			.in('assignment_id', assignmentIds);
+	if (progressResult) {
+		// The two role-specific selects infer different column shapes; treat rows as unknown
+		// and let the isRecord guards below validate what we actually read.
+		const progressData: unknown[] | null = progressResult.data;
 
 		if (Array.isArray(progressData)) {
 			allProgressData = progressData;
@@ -342,8 +402,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		}
 	}
 
-	// Fetch user_progress (paradigm_scores only) for each student using admin client
-	// (RLS prevents teacher from reading other users' progress)
+	// Aggregate user_progress paradigm_scores per student (teacher only; fetched in wave 2)
 	const classParadigmScores: Record<string, { attempts: number; correct: number }> = {};
 	const paradigmStudentBreakdown: Record<
 		string,
@@ -351,11 +410,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	> = {};
 	const strugglingThreshold = classData.struggling_threshold ?? 50;
 
-	if (adminClient && studentIds.length > 0 && role === 'teacher') {
-		const { data: userProgressData } = await adminClient
-			.from('user_progress')
-			.select('user_id, paradigm_scores')
-			.in('user_id', studentIds);
+	if (userProgressResult) {
+		const userProgressData = userProgressResult.data;
 
 		if (Array.isArray(userProgressData)) {
 			for (const up of userProgressData) {
@@ -532,11 +588,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		};
 	}
 
-	// Fetch progress snapshots for the class (last 30 days)
-	const thirtyDaysAgo = new Date();
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-	const snapshotDateFrom = thirtyDaysAgo.toISOString().slice(0, 10);
-
+	// Progress snapshots for the class (last 30 days; fetched in wave 1)
 	interface ProgressSnapshot {
 		studentId: string;
 		snapshotDate: string;
@@ -553,15 +605,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 	const progressSnapshots: ProgressSnapshot[] = [];
 
-	if (adminClient) {
-		const { data: snapshotData } = await adminClient
-			.from('class_progress_snapshots')
-			.select(
-				'student_id, snapshot_date, overall_accuracy, total_questions, nom_accuracy, gen_accuracy, dat_accuracy, acc_accuracy, voc_accuracy, loc_accuracy, ins_accuracy'
-			)
-			.eq('class_id', classData.id)
-			.gte('snapshot_date', snapshotDateFrom)
-			.order('snapshot_date', { ascending: true });
+	if (snapshotResult) {
+		const snapshotData = snapshotResult.data;
 
 		if (Array.isArray(snapshotData)) {
 			for (const s of snapshotData) {
@@ -570,7 +615,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 					typeof s.student_id === 'string' &&
 					typeof s.snapshot_date === 'string'
 				) {
-					// For students, only include their own snapshots
+					// Students are already scoped to their own rows at the query; keep this
+					// check as defense in depth since the admin client bypasses RLS.
 					if (role === 'student' && locals.user && s.student_id !== locals.user.id) {
 						continue;
 					}

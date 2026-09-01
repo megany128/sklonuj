@@ -18,6 +18,7 @@ import { Resend } from 'resend';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
 import { buildUnsubscribeUrl } from '$lib/server/email-unsubscribe';
+import { chunk, resolveUserEmails } from '$lib/server/auth-users';
 import type { RequestHandler } from './$types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -28,6 +29,9 @@ function toRecordArray(value: unknown): Record<string, unknown>[] {
 	if (!Array.isArray(value)) return [];
 	return value.filter(isRecord);
 }
+
+/** Keep `.in()` filter lists comfortably under PostgREST URL length limits. */
+const IN_FILTER_CHUNK = 200;
 
 interface EligibleUser {
 	id: string;
@@ -269,29 +273,9 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		sessionsByUser.set(s.user_id, existing);
 	}
 
-	// Get email addresses from auth
-	const emailByUser = new Map<string, string>();
-	let page = 1;
-	const perPage = 50;
-	const userIdSet = new Set(userIds);
-	let found = 0;
-	while (found < userIds.length) {
-		const { data: listData } = await adminClient.auth.admin.listUsers({ page, perPage });
-		if (!listData || !Array.isArray(listData.users) || listData.users.length === 0) break;
-		for (const user of listData.users) {
-			if (
-				isRecord(user) &&
-				typeof user.id === 'string' &&
-				userIdSet.has(user.id) &&
-				typeof user.email === 'string'
-			) {
-				emailByUser.set(user.id, user.email);
-				found++;
-			}
-		}
-		if (listData.users.length < perPage) break;
-		page++;
-	}
+	// Get email addresses from auth — one getUserById per eligible user with
+	// bounded concurrency, instead of paginating the whole auth.users table.
+	const emailByUser = await resolveUserEmails(adminClient, userIds);
 
 	// Build emails for all eligible users (async for unsubscribe URL generation)
 	const emailJobs = await Promise.all(
@@ -360,23 +344,32 @@ export const POST: RequestHandler = async ({ request, url }) => {
 				}
 			});
 			if (emailRes.error) throw new Error(emailRes.error.message);
-			// Update last_weekly_email_at to prevent duplicate sends
-			await adminClient
-				.from('profiles')
-				.update({ last_weekly_email_at: now.toISOString() })
-				.eq('id', job.profileId);
 		})
 	);
 
-	const sent = results.filter((r) => r.status === 'fulfilled').length;
-	const failures = results
-		.map((r, i) => ({ r, job: validJobs[i] }))
-		.filter(({ r }) => r.status === 'rejected')
-		.map(({ r, job }) => ({
-			profileId: job.profileId,
-			email: job.email,
-			reason: r.status === 'rejected' ? String((r as PromiseRejectedResult).reason) : 'unknown'
-		}));
+	const sentProfileIds: string[] = [];
+	const failures: { profileId: string; email: string; reason: string }[] = [];
+	results.forEach((r, i) => {
+		const job = validJobs[i];
+		if (r.status === 'fulfilled') {
+			sentProfileIds.push(job.profileId);
+		} else {
+			failures.push({ profileId: job.profileId, email: job.email, reason: String(r.reason) });
+		}
+	});
+	const sent = sentProfileIds.length;
+
+	// Update last_weekly_email_at for everyone who was actually sent an email,
+	// in one batched update (chunked to keep the `.in()` list URL-safe).
+	for (const ids of chunk(sentProfileIds, IN_FILTER_CHUNK)) {
+		const { error: stampError } = await adminClient
+			.from('profiles')
+			.update({ last_weekly_email_at: now.toISOString() })
+			.in('id', ids);
+		if (stampError) {
+			console.error('weekly-summary: failed to update last_weekly_email_at', stampError);
+		}
+	}
 
 	console.log(
 		`weekly-summary: day=${currentDayUtc} hour=${currentHourUtc} eligible=${profiles.length} sent=${sent} failed=${failures.length}`

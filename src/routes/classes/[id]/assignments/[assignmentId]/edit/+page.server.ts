@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
-import { Resend } from 'resend';
+import { Resend, type CreateBatchEmailOptions } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
@@ -26,6 +26,9 @@ const VALID_NUMBER_MODES = new Set(['sg', 'pl', 'both']);
 const VALID_CONTENT_MODES = new Set(['nouns', 'pronouns', 'both']);
 const VALID_CEFR_LEVELS = new Set(['A1', 'A2', 'B1']);
 const CONTENT_LEVEL_KZK_PATTERN = /^kzk[12]_\d{2}$/;
+
+/** Resend's batch endpoint accepts at most 100 emails per call. */
+const EMAIL_BATCH_SIZE = 100;
 
 interface AssignmentData {
 	id: string;
@@ -326,12 +329,11 @@ export const actions: Actions = {
 							: '';
 						const descriptionHtml = description ? `<p>${description}</p>` : '';
 
-						for (const email of emails) {
-							await resend.emails.send({
-								from: fromAddress,
-								to: [email],
-								subject: `Assignment Updated: ${title} - ${className}`,
-								html: `
+						const buildEmail = (email: string): CreateBatchEmailOptions => ({
+							from: fromAddress,
+							to: [email],
+							subject: `Assignment Updated: ${title} - ${className}`,
+							html: `
 								<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
 									<h2>Assignment Updated: ${title}</h2>
 									<p>An assignment has been updated in <strong>${className}</strong>.</p>
@@ -350,7 +352,24 @@ export const actions: Actions = {
 									</p>
 								</div>
 							`
-							});
+						});
+
+						// Send through Resend's batch endpoint: one API call per chunk of up
+						// to 100, chunks sequential. The batch API reports success or
+						// failure for the whole chunk, so log once per chunk.
+						const sends = emails.map(buildEmail);
+						for (let i = 0; i < sends.length; i += EMAIL_BATCH_SIZE) {
+							const chunk = sends.slice(i, i + EMAIL_BATCH_SIZE);
+							const recipients = chunk.map((e) => e.to).flat();
+							try {
+								// Resend reports API errors in `error` rather than throwing
+								const { error } = await resend.batch.send(chunk);
+								if (error) {
+									console.error('Failed to send assignment-updated emails to', recipients, error);
+								}
+							} catch (e) {
+								console.error('Failed to send assignment-updated emails to', recipients, e);
+							}
 						}
 					} catch {
 						// Fire-and-forget: silently ignore email errors

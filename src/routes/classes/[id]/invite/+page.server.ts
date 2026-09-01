@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { Resend } from 'resend';
+import { Resend, type CreateBatchEmailOptions } from 'resend';
 import { env as privateEnv } from '$env/dynamic/private';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -57,73 +57,113 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-async function sendInvitationEmail(
+/** Resend's batch endpoint accepts at most 100 emails per call. */
+const EMAIL_BATCH_SIZE = 100;
+
+interface InvitationEmailContext {
+	resend: Resend;
+	fromAddress: string;
+	teacherName: string;
+	className: string;
+	joinLink: string;
+}
+
+/**
+ * Resolves everything shared by every invitation email (class name, join
+ * link, teacher display name) with two queries, once per request, instead of
+ * once per recipient. Returns null when email sending is not configured or
+ * the class could not be loaded.
+ */
+async function buildInvitationEmailContext(
 	supabase: App.Locals['supabase'],
 	classId: string,
-	recipientEmail: string,
 	userId: string,
 	userEmail: string | undefined,
 	requestUrl: string
-): Promise<void> {
+): Promise<InvitationEmailContext | null> {
 	const apiKey = privateEnv.RESEND_API_KEY;
-	if (!apiKey) return;
+	if (!apiKey) return null;
 
-	const { data: classInfo } = await supabase
-		.from('classes')
-		.select('name, class_code')
-		.eq('id', classId)
-		.single();
+	const [{ data: classInfo }, { data: profile }] = await Promise.all([
+		supabase.from('classes').select('name, class_code').eq('id', classId).single(),
+		supabase.from('profiles').select('display_name').eq('id', userId).maybeSingle()
+	]);
 
 	if (
 		!isRecord(classInfo) ||
 		typeof classInfo.name !== 'string' ||
 		typeof classInfo.class_code !== 'string'
 	) {
-		return;
+		return null;
 	}
-
-	const { data: profile } = await supabase
-		.from('profiles')
-		.select('display_name')
-		.eq('id', userId)
-		.maybeSingle();
 
 	const teacherName =
 		isRecord(profile) && typeof profile.display_name === 'string'
 			? profile.display_name
 			: (userEmail ?? 'Your teacher');
 
-	const className = classInfo.name;
-	const classCode = classInfo.class_code;
-
 	const origin = new URL(requestUrl).origin;
-	const joinLink = `${origin}/classes/join?code=${encodeURIComponent(classCode)}`;
+	const joinLink = `${origin}/classes/join?code=${encodeURIComponent(classInfo.class_code)}`;
 
-	const resend = new Resend(apiKey);
-	const fromAddress = privateEnv.RESEND_FROM_EMAIL ?? 'Sklonuj <noreply@sklonuj.com>';
+	return {
+		resend: new Resend(apiKey),
+		fromAddress: privateEnv.RESEND_FROM_EMAIL ?? 'Sklonuj <noreply@sklonuj.com>',
+		teacherName,
+		className: classInfo.name,
+		joinLink
+	};
+}
 
-	try {
-		await resend.emails.send({
-			from: fromAddress,
-			to: [recipientEmail],
-			subject: `You've been invited to join ${className} on Skloňuj`,
-			html: `
-				<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-					<h2>You've been invited to a class!</h2>
-					<p><strong>${teacherName}</strong> has invited you to join <strong>${className}</strong> on Skloňuj.</p>
-					<p>Click the link below to join:</p>
-					<p>
-						<a href="${joinLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">
-							Join Class
-						</a>
-					</p>
-					<p style="color: #6b7280; font-size: 14px;">Or copy and paste this link into your browser:</p>
-					<p style="color: #6b7280; font-size: 14px;">${joinLink}</p>
-				</div>
-			`
-		});
-	} catch {
-		// Email sending failed but invitation was already created in the DB
+function buildInvitationEmail(
+	ctx: InvitationEmailContext,
+	recipientEmail: string
+): CreateBatchEmailOptions {
+	const { fromAddress, teacherName, className, joinLink } = ctx;
+	return {
+		from: fromAddress,
+		to: [recipientEmail],
+		subject: `You've been invited to join ${className} on Skloňuj`,
+		html: `
+			<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+				<h2>You've been invited to a class!</h2>
+				<p><strong>${teacherName}</strong> has invited you to join <strong>${className}</strong> on Skloňuj.</p>
+				<p>Click the link below to join:</p>
+				<p>
+					<a href="${joinLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">
+						Join Class
+					</a>
+				</p>
+				<p style="color: #6b7280; font-size: 14px;">Or copy and paste this link into your browser:</p>
+				<p style="color: #6b7280; font-size: 14px;">${joinLink}</p>
+			</div>
+		`
+	};
+}
+
+/**
+ * Sends emails through Resend's batch endpoint, one API call per chunk of up
+ * to 100, chunks sequentially. That keeps a 50-address invite to a single
+ * request instead of 50, which would trip Resend's per-second rate limit.
+ * The batch API reports success or failure for the whole chunk, so a failed
+ * chunk is logged once with its recipient list.
+ */
+async function sendInvitationEmails(
+	resend: Resend,
+	emails: CreateBatchEmailOptions[]
+): Promise<void> {
+	for (let i = 0; i < emails.length; i += EMAIL_BATCH_SIZE) {
+		const chunk = emails.slice(i, i + EMAIL_BATCH_SIZE);
+		const recipients = chunk.map((e) => e.to).flat();
+		try {
+			// Resend reports API errors in `error` rather than throwing
+			const { error } = await resend.batch.send(chunk);
+			if (error) {
+				console.error('Failed to send class invitation emails to', recipients, error);
+			}
+		} catch (e) {
+			// Email sending failed but the invitations were already created in the DB
+			console.error('Failed to send class invitation emails to', recipients, e);
+		}
 	}
 }
 
@@ -186,64 +226,90 @@ export const actions: Actions = {
 		let alreadyPending = 0;
 		let failed = 0;
 
-		// Process DB operations (check existing, insert/update) sequentially
-		// then collect emails to send and send them in parallel
-		const emailsToSend: string[] = [];
-
+		// The same address pasted twice: the first occurrence creates the
+		// invitation, so every later occurrence reports as "already pending",
+		// exactly as the previous one-at-a-time processing did.
+		const uniqueEmails: string[] = [];
+		const seen = new Set<string>();
 		for (const email of emails) {
-			// Check for existing invitation
-			const { data: existing } = await supabase
-				.from('class_invitations')
-				.select('id, status')
-				.eq('class_id', classId)
-				.eq('email', email)
-				.maybeSingle();
+			if (seen.has(email)) {
+				alreadyPending++;
+				continue;
+			}
+			seen.add(email);
+			uniqueEmails.push(email);
+		}
 
-			if (isRecord(existing) && typeof existing.id === 'string') {
-				if (existing.status === 'pending' || existing.status === 'accepted') {
+		// One round-trip: load every existing invitation for these addresses.
+		const { data: existingRows, error: existingError } = await supabase
+			.from('class_invitations')
+			.select('email, status')
+			.eq('class_id', classId)
+			.in('email', uniqueEmails);
+
+		const existingStatusByEmail = new Map<string, string>();
+		if (Array.isArray(existingRows)) {
+			for (const row of existingRows) {
+				if (isRecord(row) && typeof row.email === 'string' && typeof row.status === 'string') {
+					existingStatusByEmail.set(row.email, row.status);
+				}
+			}
+		}
+
+		// Partition in memory: skip live invitations, (re)create the rest.
+		// New addresses are inserted; expired ones are flipped back to pending
+		// with a fresh expiry. Both go through a single upsert keyed on the
+		// UNIQUE(class_id, email) constraint from migration 005.
+		const emailsToSend: string[] = [];
+		if (existingError) {
+			// Without knowing which invitations exist we cannot safely (re)create any.
+			failed += uniqueEmails.length;
+		} else {
+			for (const email of uniqueEmails) {
+				const status = existingStatusByEmail.get(email);
+				if (status === 'pending' || status === 'accepted') {
 					alreadyPending++;
 					continue;
 				}
-				// If expired, update it to pending with new expiry
-				const { error: updateError } = await supabase
-					.from('class_invitations')
-					.update({
-						status: 'pending',
-						expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-					})
-					.eq('id', existing.id);
-
-				if (updateError) {
-					failed++;
-					continue;
-				}
-
 				emailsToSend.push(email);
-				sent++;
-				continue;
 			}
-
-			const { error: insertError } = await supabase.from('class_invitations').insert({
-				class_id: classId,
-				email
-			});
-
-			if (insertError) {
-				failed++;
-				continue;
-			}
-
-			emailsToSend.push(email);
-			sent++;
 		}
 
-		// Send all invitation emails in parallel
 		if (emailsToSend.length > 0) {
-			await Promise.allSettled(
-				emailsToSend.map((email) =>
-					sendInvitationEmail(supabase, classId, email, user.id, user.email, request.url)
-				)
+			const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+			const { error: upsertError } = await supabase.from('class_invitations').upsert(
+				emailsToSend.map((email) => ({
+					class_id: classId,
+					email,
+					status: 'pending',
+					expires_at: expiresAt
+				})),
+				{ onConflict: 'class_id,email' }
 			);
+
+			if (upsertError) {
+				failed += emailsToSend.length;
+				emailsToSend.length = 0;
+			} else {
+				sent += emailsToSend.length;
+			}
+		}
+
+		// Send invitation emails via Resend's batch endpoint
+		if (emailsToSend.length > 0) {
+			const ctx = await buildInvitationEmailContext(
+				supabase,
+				classId,
+				user.id,
+				user.email,
+				request.url
+			);
+			if (ctx) {
+				await sendInvitationEmails(
+					ctx.resend,
+					emailsToSend.map((email) => buildInvitationEmail(ctx, email))
+				);
+			}
 		}
 
 		const parts: string[] = [];

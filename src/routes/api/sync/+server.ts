@@ -213,6 +213,124 @@ function validateSession(
 	};
 }
 
+type SessionCaseScores = Record<string, { attempted: number; correct: number }>;
+
+interface SessionCounters {
+	questionsAttempted: number;
+	questionsCorrect: number;
+	caseScores: SessionCaseScores;
+}
+
+/**
+ * Merge an incoming session into an existing row by taking the per-field MAX
+ * so concurrent tabs (or stale-then-fresh requests) can't shrink a day's
+ * totals. Case scores present only on the existing row are kept as-is.
+ * MAX is associative and commutative, so folding several same-day sessions
+ * through this in any order yields the same row as applying them one by one.
+ */
+function mergeSession(existing: SessionCounters, incoming: SessionCounters): SessionCounters {
+	const caseScores: SessionCaseScores = { ...existing.caseScores };
+	for (const [key, val] of Object.entries(incoming.caseScores)) {
+		const prev = caseScores[key] ?? { attempted: 0, correct: 0 };
+		caseScores[key] = {
+			attempted: Math.max(val.attempted, prev.attempted),
+			correct: Math.max(val.correct, prev.correct)
+		};
+	}
+	return {
+		questionsAttempted: Math.max(incoming.questionsAttempted, existing.questionsAttempted),
+		questionsCorrect: Math.max(incoming.questionsCorrect, existing.questionsCorrect),
+		caseScores
+	};
+}
+
+function nonNegativeInt(value: unknown): number {
+	return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+/** Narrow an untyped practice_sessions row from Supabase into merge input. */
+function parseExistingSessionRow(row: unknown): { sessionDate: string } & SessionCounters {
+	if (!isRecord(row))
+		return { sessionDate: '', questionsAttempted: 0, questionsCorrect: 0, caseScores: {} };
+	const sessionDate = row['session_date'];
+	const rawCaseScores = row['case_scores'];
+	return {
+		sessionDate: typeof sessionDate === 'string' ? sessionDate : '',
+		questionsAttempted: nonNegativeInt(row['questions_attempted']),
+		questionsCorrect: nonNegativeInt(row['questions_correct']),
+		caseScores: isValidSessionCaseScoresRecord(rawCaseScores) ? rawCaseScores : {}
+	};
+}
+
+function chunk<T>(items: readonly T[], size: number): T[][] {
+	const out: T[][] = [];
+	for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+	return out;
+}
+
+// Keeps both the `.in(...)` query string and the upsert body bounded.
+const SESSION_BATCH_SIZE = 200;
+
+/**
+ * Upsert practice sessions for a user, merging each into any existing row for
+ * the same date (per-field MAX). Batched: one select per 200 distinct dates
+ * and one upsert per 200 rows, instead of a select + upsert per session.
+ * Returns an error message on failure, or null on success.
+ */
+async function upsertSessions(
+	supabase: App.Locals['supabase'],
+	userId: string,
+	sessions: readonly ValidatedSession[]
+): Promise<string | null> {
+	if (sessions.length === 0) return null;
+
+	const dates = [...new Set(sessions.map((s) => s.sessionDate))];
+
+	const selectResults = await Promise.all(
+		chunk(dates, SESSION_BATCH_SIZE).map((dateChunk) =>
+			supabase
+				.from('practice_sessions')
+				.select('session_date, questions_attempted, questions_correct, case_scores')
+				.eq('user_id', userId)
+				.in('session_date', dateChunk)
+		)
+	);
+
+	// Fold every incoming session for a date into the existing row (if any).
+	const mergedByDate = new Map<string, SessionCounters>();
+	for (const { data, error } of selectResults) {
+		if (error) return 'Failed to upsert practice session';
+		for (const raw of data ?? []) {
+			const row = parseExistingSessionRow(raw);
+			if (row.sessionDate !== '') mergedByDate.set(row.sessionDate, row);
+		}
+	}
+	for (const session of sessions) {
+		const existing = mergedByDate.get(session.sessionDate);
+		mergedByDate.set(session.sessionDate, existing ? mergeSession(existing, session) : session);
+	}
+
+	const updatedAt = new Date().toISOString();
+	const rows = [...mergedByDate.entries()].map(([sessionDate, merged]) => ({
+		user_id: userId,
+		session_date: sessionDate,
+		questions_attempted: merged.questionsAttempted,
+		questions_correct: merged.questionsCorrect,
+		case_scores: merged.caseScores,
+		updated_at: updatedAt
+	}));
+
+	const upsertResults = await Promise.all(
+		chunk(rows, SESSION_BATCH_SIZE).map((rowChunk) =>
+			supabase.from('practice_sessions').upsert(rowChunk, { onConflict: 'user_id,session_date' })
+		)
+	);
+	for (const { error } of upsertResults) {
+		if (error) return 'Failed to upsert practice session';
+	}
+	return null;
+}
+
 export const GET: RequestHandler = async ({ locals }) => {
 	const user = locals.user;
 	if (!user) {
@@ -327,65 +445,13 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 
 	const userId = user.id;
 
-	// Upsert a single practice session, merging with any existing row by taking
-	// the per-field MAX so concurrent tabs (or stale-then-fresh requests)
-	// can't shrink today's totals.
-	async function upsertSession(session: ValidatedSession): Promise<string | null> {
-		const { sessionDate, questionsAttempted, questionsCorrect, caseScores } = session;
-
-		const { data: existing } = await supabase
-			.from('practice_sessions')
-			.select('questions_attempted, questions_correct, case_scores')
-			.eq('user_id', userId)
-			.eq('session_date', sessionDate)
-			.maybeSingle();
-
-		let mergedAttempted = questionsAttempted;
-		let mergedCorrect = questionsCorrect;
-		let mergedCaseScores = caseScores;
-
-		if (existing) {
-			mergedAttempted = Math.max(questionsAttempted, existing.questions_attempted ?? 0);
-			mergedCorrect = Math.max(questionsCorrect, existing.questions_correct ?? 0);
-
-			const existingCaseScores: Record<string, { attempted: number; correct: number }> =
-				isValidSessionCaseScoresRecord(existing.case_scores) ? existing.case_scores : {};
-			const merged: Record<string, { attempted: number; correct: number }> = {
-				...existingCaseScores
-			};
-			for (const [key, val] of Object.entries(caseScores)) {
-				const prev = merged[key] ?? { attempted: 0, correct: 0 };
-				merged[key] = {
-					attempted: Math.max(val.attempted, prev.attempted),
-					correct: Math.max(val.correct, prev.correct)
-				};
-			}
-			mergedCaseScores = merged;
-		}
-
-		const { error: upsertError } = await supabase.from('practice_sessions').upsert(
-			{
-				user_id: userId,
-				session_date: sessionDate,
-				questions_attempted: mergedAttempted,
-				questions_correct: mergedCorrect,
-				case_scores: mergedCaseScores,
-				updated_at: new Date().toISOString()
-			},
-			{ onConflict: 'user_id,session_date' }
-		);
-
-		if (upsertError) return 'Failed to upsert practice session';
-		return null;
-	}
-
 	// Sync a single practice session
 	if (body['session'] !== undefined) {
 		const sessionResult = validateSession(body['session']);
 		if (!sessionResult.valid) {
 			return json({ error: sessionResult.reason }, { status: 400 });
 		}
-		const failure = await upsertSession(sessionResult.data);
+		const failure = await upsertSessions(supabase, userId, [sessionResult.data]);
 		if (failure) {
 			return json({ error: failure }, { status: 500 });
 		}
@@ -409,11 +475,9 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			}
 			validatedSessions.push(sessionResult.data);
 		}
-		for (const s of validatedSessions) {
-			const failure = await upsertSession(s);
-			if (failure) {
-				return json({ error: failure }, { status: 500 });
-			}
+		const failure = await upsertSessions(supabase, userId, validatedSessions);
+		if (failure) {
+			return json({ error: failure }, { status: 500 });
 		}
 	}
 

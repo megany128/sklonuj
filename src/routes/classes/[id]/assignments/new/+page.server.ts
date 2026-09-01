@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { resolve } from '$app/paths';
-import { Resend } from 'resend';
+import { Resend, type CreateBatchEmailOptions } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
@@ -21,6 +21,9 @@ const VALID_NUMBER_MODES = new Set(['sg', 'pl', 'both']);
 const VALID_CONTENT_MODES = new Set(['nouns', 'pronouns', 'both']);
 const VALID_CEFR_LEVELS = new Set(['A1', 'A2', 'B1']);
 const CONTENT_LEVEL_KZK_PATTERN = /^kzk[12]_\d{2}$/;
+
+/** Resend's batch endpoint accepts at most 100 emails per call. */
+const EMAIL_BATCH_SIZE = 100;
 
 interface OtherClass {
 	id: string;
@@ -296,30 +299,35 @@ export const actions: Actions = {
 				}
 			}
 
-			// Create assignment for each verified additional class
-			for (const additionalId of additionalClassIds) {
-				if (!verifiedIds.has(additionalId)) continue;
+			// Create assignments for every verified additional class in one insert
+			const additionalRows = additionalClassIds
+				.filter((id) => verifiedIds.has(id))
+				.map((additionalId) => ({
+					class_id: additionalId,
+					title,
+					description: description || null,
+					selected_cases: selectedCases,
+					selected_drill_types: selectedDrillTypes,
+					number_mode: numberMode,
+					content_mode: contentMode,
+					include_adjectives: includeAdjectives,
+					content_level: contentLevel || null,
+					target_questions: targetQuestions,
+					due_date: dueDate
+				}));
 
+			if (additionalRows.length > 0) {
 				const { data: additionalData } = await supabase
 					.from('assignments')
-					.insert({
-						class_id: additionalId,
-						title,
-						description: description || null,
-						selected_cases: selectedCases,
-						selected_drill_types: selectedDrillTypes,
-						number_mode: numberMode,
-						content_mode: contentMode,
-						include_adjectives: includeAdjectives,
-						content_level: contentLevel || null,
-						target_questions: targetQuestions,
-						due_date: dueDate
-					})
-					.select('id')
-					.single();
+					.insert(additionalRows)
+					.select('id, class_id');
 
-				if (additionalData && isRecord(additionalData) && typeof additionalData.id === 'string') {
-					classAssignmentMap.set(additionalId, additionalData.id);
+				if (Array.isArray(additionalData)) {
+					for (const row of additionalData) {
+						if (isRecord(row) && typeof row.id === 'string' && typeof row.class_id === 'string') {
+							classAssignmentMap.set(row.class_id, row.id);
+						}
+					}
 				}
 			}
 		}
@@ -340,53 +348,70 @@ export const actions: Actions = {
 						: '';
 					const baseUrl = request.url.split('/classes/')[0];
 
-					for (const cId of allClassIds) {
+					const notifyClassIds = allClassIds.filter((cId) => classAssignmentMap.has(cId));
+					if (notifyClassIds.length === 0) return;
+
+					// One query each for memberships and class names across all classes
+					const [{ data: memberships }, { data: classRows }] = await Promise.all([
+						supabase
+							.from('class_memberships')
+							.select('class_id, student_id')
+							.in('class_id', notifyClassIds),
+						supabase.from('classes').select('id, name').in('id', notifyClassIds)
+					]);
+
+					const studentIdsByClass = new Map<string, string[]>();
+					const uniqueStudentIds = new Set<string>();
+					if (Array.isArray(memberships)) {
+						for (const m of memberships) {
+							if (
+								isRecord(m) &&
+								typeof m.class_id === 'string' &&
+								typeof m.student_id === 'string'
+							) {
+								const list = studentIdsByClass.get(m.class_id) ?? [];
+								list.push(m.student_id);
+								studentIdsByClass.set(m.class_id, list);
+								uniqueStudentIds.add(m.student_id);
+							}
+						}
+					}
+					if (uniqueStudentIds.size === 0) return;
+
+					const classNameById = new Map<string, string>();
+					if (Array.isArray(classRows)) {
+						for (const row of classRows) {
+							if (isRecord(row) && typeof row.id === 'string' && typeof row.name === 'string') {
+								classNameById.set(row.id, row.name);
+							}
+						}
+					}
+
+					// Resolve each student's email once, even if they are in several classes
+					const emailByStudentId = new Map<string, string>();
+					const studentIdList = [...uniqueStudentIds];
+					const userResults = await Promise.all(
+						studentIdList.map((id) => adminClient.auth.admin.getUserById(id))
+					);
+					userResults.forEach((result, i) => {
+						if (result.data?.user && typeof result.data.user.email === 'string') {
+							emailByStudentId.set(studentIdList[i], result.data.user.email);
+						}
+					});
+
+					// Build every email up front (one per student per class), then send
+					// them through Resend's batch endpoint in chunks of up to 100.
+					const sends: CreateBatchEmailOptions[] = [];
+					for (const cId of notifyClassIds) {
 						const assignmentId = classAssignmentMap.get(cId);
 						if (!assignmentId) continue;
-
-						// Get student IDs from class memberships
-						const { data: memberships } = await supabase
-							.from('class_memberships')
-							.select('student_id')
-							.eq('class_id', cId);
-
-						if (!Array.isArray(memberships) || memberships.length === 0) continue;
-
-						const studentIds: string[] = [];
-						for (const m of memberships) {
-							if (isRecord(m) && typeof m.student_id === 'string') {
-								studentIds.push(m.student_id);
-							}
-						}
-						if (studentIds.length === 0) continue;
-
-						// Get student emails
-						const emails: string[] = [];
-						const userResults = await Promise.all(
-							studentIds.map((id) => adminClient.auth.admin.getUserById(id))
-						);
-						for (const result of userResults) {
-							if (result.data?.user && typeof result.data.user.email === 'string') {
-								emails.push(result.data.user.email);
-							}
-						}
-						if (emails.length === 0) continue;
-
-						// Get class name
-						const { data: classInfo } = await supabase
-							.from('classes')
-							.select('name')
-							.eq('id', cId)
-							.single();
-						const className =
-							isRecord(classInfo) && typeof classInfo.name === 'string'
-								? classInfo.name
-								: 'your class';
-
+						const className = classNameById.get(cId) ?? 'your class';
 						const assignmentLink = `${baseUrl}/classes/${cId}/assignments/${assignmentId}`;
 
-						for (const email of emails) {
-							await resend.emails.send({
+						for (const studentId of studentIdsByClass.get(cId) ?? []) {
+							const email = emailByStudentId.get(studentId);
+							if (!email) continue;
+							sends.push({
 								from: fromAddress,
 								to: [email],
 								subject: `New Assignment: ${title} - ${className}`,
@@ -410,6 +435,22 @@ export const actions: Actions = {
 									</div>
 								`
 							});
+						}
+					}
+
+					// One API call per chunk, chunks sequential. The batch API reports
+					// success or failure for the whole chunk, so log once per chunk.
+					for (let i = 0; i < sends.length; i += EMAIL_BATCH_SIZE) {
+						const chunk = sends.slice(i, i + EMAIL_BATCH_SIZE);
+						const recipients = chunk.map((e) => e.to).flat();
+						try {
+							// Resend reports API errors in `error` rather than throwing
+							const { error } = await resend.batch.send(chunk);
+							if (error) {
+								console.error('Failed to send new-assignment emails to', recipients, error);
+							}
+						} catch (e) {
+							console.error('Failed to send new-assignment emails to', recipients, e);
 						}
 					}
 				} catch {

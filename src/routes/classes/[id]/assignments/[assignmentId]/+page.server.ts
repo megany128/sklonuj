@@ -154,8 +154,26 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	const { classData, role } = await parent();
 	const supabase = locals.supabase;
 	const assignmentId = params.assignmentId;
+	const user = locals.user;
 
-	const { data: assignmentData, error: assignmentError } = await supabase
+	if (role === 'teacher') {
+		// Defense-in-depth: explicitly verify the authenticated user owns this
+		// class before issuing any per-student progress queries. The parent layout
+		// already sets `role` based on teacher_id, but re-checking here guards
+		// against any future parent-layout regressions.
+		if (!user || classData.teacher_id !== user.id) {
+			error(403, 'You do not have access to this assignment.');
+		}
+	}
+
+	// Wave 1: everything keyed only on route params runs concurrently.
+	//  - the assignment itself
+	//  - teacher: class roster + progress rows for this assignment. RLS policy
+	//    "Teachers can view progress for their class assignments" (migration 005) already
+	//    scopes rows by assignment_id, so no roster-dependent .in('student_id') is needed;
+	//    rows are still joined to the roster below so departed students never surface.
+	//  - student: own progress row
+	const assignmentPromise = supabase
 		.from('assignments')
 		.select(
 			'id, title, description, selected_cases, selected_drill_types, number_mode, content_mode, include_adjectives, content_level, target_questions, due_date, created_at'
@@ -163,6 +181,43 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 		.eq('id', assignmentId)
 		.eq('class_id', classData.id)
 		.maybeSingle();
+
+	const membershipsPromise =
+		role === 'teacher'
+			? supabase.from('class_memberships').select('student_id').eq('class_id', classData.id)
+			: null;
+
+	const classProgressPromise =
+		role === 'teacher'
+			? supabase
+					.from('assignment_progress')
+					.select(
+						'student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
+					)
+					.eq('assignment_id', assignmentId)
+			: null;
+
+	const ownProgressPromise =
+		role !== 'teacher' && user
+			? supabase
+					.from('assignment_progress')
+					.select(
+						'student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
+					)
+					.eq('assignment_id', assignmentId)
+					.eq('student_id', user.id)
+					.maybeSingle()
+			: null;
+
+	const [assignmentResult, membershipsResult, classProgressResult, ownProgressResult] =
+		await Promise.all([
+			assignmentPromise,
+			membershipsPromise,
+			classProgressPromise,
+			ownProgressPromise
+		]);
+
+	const { data: assignmentData, error: assignmentError } = assignmentResult;
 
 	if (assignmentError || !isRecord(assignmentData) || typeof assignmentData.id !== 'string') {
 		return { assignment: null, studentProgress: [], role };
@@ -197,26 +252,12 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 		createdAt: typeof assignmentData.created_at === 'string' ? assignmentData.created_at : ''
 	};
 
-	// Fetch per-student progress
+	// Per-student progress
 	const studentProgress: StudentProgress[] = [];
 
 	if (role === 'teacher') {
-		// Defense-in-depth: explicitly verify the authenticated user owns this
-		// class before exposing per-student progress data. The parent layout
-		// already sets `role` based on teacher_id, but re-checking here guards
-		// against any future parent-layout regressions.
-		const user = locals.user;
-		if (!user || classData.teacher_id !== user.id) {
-			error(403, 'You do not have access to this assignment.');
-		}
-
-		// Fetch all students in the class
-		const { data: memberships } = await supabase
-			.from('class_memberships')
-			.select('student_id')
-			.eq('class_id', classData.id);
-
 		const studentIds: string[] = [];
+		const memberships = membershipsResult?.data;
 		if (Array.isArray(memberships)) {
 			for (const m of memberships) {
 				if (isRecord(m) && typeof m.student_id === 'string') {
@@ -225,7 +266,8 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			}
 		}
 
-		// Fetch display names using admin client (RLS prevents teacher from reading student profiles)
+		// Wave 2: display names via admin client (RLS prevents teacher from reading student
+		// profiles). This is the only roster-dependent fetch.
 		const supabaseUrl = env.PUBLIC_SUPABASE_URL;
 		const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
 		const adminClient =
@@ -247,7 +289,7 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			}
 		}
 
-		// Fetch assignment progress (includes per-assignment case_scores)
+		// Assignment progress (includes per-assignment case_scores), fetched in wave 1
 		const progressMap = new Map<
 			string,
 			{
@@ -258,27 +300,18 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 				mistakes: MistakeEntry[];
 			}
 		>();
-		if (studentIds.length > 0) {
-			const { data: progressData } = await supabase
-				.from('assignment_progress')
-				.select(
-					'student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
-				)
-				.eq('assignment_id', assignmentId)
-				.in('student_id', studentIds);
-
-			if (Array.isArray(progressData)) {
-				for (const p of progressData) {
-					if (isRecord(p) && typeof p.student_id === 'string') {
-						progressMap.set(p.student_id, {
-							questionsAttempted:
-								typeof p.questions_attempted === 'number' ? p.questions_attempted : 0,
-							questionsCorrect: typeof p.questions_correct === 'number' ? p.questions_correct : 0,
-							completedAt: typeof p.completed_at === 'string' ? p.completed_at : null,
-							caseScores: parseCaseScores(p.case_scores, assignment.selectedCases),
-							mistakes: parseMistakes(p.mistakes)
-						});
-					}
+		const progressData = classProgressResult?.data;
+		if (Array.isArray(progressData)) {
+			for (const p of progressData) {
+				if (isRecord(p) && typeof p.student_id === 'string') {
+					progressMap.set(p.student_id, {
+						questionsAttempted:
+							typeof p.questions_attempted === 'number' ? p.questions_attempted : 0,
+						questionsCorrect: typeof p.questions_correct === 'number' ? p.questions_correct : 0,
+						completedAt: typeof p.completed_at === 'string' ? p.completed_at : null,
+						caseScores: parseCaseScores(p.case_scores, assignment.selectedCases),
+						mistakes: parseMistakes(p.mistakes)
+					});
 				}
 			}
 		}
@@ -296,34 +329,20 @@ export const load: PageServerLoad = async ({ locals, params, parent }) => {
 			});
 		}
 	} else {
-		// Student: fetch own progress only
-		const user = locals.user;
-		if (user) {
-			const { data: ownProgress } = await supabase
-				.from('assignment_progress')
-				.select(
-					'student_id, questions_attempted, questions_correct, completed_at, mistakes, case_scores'
-				)
-				.eq('assignment_id', assignmentId)
-				.eq('student_id', user.id)
-				.maybeSingle();
-
-			if (isRecord(ownProgress) && typeof ownProgress.student_id === 'string') {
-				studentProgress.push({
-					studentId: ownProgress.student_id,
-					displayName: null,
-					questionsAttempted:
-						typeof ownProgress.questions_attempted === 'number'
-							? ownProgress.questions_attempted
-							: 0,
-					questionsCorrect:
-						typeof ownProgress.questions_correct === 'number' ? ownProgress.questions_correct : 0,
-					completedAt:
-						typeof ownProgress.completed_at === 'string' ? ownProgress.completed_at : null,
-					caseScores: parseCaseScores(ownProgress.case_scores, assignment.selectedCases),
-					mistakes: parseMistakes(ownProgress.mistakes)
-				});
-			}
+		// Student: own progress only (fetched in wave 1)
+		const ownProgress = ownProgressResult?.data;
+		if (isRecord(ownProgress) && typeof ownProgress.student_id === 'string') {
+			studentProgress.push({
+				studentId: ownProgress.student_id,
+				displayName: null,
+				questionsAttempted:
+					typeof ownProgress.questions_attempted === 'number' ? ownProgress.questions_attempted : 0,
+				questionsCorrect:
+					typeof ownProgress.questions_correct === 'number' ? ownProgress.questions_correct : 0,
+				completedAt: typeof ownProgress.completed_at === 'string' ? ownProgress.completed_at : null,
+				caseScores: parseCaseScores(ownProgress.case_scores, assignment.selectedCases),
+				mistakes: parseMistakes(ownProgress.mistakes)
+			});
 		}
 	}
 

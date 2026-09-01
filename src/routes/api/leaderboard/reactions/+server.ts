@@ -66,20 +66,27 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 
 	const supabase = locals.supabase;
 
-	// Verify sender is in the class
-	const { data: senderMembership } = await supabase
-		.from('class_memberships')
-		.select('id')
-		.eq('class_id', classId)
-		.eq('student_id', user.id)
-		.maybeSingle();
-
-	// Also check if sender is the teacher
-	const { data: classData } = await supabase
-		.from('classes')
-		.select('teacher_id')
-		.eq('id', classId)
-		.single();
+	// Sender membership, class teacher, and recipient membership are independent
+	// (all keyed on classId + already-known user ids), so fetch them in parallel.
+	const [{ data: senderMembership }, { data: classData }, { data: recipientMembership }] =
+		await Promise.all([
+			// Verify sender is in the class
+			supabase
+				.from('class_memberships')
+				.select('id')
+				.eq('class_id', classId)
+				.eq('student_id', user.id)
+				.maybeSingle(),
+			// Also check if sender is the teacher
+			supabase.from('classes').select('teacher_id').eq('id', classId).single(),
+			// Verify recipient is in the class
+			supabase
+				.from('class_memberships')
+				.select('id')
+				.eq('class_id', classId)
+				.eq('student_id', toUserId)
+				.maybeSingle()
+		]);
 
 	const isTeacher =
 		isRecord(classData) &&
@@ -89,14 +96,6 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 	if (!senderMembership && !isTeacher) {
 		return json({ error: 'You are not a member of this class' }, { status: 403 });
 	}
-
-	// Verify recipient is in the class
-	const { data: recipientMembership } = await supabase
-		.from('class_memberships')
-		.select('id')
-		.eq('class_id', classId)
-		.eq('student_id', toUserId)
-		.maybeSingle();
 
 	if (!recipientMembership) {
 		return json({ error: 'Recipient is not a member of this class' }, { status: 400 });

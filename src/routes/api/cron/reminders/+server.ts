@@ -21,12 +21,19 @@
  * separate 1-day reminder — that is the intended sequential behavior, and
  * the per-assignment `reminder_3day_sent` / `reminder_sent` flags ensure
  * each reminder type is sent at most once per assignment.
+ *
+ * Query shape: all supporting data (classes, memberships, assignment
+ * progress, opted-in profiles, auth emails) is fetched ONCE for every due
+ * assignment across both windows and grouped in memory, so the run costs a
+ * constant number of table round trips plus one auth lookup per recipient
+ * (bounded concurrency) — not a fresh fan-out per assignment.
  */
 import { json } from '@sveltejs/kit';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
+import { chunk, resolveUserEmails } from '$lib/server/auth-users';
 import type { RequestHandler } from './$types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -37,6 +44,9 @@ function toRecordArray(value: unknown): Record<string, unknown>[] {
 	if (!Array.isArray(value)) return [];
 	return value.filter(isRecord);
 }
+
+/** Keep `.in()` filter lists comfortably under PostgREST URL length limits. */
+const IN_FILTER_CHUNK = 200;
 
 interface ValidAssignment {
 	id: string;
@@ -52,96 +62,134 @@ function toValidAssignments(data: unknown): ValidAssignment[] {
 	);
 }
 
-async function getIncompleteStudentEmails(
+class BatchQueryError extends Error {
+	constructor(
+		public readonly table: string,
+		cause: unknown
+	) {
+		super(`Failed to query ${table}`);
+		this.cause = cause;
+	}
+}
+
+/**
+ * Fetch `id, name` for every class id in one pass (chunked `.in()`).
+ * Returns `classId -> name`.
+ */
+async function fetchClassNames(
 	adminClient: SupabaseClient,
-	assignmentId: string,
-	classId: string
-): Promise<string[]> {
-	// Get all class members
-	const { data: membersData } = await adminClient
-		.from('class_memberships')
-		.select('student_id')
-		.eq('class_id', classId);
-
-	const rawMembers = toRecordArray(membersData);
-	const members = rawMembers.filter(
-		(m): m is Record<string, unknown> & { student_id: string } => typeof m.student_id === 'string'
-	);
-
-	if (members.length === 0) return [];
-
-	const studentIds = members.map((m) => m.student_id);
-
-	// Get students who have already completed the assignment
-	const { data: progressData } = await adminClient
-		.from('assignment_progress')
-		.select('student_id, completed_at')
-		.eq('assignment_id', assignmentId)
-		.in('student_id', studentIds);
-
-	const rawProgress = toRecordArray(progressData);
-	const progressRows = rawProgress.filter(
-		(
-			p
-		): p is Record<string, unknown> & {
-			student_id: string;
-			completed_at: string | null;
-		} =>
-			typeof p.student_id === 'string' &&
-			(typeof p.completed_at === 'string' || p.completed_at === null)
-	);
-	const completedStudentIds = new Set(
-		progressRows.filter((p) => p.completed_at !== null).map((p) => p.student_id)
-	);
-
-	const incompleteStudentIds = studentIds.filter((id) => !completedStudentIds.has(id));
-
-	if (incompleteStudentIds.length === 0) return [];
-
-	// Get profiles for students who have email_reminders enabled
-	const { data: profilesData } = await adminClient
-		.from('profiles')
-		.select('id, email_reminders')
-		.in('id', incompleteStudentIds);
-
-	const rawProfiles = toRecordArray(profilesData);
-	const profiles = rawProfiles.filter(
-		(p): p is Record<string, unknown> & { id: string; email_reminders: boolean } =>
-			typeof p.id === 'string' && typeof p.email_reminders === 'boolean'
-	);
-	const eligibleStudentIds = profiles.filter((p) => p.email_reminders).map((p) => p.id);
-
-	if (eligibleStudentIds.length === 0) return [];
-
-	// Get email addresses from auth.users via admin API in batches
-	const eligibleIdSet = new Set(eligibleStudentIds);
-	const emailsToNotify: string[] = [];
-	let page = 1;
-	const perPage = 50;
-	let found = 0;
-	while (found < eligibleStudentIds.length) {
-		const { data: listData } = await adminClient.auth.admin.listUsers({ page, perPage });
-		if (!listData || !Array.isArray(listData.users) || listData.users.length === 0) {
-			break;
-		}
-		for (const user of listData.users) {
-			if (
-				isRecord(user) &&
-				typeof user.id === 'string' &&
-				eligibleIdSet.has(user.id) &&
-				typeof user.email === 'string'
-			) {
-				emailsToNotify.push(user.email);
-				found++;
+	classIds: readonly string[]
+): Promise<Map<string, string>> {
+	const nameById = new Map<string, string>();
+	for (const ids of chunk(classIds, IN_FILTER_CHUNK)) {
+		const { data, error } = await adminClient.from('classes').select('id, name').in('id', ids);
+		if (error) throw new BatchQueryError('classes', error);
+		for (const c of toRecordArray(data)) {
+			if (typeof c.id === 'string' && typeof c.name === 'string') {
+				nameById.set(c.id, c.name);
 			}
 		}
-		if (listData.users.length < perPage) {
-			break;
+	}
+	return nameById;
+}
+
+/**
+ * Resolve, for every due assignment, the emails of enrolled students who
+ * (a) have not completed it and (b) have `email_reminders` enabled.
+ *
+ * Memberships, progress and profiles are each fetched in ONE batched query
+ * covering all assignments, then grouped in memory; auth emails are resolved
+ * per id with bounded concurrency. Returns `assignmentId -> emails[]`.
+ */
+async function getIncompleteStudentEmailsByAssignment(
+	adminClient: SupabaseClient,
+	assignments: readonly ValidAssignment[]
+): Promise<Map<string, string[]>> {
+	const emailsByAssignment = new Map<string, string[]>();
+	if (assignments.length === 0) return emailsByAssignment;
+
+	const classIds = Array.from(new Set(assignments.map((a) => a.class_id)));
+	const assignmentIds = assignments.map((a) => a.id);
+
+	// 1. All class members for every class with a due assignment
+	const membersByClass = new Map<string, string[]>();
+	for (const ids of chunk(classIds, IN_FILTER_CHUNK)) {
+		const { data, error } = await adminClient
+			.from('class_memberships')
+			.select('class_id, student_id')
+			.in('class_id', ids);
+		if (error) throw new BatchQueryError('class_memberships', error);
+		for (const m of toRecordArray(data)) {
+			if (typeof m.class_id !== 'string' || typeof m.student_id !== 'string') continue;
+			const list = membersByClass.get(m.class_id) ?? [];
+			list.push(m.student_id);
+			membersByClass.set(m.class_id, list);
 		}
-		page++;
 	}
 
-	return emailsToNotify;
+	// 2. Students who have already completed any of the due assignments
+	const completedByAssignment = new Map<string, Set<string>>();
+	for (const ids of chunk(assignmentIds, IN_FILTER_CHUNK)) {
+		const { data, error } = await adminClient
+			.from('assignment_progress')
+			.select('assignment_id, student_id, completed_at')
+			.in('assignment_id', ids)
+			.not('completed_at', 'is', null);
+		if (error) throw new BatchQueryError('assignment_progress', error);
+		for (const p of toRecordArray(data)) {
+			if (typeof p.assignment_id !== 'string' || typeof p.student_id !== 'string') continue;
+			if (typeof p.completed_at !== 'string') continue;
+			const set = completedByAssignment.get(p.assignment_id) ?? new Set<string>();
+			set.add(p.student_id);
+			completedByAssignment.set(p.assignment_id, set);
+		}
+	}
+
+	// Incomplete members per assignment (membership order preserved)
+	const incompleteByAssignment = new Map<string, string[]>();
+	const allIncompleteIds = new Set<string>();
+	for (const assignment of assignments) {
+		const members = membersByClass.get(assignment.class_id) ?? [];
+		const completed = completedByAssignment.get(assignment.id) ?? new Set<string>();
+		const incomplete = members.filter((id) => !completed.has(id));
+		incompleteByAssignment.set(assignment.id, incomplete);
+		for (const id of incomplete) allIncompleteIds.add(id);
+	}
+
+	if (allIncompleteIds.size === 0) {
+		for (const assignment of assignments) emailsByAssignment.set(assignment.id, []);
+		return emailsByAssignment;
+	}
+
+	// 3. Of those, the students who have opted in to email reminders
+	const eligibleIds = new Set<string>();
+	for (const ids of chunk(Array.from(allIncompleteIds), IN_FILTER_CHUNK)) {
+		const { data, error } = await adminClient
+			.from('profiles')
+			.select('id')
+			.in('id', ids)
+			.eq('email_reminders', true);
+		if (error) throw new BatchQueryError('profiles', error);
+		for (const p of toRecordArray(data)) {
+			if (typeof p.id === 'string') eligibleIds.add(p.id);
+		}
+	}
+
+	// 4. Auth emails for exactly the eligible ids
+	const emailById = await resolveUserEmails(adminClient, eligibleIds);
+
+	for (const assignment of assignments) {
+		const incomplete = incompleteByAssignment.get(assignment.id) ?? [];
+		const emails: string[] = [];
+		for (const studentId of incomplete) {
+			if (!eligibleIds.has(studentId)) continue;
+			const email = emailById.get(studentId);
+			if (email) emails.push(email);
+		}
+		emailsByAssignment.set(assignment.id, emails);
+	}
+
+	return emailsByAssignment;
 }
 
 export const POST: RequestHandler = async ({ request, url }) => {
@@ -191,28 +239,49 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
 	const threeDayAssignments = toValidAssignments(threeDayData);
 
-	for (const assignment of threeDayAssignments) {
-		// Get class info
-		const { data: classData, error: classError } = await adminClient
-			.from('classes')
-			.select('id, name')
-			.eq('id', assignment.class_id)
-			.single();
+	// --- 1-day reminders ---
+	// Find assignments due within 24 hours that haven't had 1-day reminder sent
+	const { data: oneDayData, error: oneDayError } = await adminClient
+		.from('assignments')
+		.select('id, title, class_id')
+		.eq('reminder_sent', false)
+		.gte('due_date', now.toISOString())
+		.lte('due_date', in24Hours.toISOString());
 
-		if (
-			classError ||
-			!isRecord(classData) ||
-			typeof classData.id !== 'string' ||
-			typeof classData.name !== 'string'
-		) {
+	if (oneDayError) {
+		return json({ error: 'Failed to query assignments for 1-day reminders' }, { status: 500 });
+	}
+
+	const oneDayAssignments = toValidAssignments(oneDayData);
+
+	// Prefetch class names + recipient lists for BOTH windows in one batched pass.
+	// A failed batch query aborts the run rather than silently marking every
+	// assignment as reminded with zero recipients.
+	const allDueAssignments = [...threeDayAssignments, ...oneDayAssignments];
+	let classNameById: Map<string, string>;
+	let emailsByAssignment: Map<string, string[]>;
+	try {
+		classNameById = await fetchClassNames(
+			adminClient,
+			Array.from(new Set(allDueAssignments.map((a) => a.class_id)))
+		);
+		emailsByAssignment = await getIncompleteStudentEmailsByAssignment(
+			adminClient,
+			allDueAssignments
+		);
+	} catch (err) {
+		const table = err instanceof BatchQueryError ? err.table : 'reminder data';
+		console.error(`reminders: failed to query ${table}`, err);
+		return json({ error: `Failed to query ${table}` }, { status: 500 });
+	}
+
+	for (const assignment of threeDayAssignments) {
+		const className = classNameById.get(assignment.class_id);
+		if (className === undefined) {
 			continue;
 		}
 
-		const emailsToNotify = await getIncompleteStudentEmails(
-			adminClient,
-			assignment.id,
-			assignment.class_id
-		);
+		const emailsToNotify = emailsByAssignment.get(assignment.id) ?? [];
 
 		if (emailsToNotify.length === 0) {
 			await adminClient
@@ -229,11 +298,11 @@ export const POST: RequestHandler = async ({ request, url }) => {
 				resend.emails.send({
 					from: fromAddress,
 					to: [recipientEmail],
-					subject: `Reminder: Assignment "${assignment.title}" for ${classData.name} is due in 3 days`,
+					subject: `Reminder: Assignment "${assignment.title}" for ${className} is due in 3 days`,
 					html: `
 						<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
 							<h2>Assignment Due in 3 Days</h2>
-							<p>This is a reminder that the assignment <strong>"${assignment.title}"</strong> for <strong>${classData.name}</strong> is due in 3 days.</p>
+							<p>This is a reminder that the assignment <strong>"${assignment.title}"</strong> for <strong>${className}</strong> is due in 3 days.</p>
 							<p>Make sure to complete it before the deadline!</p>
 							<p>
 								<a href="${threeDayAssignmentUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">
@@ -242,7 +311,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 							</p>
 							<p style="margin-top: 24px; font-size: 12px; color: #666;">
 								<a href="${siteOrigin}/profile" style="color: #666;">Manage email preferences</a> &middot;
-								You're receiving this because you're enrolled in ${classData.name}
+								You're receiving this because you're enrolled in ${className}
 							</p>
 						</div>
 					`
@@ -263,43 +332,13 @@ export const POST: RequestHandler = async ({ request, url }) => {
 			.eq('id', assignment.id);
 	}
 
-	// --- 1-day reminders ---
-	// Find assignments due within 24 hours that haven't had 1-day reminder sent
-	const { data: oneDayData, error: oneDayError } = await adminClient
-		.from('assignments')
-		.select('id, title, class_id')
-		.eq('reminder_sent', false)
-		.gte('due_date', now.toISOString())
-		.lte('due_date', in24Hours.toISOString());
-
-	if (oneDayError) {
-		return json({ error: 'Failed to query assignments for 1-day reminders' }, { status: 500 });
-	}
-
-	const oneDayAssignments = toValidAssignments(oneDayData);
-
 	for (const assignment of oneDayAssignments) {
-		// Get class info
-		const { data: classData, error: classError } = await adminClient
-			.from('classes')
-			.select('id, name')
-			.eq('id', assignment.class_id)
-			.single();
-
-		if (
-			classError ||
-			!isRecord(classData) ||
-			typeof classData.id !== 'string' ||
-			typeof classData.name !== 'string'
-		) {
+		const className = classNameById.get(assignment.class_id);
+		if (className === undefined) {
 			continue;
 		}
 
-		const emailsToNotify = await getIncompleteStudentEmails(
-			adminClient,
-			assignment.id,
-			assignment.class_id
-		);
+		const emailsToNotify = emailsByAssignment.get(assignment.id) ?? [];
 
 		if (emailsToNotify.length === 0) {
 			await adminClient.from('assignments').update({ reminder_sent: true }).eq('id', assignment.id);
@@ -313,11 +352,11 @@ export const POST: RequestHandler = async ({ request, url }) => {
 				resend.emails.send({
 					from: fromAddress,
 					to: [recipientEmail],
-					subject: `Reminder: Assignment "${assignment.title}" for ${classData.name} is due tomorrow`,
+					subject: `Reminder: Assignment "${assignment.title}" for ${className} is due tomorrow`,
 					html: `
 						<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
 							<h2>Assignment Due Tomorrow</h2>
-							<p>This is a reminder that the assignment <strong>"${assignment.title}"</strong> for <strong>${classData.name}</strong> is due tomorrow.</p>
+							<p>This is a reminder that the assignment <strong>"${assignment.title}"</strong> for <strong>${className}</strong> is due tomorrow.</p>
 							<p>Make sure to complete it before the deadline!</p>
 							<p>
 								<a href="${oneDayAssignmentUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px;">
@@ -326,7 +365,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 							</p>
 							<p style="margin-top: 24px; font-size: 12px; color: #666;">
 								<a href="${siteOrigin}/profile" style="color: #666;">Manage email preferences</a> &middot;
-								You're receiving this because you're enrolled in ${classData.name}
+								You're receiving this because you're enrolled in ${className}
 							</p>
 						</div>
 					`
