@@ -51,6 +51,14 @@
 		isCase,
 		isParadigm
 	} from '$lib/types';
+	import {
+		CHAPTER_STORAGE_KEY,
+		chapterSelectionsEqual,
+		isChapterSelection,
+		parseChapterSelection,
+		serializeChapterSelection,
+		type ChapterSelection
+	} from '$lib/engine/chapter-selection';
 
 	import {
 		loadWordBank,
@@ -413,6 +421,11 @@
 	let currentProgress = $state(get(progress));
 	let currentLevel: Difficulty = $derived(currentProgress.level);
 	let drillSettings: DrillSettings = $state(getDefaultSettings());
+	// When settings pin a single drill type, the pre-question skeleton can match
+	// that card's layout; with several types the first card is a random draw.
+	let pinnedDrillType = $derived<DrillType | null>(
+		drillSettings.selectedDrillTypes.length === 1 ? drillSettings.selectedDrillTypes[0] : null
+	);
 	// Per-level settings memory: a level auto-enables its curriculum defaults
 	// until the user customizes it, after which that level's config is restored.
 	let levelSettingsMap: Partial<Record<Difficulty, DrillSettings>> = $state({});
@@ -501,7 +514,17 @@
 		completedAt: string | null;
 	}
 	let assignmentInfo = $state<AssignmentInfo | null>(null);
-	let assignmentLoading = $state(false);
+	// Starts true when the URL already carries ?assignment= — the effect below
+	// sets it on mount anyway, and matching it here keeps SSR output identical
+	// to the first client paint (loading row instead of the assignments panel).
+	let assignmentLoading = $state(page.url.searchParams.get('assignment') !== null);
+	// Drill card skeleton: before init, while banks load, and while an
+	// assignment config is being fetched (no question exists yet in any case).
+	let drillLoading = $derived(
+		wordsLoading ||
+			assignmentLoading ||
+			(question === null && multiStepQuestion === null && !initialized)
+	);
 	let showCompletionModal = $state(false);
 	let suppressCompletionModal = $state(false);
 	let mistakesExpanded = $state(false);
@@ -579,62 +602,59 @@
 		correct: number;
 		completedAt: string | null;
 	}
-	let studentAssignments = $state<StudentAssignment[]>([]);
-	let assignmentsPanelExpanded = $state(true);
-
-	function loadStudentAssignments(): void {
-		if (!user) return;
-		fetch('/api/student-assignments')
-			.then((res) => {
-				if (!res.ok) throw new Error('Failed to load');
-				return res.json();
-			})
-			.then((data: unknown) => {
-				if (isRecord(data) && Array.isArray(data.assignments)) {
-					const validated: StudentAssignment[] = [];
-					for (const item of data.assignments) {
-						if (
-							isRecord(item) &&
-							typeof item.id === 'string' &&
-							typeof item.classId === 'string' &&
-							typeof item.className === 'string' &&
-							typeof item.title === 'string' &&
-							typeof item.targetQuestions === 'number' &&
-							Array.isArray(item.selectedCases) &&
-							Array.isArray(item.selectedDrillTypes)
-						) {
-							validated.push({
-								id: item.id,
-								classId: item.classId,
-								className: item.className,
-								title: item.title,
-								description: typeof item.description === 'string' ? item.description : null,
-								selectedCases: item.selectedCases.filter(
-									(v: unknown): v is string => typeof v === 'string'
-								),
-								selectedDrillTypes: item.selectedDrillTypes.filter(
-									(v: unknown): v is string => typeof v === 'string'
-								),
-								numberMode: typeof item.numberMode === 'string' ? item.numberMode : 'both',
-								contentMode: typeof item.contentMode === 'string' ? item.contentMode : 'both',
-								includeAdjectives: item.includeAdjectives === true,
-								contentLevel: typeof item.contentLevel === 'string' ? item.contentLevel : null,
-								targetQuestions: item.targetQuestions,
-								dueDate: typeof item.dueDate === 'string' ? item.dueDate : null,
-								attempted: typeof item.attempted === 'number' ? item.attempted : 0,
-								correct: typeof item.correct === 'number' ? item.correct : 0,
-								completedAt: typeof item.completedAt === 'string' ? item.completedAt : null
-							});
-						}
-					}
-					studentAssignments = validated;
-				}
-			})
-			.catch(() => {
-				assignmentError = 'Could not load assignments.';
-				clearAssignmentErrorAfterDelay();
-			});
+	/**
+	 * Validates the `assignments` array shape produced by
+	 * `$lib/server/student-assignments` (SSR payload and /api/student-assignments).
+	 */
+	function parseStudentAssignments(data: unknown): StudentAssignment[] {
+		if (!Array.isArray(data)) return [];
+		const validated: StudentAssignment[] = [];
+		for (const item of data) {
+			if (
+				isRecord(item) &&
+				typeof item.id === 'string' &&
+				typeof item.classId === 'string' &&
+				typeof item.className === 'string' &&
+				typeof item.title === 'string' &&
+				typeof item.targetQuestions === 'number' &&
+				Array.isArray(item.selectedCases) &&
+				Array.isArray(item.selectedDrillTypes)
+			) {
+				validated.push({
+					id: item.id,
+					classId: item.classId,
+					className: item.className,
+					title: item.title,
+					description: typeof item.description === 'string' ? item.description : null,
+					selectedCases: item.selectedCases.filter(
+						(v: unknown): v is string => typeof v === 'string'
+					),
+					selectedDrillTypes: item.selectedDrillTypes.filter(
+						(v: unknown): v is string => typeof v === 'string'
+					),
+					numberMode: typeof item.numberMode === 'string' ? item.numberMode : 'both',
+					contentMode: typeof item.contentMode === 'string' ? item.contentMode : 'both',
+					includeAdjectives: item.includeAdjectives === true,
+					contentLevel: typeof item.contentLevel === 'string' ? item.contentLevel : null,
+					targetQuestions: item.targetQuestions,
+					dueDate: typeof item.dueDate === 'string' ? item.dueDate : null,
+					attempted: typeof item.attempted === 'number' ? item.attempted : 0,
+					correct: typeof item.correct === 'number' ? item.correct : 0,
+					completedAt: typeof item.completedAt === 'string' ? item.completedAt : null
+				});
+			}
+		}
+		return validated;
 	}
+
+	// Hydrated from +page.server.ts (awaited there, so SSR already renders the
+	// panel at its final size). Read once at init — no reactive dependency on
+	// page.data; assignment completion updates this list in place.
+	const initialStudentAssignments: unknown = page.data.studentAssignments;
+	let studentAssignments = $state<StudentAssignment[]>(
+		parseStudentAssignments(initialStudentAssignments)
+	);
+	let assignmentsPanelExpanded = $state(true);
 
 	function doesPracticeMatchAssignment(
 		settings: DrillSettings,
@@ -1210,13 +1230,27 @@
 	// Mistakes
 	let mistakes: DrillResult[] = $state([]);
 
+	// Purely URL-derived filter state is read once at declaration so SSR and the
+	// first client paint agree (the init effect re-applies the same params and
+	// handles their side effects — level bumps, chapter-mode reset, storage).
+	const initialUrlParams = page.url.searchParams;
+	const initialSelectCase = initialUrlParams.get('selectCase');
+	const initialCases: Case[] = (initialUrlParams.get('cases') ?? '').split(',').filter(isCaseValue);
+	const initialSelectParadigm = initialUrlParams.get('selectParadigm');
+
 	// Case pill bar selection
-	let selectedCase = $state<Case | 'all'>('all');
-	let enabledCases = $state<Case[]>([...ALL_CASES]);
+	let selectedCase = $state<Case | 'all'>(
+		initialSelectCase !== null && isCase(initialSelectCase) ? initialSelectCase : 'all'
+	);
+	let enabledCases = $state<Case[]>(initialCases.length > 0 ? initialCases : [...ALL_CASES]);
 
 	// Paradigm filter (set via ?selectParadigm=pán from /resources/paradigms).
 	// When set, restrict noun candidates to this paradigm and force noun-only drills.
-	let selectedParadigm = $state<string | null>(null);
+	let selectedParadigm = $state<string | null>(
+		initialSelectParadigm !== null && isParadigm(initialSelectParadigm)
+			? initialSelectParadigm
+			: null
+	);
 
 	function filterByParadigm<T extends { paradigm: string }>(words: T[]): T[] {
 		return selectedParadigm ? words.filter((w) => w.paradigm === selectedParadigm) : words;
@@ -1241,10 +1275,17 @@
 		return fallback;
 	}
 
-	// KzK chapter mode
-	let chapterBook = $state<'kzk1' | 'kzk2' | null>(null);
-	let chapterSelection = $state<string | null>(null);
-	const CHAPTER_STORAGE_KEY = 'sklonuj_chapter';
+	// KzK chapter mode. Seeded from the `sklonuj_chapter` cookie (validated
+	// server-side into page.data.initialChapter) so SSR renders the chapter
+	// stepper instead of the free-practice level selector + case pill bar and
+	// hydration doesn't reflow the page. localStorage stays the source of truth
+	// and is reconciled in the init effect (see loadChapterFromStorage).
+	const initialChapterRaw: unknown = page.data.initialChapter;
+	const initialChapter: ChapterSelection | null = isChapterSelection(initialChapterRaw)
+		? initialChapterRaw
+		: null;
+	let chapterBook = $state<'kzk1' | 'kzk2' | null>(initialChapter?.book ?? null);
+	let chapterSelection = $state<string | null>(initialChapter?.chapter ?? null);
 	const CHAPTER_SCORES_KEY = 'sklonuj_chapter_scores';
 
 	/** Multi-step questions are available in KZK 2 (any chapter), KZK 1 chapter 6+, or free practice. */
@@ -1305,37 +1346,58 @@
 		}
 	}
 
+	function currentChapterSelection(): ChapterSelection | null {
+		return chapterBook !== null && chapterSelection !== null
+			? { book: chapterBook, chapter: chapterSelection }
+			: null;
+	}
+
+	/**
+	 * Mirror the chapter selection into a cookie so +page.server.ts can render
+	 * the right layout branch on the next request. Cleared (max-age=0) when
+	 * chapter mode is off so the server falls back to free practice.
+	 */
+	function writeChapterCookie(selection: ChapterSelection | null): void {
+		if (typeof document === 'undefined') return;
+		const secure = location.protocol === 'https:' ? '; Secure' : '';
+		document.cookie =
+			selection === null
+				? `${CHAPTER_STORAGE_KEY}=; path=/; max-age=0; SameSite=Lax${secure}`
+				: `${CHAPTER_STORAGE_KEY}=${encodeURIComponent(serializeChapterSelection(selection))}; path=/; max-age=31536000; SameSite=Lax${secure}`;
+	}
+
+	/**
+	 * Reconcile chapter state with localStorage, which is the source of truth.
+	 * The cookie only seeds SSR: if storage holds a selection that differs from
+	 * what the cookie produced (first visit after the cookie was introduced, or
+	 * a stale cookie), storage wins and the cookie is rewritten so the next
+	 * load is right. With nothing in storage the SSR-seeded state stands.
+	 */
 	function loadChapterFromStorage(): void {
 		if (typeof window === 'undefined') return;
+		let raw: string | null;
 		try {
-			const raw = localStorage.getItem(CHAPTER_STORAGE_KEY);
-			if (raw === null) return;
-			const parsed: unknown = JSON.parse(raw);
-			if (isRecord(parsed) && 'book' in parsed && 'chapter' in parsed) {
-				const obj = parsed;
-				if (
-					(obj.book === 'kzk1' || obj.book === 'kzk2' || obj.book === null) &&
-					(typeof obj.chapter === 'string' || obj.chapter === null)
-				) {
-					chapterBook = obj.book;
-					chapterSelection = typeof obj.chapter === 'string' ? obj.chapter : null;
-				}
-			}
+			raw = localStorage.getItem(CHAPTER_STORAGE_KEY);
 		} catch {
-			// ignore
+			return;
 		}
+		if (raw === null) return;
+		const stored = parseChapterSelection(raw);
+		if (chapterSelectionsEqual(stored, currentChapterSelection())) return;
+		chapterBook = stored?.book ?? null;
+		chapterSelection = stored?.chapter ?? null;
+		writeChapterCookie(stored);
 	}
 
 	function saveChapterToStorage(): void {
 		if (typeof window === 'undefined') return;
+		const selection = currentChapterSelection();
 		try {
-			localStorage.setItem(
-				CHAPTER_STORAGE_KEY,
-				JSON.stringify({ book: chapterBook, chapter: chapterSelection })
-			);
+			localStorage.setItem(CHAPTER_STORAGE_KEY, serializeChapterSelection(selection));
 		} catch {
 			// ignore
 		}
+		writeChapterCookie(selection);
 	}
 
 	function getSelectedKzkChapter(): KzkChapter | null {
@@ -1687,6 +1749,48 @@
 		);
 	}
 
+	// Fetches the assignment config from the API. Resolves to null after
+	// redirecting to sign-in on 401; rejects on any other failure.
+	function fetchAssignmentConfig(paramId: string): Promise<unknown> {
+		return fetch(`/api/assignment-progress?assignmentId=${paramId}`).then((res) => {
+			if (res.status === 401) {
+				const returnTo = `/?assignment=${paramId}`;
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- constructed auth URL with encoded returnTo
+				goto(`/auth?returnTo=${encodeURIComponent(returnTo)}`);
+				return null;
+			}
+			if (!res.ok) throw new Error('Failed to load assignment');
+			return res.json();
+		});
+	}
+
+	// The streamed promise from +page.server.ts is used at most once: after
+	// that (e.g. re-entering the same assignment via history) the progress it
+	// carries may be stale, so later activations go through the API.
+	let consumedAssignmentConfig: Promise<unknown> | null = null;
+
+	// Resolves the assignment config for `paramId`, preferring the promise
+	// streamed with the page load (its query started during SSR) when it is for
+	// this id and hasn't been consumed yet; otherwise, or when the streamed
+	// value is null (missing / unauthorized / failed), asks the API, which
+	// reports the real status.
+	function resolveAssignmentConfig(paramId: string): Promise<unknown> {
+		const streamed: unknown = untrack(() => page.data.assignmentConfig);
+		const streamedFor: unknown = untrack(() => page.data.assignmentConfigId);
+		if (
+			streamed instanceof Promise &&
+			streamedFor === paramId &&
+			streamed !== consumedAssignmentConfig
+		) {
+			consumedAssignmentConfig = streamed;
+			return streamed.then(
+				(value: unknown) => value ?? fetchAssignmentConfig(paramId),
+				() => fetchAssignmentConfig(paramId)
+			);
+		}
+		return fetchAssignmentConfig(paramId);
+	}
+
 	// Sync assignment mode from URL. Only subscribes to page.url — reads
 	// assignmentId via untrack() so internal state changes (startAssignment,
 	// exitAssignmentMode) don't cause the effect to re-run and fight with them.
@@ -1696,17 +1800,7 @@
 		if (paramId && paramId !== currentId) {
 			assignmentId = paramId;
 			assignmentLoading = true;
-			fetch(`/api/assignment-progress?assignmentId=${paramId}`)
-				.then((res) => {
-					if (res.status === 401) {
-						const returnTo = `/?assignment=${paramId}`;
-						// eslint-disable-next-line svelte/no-navigation-without-resolve -- constructed auth URL with encoded returnTo
-						goto(`/auth?returnTo=${encodeURIComponent(returnTo)}`);
-						return null;
-					}
-					if (!res.ok) throw new Error('Failed to load assignment');
-					return res.json();
-				})
+			resolveAssignmentConfig(paramId)
 				.then((data: unknown) => {
 					if (data === null) return;
 					if (isAssignmentResponse(data)) {
@@ -1965,11 +2059,8 @@
 		// Apply URL query params for shareable filter links
 		const params = page.url.searchParams;
 
-		// ?selectParadigm= restricts noun candidates to one paradigm (from /resources/paradigms)
-		const selectParadigmParam = params.get('selectParadigm');
-		if (selectParadigmParam && isParadigm(selectParadigmParam)) {
-			selectedParadigm = selectParadigmParam;
-		}
+		// ?selectParadigm= is applied at declaration time (see selectedParadigm)
+		// so the banner is already in the SSR HTML; it has no init side effects.
 
 		// ?selectCase= auto-selects a single case pill (e.g. from resources/czech-cases)
 		const selectCaseParam = params.get('selectCase');
@@ -2065,11 +2156,11 @@
 			fetchGlobalLeaderboard();
 		}, 300_000);
 
-		// Load today's session stats and student assignments if logged in
+		// Load today's session stats if logged in (student assignments arrive
+		// in the SSR payload — see +page.server.ts)
 		if (user) {
 			syncStashedAnonSession();
 			loadTodaySession();
-			loadStudentAssignments();
 		}
 
 		// Generate first question using hydrated progress.
@@ -4248,8 +4339,34 @@
 		{/if}
 
 		{#if assignmentLoading}
-			<div class="mb-4 rounded-2xl border border-card-stroke bg-card-bg p-4 text-center">
-				<span class="text-sm text-text-subtitle">Loading assignment...</span>
+			<!-- Mirrors the active-assignment panel's structure (title row, badge,
+			     progress track, caption, Exit button) so the swap is height-neutral -->
+			<div
+				role="status"
+				aria-label="Loading assignment"
+				class="mb-4 rounded-2xl border border-card-stroke bg-card-bg"
+			>
+				<div class="flex items-center gap-3 px-4 py-3">
+					<div class="flex min-w-0 flex-1 items-center gap-3">
+						<div class="size-4 shrink-0 animate-pulse rounded bg-shaded-background"></div>
+						<div class="min-w-0 flex-1">
+							<div class="flex flex-wrap items-center gap-2">
+								<div class="h-5 w-40 max-w-full animate-pulse rounded bg-shaded-background"></div>
+								<div class="h-[19px] w-16 animate-pulse rounded-full bg-shaded-background"></div>
+							</div>
+							<div class="mt-1 flex items-center gap-2">
+								<div class="h-1.5 flex-1 animate-pulse rounded-full bg-shaded-background"></div>
+								<div class="h-4 w-8 shrink-0 animate-pulse rounded bg-shaded-background"></div>
+							</div>
+							<div
+								class="mt-0.5 h-[15px] w-64 max-w-full animate-pulse rounded bg-shaded-background"
+							></div>
+						</div>
+						<div class="size-4 shrink-0 animate-pulse rounded bg-shaded-background"></div>
+					</div>
+					<div class="h-[30px] w-12 shrink-0 animate-pulse rounded-lg bg-shaded-background"></div>
+				</div>
+				<span class="sr-only">Loading assignment...</span>
 			</div>
 		{/if}
 
@@ -4635,11 +4752,13 @@
 			</div>
 		{/if}
 
-		<!-- Drill area -->
-		<div class="mx-auto mt-6 max-w-[867px]">
-			{#if multiStepQuestion}
+		<!-- Drill area. The min-height matches the shortest real card (case
+		     identification) so a skeleton → card swap can never shrink the page. -->
+		<div class="mx-auto mt-6 min-h-[280px] max-w-[867px] sm:min-h-[300px]">
+			{#if multiStepQuestion !== null || (drillLoading && pinnedDrillType === 'multi_step')}
 				<MultiStepCard
 					question={multiStepQuestion}
+					loading={drillLoading}
 					onComplete={handleMultiStepComplete}
 					onStepResult={handleMultiStepStepResult}
 					{paradigmNotes}
@@ -4649,7 +4768,8 @@
 			{:else}
 				<DrillCard
 					{question}
-					loading={wordsLoading || (question === null && !initialized)}
+					loading={drillLoading}
+					skeletonDrillType={pinnedDrillType}
 					result={lastResult}
 					onSubmit={handleSubmit}
 					onSpeak={ttsAvailable ? handleSpeak : null}

@@ -116,13 +116,16 @@
 
 	let {
 		question,
+		loading = false,
 		onComplete,
 		onStepResult = null,
 		paradigmNotes = null,
 		onSpeak = null,
 		level = 'A1'
 	}: {
-		question: MultiStepQuestion;
+		question: MultiStepQuestion | null;
+		/** Show a layout-matched skeleton while the first question is pending. */
+		loading?: boolean;
 		onComplete: (result: MultiStepResult) => void;
 		onStepResult?: ((correct: boolean) => void) | null;
 		paradigmNotes?: Record<string, string> | null;
@@ -212,6 +215,7 @@
 
 	// Sentence parts for display
 	let sentenceParts = $derived.by(() => {
+		if (!question) return { before: '', after: '' };
 		const form = question.correctForm;
 		const voiced = applyPrepositionVoicing(question.template.template, form);
 		const parts = voiced.split('___');
@@ -222,7 +226,7 @@
 	});
 
 	function checkAdjForm(): { correct: boolean; nearMiss: boolean } {
-		const accepted = question.acceptedAdjectiveForms ?? [];
+		const accepted = question?.acceptedAdjectiveForms ?? [];
 		const trimmed = adjFormInput.trim().toLowerCase();
 
 		// Exact match
@@ -244,14 +248,15 @@
 	}
 
 	// Paradigm notes for form step
-	let whyNoteKey = $derived(`${question.case}_${question.number}`);
+	let whyNoteKey = $derived(question ? `${question.case}_${question.number}` : '');
 	let whyNote = $derived(paradigmNotes?.[whyNoteKey] ?? null);
-	let templateWhy = $derived(question.template.why ?? null);
+	let templateWhy = $derived(question?.template.why ?? null);
 
 	// Step handlers
 	function handleParadigmSubmit() {
 		if (paradigmSubmitted || !selectedParadigm) return;
 		paradigmSubmitted = true;
+		if (!question) return;
 		paradigmCorrect = selectedParadigm === question.correctParadigm;
 		onStepResult?.(paradigmCorrect);
 		canAdvance = false;
@@ -259,7 +264,7 @@
 	}
 
 	function advanceFromParadigm() {
-		if (question.showCaseStep) {
+		if (showCaseStep) {
 			currentStep = 'case';
 		} else {
 			currentStep = 'form';
@@ -272,6 +277,7 @@
 		if (caseSubmitted) return;
 		selectedCase = c;
 		caseSubmitted = true;
+		if (!question) return;
 		caseCorrect = c === question.correctCase;
 		onStepResult?.(caseCorrect);
 		canAdvance = false;
@@ -287,6 +293,7 @@
 	function handleFormSubmit() {
 		if (formSubmitted || formInput.trim() === '') return;
 		formSubmitted = true;
+		if (!question) return;
 		const result = checkMultiStepForm(question, formInput, level);
 		formCorrect = result.correct;
 		formNearMiss = result.nearMiss;
@@ -333,6 +340,7 @@
 	}
 
 	function handleFinalAdvance() {
+		if (!question) return;
 		onComplete({
 			question,
 			paradigmCorrect,
@@ -405,21 +413,25 @@
 	// (which targets the per-question report flow). MultiStep's report payload
 	// uses the noun branch — adjective info is appended to the report context
 	// when present so triage still has it.
-	let reportQuestion: DrillQuestion = $derived({
-		word: question.word,
-		template: question.template,
-		correctAnswer: question.correctForm,
-		case: question.case,
-		number: question.number,
-		drillType: 'multi_step',
-		wordCategory: 'noun',
-		...(question.adjective ? { adjective: question.adjective } : {})
-	});
+	let reportQuestion: DrillQuestion | null = $derived(
+		question
+			? {
+					word: question.word,
+					template: question.template,
+					correctAnswer: question.correctForm,
+					case: question.case,
+					number: question.number,
+					drillType: 'multi_step',
+					wordCategory: 'noun',
+					...(question.adjective ? { adjective: question.adjective } : {})
+				}
+			: null
+	);
 	// Result is only meaningful once the form step has been submitted. Until
 	// then the user can still flag the *prompt* (template / sentence quality)
 	// — ReportMenu accepts a null result and skips the user-answer fields.
 	let reportResult: DrillResult | null = $derived(
-		formSubmitted
+		formSubmitted && reportQuestion
 			? {
 					question: reportQuestion,
 					userAnswer: formInput,
@@ -430,698 +442,744 @@
 	);
 
 	// Step progress indicator
-	let hasAdjectiveStep = $derived(!!question.adjective && !!question.correctAdjectiveForm);
-	let totalSteps = $derived((question.showCaseStep ? 3 : 2) + (hasAdjectiveStep ? 1 : 0));
+	let hasAdjectiveStep = $derived(!!question?.adjective && !!question?.correctAdjectiveForm);
+	let showCaseStep = $derived(question?.showCaseStep ?? false);
+	let totalSteps = $derived((showCaseStep ? 3 : 2) + (hasAdjectiveStep ? 1 : 0));
 	let stepIndices = $derived(Array.from({ length: totalSteps }, (_, i) => i));
 	let currentStepNumber = $derived.by(() => {
 		if (currentStep === 'paradigm') return 1;
 		if (currentStep === 'case') return 2;
-		if (currentStep === 'form') return question.showCaseStep ? 3 : 2;
-		if (currentStep === 'adjective') return (question.showCaseStep ? 3 : 2) + 1;
+		if (currentStep === 'form') return showCaseStep ? 3 : 2;
+		if (currentStep === 'adjective') return (showCaseStep ? 3 : 2) + 1;
 		return totalSteps;
 	});
 
 	// Correct paradigm info for display
-	let correctParadigmEntry = $derived(paradigms.find((p) => p.id === question.correctParadigm));
+	let correctParadigmEntry = $derived(
+		question ? paradigms.find((p) => p.id === question.correctParadigm) : undefined
+	);
 	let paradigmExplanation = $derived(
-		correctParadigmEntry ? getParadigmExplanation(question.word.lemma, correctParadigmEntry) : null
+		question && correctParadigmEntry
+			? getParadigmExplanation(question.word.lemma, correctParadigmEntry)
+			: null
 	);
 </script>
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
 <div class="w-full">
-	{#key question}
-		<div
-			class="drill-fade-enter relative flex flex-col gap-4 rounded-[24px] border-2 sm:gap-6 sm:rounded-[40px] border-card-stroke bg-card-bg p-5 sm:p-8 md:p-10"
-			role="region"
-			aria-label="Full Analysis Drill"
-		>
-			<div class="absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
-				<ReportMenu
-					question={reportQuestion}
-					result={reportResult}
-					{paradigmNotes}
-					drillType="multi_step"
-				/>
-			</div>
-			<!-- Step progress bar -->
-			{#if currentStep !== 'summary'}
-				<div class="flex items-center justify-center gap-2">
-					<span class="text-xs font-semibold text-text-subtitle">
-						Step {currentStepNumber} of {totalSteps}
-					</span>
-					<div class="flex gap-1">
-						{#each stepIndices as step (step)}
-							<div
-								class="h-1.5 w-8 rounded-full transition-colors {step < currentStepNumber
-									? 'bg-emphasis'
-									: 'bg-card-stroke'}"
-							></div>
-						{/each}
-					</div>
+	{#if question}
+		{#key question}
+			<div
+				class="drill-fade-enter relative flex flex-col gap-4 rounded-[24px] border-2 sm:gap-6 sm:rounded-[40px] border-card-stroke bg-card-bg p-5 sm:p-8 md:p-10"
+				role="region"
+				aria-label="Full Analysis Drill"
+			>
+				<div class="absolute right-3 top-3 z-10 sm:right-4 sm:top-4">
+					{#if reportQuestion}
+						<ReportMenu
+							question={reportQuestion}
+							result={reportResult}
+							{paradigmNotes}
+							drillType="multi_step"
+						/>
+					{/if}
 				</div>
-			{/if}
-
-			<!-- Word display (shown for paradigm, case, adjective, and summary steps — hidden during form step) -->
-			{#if currentStep !== 'form' && currentStep !== 'adjective'}
-				<div class="text-center">
+				<!-- Step progress bar -->
+				{#if currentStep !== 'summary'}
 					<div class="flex items-center justify-center gap-2">
-						<span class="text-3xl font-semibold text-text-default sm:text-4xl">
-							{question.word.lemma}
+						<span class="text-xs font-semibold text-text-subtitle">
+							Step {currentStepNumber} of {totalSteps}
 						</span>
-						{#if onSpeak}
-							<button
-								type="button"
-								onclick={() => onSpeak?.(question.word.lemma)}
-								class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
-								aria-label="Listen to pronunciation"
-							>
-								<Volume2 class="size-4" aria-hidden="true" />
-							</button>
-						{/if}
-					</div>
-					<p class="mt-1 text-sm text-text-subtitle">{question.word.translation}</p>
-				</div>
-			{/if}
-
-			<!-- STEP 1: PARADIGM IDENTIFICATION -->
-			{#if currentStep === 'paradigm'}
-				<div class="flex flex-col items-center gap-4">
-					<p class="text-sm font-semibold text-text-default">
-						What paradigm does this word follow?
-					</p>
-
-					{#if !paradigmSubmitted}
-						<!-- Phase 1: Gender selection -->
-						<div class="flex flex-col items-center gap-2">
-							<p class="text-xs font-medium text-text-subtitle">Choose gender</p>
-							<div role="group" aria-label="Select gender" class="flex gap-2 sm:gap-3">
-								{#each GENDER_OPTIONS as g (g.value)}
-									<button
-										type="button"
-										onclick={() => {
-											selectedGender = g.value;
-											selectedParadigm = '';
-										}}
-										class="rounded-xl border-2 px-5 py-2.5 text-sm font-medium transition-colors {selectedGender ===
-										g.value
-											? 'border-emphasis bg-emphasis text-text-inverted'
-											: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/50'}"
-									>
-										{g.label}
-									</button>
-								{/each}
-							</div>
+						<div class="flex gap-1">
+							{#each stepIndices as step (step)}
+								<div
+									class="h-1.5 w-8 rounded-full transition-colors {step < currentStepNumber
+										? 'bg-emphasis'
+										: 'bg-card-stroke'}"
+								></div>
+							{/each}
 						</div>
+					</div>
+				{/if}
 
-						<!-- Phase 2: Paradigm selection (shown after gender is picked) -->
-						{#if selectedGender}
-							<div class="flex w-full max-w-sm flex-col items-center gap-2">
-								<p class="text-xs font-medium text-text-subtitle">Choose paradigm</p>
-								<div role="group" aria-label="Select paradigm" class="flex w-full flex-col gap-2">
-									{#each filteredParadigms as p (p.id)}
+				<!-- Word display (shown for paradigm, case, adjective, and summary steps — hidden during form step) -->
+				{#if currentStep !== 'form' && currentStep !== 'adjective'}
+					<div class="text-center">
+						<div class="flex items-center justify-center gap-2">
+							<span class="text-3xl font-semibold text-text-default sm:text-4xl">
+								{question.word.lemma}
+							</span>
+							{#if onSpeak}
+								<button
+									type="button"
+									onclick={() => onSpeak?.(question.word.lemma)}
+									class="flex size-8 shrink-0 items-center justify-center rounded-full bg-shaded-background text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
+								>
+									<Volume2 class="size-4" aria-hidden="true" />
+								</button>
+							{/if}
+						</div>
+						<p class="mt-1 text-sm text-text-subtitle">{question.word.translation}</p>
+					</div>
+				{/if}
+
+				<!-- STEP 1: PARADIGM IDENTIFICATION -->
+				{#if currentStep === 'paradigm'}
+					<div class="flex flex-col items-center gap-4">
+						<p class="text-sm font-semibold text-text-default">
+							What paradigm does this word follow?
+						</p>
+
+						{#if !paradigmSubmitted}
+							<!-- Phase 1: Gender selection -->
+							<div class="flex flex-col items-center gap-2">
+								<p class="text-xs font-medium text-text-subtitle">Choose gender</p>
+								<div role="group" aria-label="Select gender" class="flex gap-2 sm:gap-3">
+									{#each GENDER_OPTIONS as g (g.value)}
 										<button
 											type="button"
 											onclick={() => {
-												if (isParadigm(p.id)) {
-													selectedParadigm = p.id;
-													handleParadigmSubmit();
-												}
+												selectedGender = g.value;
+												selectedParadigm = '';
 											}}
-											class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold transition-colors {selectedParadigm ===
-											p.id
+											class="rounded-xl border-2 px-5 py-2.5 text-sm font-medium transition-colors {selectedGender ===
+											g.value
 												? 'border-emphasis bg-emphasis text-text-inverted'
 												: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/50'}"
 										>
-											{p.exampleLemma}
-											<span
-												class="font-normal {selectedParadigm === p.id
-													? 'text-text-inverted/70'
-													: 'text-text-subtitle'}">{shortParadigmName(p.name)}</span
-											>
+											{g.label}
 										</button>
 									{/each}
 								</div>
 							</div>
-						{/if}
-					{:else}
-						<!-- Show selected answer (disabled buttons) -->
-						<div class="flex gap-2 sm:gap-3">
-							{#each GENDER_OPTIONS as g (g.value)}
-								<div
-									class="rounded-xl border-2 px-5 py-2.5 text-sm font-medium {selectedGender ===
-									g.value
-										? 'border-emphasis bg-emphasis text-text-inverted'
-										: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
-								>
-									{g.label}
-								</div>
-							{/each}
-						</div>
 
-						<div class="flex w-full max-w-sm flex-col gap-2">
-							{#each filteredParadigms as p (p.id)}
-								<div
-									class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold {selectedParadigm ===
-									p.id
-										? paradigmCorrect
-											? 'border-positive-stroke bg-positive-background text-positive-stroke'
-											: 'border-negative-stroke bg-negative-background text-negative-stroke'
-										: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
-								>
-									{p.exampleLemma}
-									<span class="font-normal">{shortParadigmName(p.name)}</span>
+							<!-- Phase 2: Paradigm selection (shown after gender is picked) -->
+							{#if selectedGender}
+								<div class="flex w-full max-w-sm flex-col items-center gap-2">
+									<p class="text-xs font-medium text-text-subtitle">Choose paradigm</p>
+									<div role="group" aria-label="Select paradigm" class="flex w-full flex-col gap-2">
+										{#each filteredParadigms as p (p.id)}
+											<button
+												type="button"
+												onclick={() => {
+													if (isParadigm(p.id)) {
+														selectedParadigm = p.id;
+														handleParadigmSubmit();
+													}
+												}}
+												class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold transition-colors {selectedParadigm ===
+												p.id
+													? 'border-emphasis bg-emphasis text-text-inverted'
+													: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/50'}"
+											>
+												{p.exampleLemma}
+												<span
+													class="font-normal {selectedParadigm === p.id
+														? 'text-text-inverted/70'
+														: 'text-text-subtitle'}">{shortParadigmName(p.name)}</span
+												>
+											</button>
+										{/each}
+									</div>
 								</div>
-							{/each}
-						</div>
+							{/if}
+						{:else}
+							<!-- Show selected answer (disabled buttons) -->
+							<div class="flex gap-2 sm:gap-3">
+								{#each GENDER_OPTIONS as g (g.value)}
+									<div
+										class="rounded-xl border-2 px-5 py-2.5 text-sm font-medium {selectedGender ===
+										g.value
+											? 'border-emphasis bg-emphasis text-text-inverted'
+											: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
+									>
+										{g.label}
+									</div>
+								{/each}
+							</div>
 
-						<!-- Paradigm feedback -->
-						<div
-							class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {paradigmCorrect
-								? 'border-positive-stroke bg-positive-background'
-								: 'border-negative-stroke bg-negative-background'}"
-						>
-							{#if paradigmCorrect}
-								<p class="text-sm font-semibold text-positive-stroke">Correct!</p>
-								<p class="mt-1 text-xs text-text-subtitle">
-									{paradigmExplanation ??
-										`${question.word.lemma} follows the ${correctParadigmEntry?.exampleLemma} paradigm (${correctParadigmEntry?.name})`}
-								</p>
-							{:else}
-								<p class="text-sm font-semibold text-negative-stroke">
-									Not quite — it's the <span class="font-bold"
-										>{correctParadigmEntry?.exampleLemma}</span
-									> paradigm
-								</p>
-								{#if paradigmExplanation}
+							<div class="flex w-full max-w-sm flex-col gap-2">
+								{#each filteredParadigms as p (p.id)}
+									<div
+										class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold {selectedParadigm ===
+										p.id
+											? paradigmCorrect
+												? 'border-positive-stroke bg-positive-background text-positive-stroke'
+												: 'border-negative-stroke bg-negative-background text-negative-stroke'
+											: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
+									>
+										{p.exampleLemma}
+										<span class="font-normal">{shortParadigmName(p.name)}</span>
+									</div>
+								{/each}
+							</div>
+
+							<!-- Paradigm feedback -->
+							<div
+								class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {paradigmCorrect
+									? 'border-positive-stroke bg-positive-background'
+									: 'border-negative-stroke bg-negative-background'}"
+							>
+								{#if paradigmCorrect}
+									<p class="text-sm font-semibold text-positive-stroke">Correct!</p>
 									<p class="mt-1 text-xs text-text-subtitle">
-										{paradigmExplanation}
+										{paradigmExplanation ??
+											`${question.word.lemma} follows the ${correctParadigmEntry?.exampleLemma} paradigm (${correctParadigmEntry?.name})`}
 									</p>
 								{:else}
-									<p class="mt-1 text-xs text-text-subtitle">
-										{correctParadigmEntry?.name}
-									</p>
-								{/if}
-							{/if}
-						</div>
-
-						<button
-							type="button"
-							onclick={advanceFromParadigm}
-							class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
-						>
-							Continue &rarr;
-						</button>
-						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
-					{/if}
-				</div>
-
-				<!-- STEP 2: CASE IDENTIFICATION -->
-			{:else if currentStep === 'case'}
-				<div class="flex flex-col items-center gap-4">
-					<!-- Sentence with blank -->
-					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-						{sentenceParts.before}<span
-							class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-							>&nbsp;&nbsp;&nbsp;&nbsp;</span
-						>{sentenceParts.after}
-					</p>
-
-					<p class="text-sm font-semibold text-text-default">What case is needed?</p>
-
-					<div
-						role="group"
-						aria-label="Select the correct case"
-						class="flex flex-wrap justify-center gap-2 sm:gap-3"
-					>
-						{#each ALL_CASES as caseKey (caseKey)}
-							{@const isCorrect = caseSubmitted && caseKey === question.correctCase}
-							{@const isIncorrect =
-								caseSubmitted && caseKey === selectedCase && caseKey !== question.correctCase}
-							{@const isDimmed =
-								caseSubmitted && caseKey !== question.correctCase && caseKey !== selectedCase}
-							<CaseAnswerOption
-								case_={caseKey}
-								correct={isCorrect}
-								incorrect={isIncorrect}
-								dimmed={isDimmed}
-								disabled={caseSubmitted}
-								onclick={() => handleCaseSelect(caseKey)}
-							/>
-						{/each}
-					</div>
-
-					{#if caseSubmitted}
-						<div
-							class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {caseCorrect
-								? 'border-positive-stroke bg-positive-background'
-								: 'border-negative-stroke bg-negative-background'}"
-						>
-							{#if caseCorrect}
-								<p class="text-sm font-semibold text-positive-stroke">Correct!</p>
-							{:else}
-								<p class="text-sm font-semibold text-negative-stroke">
-									The correct case is <span class="font-bold"
-										>{CASE_LABELS[question.correctCase]}</span
-									>
-								</p>
-							{/if}
-							{#if question.template.why}
-								<p class="mt-1 text-xs text-text-subtitle">{question.template.why}</p>
-							{/if}
-						</div>
-
-						<button
-							type="button"
-							onclick={advanceFromCase}
-							class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
-						>
-							Continue &rarr;
-						</button>
-						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
-					{/if}
-				</div>
-
-				<!-- STEP 3: FORM PRODUCTION (sentence fill-in style) -->
-			{:else if currentStep === 'form'}
-				<div class="flex flex-col items-center gap-4">
-					<!-- Instruction -->
-					<p class="text-lg font-extrabold text-text-default">
-						Decline <span class="italic {CASE_COLORS[question.correctCase].text}"
-							>{question.word.lemma}</span
-						>
-						<span class="text-sm font-medium text-text-subtitle"
-							>({correctParadigmEntry?.exampleLemma} paradigm)</span
-						>
-						into
-						<span class={CASE_COLORS[question.correctCase].text}
-							>{CASE_LABELS[question.correctCase]}{#if question.number === 'pl'}
-								plural{/if}</span
-						>
-					</p>
-
-					<!-- Sentence with blank -->
-					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-						{sentenceParts.before}<span
-							class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-							title={question.word.lemma}
-							><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
-								>({question.word.lemma})</span
-							></span
-						>{sentenceParts.after}{#if onSpeak}<button
-								type="button"
-								onclick={() =>
-									onSpeak?.(formSubmitted ? question.correctForm : question.word.lemma)}
-								class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
-								aria-label="Listen to pronunciation"
-							>
-								<Volume2 class="size-4" aria-hidden="true" />
-							</button>{/if}
-					</p>
-
-					<p class="text-sm text-text-subtitle">{question.word.translation}</p>
-
-					<!-- Text input -->
-					<div class="flex w-full max-w-md flex-col gap-3">
-						<input
-							bind:this={formInputEl}
-							bind:value={formInput}
-							onkeydown={handleFormKeydown}
-							disabled={formSubmitted}
-							type="text"
-							autocomplete="off"
-							autocapitalize="none"
-							spellcheck="false"
-							placeholder="Type the correct form..."
-							class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
-							!formCorrect
-								? 'border-negative-stroke bg-negative-background text-negative-stroke'
-								: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
-						/>
-
-						{#if !formSubmitted}
-							<DiacriticsBar inputEl={formInputEl} inputValue={formInput} />
-						{/if}
-					</div>
-
-					{#if !formSubmitted}
-						<button
-							type="button"
-							onclick={handleFormSubmit}
-							disabled={formInput.trim() === ''}
-							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-						>
-							Check
-						</button>
-						<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
-					{:else}
-						<!-- Form feedback -->
-						{#if formCorrect}
-							<div
-								class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
-							>
-								<p class="text-sm font-semibold text-positive-stroke">
-									{#if formNearMiss}
-										Correct (watch the diacritics): <span class="font-semibold"
-											>{formMatchedForm ?? question.correctForm}</span
-										>
-									{:else if formMatchedForm && formMatchedForm !== question.correctForm}
-										Correct! <span class="font-semibold">{formMatchedForm}</span> is an accepted
-										variant. Standard form:
-										<span class="font-semibold">{question.correctForm}</span>.
-									{:else}
-										Correct!
-									{/if}
-								</p>
-								{#if formNearMiss && formMatchedForm && formMatchedForm !== question.correctForm}
-									<p class="mt-1 text-xs text-positive-stroke">
-										<span class="font-semibold">{formMatchedForm}</span> is an accepted variant.
-										Standard form:
-										<span class="font-semibold">{question.correctForm}</span>.
-									</p>
-								{/if}
-							</div>
-						{:else}
-							<div class="flex w-full max-w-md flex-col gap-3">
-								<CorrectAnswerPanel
-									correctAnswer={question.correctForm}
-									nominative={question.word.lemma}
-									targetForm={question.correctForm}
-									case_={question.correctCase}
-									drillType="sentence_fill_in"
-									nearMiss={formNearMiss}
-									questionNumber={question.number}
-									number_={question.number}
-									{templateWhy}
-									{whyNote}
-									onSpeak={onSpeak ?? undefined}
-								/>
-							</div>
-						{/if}
-
-						{#if formCorrect && whyNote}
-							<div class="w-full max-w-md border-t border-darker-subtitle/30 pt-3">
-								<div class="mb-2 flex items-center justify-center gap-1.5">
-									<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
-									<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
-								</div>
-								{#if templateWhy}
-									<p class="text-center text-sm leading-relaxed text-darker-subtitle">
-										{templateWhy}
-									</p>
-								{/if}
-								<p
-									class="text-center text-sm leading-relaxed {templateWhy
-										? 'mt-1.5'
-										: ''} text-text-subtitle"
-								>
-									{whyNote}
-								</p>
-							</div>
-
-							<FeedbackDeclensionChart
-								lemma={question.word.lemma}
-								case_={question.correctCase}
-								number_={question.number}
-							/>
-						{/if}
-
-						<button
-							type="button"
-							onclick={advanceFromForm}
-							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
-						>
-							{hasAdjectiveStep ? 'Continue' : 'See Summary'} &rarr;
-						</button>
-						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
-					{/if}
-				</div>
-
-				<!-- STEP: ADJECTIVE FORM -->
-			{:else if currentStep === 'adjective' && question.adjective && question.correctAdjectiveForm}
-				{@const voiced = applyPrepositionVoicing(question.template.template, question.correctForm)}
-				{@const adjSentenceParts = voiced.split('___')}
-				<div class="flex flex-col items-center gap-4">
-					<!-- Instruction -->
-					<p class="text-lg font-extrabold text-text-default">
-						Decline <span class="italic {CASE_COLORS[question.correctCase].text}"
-							>{question.adjective.lemma}</span
-						>
-						into
-						<span class={CASE_COLORS[question.correctCase].text}
-							>{CASE_LABELS[question.correctCase]}{#if question.number === 'pl'}
-								plural{/if}</span
-						>
-					</p>
-
-					<!-- Sentence with blank for adjective + noun filled in -->
-					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-						{adjSentenceParts[0]}<span
-							class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-							title={question.adjective?.lemma}
-							><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
-								>({question.adjective?.lemma})</span
-							></span
-						>&nbsp;{question.correctForm}{adjSentenceParts[1] ?? ''}{#if onSpeak}<button
-								type="button"
-								onclick={() =>
-									onSpeak?.(
-										adjFormSubmitted
-											? (question.correctAdjectiveForm ?? '')
-											: (question.adjective?.lemma ?? '')
-									)}
-								class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
-								aria-label="Listen to pronunciation"
-							>
-								<Volume2 class="size-4" aria-hidden="true" />
-							</button>{/if}
-					</p>
-
-					<p class="text-sm text-text-subtitle">{question.adjective.translation}</p>
-
-					<!-- Text input -->
-					<div class="flex w-full max-w-md flex-col gap-3">
-						<input
-							bind:this={adjFormInputEl}
-							bind:value={adjFormInput}
-							onkeydown={handleAdjFormKeydown}
-							disabled={adjFormSubmitted}
-							type="text"
-							autocomplete="off"
-							autocapitalize="none"
-							spellcheck="false"
-							placeholder="Type the adjective form..."
-							class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {adjFormSubmitted &&
-							!adjFormCorrect
-								? 'border-negative-stroke bg-negative-background text-negative-stroke'
-								: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
-						/>
-
-						{#if !adjFormSubmitted}
-							<DiacriticsBar inputEl={adjFormInputEl} inputValue={adjFormInput} />
-						{/if}
-					</div>
-
-					{#if !adjFormSubmitted}
-						<button
-							type="button"
-							onclick={handleAdjFormSubmit}
-							disabled={adjFormInput.trim() === ''}
-							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-						>
-							Check
-						</button>
-						<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
-					{:else}
-						<!-- Adjective form feedback -->
-						{#if adjFormCorrect}
-							<div
-								class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
-							>
-								<p class="text-sm font-semibold text-positive-stroke">
-									{#if adjFormNearMiss}
-										Correct (watch the diacritics): <span class="font-semibold"
-											>{question.correctAdjectiveForm}</span
-										>
-									{:else}
-										Correct!
-									{/if}
-								</p>
-							</div>
-						{:else}
-							<div class="flex w-full max-w-md flex-col gap-3">
-								<div
-									class="rounded-[24px] border-2 border-negative-stroke bg-negative-background p-4 text-center"
-								>
 									<p class="text-sm font-semibold text-negative-stroke">
-										{#if adjFormNearMiss}
-											Close! Watch the diacritics.
-										{:else}
-											Not quite.
-										{/if}
-										The correct form is
-										<span class="font-bold">{question.correctAdjectiveForm}</span>
+										Not quite — it's the <span class="font-bold"
+											>{correctParadigmEntry?.exampleLemma}</span
+										> paradigm
 									</p>
-									{#if adjFormInput.trim()}
-										<p class="mt-1 text-xs text-negative-stroke">
-											You wrote: <span class="font-semibold">{adjFormInput.trim()}</span>
+									{#if paradigmExplanation}
+										<p class="mt-1 text-xs text-text-subtitle">
+											{paradigmExplanation}
+										</p>
+									{:else}
+										<p class="mt-1 text-xs text-text-subtitle">
+											{correctParadigmEntry?.name}
 										</p>
 									{/if}
-								</div>
-							</div>
-						{/if}
-
-						{#if question.adjective}
-							<div class="w-full">
-								<FeedbackAdjectiveDeclensionChart
-									lemma={question.adjective.lemma}
-									genderKey={getAdjectiveGenderKey(question.word)}
-									case_={question.correctCase}
-									number_={question.number}
-								/>
-							</div>
-						{/if}
-
-						<button
-							type="button"
-							onclick={advanceFromAdjective}
-							class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
-						>
-							See Summary &rarr;
-						</button>
-						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
-					{/if}
-				</div>
-
-				<!-- SUMMARY -->
-			{:else if currentStep === 'summary'}
-				<div class="flex flex-col items-center gap-4">
-					<!-- Full sentence revealed -->
-					<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-						{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
-								class="font-semibold {CASE_COLORS[question.correctCase].text}"
-								>{question.correctAdjectiveForm}</span
-							>&nbsp;{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
-							>{question.correctForm}</span
-						>{sentenceParts.after}
-					</p>
-
-					<!-- Step results -->
-					<div class="flex w-full max-w-sm flex-col gap-2">
-						<!-- Paradigm -->
-						<div
-							class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {paradigmCorrect
-								? 'border-positive-stroke/30 bg-positive-background/50'
-								: 'border-negative-stroke/30 bg-negative-background/50'}"
-						>
-							{#if paradigmCorrect}
-								<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
-							{:else}
-								<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
-							{/if}
-							<div class="flex-1">
-								<p class="text-xs font-semibold text-text-subtitle">Paradigm</p>
-								<p class="text-sm text-text-default">
-									{correctParadigmEntry?.exampleLemma} ({correctParadigmEntry?.name})
-								</p>
-								{#if !paradigmCorrect && selectedParadigm}
-									{@const userEntry = paradigms.find((p) => p.id === selectedParadigm)}
-									<p class="text-xs text-negative-stroke">
-										You chose: {userEntry?.exampleLemma} ({userEntry?.name})
-									</p>
 								{/if}
 							</div>
+
+							<button
+								type="button"
+								onclick={advanceFromParadigm}
+								class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
+							>
+								Continue &rarr;
+							</button>
+							<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
+						{/if}
+					</div>
+
+					<!-- STEP 2: CASE IDENTIFICATION -->
+				{:else if currentStep === 'case'}
+					<div class="flex flex-col items-center gap-4">
+						<!-- Sentence with blank -->
+						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
+							{sentenceParts.before}<span
+								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+								>&nbsp;&nbsp;&nbsp;&nbsp;</span
+							>{sentenceParts.after}
+						</p>
+
+						<p class="text-sm font-semibold text-text-default">What case is needed?</p>
+
+						<div
+							role="group"
+							aria-label="Select the correct case"
+							class="flex flex-wrap justify-center gap-2 sm:gap-3"
+						>
+							{#each ALL_CASES as caseKey (caseKey)}
+								{@const isCorrect = caseSubmitted && caseKey === question.correctCase}
+								{@const isIncorrect =
+									caseSubmitted && caseKey === selectedCase && caseKey !== question.correctCase}
+								{@const isDimmed =
+									caseSubmitted && caseKey !== question.correctCase && caseKey !== selectedCase}
+								<CaseAnswerOption
+									case_={caseKey}
+									correct={isCorrect}
+									incorrect={isIncorrect}
+									dimmed={isDimmed}
+									disabled={caseSubmitted}
+									onclick={() => handleCaseSelect(caseKey)}
+								/>
+							{/each}
 						</div>
 
-						<!-- Case (if shown) -->
-						{#if question.showCaseStep}
+						{#if caseSubmitted}
 							<div
-								class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {caseCorrect
-									? 'border-positive-stroke/30 bg-positive-background/50'
-									: 'border-negative-stroke/30 bg-negative-background/50'}"
+								class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {caseCorrect
+									? 'border-positive-stroke bg-positive-background'
+									: 'border-negative-stroke bg-negative-background'}"
 							>
 								{#if caseCorrect}
-									<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
+									<p class="text-sm font-semibold text-positive-stroke">Correct!</p>
 								{:else}
-									<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
-								{/if}
-								<div class="flex-1">
-									<p class="text-xs font-semibold text-text-subtitle">Case</p>
-									<p class="text-sm text-text-default">
-										{CASE_NUMBER[question.correctCase]}. {CASE_LABELS[question.correctCase]}
-									</p>
-									{#if !caseCorrect && selectedCase}
-										<p class="text-xs text-negative-stroke">
-											You chose: {CASE_NUMBER[selectedCase]}. {CASE_LABELS[selectedCase]}
-										</p>
-									{/if}
-								</div>
-							</div>
-						{/if}
-
-						<!-- Form -->
-						<div
-							class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {formCorrect
-								? 'border-positive-stroke/30 bg-positive-background/50'
-								: 'border-negative-stroke/30 bg-negative-background/50'}"
-						>
-							{#if formCorrect}
-								<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
-							{:else}
-								<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
-							{/if}
-							<div class="flex-1">
-								<p class="text-xs font-semibold text-text-subtitle">Declined Form</p>
-								<p class="text-sm text-text-default">
-									{question.correctForm}
-								</p>
-								{#if !formCorrect && formInput}
-									<p class="text-xs text-negative-stroke">
-										You typed: {formInput}
+									<p class="text-sm font-semibold text-negative-stroke">
+										The correct case is <span class="font-bold"
+											>{CASE_LABELS[question.correctCase]}</span
+										>
 									</p>
 								{/if}
+								{#if question.template.why}
+									<p class="mt-1 text-xs text-text-subtitle">{question.template.why}</p>
+								{/if}
 							</div>
-						</div>
 
-						<!-- Adjective form (if shown) -->
-						{#if hasAdjectiveStep && question.correctAdjectiveForm}
-							<div
-								class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {adjFormCorrect
-									? 'border-positive-stroke/30 bg-positive-background/50'
-									: 'border-negative-stroke/30 bg-negative-background/50'}"
+							<button
+								type="button"
+								onclick={advanceFromCase}
+								class="w-full max-w-sm rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
 							>
-								{#if adjFormCorrect}
-									<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
-								{:else}
-									<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
-								{/if}
-								<div class="flex-1">
-									<p class="text-xs font-semibold text-text-subtitle">Adjective Form</p>
-									<p class="text-sm text-text-default">
-										{question.correctAdjectiveForm}
-										<span class="text-xs text-text-subtitle">({question.adjective?.lemma})</span>
-									</p>
-									{#if !adjFormCorrect && adjFormInput}
-										<p class="text-xs text-negative-stroke">
-											You typed: {adjFormInput}
-										</p>
-									{/if}
-								</div>
-							</div>
+								Continue &rarr;
+							</button>
+							<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
 						{/if}
 					</div>
 
-					<button
-						type="button"
-						onclick={handleFinalAdvance}
-						class="w-full max-w-sm rounded-[48px] bg-emphasis py-3.5 text-lg font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
-					>
-						Next &rarr;
-					</button>
-					<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
+					<!-- STEP 3: FORM PRODUCTION (sentence fill-in style) -->
+				{:else if currentStep === 'form'}
+					<div class="flex flex-col items-center gap-4">
+						<!-- Instruction -->
+						<p class="text-lg font-extrabold text-text-default">
+							Decline <span class="italic {CASE_COLORS[question.correctCase].text}"
+								>{question.word.lemma}</span
+							>
+							<span class="text-sm font-medium text-text-subtitle"
+								>({correctParadigmEntry?.exampleLemma} paradigm)</span
+							>
+							into
+							<span class={CASE_COLORS[question.correctCase].text}
+								>{CASE_LABELS[question.correctCase]}{#if question.number === 'pl'}
+									plural{/if}</span
+							>
+						</p>
+
+						<!-- Sentence with blank -->
+						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
+							{sentenceParts.before}<span
+								class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+								title={question.word.lemma}
+								><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
+									>({question.word.lemma})</span
+								></span
+							>{sentenceParts.after}{#if onSpeak}<button
+									type="button"
+									onclick={() =>
+										onSpeak?.(formSubmitted ? question.correctForm : question.word.lemma)}
+									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
+								>
+									<Volume2 class="size-4" aria-hidden="true" />
+								</button>{/if}
+						</p>
+
+						<p class="text-sm text-text-subtitle">{question.word.translation}</p>
+
+						<!-- Text input -->
+						<div class="flex w-full max-w-md flex-col gap-3">
+							<input
+								bind:this={formInputEl}
+								bind:value={formInput}
+								onkeydown={handleFormKeydown}
+								disabled={formSubmitted}
+								type="text"
+								autocomplete="off"
+								autocapitalize="none"
+								spellcheck="false"
+								placeholder="Type the correct form..."
+								class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
+								!formCorrect
+									? 'border-negative-stroke bg-negative-background text-negative-stroke'
+									: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
+							/>
+
+							{#if !formSubmitted}
+								<DiacriticsBar inputEl={formInputEl} inputValue={formInput} />
+							{/if}
+						</div>
+
+						{#if !formSubmitted}
+							<button
+								type="button"
+								onclick={handleFormSubmit}
+								disabled={formInput.trim() === ''}
+								class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+							>
+								Check
+							</button>
+							<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
+						{:else}
+							<!-- Form feedback -->
+							{#if formCorrect}
+								<div
+									class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
+								>
+									<p class="text-sm font-semibold text-positive-stroke">
+										{#if formNearMiss}
+											Correct (watch the diacritics): <span class="font-semibold"
+												>{formMatchedForm ?? question.correctForm}</span
+											>
+										{:else if formMatchedForm && formMatchedForm !== question.correctForm}
+											Correct! <span class="font-semibold">{formMatchedForm}</span> is an accepted
+											variant. Standard form:
+											<span class="font-semibold">{question.correctForm}</span>.
+										{:else}
+											Correct!
+										{/if}
+									</p>
+									{#if formNearMiss && formMatchedForm && formMatchedForm !== question.correctForm}
+										<p class="mt-1 text-xs text-positive-stroke">
+											<span class="font-semibold">{formMatchedForm}</span> is an accepted variant.
+											Standard form:
+											<span class="font-semibold">{question.correctForm}</span>.
+										</p>
+									{/if}
+								</div>
+							{:else}
+								<div class="flex w-full max-w-md flex-col gap-3">
+									<CorrectAnswerPanel
+										correctAnswer={question.correctForm}
+										nominative={question.word.lemma}
+										targetForm={question.correctForm}
+										case_={question.correctCase}
+										drillType="sentence_fill_in"
+										nearMiss={formNearMiss}
+										questionNumber={question.number}
+										number_={question.number}
+										{templateWhy}
+										{whyNote}
+										onSpeak={onSpeak ?? undefined}
+									/>
+								</div>
+							{/if}
+
+							{#if formCorrect && whyNote}
+								<div class="w-full max-w-md border-t border-darker-subtitle/30 pt-3">
+									<div class="mb-2 flex items-center justify-center gap-1.5">
+										<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
+										<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
+									</div>
+									{#if templateWhy}
+										<p class="text-center text-sm leading-relaxed text-darker-subtitle">
+											{templateWhy}
+										</p>
+									{/if}
+									<p
+										class="text-center text-sm leading-relaxed {templateWhy
+											? 'mt-1.5'
+											: ''} text-text-subtitle"
+									>
+										{whyNote}
+									</p>
+								</div>
+
+								<FeedbackDeclensionChart
+									lemma={question.word.lemma}
+									case_={question.correctCase}
+									number_={question.number}
+								/>
+							{/if}
+
+							<button
+								type="button"
+								onclick={advanceFromForm}
+								class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
+							>
+								{hasAdjectiveStep ? 'Continue' : 'See Summary'} &rarr;
+							</button>
+							<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
+						{/if}
+					</div>
+
+					<!-- STEP: ADJECTIVE FORM -->
+				{:else if currentStep === 'adjective' && question.adjective && question.correctAdjectiveForm}
+					{@const voiced = applyPrepositionVoicing(
+						question.template.template,
+						question.correctForm
+					)}
+					{@const adjSentenceParts = voiced.split('___')}
+					<div class="flex flex-col items-center gap-4">
+						<!-- Instruction -->
+						<p class="text-lg font-extrabold text-text-default">
+							Decline <span class="italic {CASE_COLORS[question.correctCase].text}"
+								>{question.adjective.lemma}</span
+							>
+							into
+							<span class={CASE_COLORS[question.correctCase].text}
+								>{CASE_LABELS[question.correctCase]}{#if question.number === 'pl'}
+									plural{/if}</span
+							>
+						</p>
+
+						<!-- Sentence with blank for adjective + noun filled in -->
+						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
+							{adjSentenceParts[0]}<span
+								class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+								title={question.adjective?.lemma}
+								><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
+									>({question.adjective?.lemma})</span
+								></span
+							>&nbsp;{question.correctForm}{adjSentenceParts[1] ?? ''}{#if onSpeak}<button
+									type="button"
+									onclick={() =>
+										onSpeak?.(
+											adjFormSubmitted
+												? (question.correctAdjectiveForm ?? '')
+												: (question.adjective?.lemma ?? '')
+										)}
+									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
+									aria-label="Listen to pronunciation"
+								>
+									<Volume2 class="size-4" aria-hidden="true" />
+								</button>{/if}
+						</p>
+
+						<p class="text-sm text-text-subtitle">{question.adjective.translation}</p>
+
+						<!-- Text input -->
+						<div class="flex w-full max-w-md flex-col gap-3">
+							<input
+								bind:this={adjFormInputEl}
+								bind:value={adjFormInput}
+								onkeydown={handleAdjFormKeydown}
+								disabled={adjFormSubmitted}
+								type="text"
+								autocomplete="off"
+								autocapitalize="none"
+								spellcheck="false"
+								placeholder="Type the adjective form..."
+								class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {adjFormSubmitted &&
+								!adjFormCorrect
+									? 'border-negative-stroke bg-negative-background text-negative-stroke'
+									: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
+							/>
+
+							{#if !adjFormSubmitted}
+								<DiacriticsBar inputEl={adjFormInputEl} inputValue={adjFormInput} />
+							{/if}
+						</div>
+
+						{#if !adjFormSubmitted}
+							<button
+								type="button"
+								onclick={handleAdjFormSubmit}
+								disabled={adjFormInput.trim() === ''}
+								class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+							>
+								Check
+							</button>
+							<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
+						{:else}
+							<!-- Adjective form feedback -->
+							{#if adjFormCorrect}
+								<div
+									class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
+								>
+									<p class="text-sm font-semibold text-positive-stroke">
+										{#if adjFormNearMiss}
+											Correct (watch the diacritics): <span class="font-semibold"
+												>{question.correctAdjectiveForm}</span
+											>
+										{:else}
+											Correct!
+										{/if}
+									</p>
+								</div>
+							{:else}
+								<div class="flex w-full max-w-md flex-col gap-3">
+									<div
+										class="rounded-[24px] border-2 border-negative-stroke bg-negative-background p-4 text-center"
+									>
+										<p class="text-sm font-semibold text-negative-stroke">
+											{#if adjFormNearMiss}
+												Close! Watch the diacritics.
+											{:else}
+												Not quite.
+											{/if}
+											The correct form is
+											<span class="font-bold">{question.correctAdjectiveForm}</span>
+										</p>
+										{#if adjFormInput.trim()}
+											<p class="mt-1 text-xs text-negative-stroke">
+												You wrote: <span class="font-semibold">{adjFormInput.trim()}</span>
+											</p>
+										{/if}
+									</div>
+								</div>
+							{/if}
+
+							{#if question.adjective}
+								<div class="w-full">
+									<FeedbackAdjectiveDeclensionChart
+										lemma={question.adjective.lemma}
+										genderKey={getAdjectiveGenderKey(question.word)}
+										case_={question.correctCase}
+										number_={question.number}
+									/>
+								</div>
+							{/if}
+
+							<button
+								type="button"
+								onclick={advanceFromAdjective}
+								class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
+							>
+								See Summary &rarr;
+							</button>
+							<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
+						{/if}
+					</div>
+
+					<!-- SUMMARY -->
+				{:else if currentStep === 'summary'}
+					<div class="flex flex-col items-center gap-4">
+						<!-- Full sentence revealed -->
+						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
+							{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
+									class="font-semibold {CASE_COLORS[question.correctCase].text}"
+									>{question.correctAdjectiveForm}</span
+								>&nbsp;{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
+								>{question.correctForm}</span
+							>{sentenceParts.after}
+						</p>
+
+						<!-- Step results -->
+						<div class="flex w-full max-w-sm flex-col gap-2">
+							<!-- Paradigm -->
+							<div
+								class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {paradigmCorrect
+									? 'border-positive-stroke/30 bg-positive-background/50'
+									: 'border-negative-stroke/30 bg-negative-background/50'}"
+							>
+								{#if paradigmCorrect}
+									<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
+								{:else}
+									<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
+								{/if}
+								<div class="flex-1">
+									<p class="text-xs font-semibold text-text-subtitle">Paradigm</p>
+									<p class="text-sm text-text-default">
+										{correctParadigmEntry?.exampleLemma} ({correctParadigmEntry?.name})
+									</p>
+									{#if !paradigmCorrect && selectedParadigm}
+										{@const userEntry = paradigms.find((p) => p.id === selectedParadigm)}
+										<p class="text-xs text-negative-stroke">
+											You chose: {userEntry?.exampleLemma} ({userEntry?.name})
+										</p>
+									{/if}
+								</div>
+							</div>
+
+							<!-- Case (if shown) -->
+							{#if question.showCaseStep}
+								<div
+									class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {caseCorrect
+										? 'border-positive-stroke/30 bg-positive-background/50'
+										: 'border-negative-stroke/30 bg-negative-background/50'}"
+								>
+									{#if caseCorrect}
+										<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
+									{:else}
+										<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
+									{/if}
+									<div class="flex-1">
+										<p class="text-xs font-semibold text-text-subtitle">Case</p>
+										<p class="text-sm text-text-default">
+											{CASE_NUMBER[question.correctCase]}. {CASE_LABELS[question.correctCase]}
+										</p>
+										{#if !caseCorrect && selectedCase}
+											<p class="text-xs text-negative-stroke">
+												You chose: {CASE_NUMBER[selectedCase]}. {CASE_LABELS[selectedCase]}
+											</p>
+										{/if}
+									</div>
+								</div>
+							{/if}
+
+							<!-- Form -->
+							<div
+								class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {formCorrect
+									? 'border-positive-stroke/30 bg-positive-background/50'
+									: 'border-negative-stroke/30 bg-negative-background/50'}"
+							>
+								{#if formCorrect}
+									<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
+								{:else}
+									<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
+								{/if}
+								<div class="flex-1">
+									<p class="text-xs font-semibold text-text-subtitle">Declined Form</p>
+									<p class="text-sm text-text-default">
+										{question.correctForm}
+									</p>
+									{#if !formCorrect && formInput}
+										<p class="text-xs text-negative-stroke">
+											You typed: {formInput}
+										</p>
+									{/if}
+								</div>
+							</div>
+
+							<!-- Adjective form (if shown) -->
+							{#if hasAdjectiveStep && question.correctAdjectiveForm}
+								<div
+									class="flex items-center gap-3 rounded-[24px] border px-4 py-3 {adjFormCorrect
+										? 'border-positive-stroke/30 bg-positive-background/50'
+										: 'border-negative-stroke/30 bg-negative-background/50'}"
+								>
+									{#if adjFormCorrect}
+										<CircleCheck class="size-5 text-positive-stroke" aria-hidden="true" />
+									{:else}
+										<CircleX class="size-5 text-negative-stroke" aria-hidden="true" />
+									{/if}
+									<div class="flex-1">
+										<p class="text-xs font-semibold text-text-subtitle">Adjective Form</p>
+										<p class="text-sm text-text-default">
+											{question.correctAdjectiveForm}
+											<span class="text-xs text-text-subtitle">({question.adjective?.lemma})</span>
+										</p>
+										{#if !adjFormCorrect && adjFormInput}
+											<p class="text-xs text-negative-stroke">
+												You typed: {adjFormInput}
+											</p>
+										{/if}
+									</div>
+								</div>
+							{/if}
+						</div>
+
+						<button
+							type="button"
+							onclick={handleFinalAdvance}
+							class="w-full max-w-sm rounded-[48px] bg-emphasis py-3.5 text-lg font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80"
+						>
+							Next &rarr;
+						</button>
+						<p class="text-center text-xs text-text-subtitle">Press enter to continue</p>
+					</div>
+				{/if}
+			</div>
+		{/key}
+	{:else if loading}
+		<!-- Skeleton mirroring step 1 (progress bar, word, question, gender buttons) -->
+		<div
+			role="status"
+			aria-label="Loading drill"
+			class="flex flex-col gap-4 rounded-[24px] border-2 border-card-stroke bg-card-bg p-5 sm:gap-6 sm:rounded-[40px] sm:p-8 md:p-10"
+		>
+			<!-- Step progress -->
+			<div class="flex items-center justify-center gap-2">
+				<div class="h-4 w-20 animate-pulse rounded bg-shaded-background"></div>
+				<div class="flex gap-1">
+					{#each [0, 1, 2] as n (n)}
+						<div class="h-1.5 w-8 animate-pulse rounded-full bg-shaded-background"></div>
+					{/each}
 				</div>
-			{/if}
+			</div>
+			<!-- Word + translation -->
+			<div class="flex flex-col items-center">
+				<div class="h-9 w-40 animate-pulse rounded-lg bg-shaded-background sm:h-10 sm:w-48"></div>
+				<div class="mt-1 h-5 w-24 animate-pulse rounded bg-shaded-background"></div>
+			</div>
+			<!-- Question + gender buttons -->
+			<div class="flex flex-col items-center gap-4">
+				<div class="h-5 w-56 max-w-full animate-pulse rounded bg-shaded-background"></div>
+				<div class="flex flex-col items-center gap-2">
+					<div class="h-4 w-24 animate-pulse rounded bg-shaded-background"></div>
+					<div class="flex gap-2 sm:gap-3">
+						{#each [0, 1, 2] as n (n)}
+							<div class="h-11 w-24 animate-pulse rounded-xl bg-shaded-background"></div>
+						{/each}
+					</div>
+				</div>
+			</div>
 		</div>
-	{/key}
+	{/if}
 </div>

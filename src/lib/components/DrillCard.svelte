@@ -2,8 +2,16 @@
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
-	import type { DrillQuestion, DrillResult, Case } from '$lib/types';
-	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_HEX, CASE_NUMBER, isCase } from '$lib/types';
+	import type { DrillQuestion, DrillResult, DrillType, Case } from '$lib/types';
+	import {
+		ALL_CASES,
+		CASE_LABELS,
+		CASE_INDEX,
+		CASE_COLORS,
+		CASE_HEX,
+		CASE_NUMBER,
+		isCase
+	} from '$lib/types';
 	import { applyPrepositionVoicing } from '$lib/engine/drill';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
 	import { playClinkSound } from '$lib/audio';
@@ -30,10 +38,14 @@
 		paradigmNotes = null,
 		onWordClick = null,
 		streak = 0,
-		soundEnabled = true
+		soundEnabled = true,
+		skeletonDrillType = null
 	}: {
 		question: DrillQuestion | null;
 		loading?: boolean;
+		/** Drill type the next question is known to have (settings pin a single
+		 * type); lets the loading skeleton match that card's layout. */
+		skeletonDrillType?: DrillType | null;
 		result: DrillResult | null;
 		onSubmit: (answer: string) => void;
 		onSpeak: ((text: string) => void) | null;
@@ -970,18 +982,37 @@
 					<div class="h-6 w-32 animate-pulse rounded-full bg-shaded-background"></div>
 				</div>
 
-				<!-- Input/answer area skeleton -->
-				<div class="mt-2 space-y-2">
-					<div
-						class="h-12 w-full animate-pulse rounded-[16px] bg-shaded-background sm:h-14 sm:rounded-[20px]"
-					></div>
-					<!-- Diacritics bar skeleton -->
-					<div class="flex justify-center gap-1">
-						{#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as n (n)}
-							<div class="size-8 animate-pulse rounded-lg bg-shaded-background"></div>
+				{#if skeletonDrillType === 'case_identification'}
+					<!-- Case-option pills (7, wrapping to 2–3 rows like the real card) -->
+					<div class="flex flex-wrap justify-center gap-2 sm:gap-3">
+						{#each ALL_CASES as c (c)}
+							<div
+								class="h-11 w-28 animate-pulse rounded-full bg-shaded-background sm:h-12 sm:w-32"
+							></div>
 						{/each}
 					</div>
-				</div>
+					<!-- "Press 1–7 to select" hint -->
+					<div class="flex justify-center">
+						<div class="h-4 w-44 animate-pulse rounded bg-shaded-background"></div>
+					</div>
+				{:else}
+					<!-- Input/answer area skeleton -->
+					<div class="mt-2 space-y-2">
+						<div
+							class="h-12 w-full animate-pulse rounded-[16px] bg-shaded-background sm:h-14 sm:rounded-[20px]"
+						></div>
+						<!-- Diacritics bar skeleton -->
+						<div class="flex justify-center gap-1">
+							{#each [0, 1, 2, 3, 4, 5, 6, 7, 8] as n (n)}
+								<div class="size-8 animate-pulse rounded-lg bg-shaded-background"></div>
+							{/each}
+						</div>
+						<!-- "Press enter to submit" hint -->
+						<div class="flex justify-center">
+							<div class="h-4 w-32 animate-pulse rounded bg-shaded-background"></div>
+						</div>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{:else}

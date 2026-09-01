@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
+	import { slide } from 'svelte/transition';
 	import { get } from 'svelte/store';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
@@ -465,7 +466,10 @@
 
 <div class="flex min-h-screen flex-col">
 	{#if isOffline}
-		<div class="bg-warning-background px-4 py-2 text-center text-xs font-medium text-warning-text">
+		<div
+			transition:slide={{ duration: 200 }}
+			class="bg-warning-background px-4 py-2 text-center text-xs font-medium text-warning-text"
+		>
 			You're offline — practice still works, but progress won't sync or count toward assignments
 		</div>
 	{/if}
