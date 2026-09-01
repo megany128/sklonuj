@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
+import { loadAssignmentConfig } from '$lib/server/student-assignments';
 import type { RequestHandler } from './$types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -20,99 +21,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		return json({ error: 'assignmentId query parameter is required' }, { status: 400 });
 	}
 
-	const supabase = locals.supabase;
-
-	// Fetch the assignment
-	const { data: assignmentData, error: assignmentError } = await supabase
-		.from('assignments')
-		.select(
-			'id, class_id, title, selected_cases, selected_drill_types, number_mode, content_mode, content_level, target_questions, include_adjectives'
-		)
-		.eq('id', assignmentId)
-		.single();
-
-	if (assignmentError || !isRecord(assignmentData) || typeof assignmentData.id !== 'string') {
-		return json({ error: 'Assignment not found' }, { status: 404 });
+	const result = await loadAssignmentConfig(locals.supabase, user.id, assignmentId);
+	if (!result.ok) {
+		return json({ error: result.error }, { status: result.status });
 	}
-
-	const classId = assignmentData.class_id;
-	if (typeof classId !== 'string') {
-		return json({ error: 'Assignment has invalid class reference' }, { status: 500 });
-	}
-
-	// Verify user is a member of the class or the teacher
-	const { data: classData, error: classError } = await supabase
-		.from('classes')
-		.select('id, teacher_id')
-		.eq('id', classId)
-		.single();
-
-	if (classError || !isRecord(classData) || typeof classData.id !== 'string') {
-		return json({ error: 'Class not found' }, { status: 404 });
-	}
-
-	const isTeacher = classData.teacher_id === user.id;
-
-	if (!isTeacher) {
-		const { data: membershipData, error: membershipError } = await supabase
-			.from('class_memberships')
-			.select('id')
-			.eq('class_id', classId)
-			.eq('student_id', user.id)
-			.maybeSingle();
-
-		if (membershipError || !membershipData) {
-			return json({ error: 'You are not a member of this class' }, { status: 403 });
-		}
-	}
-
-	// Fetch current progress for this user on this assignment
-	const { data: progressData } = await supabase
-		.from('assignment_progress')
-		.select('questions_attempted, questions_correct, completed_at, mistakes')
-		.eq('assignment_id', assignmentId)
-		.eq('student_id', user.id)
-		.maybeSingle();
-
-	let attempted = 0;
-	let correct = 0;
-	let completedAt: string | null = null;
-	let mistakesData: unknown[] = [];
-
-	if (isRecord(progressData)) {
-		attempted =
-			typeof progressData.questions_attempted === 'number' ? progressData.questions_attempted : 0;
-		correct =
-			typeof progressData.questions_correct === 'number' ? progressData.questions_correct : 0;
-		completedAt = typeof progressData.completed_at === 'string' ? progressData.completed_at : null;
-		mistakesData = Array.isArray(progressData.mistakes) ? progressData.mistakes : [];
-	}
-
-	return json({
-		title: typeof assignmentData.title === 'string' ? assignmentData.title : '',
-		classId,
-		selectedCases: Array.isArray(assignmentData.selected_cases)
-			? assignmentData.selected_cases.filter((v: unknown): v is string => typeof v === 'string')
-			: [],
-		selectedDrillTypes: Array.isArray(assignmentData.selected_drill_types)
-			? assignmentData.selected_drill_types.filter(
-					(v: unknown): v is string => typeof v === 'string'
-				)
-			: [],
-		numberMode:
-			typeof assignmentData.number_mode === 'string' ? assignmentData.number_mode : 'both',
-		contentMode:
-			typeof assignmentData.content_mode === 'string' ? assignmentData.content_mode : 'both',
-		includeAdjectives: assignmentData.include_adjectives === true,
-		contentLevel:
-			typeof assignmentData.content_level === 'string' ? assignmentData.content_level : null,
-		targetQuestions:
-			typeof assignmentData.target_questions === 'number' ? assignmentData.target_questions : 0,
-		attempted,
-		correct,
-		completedAt,
-		mistakes: mistakesData
-	});
+	return json(result.config);
 };
 
 export const POST: RequestHandler = async ({ request, locals, url }) => {
