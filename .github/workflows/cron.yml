@@ -26,3 +26,13 @@ jobs:
           curl -sf -X POST "${{ secrets.PRODUCTION_URL }}/api/cron/snapshots" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
+
+  wrapups:
+    name: Send assignment wrap-up emails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger assignment wrap-up endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.PRODUCTION_URL }}/api/cron/assignment-wrapup" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"

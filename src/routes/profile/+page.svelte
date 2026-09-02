@@ -39,6 +39,7 @@
 		email_reminders: boolean;
 		reminder_days: number[];
 		reminder_hour_utc: number;
+		teacher_email_updates: boolean;
 	}
 
 	interface ProgressData {
@@ -74,7 +75,8 @@
 			typeof v.email_reminders === 'boolean' &&
 			Array.isArray(v.reminder_days) &&
 			v.reminder_days.every((d) => typeof d === 'number') &&
-			typeof v.reminder_hour_utc === 'number'
+			typeof v.reminder_hour_utc === 'number' &&
+			typeof v.teacher_email_updates === 'boolean'
 		);
 	}
 
@@ -113,6 +115,8 @@
 		const raw: unknown = page.data.sessions ?? [];
 		return isSessionArray(raw) ? raw : [];
 	});
+
+	let isTeacher = $derived(page.data.isTeacher === true);
 
 	// Server load data is always available on first render. A new user may have no profile
 	// row and no error — both null — but that is still a valid loaded state. We check that
@@ -302,6 +306,7 @@
 
 	// Email preferences
 	let emailReminders = $state(false);
+	let teacherEmailUpdates = $state(true);
 	let reminderDaysUtc = $state<number[]>([1]);
 	let reminderHourUtc = $state(14);
 	let savingEmailPrefs = $state(false);
@@ -849,6 +854,7 @@
 	$effect(() => {
 		if (serverProfile) {
 			emailReminders = serverProfile.email_reminders;
+			teacherEmailUpdates = serverProfile.teacher_email_updates;
 			reminderDaysUtc =
 				serverProfile.reminder_days.length > 0 ? [...serverProfile.reminder_days] : [1];
 			reminderHourUtc = serverProfile.reminder_hour_utc;
@@ -2405,7 +2411,43 @@
 								</div>
 							{/if}
 
+							{#if isTeacher}
+								<div
+									class="mt-4 flex items-center justify-between gap-4 border-t border-card-stroke pt-4"
+								>
+									<div>
+										<p class="text-sm font-medium text-text-default">Class update emails</p>
+										<p class="text-xs text-text-subtitle">
+											Get a summary email when one of your assignments' due dates passes.
+										</p>
+									</div>
+									<button
+										type="button"
+										role="switch"
+										aria-checked={teacherEmailUpdates}
+										aria-label="Toggle class update emails"
+										onclick={() => (teacherEmailUpdates = !teacherEmailUpdates)}
+										class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emphasis focus:ring-offset-2 {teacherEmailUpdates
+											? 'bg-emphasis'
+											: 'bg-gray-300 dark:bg-gray-600'}"
+									>
+										<span
+											class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {teacherEmailUpdates
+												? 'translate-x-5'
+												: 'translate-x-0'}"
+										></span>
+									</button>
+								</div>
+							{/if}
+
 							<input type="hidden" name="email_reminders" value={emailReminders.toString()} />
+							{#if isTeacher}
+								<input
+									type="hidden"
+									name="teacher_email_updates"
+									value={teacherEmailUpdates.toString()}
+								/>
+							{/if}
 							<input type="hidden" name="reminder_days" value={reminderDaysUtc.join(',')} />
 							<input type="hidden" name="reminder_hour_utc" value={reminderHourUtc.toString()} />
 

@@ -11,6 +11,7 @@ interface ProfileData {
 	email_reminders: boolean;
 	reminder_days: number[];
 	reminder_hour_utc: number;
+	teacher_email_updates: boolean;
 }
 
 interface ScoreEntry {
@@ -45,7 +46,8 @@ function isProfileData(v: unknown): v is ProfileData {
 		typeof v.email_reminders === 'boolean' &&
 		Array.isArray(v.reminder_days) &&
 		v.reminder_days.every((d) => typeof d === 'number') &&
-		typeof v.reminder_hour_utc === 'number'
+		typeof v.reminder_hour_utc === 'number' &&
+		typeof v.teacher_email_updates === 'boolean'
 	);
 }
 
@@ -85,7 +87,7 @@ function isSessionArray(v: unknown): v is SessionData[] {
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
 	if (!user) {
-		return { profile: null, progress: null, sessions: [], loadError: null };
+		return { profile: null, progress: null, sessions: [], isTeacher: false, loadError: null };
 	}
 
 	const supabase = locals.supabase;
@@ -93,10 +95,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const sixMonthsAgo = Date.now() - 180 * 24 * 60 * 60 * 1000;
 	const sixMonthsAgoStr = new Date(sixMonthsAgo).toISOString().slice(0, 10);
 
-	const [profileResult, progressResult, sessionsResult] = await Promise.all([
+	const [profileResult, progressResult, sessionsResult, classCountResult] = await Promise.all([
 		supabase
 			.from('profiles')
-			.select('display_name, created_at, email_reminders, reminder_days, reminder_hour_utc')
+			.select(
+				'display_name, created_at, email_reminders, reminder_days, reminder_hour_utc, teacher_email_updates'
+			)
 			.eq('id', user.id)
 			.maybeSingle(),
 		supabase
@@ -109,7 +113,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.select('session_date, questions_attempted, questions_correct, case_scores')
 			.eq('user_id', user.id)
 			.gte('session_date', sixMonthsAgoStr)
-			.order('session_date', { ascending: true })
+			.order('session_date', { ascending: true }),
+		supabase.from('classes').select('id', { head: true, count: 'exact' }).eq('teacher_id', user.id)
 	]);
 
 	const errors: string[] = [];
@@ -122,6 +127,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 	if (sessionsResult.error) {
 		errors.push(`Sessions: ${sessionsResult.error.message}`);
+	}
+	if (classCountResult.error) {
+		errors.push(`Classes: ${classCountResult.error.message}`);
 	}
 
 	const profile = isProfileData(profileResult.data) ? profileResult.data : null;
@@ -147,10 +155,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return { ...s, case_scores: normalizedCs };
 	});
 
+	const isTeacher = (classCountResult.count ?? 0) > 0;
+
 	return {
 		profile,
 		progress,
 		sessions,
+		isTeacher,
 		loadError: errors.length > 0 ? errors.join('; ') : null
 	};
 };
@@ -258,15 +269,27 @@ export const actions: Actions = {
 				? reminderHourUtcRaw
 				: 14;
 
-		const { error } = await locals.supabase
-			.from('profiles')
-			.update({
-				email_reminders: emailReminders,
-				reminder_days: reminderDays,
-				reminder_day: reminderDays[0],
-				reminder_hour_utc: reminderHourUtc
-			})
-			.eq('id', user.id);
+		const update: {
+			email_reminders: boolean;
+			reminder_days: number[];
+			reminder_day: number;
+			reminder_hour_utc: number;
+			teacher_email_updates?: boolean;
+		} = {
+			email_reminders: emailReminders,
+			reminder_days: reminderDays,
+			reminder_day: reminderDays[0],
+			reminder_hour_utc: reminderHourUtc
+		};
+
+		// Only clobber the teacher opt-in flag when the form actually posts it —
+		// forms rendered for non-teachers (and older cached forms) omit the field.
+		const teacherEmailUpdatesRaw = formData.get('teacher_email_updates');
+		if (teacherEmailUpdatesRaw !== null) {
+			update.teacher_email_updates = teacherEmailUpdatesRaw === 'true';
+		}
+
+		const { error } = await locals.supabase.from('profiles').update(update).eq('id', user.id);
 
 		if (error) return fail(500, { message: 'Failed to update email preferences' });
 

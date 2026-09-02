@@ -11,6 +11,20 @@ export async function buildUnsubscribeUrl(
 	return `${siteOrigin}/api/email/unsubscribe?uid=${encodeURIComponent(userId)}&sig=${sig}`;
 }
 
+/**
+ * Generate an HMAC-signed unsubscribe URL for teacher class-update emails.
+ * Signs a `teacher`-scoped message so the link only disables
+ * `teacher_email_updates`, not the regular practice reminders.
+ */
+export async function buildTeacherUnsubscribeUrl(
+	siteOrigin: string,
+	userId: string,
+	secret: string
+): Promise<string> {
+	const sig = await hmacSign(secret, `unsubscribe:teacher:${userId}`);
+	return `${siteOrigin}/api/email/unsubscribe?uid=${encodeURIComponent(userId)}&type=teacher&sig=${sig}`;
+}
+
 async function hmacSign(secret: string, message: string): Promise<string> {
 	const encoder = new TextEncoder();
 	const key = await crypto.subtle.importKey(

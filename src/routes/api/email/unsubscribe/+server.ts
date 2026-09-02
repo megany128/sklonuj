@@ -1,9 +1,13 @@
 /**
  * One-click email unsubscribe endpoint.
  *
- * Accepts GET requests with `?uid=<user_id>&sig=<hmac_signature>`.
- * Verifies the HMAC signature using CRON_SECRET as the key, then sets
- * `email_reminders = false` on the user's profile.
+ * Accepts GET requests with `?uid=<user_id>&sig=<hmac_signature>` and an
+ * optional `type` parameter:
+ *   - no `type` — verifies the sig against `unsubscribe:<uid>` and sets
+ *     `email_reminders = false` (weekly practice reminders).
+ *   - `type=teacher` — verifies the sig against `unsubscribe:teacher:<uid>`
+ *     and sets `teacher_email_updates = false` (assignment wrap-up emails).
+ * Any other `type` value is treated as an invalid link.
  *
  * Also supports POST for RFC 8058 List-Unsubscribe-Post compliance.
  */
@@ -30,12 +34,23 @@ async function hmacSign(secret: string, message: string): Promise<string> {
 async function handleUnsubscribe(url: URL): Promise<Response> {
 	const uid = url.searchParams.get('uid');
 	const sig = url.searchParams.get('sig');
+	const type = url.searchParams.get('type');
 
 	if (!uid || !sig) {
 		return new Response(renderPage('Invalid link', 'The unsubscribe link is missing parameters.'), {
 			status: 400,
 			headers: { 'Content-Type': 'text/html; charset=utf-8' }
 		});
+	}
+
+	if (type !== null && type !== 'teacher') {
+		return new Response(
+			renderPage('Invalid link', 'This unsubscribe link is invalid or expired.'),
+			{
+				status: 400,
+				headers: { 'Content-Type': 'text/html; charset=utf-8' }
+			}
+		);
 	}
 
 	const secret = privateEnv.CRON_SECRET;
@@ -46,7 +61,8 @@ async function handleUnsubscribe(url: URL): Promise<Response> {
 		});
 	}
 
-	const expectedSig = await hmacSign(secret, `unsubscribe:${uid}`);
+	const message = type === 'teacher' ? `unsubscribe:teacher:${uid}` : `unsubscribe:${uid}`;
+	const expectedSig = await hmacSign(secret, message);
 	if (sig !== expectedSig) {
 		return new Response(
 			renderPage('Invalid link', 'This unsubscribe link is invalid or expired.'),
@@ -68,18 +84,18 @@ async function handleUnsubscribe(url: URL): Promise<Response> {
 	}
 
 	const adminClient = createClient(supabaseUrl, serviceRoleKey);
-	await adminClient.from('profiles').update({ email_reminders: false }).eq('id', uid);
+	const update = type === 'teacher' ? { teacher_email_updates: false } : { email_reminders: false };
+	await adminClient.from('profiles').update(update).eq('id', uid);
 
-	return new Response(
-		renderPage(
-			'Unsubscribed',
-			"You've been unsubscribed from weekly practice reminders. You can re-enable them anytime from your profile."
-		),
-		{
-			status: 200,
-			headers: { 'Content-Type': 'text/html; charset=utf-8' }
-		}
-	);
+	const successMessage =
+		type === 'teacher'
+			? "You've been unsubscribed from class update emails for teachers. You can re-enable them anytime from your profile."
+			: "You've been unsubscribed from weekly practice reminders. You can re-enable them anytime from your profile.";
+
+	return new Response(renderPage('Unsubscribed', successMessage), {
+		status: 200,
+		headers: { 'Content-Type': 'text/html; charset=utf-8' }
+	});
 }
 
 function renderPage(title: string, message: string): string {
