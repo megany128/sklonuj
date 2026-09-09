@@ -12,13 +12,16 @@ set -euo pipefail
 
 usage() {
 	cat >&2 <<'EOF'
-usage: bash scripts/upload_audio_to_r2.sh <bucket-name> [--prefix <prefix>]
+usage: bash scripts/upload_audio_to_r2.sh <bucket-name> [--prefix <prefix>] [--new-only]
 
 env:
   CONCURRENCY   parallel upload count (default: 16)
 
 Uploads static/audio/cs/**/*.mp3 to r2://<bucket-name>/<prefix><key>, where
 <key> is the file path relative to static/audio/ (e.g. cs/ab/<hash>.mp3).
+--new-only uploads just the files whose manifest entry is not in the
+committed static/audio/index.json (git HEAD) — use it after adding
+vocabulary so a 3k-file delta doesn't re-push 26k objects.
 index.json is NOT uploaded — the SvelteKit app serves it from the Pages
 origin at /audio/index.json.
 EOF
@@ -33,8 +36,13 @@ BUCKET="$1"
 shift
 
 PREFIX=""
+NEW_ONLY=0
 while [[ $# -gt 0 ]]; do
 	case "$1" in
+		--new-only)
+			NEW_ONLY=1
+			shift
+			;;
 		--prefix)
 			if [[ $# -lt 2 ]]; then
 				echo "error: --prefix requires an argument" >&2
@@ -100,8 +108,29 @@ if [[ ! -d static/audio/cs ]]; then
 	exit 1
 fi
 
-total="$(find static/audio/cs -type f -name '*.mp3' -print0 | tr -cd '\0' | wc -c | tr -d ' ')"
+# NUL-separated list of files to upload: everything on disk, or with
+# --new-only just the manifest paths that HEAD's index.json doesn't have.
+list_file="$(mktemp)"
+if (( NEW_ONLY )); then
+	python3 - >"$list_file" <<'PY'
+import json, subprocess, sys
+old = json.loads(subprocess.check_output(["git", "show", "HEAD:static/audio/index.json"]))["entries"]
+new = json.load(open("static/audio/index.json", encoding="utf-8"))["entries"]
+for text, rel in new.items():
+    if text not in old:
+        sys.stdout.write(f"static/audio/{rel}\0")
+PY
+else
+	find static/audio/cs -type f -name '*.mp3' -print0 >"$list_file"
+fi
+
+total="$(tr -cd '\0' <"$list_file" | wc -c | tr -d ' ')"
 if [[ "$total" -eq 0 ]]; then
+	if (( NEW_ONLY )); then
+		echo "nothing to do: every manifest entry is already in HEAD's index.json"
+		rm -f "$list_file"
+		exit 0
+	fi
 	echo "error: no .mp3 files found under static/audio/cs/" >&2
 	exit 1
 fi
@@ -112,7 +141,7 @@ echo "uploading $total files to r2://${BUCKET}/${PREFIX} with concurrency=${CONC
 # is the file's byte count. POSIX guarantees atomicity for appends smaller than
 # PIPE_BUF, so no lock is needed. This is portable (macOS lacks `flock`).
 counter_file="$(mktemp)"
-trap 'rm -f "$counter_file"' EXIT
+trap 'rm -f "$counter_file" "$list_file"' EXIT
 : >"$counter_file"
 
 export BUCKET PREFIX total counter_file WRANGLER
@@ -152,8 +181,7 @@ export -f upload_one
 
 # -print0 / -0 keeps us safe on keys with spaces or oddball chars (the hash
 # names shouldn't contain any, but defense in depth is cheap).
-find static/audio/cs -type f -name '*.mp3' -print0 \
-	| xargs -0 -n1 -P"$CONCURRENCY" -I{} bash -c 'upload_one "$@"' _ {}
+xargs -0 -n1 -P"$CONCURRENCY" -I{} bash -c 'upload_one "$@"' _ {} <"$list_file"
 
 final="$(<"$counter_file")"
 echo "done: ${final}/${total} files uploaded to r2://${BUCKET}/${PREFIX}"
