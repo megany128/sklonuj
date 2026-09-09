@@ -133,6 +133,12 @@ export interface WordEntry {
 	categories: string[];
 	pluralOnly?: boolean;
 	irregular?: boolean;
+	/**
+	 * Learner-facing remark specific to this lemma (e.g. "Diminutive of králík —
+	 * the fleeting e drops: králíčka"). Authored in the `note` column of
+	 * `scripts/starter_nouns_meta.csv`; shown alongside the paradigm notes.
+	 */
+	declensionNote?: string;
 	forms: {
 		sg: CaseForms;
 		pl: CaseForms;

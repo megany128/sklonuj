@@ -117,6 +117,7 @@ interface RawWordBankEntry {
 	categories: string[];
 	pluralOnly?: boolean;
 	irregular?: boolean;
+	declensionNote?: string;
 	forms: {
 		sg: unknown;
 		pl: unknown;
@@ -182,6 +183,10 @@ export function loadWordBank(): WordEntry[] {
 
 		if (entry.irregular) {
 			base.irregular = true;
+		}
+
+		if (entry.declensionNote) {
+			base.declensionNote = entry.declensionNote;
 		}
 
 		if (entry.variantForms) {

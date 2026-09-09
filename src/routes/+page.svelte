@@ -93,6 +93,7 @@
 	import { hasMasteryCelebrated, markMasteryCelebrated } from '$lib/engine/mastery-celebrations';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
+	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { recordPractice } from '$lib/engine/streak';
 	import {
 		loadPronounBank,
@@ -3332,10 +3333,33 @@
 		return prep || bare || '';
 	}
 
+	const ALL_NUMBERS: Number_[] = ['sg', 'pl'];
+	const ALL_CASE_SLOTS = ALL_CASES.flatMap((c) =>
+		ALL_NUMBERS.map((n) => ({ key: `${c}_${n}`, c, n }))
+	);
+
 	function lookupParadigmNotes(paradigmId: string, word: WordEntry): Record<string, string> | null {
-		if (word.irregular) return null;
-		const entry = paradigms.find((p) => p.id === paradigmId);
+		// Irregular words don't follow their nominal paradigm, so its whyNotes
+		// would mislead — but a lemma-specific declensionNote is exactly what
+		// such a word needs, so only the paradigm rules are suppressed.
+		if (word.irregular && !word.declensionNote) return null;
+		const entry = word.irregular ? undefined : paradigms.find((p) => p.id === paradigmId);
 		const notes: Record<string, string> = entry?.whyNotes ? { ...entry.whyNotes } : {};
+
+		// Lemma-specific remark (diminutive fleeting vowel, -um stems, …) leads
+		// every case note so the learner sees the word's quirk before the rule.
+		// Where the word's stored form doesn't carry the paradigm's ending
+		// (lesa, hřišť, ředitelé …) the rule would contradict the note, so the
+		// note stands alone for that case.
+		if (word.declensionNote) {
+			for (const { key, c, n } of ALL_CASE_SLOTS) {
+				const rule = notes[key];
+				notes[key] =
+					rule && paradigmRuleApplies(word.paradigm, c, n, word)
+						? `${word.declensionNote} ${rule}`
+						: word.declensionNote;
+			}
+		}
 
 		// Add a note for plural-only words (all sg forms are empty)
 		const allSgEmpty = word.forms.sg.every((f) => f === '');
