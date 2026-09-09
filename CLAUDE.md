@@ -83,7 +83,18 @@ python3 scripts/build_word_bank_morphodita.py         # regenerates word_bank.js
 pnpm tts:generate                                     # generates audio for new forms (resumable)
 ```
 
-**Fixing a wrong declension**: edit `scripts/form_overrides.json`, re-run the builder. Never hand-patch `word_bank.json` — the next build overwrites it. Adjective bank has its own builder (`build_adjective_bank_morphodita.py`).
+**Adding vocabulary without a full rebuild**: `python3 scripts/build_word_bank_morphodita.py --merge --only "a,b,c"` builds just the listed lemmas and appends them; existing entries are left untouched except for `declensionNote`, which is synced (added, changed or removed) from the meta CSV `note` column. Prefer this over a full rebuild — the JSON carries hand-audited categories/difficulty that `starter_nouns_meta.csv` doesn't fully mirror, and `starter_lemmas.txt` still contains stale junk lines, so a plain `--merge` (no `--only`) would add those too. An existing lemma listed in `--only` is rebuilt in place (forms, variants, translation, note) but keeps its JSON `categories`/`difficulty`/`paradigm` unless you pass `--take-meta`; `--drop "x,y"` removes entries. `--only` requires `--merge`.
+
+**Fixing a wrong declension**: edit `scripts/form_overrides.json` (keys: `sg`/`pl` full primary arrays, `remove_variants_sg`/`_pl` case indices, `variants_sg`/`_pl` extra accepted forms per case index — use these to demote a primary to a variant — plus `gender`/`animate`, and a full `sg`+`pl`+`gender` spec for lemmas MorphoDiTa doesn't know), re-run the builder with `--merge --only <lemma>`. Never hand-patch `word_bank.json` — the next build overwrites it. Adjective bank has its own builder (`build_adjective_bank_morphodita.py`).
+
+**KzK1 chapter vocabulary** comes from the Columbia instructor's Google Sheet (one column per paradigm, one row block per lesson; green = instructions-only, yellow = instructor addition, italic = irregular). Refresh it with:
+
+```sh
+python3 scripts/parse_kzk1_sheet.py <sheet.xlsx>   # xlsx export keeps the fills/italics; CSV loses them
+python3 scripts/build_kzk1_chapters.py             # rewrites kzk1 coreLemmas from scripts/kzk1_sheet.json
+```
+
+Lemmas missing from the bank are reported, not silently dropped. Proper nouns, indeclinables and adjectival nouns are not in the bank yet, so they fall out of `coreLemmas`. Sheet typos are corrected in `TYPO_FIXES` in the parser (original spelling kept as `sheetSpelling`); only unambiguous slips go there — `průplava` (lesson 23, filed under _žena_) and whether `připravka` (lesson 20) meant _příprava_ are open questions for the instructor and are left unmatched until answered. `scripts/kzk1_extra_lemmas.json` adds common textbook nouns per chapter that the sheet omits (kept from the pre-sheet chapter lists); the builder unions it in and refuses lemmas missing from the bank. The paradigm model words (`žena`, `hrad`, …) are column headers, not cells, so they are not in any lesson's `coreLemmas`.
 
 ## Audio / TTS
 
