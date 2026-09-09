@@ -8,7 +8,32 @@ Prague Dependency Treebank project. Translations are sourced from Wiktionary
 via kaikki.org and can be manually overridden in starter_nouns_meta.csv.
 
 Usage:
-    python3 scripts/build_word_bank_morphodita.py
+    python3 scripts/build_word_bank_morphodita.py            # full rebuild
+    python3 scripts/build_word_bank_morphodita.py --merge    # add new lemmas only
+    python3 scripts/build_word_bank_morphodita.py --merge --only "a,b,c"
+
+Modes:
+    full    Rebuild every lemma in starter_lemmas.txt from MorphoDiTa. Entry
+            flags that only live in the JSON (``irregular``) are carried over
+            from the previous word_bank.json so a rebuild doesn't drop them.
+    --merge Keep the existing word_bank.json untouched and append only the
+            lemmas from starter_lemmas.txt that aren't in it yet. Use this
+            when adding vocabulary — the JSON has hand-audited categories and
+            difficulty that the meta CSV doesn't fully mirror.
+    --only  (merge mode) Restrict processing to the listed lemmas — from
+            starter_lemmas.txt or already in word_bank.json. Listed lemmas
+            that already exist are rebuilt in place: forms, variants,
+            translation and note are re-derived from MorphoDiTa + the meta
+            CSV, but the hand-audited ``categories``, ``difficulty`` and
+            ``paradigm`` already in word_bank.json are kept (the meta CSV only
+            fills them in when the JSON has none; a differing CSV value is
+            reported, not applied, unless ``--take-meta`` is given).
+    --drop  (merge mode) remove the listed lemmas from word_bank.json.
+
+Per-lemma metadata columns in starter_nouns_meta.csv:
+    lemma, translation, paradigm, difficulty, categories, note
+    ``note`` becomes ``declensionNote`` — a short learner-facing remark shown
+    with the paradigm notes (e.g. diminutive fleeting-vowel warnings).
 
 Outputs:
     - scripts/starter_nouns.csv         (updated CSV with MorphoDiTa forms)
@@ -19,6 +44,7 @@ Requirements:
     - Python 3.8+
 """
 
+import argparse
 import csv
 import gzip
 import json
@@ -166,6 +192,15 @@ def load_form_overrides(path: Path) -> dict[str, dict[str, object]]:
         Use this to prune wrong variant entries (e.g. spurious masc-animate
         plural endings on inanimate nouns) without overriding the primary
         array.
+      - "gender" ("m" | "f" | "n") / "animate" (bool): override MorphoDiTa's
+        analysis when it picked the wrong homonym (e.g. "sekáč" the shop, not
+        the mower; "panorama" neuter, not feminine).
+      - "variants_sg" / "variants_pl": object mapping case index (as a string,
+        "0"=nom.."6"=ins) to a list of extra accepted forms. Applied after
+        "sg"/"pl" and the remove_* keys, so it is the way to demote a former
+        primary to a variant (e.g. jelen: "pl": [... "jeleni" ...],
+        "variants_pl": {"0": ["jelenové"]}). Forms equal to the primary are
+        ignored.
 
     Either key can be omitted to use MorphoDiTa forms for that number.
     """
@@ -545,7 +580,36 @@ def _diff_word_banks(old_words: list[dict], new_words: list[dict]) -> None:
     print(f"{'─' * 60}", file=sys.stderr)
 
 
-def main() -> int:
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build word_bank.json from MorphoDiTa forms + Wiktionary glosses."
+    )
+    parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="keep existing word_bank.json entries; only add lemmas not in it yet",
+    )
+    parser.add_argument(
+        "--only",
+        default="",
+        help="comma-separated lemmas to (re)build; others are left as they are",
+    )
+    parser.add_argument(
+        "--drop",
+        default="",
+        help="(merge mode) comma-separated lemmas to remove from word_bank.json",
+    )
+    parser.add_argument(
+        "--take-meta",
+        action="store_true",
+        help="(merge mode) for rebuilt existing lemmas, take categories/difficulty/"
+        "paradigm from the meta CSV instead of keeping the word_bank.json values",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    args = parse_args(sys.argv[1:] if argv is None else argv)
     print("=== Building word bank (MorphoDiTa + Wiktionary) ===", file=sys.stderr)
 
     # 1. Load lemma list
@@ -555,6 +619,52 @@ def main() -> int:
 
     lemmas = load_lemmas(LEMMAS_PATH)
     print(f"Loaded {len(lemmas)} lemmas from {LEMMAS_PATH.name}", file=sys.stderr)
+
+    previous_json_words = _load_previous_json(OUTPUT_JSON_PATH)
+    previous_by_lemma = {w["lemma"]: w for w in previous_json_words}
+
+    only = {l.strip().lower() for l in args.only.split(",") if l.strip()}
+    drop = {l.strip().lower() for l in args.drop.split(",") if l.strip()}
+    if drop and not args.merge:
+        print("ERROR: --drop only makes sense with --merge", file=sys.stderr)
+        return 1
+    if drop:
+        missing_drop = sorted(drop - set(previous_by_lemma))
+        if missing_drop:
+            print(f"WARNING: --drop lemma(s) not in bank: {', '.join(missing_drop)}", file=sys.stderr)
+        previous_json_words = [w for w in previous_json_words if w["lemma"] not in drop]
+        previous_by_lemma = {w["lemma"]: w for w in previous_json_words}
+        print(f"Dropping {len(drop - set(missing_drop))} entr(y/ies): {', '.join(sorted(drop))}", file=sys.stderr)
+    if only and not args.merge:
+        # Without --merge the output would contain *only* the listed lemmas.
+        print("ERROR: --only requires --merge (a full rebuild can't be partial)", file=sys.stderr)
+        return 1
+    if only:
+        unknown = sorted(only - set(lemmas) - set(previous_by_lemma))
+        if unknown:
+            print(
+                f"ERROR: --only lemma(s) neither in {LEMMAS_PATH.name} nor in "
+                f"{OUTPUT_JSON_PATH.name}: {', '.join(unknown)}",
+                file=sys.stderr,
+            )
+            return 1
+        # Bank entries that never made it into starter_lemmas.txt can still
+        # be rebuilt in place.
+        listed = set(lemmas)
+        lemmas = [l for l in lemmas if l in only] + sorted(only - listed)
+    if args.merge:
+        if drop and not only:
+            lemmas = []  # a pure --drop run never adds anything
+        elif not only:
+            lemmas = [l for l in lemmas if l not in previous_by_lemma]
+        print(
+            f"Merge mode: {len(lemmas)} lemma(s) to build, "
+            f"{len(previous_json_words)} existing entries kept",
+            file=sys.stderr,
+        )
+        if not lemmas and not drop:
+            print("Nothing to do.", file=sys.stderr)
+            return 0
 
     # 2. Load manual metadata and form overrides
     meta = load_meta_csv(META_CSV_PATH)
@@ -617,25 +727,43 @@ def main() -> int:
     for lemma in lemmas:
         # Get MorphoDiTa forms
         raw_forms = morpho_forms.get(lemma)
-        if not raw_forms:
-            missing_forms.append(lemma)
-            print(f"  WARNING: No MorphoDiTa forms for '{lemma}'", file=sys.stderr)
-            continue
-
-        result = extract_noun_forms(raw_forms, lemma=lemma)
+        result = extract_noun_forms(raw_forms, lemma=lemma) if raw_forms else None
         if result is None:
-            missing_forms.append(lemma)
-            print(f"  WARNING: Could not extract noun forms for '{lemma}'", file=sys.stderr)
-            continue
+            manual = form_overrides.get(lemma, {})
+            if "sg" in manual and "pl" in manual and "gender" in manual:
+                # Fully hand-specified lemma (MorphoDiTa doesn't know it).
+                result = (str(manual["gender"]), bool(manual.get("animate", False)), [], [], {}, {})
+            else:
+                missing_forms.append(lemma)
+                reason = "No MorphoDiTa forms" if not raw_forms else "Could not extract noun forms"
+                print(f"  WARNING: {reason} for '{lemma}'", file=sys.stderr)
+                continue
 
         gender, animate, sg, pl, variant_sg, variant_pl = result
 
         # Apply form overrides for irregular nouns
         overrides = form_overrides.get(lemma, {})
+        for number_key in ("sg", "pl"):
+            forms_override = overrides.get(number_key)
+            if forms_override is not None and len(forms_override) != 7:
+                raise ValueError(
+                    f"form_overrides.json: '{lemma}' {number_key} must have 7 forms, "
+                    f"got {len(forms_override)}"
+                )
+        for idx_key in ("remove_variants_sg", "remove_variants_pl", "variants_sg", "variants_pl"):
+            for idx in overrides.get(idx_key) or []:
+                if not 0 <= int(idx) <= 6:
+                    raise ValueError(
+                        f"form_overrides.json: '{lemma}' {idx_key} index {idx} out of range 0-6"
+                    )
         if "sg" in overrides:
             sg = overrides["sg"]
         if "pl" in overrides:
             pl = overrides["pl"]
+        if "gender" in overrides:
+            gender = str(overrides["gender"])
+        if "animate" in overrides:
+            animate = bool(overrides["animate"])
 
         # Prune specific variant-form entries that MorphoDiTa generates
         # incorrectly for this lemma (e.g. animate-style plural on an inanimate
@@ -646,12 +774,66 @@ def main() -> int:
         for idx in overrides.get("remove_variants_pl", []) or []:
             variant_pl.pop(int(idx), None)
 
+        # Extra hand-specified variants (added after the primary override, so
+        # they survive the "override clears MorphoDiTa variants" rule below).
+        extra_variant_sg = {
+            int(k): list(v) for k, v in (overrides.get("variants_sg") or {}).items()
+        }
+        extra_variant_pl = {
+            int(k): list(v) for k, v in (overrides.get("variants_pl") or {}).items()
+        }
+
         # Get metadata (manual override > wiktionary > defaults)
         m = meta.get(lemma, {})
-        translation = m.get("translation") or wiktionary_translations.get(lemma, "")
+        previous_entry = previous_by_lemma.get(lemma, {})
+        translation = (
+            m.get("translation")
+            or previous_entry.get("translation")
+            or wiktionary_translations.get(lemma, "")
+        )
         difficulty = m.get("difficulty", "")
         categories = m.get("categories", "")
         paradigm_override = m.get("paradigm", "")
+        note = (m.get("note") or "").strip()
+        if args.merge and previous_entry and not args.take_meta:
+            # Rebuilding an existing entry: the JSON's categories/difficulty
+            # are hand-audited and the meta CSV does not mirror them, so keep
+            # them and only use the CSV to fill gaps (--take-meta reverses
+            # that for deliberate metadata edits).
+            prev_categories = ",".join(previous_entry.get("categories") or [])
+            prev_difficulty = previous_entry.get("difficulty") or ""
+            if prev_categories and categories and categories != prev_categories:
+                print(
+                    f"  NOTE: '{lemma}' keeps categories [{prev_categories}] from "
+                    f"word_bank.json (meta CSV says [{categories}])",
+                    file=sys.stderr,
+                )
+            if prev_difficulty and difficulty and difficulty != prev_difficulty:
+                print(
+                    f"  NOTE: '{lemma}' keeps difficulty {prev_difficulty} from "
+                    f"word_bank.json (meta CSV says {difficulty})",
+                    file=sys.stderr,
+                )
+            categories = prev_categories or categories
+            difficulty = prev_difficulty or difficulty
+            # Same for paradigm: the meta CSV predates several hand-audited
+            # paradigm corrections (muž vs pán, píseň vs růže), so a rebuild
+            # must not regress them.
+            prev_paradigm = previous_entry.get("paradigm") or ""
+            if prev_paradigm and paradigm_override and paradigm_override != prev_paradigm:
+                print(
+                    f"  NOTE: '{lemma}' keeps paradigm {prev_paradigm} from "
+                    f"word_bank.json (meta CSV says {paradigm_override})",
+                    file=sys.stderr,
+                )
+            paradigm_override = prev_paradigm or paradigm_override
+        if args.merge and previous_entry:
+            if previous_entry.get("translation") and translation != previous_entry["translation"]:
+                print(
+                    f"  NOTE: '{lemma}' translation changes: "
+                    f"{previous_entry['translation']!r} -> {translation!r}",
+                    file=sys.stderr,
+                )
 
         if not translation:
             missing_translations.append(lemma)
@@ -668,6 +850,14 @@ def main() -> int:
         # Merge variant forms: override clears MorphoDiTa variants for overridden numbers
         final_variant_sg = variant_sg if "sg" not in overrides else {}
         final_variant_pl = variant_pl if "pl" not in overrides else {}
+        for idx, extra in extra_variant_sg.items():
+            merged_v = [v for v in final_variant_sg.get(idx, []) + extra if v != sg[idx]]
+            final_variant_sg[idx] = list(dict.fromkeys(merged_v))
+        for idx, extra in extra_variant_pl.items():
+            merged_v = [v for v in final_variant_pl.get(idx, []) + extra if v != pl[idx]]
+            final_variant_pl[idx] = list(dict.fromkeys(merged_v))
+        final_variant_sg = {k: v for k, v in final_variant_sg.items() if v}
+        final_variant_pl = {k: v for k, v in final_variant_pl.items() if v}
 
         words.append(
             {
@@ -680,6 +870,9 @@ def main() -> int:
                 "categories": categories or "misc",
                 "_variant_sg": final_variant_sg,
                 "_variant_pl": final_variant_pl,
+                "_note": note,
+                # Only ever set by hand in the JSON; keep it across rebuilds.
+                "_irregular": bool(previous_entry.get("irregular")),
                 **dict(zip(SG_COLS, sg)),
                 **dict(zip(PL_COLS, pl)),
             }
@@ -694,7 +887,7 @@ def main() -> int:
             )
 
         empty_sg = [SG_COLS[i] for i in range(7) if not sg[i]]
-        if empty_sg:
+        if empty_sg and len(empty_sg) < 7:
             print(
                 f"  WARNING: lemma '{lemma}' has empty singular form(s): "
                 f"{', '.join(empty_sg)}",
@@ -708,17 +901,7 @@ def main() -> int:
                 file=sys.stderr,
             )
 
-    # 6. Load previous JSON for diff (before overwriting)
-    previous_json_words = _load_previous_json(OUTPUT_JSON_PATH)
-
-    # 7. Write CSV
-    OUTPUT_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(OUTPUT_CSV_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(words)
-
-    # 8. Write JSON (same format as csv_to_json.py output)
+    # 6. Write JSON (same format as csv_to_json.py output)
     json_words = []
     for w in words:
         entry: dict = {
@@ -735,6 +918,12 @@ def main() -> int:
             },
         }
 
+        # Pluralia tantum: every singular form empty (via form_overrides.json).
+        if all(not w[c] for c in SG_COLS):
+            entry["pluralOnly"] = True
+        if w["_irregular"]:
+            entry["irregular"] = True
+
         # Include variant forms if any exist
         v_sg: dict[int, list[str]] = w.get("_variant_sg", {})
         v_pl: dict[int, list[str]] = w.get("_variant_pl", {})
@@ -746,17 +935,75 @@ def main() -> int:
                 variant_forms["pl"] = {str(k): v for k, v in sorted(v_pl.items())}
             entry["variantForms"] = variant_forms
 
+        if w["_note"]:
+            entry["declensionNote"] = w["_note"]
+
         json_words.append(entry)
+
+    if args.merge:
+        # Existing entries stay as they are (forms, categories, difficulty);
+        # rebuilt/new ones replace or append. The one metadata field synced
+        # onto untouched entries is ``declensionNote``, so notes can be added
+        # to, changed on, or removed from established words without
+        # re-deriving their forms. Entries without a meta CSV row are left
+        # alone entirely.
+        rebuilt = {e["lemma"]: e for e in json_words}
+        merged = []
+        synced_notes = 0
+        has_note_column = any("note" in row for row in meta.values())
+        if meta and not has_note_column:
+            print(
+                f"  WARNING: {META_CSV_PATH.name} has no 'note' column — "
+                "declensionNote left untouched on existing entries",
+                file=sys.stderr,
+            )
+        for old in previous_json_words:
+            if old["lemma"] in rebuilt:
+                merged.append(rebuilt.pop(old["lemma"]))
+                continue
+            if has_note_column and old["lemma"] in meta:
+                note = (meta[old["lemma"]].get("note") or "").strip()
+                if (old.get("declensionNote") or "") != note:
+                    old = {k: v for k, v in old.items() if k != "declensionNote"}
+                    if note:
+                        old["declensionNote"] = note
+                    synced_notes += 1
+            merged.append(old)
+        merged.extend(e for e in json_words if e["lemma"] in rebuilt)
+        json_words = merged
+        if synced_notes:
+            print(f"  Synced declensionNote on {synced_notes} existing entries", file=sys.stderr)
 
     OUTPUT_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(json_words, f, ensure_ascii=False, indent="\t")
         f.write("\n")
 
-    # 9. Diff with previous version
+    # 7. Write the flat CSV mirror of the *whole* bank (in merge mode most
+    # rows come from the kept JSON entries, not from this run).
+    OUTPUT_CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(OUTPUT_CSV_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS, extrasaction="ignore")
+        writer.writeheader()
+        for e in json_words:
+            writer.writerow(
+                {
+                    "lemma": e["lemma"],
+                    "translation": e["translation"],
+                    "gender": e["gender"],
+                    "animate": str(e["animate"]).lower(),
+                    "paradigm": e["paradigm"],
+                    "difficulty": e["difficulty"],
+                    "categories": ",".join(e["categories"]),
+                    **dict(zip(SG_COLS, e["forms"]["sg"])),
+                    **dict(zip(PL_COLS, e["forms"]["pl"])),
+                }
+            )
+
+    # 8. Diff with previous version
     _diff_word_banks(previous_json_words, json_words)
 
-    # 10. Summary
+    # 9. Summary
     print(f"\n{'=' * 60}", file=sys.stderr)
     print("SUMMARY", file=sys.stderr)
     print(f"{'=' * 60}", file=sys.stderr)

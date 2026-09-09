@@ -26,7 +26,12 @@
 		"pl": ["uši", "uší", "uším", "uši", "uši", "uších", "ušima"]
 	},
 	"chléb": {
-		"sg": ["chléb", "chleba", "chlebu", "chléb", "chlebe", "chlebě", "chlebem"]
+		"sg": ["chléb", "chleba", "chlebu", "chléb", "chlebe", "chlebě", "chlebem"],
+		"variants_sg": {
+			"0": ["chleba"],
+			"3": ["chleba"],
+			"5": ["chlebu"]
+		}
 	},
 	"ruka": {
 		"pl": ["ruce", "rukou", "rukám", "ruce", "ruce", "rukou", "rukama"]
@@ -119,7 +124,10 @@
 	},
 	"rok": {
 		"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
-		"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
+		"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"],
+		"variants_pl": {
+			"1": ["let"]
+		}
 	},
 	"faktor": {
 		"sg": ["faktor", "faktoru", "faktoru", "faktor", "faktore", "faktoru", "faktorem"],
@@ -138,5 +146,498 @@
 	"křen": {
 		"sg": ["křen", "křenu", "křenu", "křen", "křene", "křenu", "křenem"],
 		"pl": ["křeny", "křenů", "křenům", "křeny", "křeny", "křenech", "křeny"]
+	},
+	"čtvrt": {
+		"sg": ["čtvrt", "čtvrti", "čtvrti", "čtvrt", "čtvrti", "čtvrti", "čtvrtí"],
+		"pl": ["čtvrti", "čtvrtí", "čtvrtím", "čtvrti", "čtvrti", "čtvrtích", "čtvrtěmi"],
+		"gender": "f",
+		"animate": false,
+		"variants_sg": {
+			"1": ["čtvrtě"]
+		},
+		"variants_pl": {
+			"0": ["čtvrtě"],
+			"3": ["čtvrtě"],
+			"4": ["čtvrtě"]
+		}
+	},
+	"komisář": {
+		"sg": ["komisář", "komisáře", "komisáři", "komisáře", "komisáři", "komisáři", "komisářem"],
+		"pl": ["komisáři", "komisářů", "komisářům", "komisáře", "komisáři", "komisářích", "komisáři"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["komisářovi"],
+			"5": ["komisářovi"]
+		}
+	},
+	"šachy": {
+		"sg": ["", "", "", "", "", "", ""],
+		"pl": ["šachy", "šachů", "šachům", "šachy", "šachy", "šachách", "šachy"]
+	},
+	"boby": {
+		"sg": ["", "", "", "", "", "", ""],
+		"pl": ["boby", "bobů", "bobům", "boby", "boby", "bobech", "boby"]
+	},
+	"sekáč": {
+		"sg": ["sekáč", "sekáče", "sekáči", "sekáč", "sekáči", "sekáči", "sekáčem"],
+		"pl": ["sekáče", "sekáčů", "sekáčům", "sekáče", "sekáče", "sekáčích", "sekáči"],
+		"gender": "m",
+		"animate": false
+	},
+	"panorama": {
+		"sg": [
+			"panorama",
+			"panoramatu",
+			"panoramatu",
+			"panorama",
+			"panorama",
+			"panoramatu",
+			"panoramatem"
+		],
+		"pl": [
+			"panoramata",
+			"panoramat",
+			"panoramatům",
+			"panoramata",
+			"panoramata",
+			"panoramatech",
+			"panoramaty"
+		],
+		"gender": "n",
+		"animate": false
+	},
+	"průjem": {
+		"sg": ["průjem", "průjmu", "průjmu", "průjem", "průjme", "průjmu", "průjmem"]
+	},
+	"diabetes": {
+		"sg": ["diabetes", "diabetu", "diabetu", "diabetes", "diabete", "diabetu", "diabetem"]
+	},
+	"software": {
+		"sg": ["software", "softwaru", "softwaru", "software", "software", "softwaru", "softwarem"],
+		"pl": ["softwary", "softwarů", "softwarům", "softwary", "softwary", "softwarech", "softwary"]
+	},
+	"smartphone": {
+		"sg": [
+			"smartphone",
+			"smartphonu",
+			"smartphonu",
+			"smartphone",
+			"smartphone",
+			"smartphonu",
+			"smartphonem"
+		],
+		"pl": [
+			"smartphony",
+			"smartphonů",
+			"smartphonům",
+			"smartphony",
+			"smartphony",
+			"smartphonech",
+			"smartphony"
+		]
+	},
+	"švec": {
+		"pl": ["ševci", "ševců", "ševcům", "ševce", "ševci", "ševcích", "ševci"]
+	},
+	"svišť": {
+		"pl": ["svišti", "svišťů", "svišťům", "sviště", "svišti", "svištích", "svišti"],
+		"variants_pl": {
+			"0": ["svišťové"],
+			"4": ["svišťové"]
+		}
+	},
+	"číšnice": {
+		"remove_variants_pl": [1]
+	},
+	"kadeřnice": {
+		"remove_variants_pl": [1]
+	},
+	"klávesnice": {
+		"remove_variants_pl": [1]
+	},
+	"pracovnice": {
+		"remove_variants_pl": [1]
+	},
+	"opice": {
+		"remove_variants_pl": [1]
+	},
+	"prasnice": {
+		"remove_variants_pl": [1]
+	},
+	"hudebnice": {
+		"remove_variants_pl": [1]
+	},
+	"orlice": {
+		"remove_variants_pl": [1]
+	},
+	"kostnice": {
+		"remove_variants_pl": [1]
+	},
+	"číšník": {
+		"remove_variants_sg": [4]
+	},
+	"áčko": {
+		"remove_variants_pl": [2]
+	},
+	"rychlík": {
+		"remove_variants_sg": [1, 3],
+		"remove_variants_pl": [5]
+	},
+	"techno": {
+		"sg": ["techno", "techna", "technu", "techno", "techno", "technu", "technem"],
+		"pl": ["", "", "", "", "", "", ""]
+	},
+	"obuv": {
+		"pl": ["obuvi", "obuví", "obuvím", "obuvi", "obuvi", "obuvích", "obuvemi"]
+	},
+	"finance": {
+		"sg": ["", "", "", "", "", "", ""]
+	},
+	"certifikát": {
+		"sg": [
+			"certifikát",
+			"certifikátu",
+			"certifikátu",
+			"certifikát",
+			"certifikáte",
+			"certifikátu",
+			"certifikátem"
+		],
+		"variants_sg": {
+			"5": ["certifikátě"]
+		}
+	},
+	"citát": {
+		"sg": ["citát", "citátu", "citátu", "citát", "citáte", "citátu", "citátem"],
+		"variants_sg": {
+			"5": ["citátě"]
+		}
+	},
+	"exponát": {
+		"sg": ["exponát", "exponátu", "exponátu", "exponát", "exponáte", "exponátu", "exponátem"],
+		"variants_sg": {
+			"5": ["exponátě"]
+		}
+	},
+	"granát": {
+		"sg": ["granát", "granátu", "granátu", "granát", "granáte", "granátu", "granátem"],
+		"variants_sg": {
+			"5": ["granátě"]
+		}
+	},
+	"pavilon": {
+		"sg": ["pavilon", "pavilonu", "pavilonu", "pavilon", "pavilone", "pavilonu", "pavilonem"],
+		"variants_sg": {
+			"5": ["paviloně"]
+		}
+	},
+	"superlativ": {
+		"sg": [
+			"superlativ",
+			"superlativu",
+			"superlativu",
+			"superlativ",
+			"superlative",
+			"superlativu",
+			"superlativem"
+		],
+		"variants_sg": {
+			"5": ["superlativě"]
+		}
+	},
+	"vjezd": {
+		"sg": ["vjezd", "vjezdu", "vjezdu", "vjezd", "vjezde", "vjezdu", "vjezdem"],
+		"variants_sg": {
+			"5": ["vjezdě"]
+		}
+	},
+	"křišťál": {
+		"sg": ["křišťál", "křišťálu", "křišťálu", "křišťál", "křišťále", "křišťálu", "křišťálem"],
+		"variants_sg": {
+			"5": ["křišťále"]
+		}
+	},
+	"cimbál": {
+		"sg": ["cimbál", "cimbálu", "cimbálu", "cimbál", "cimbále", "cimbálu", "cimbálem"],
+		"variants_sg": {
+			"5": ["cimbále"]
+		}
+	},
+	"podchod": {
+		"sg": ["podchod", "podchodu", "podchodu", "podchod", "podchode", "podchodu", "podchodem"],
+		"variants_sg": {
+			"5": ["podchodě"]
+		}
+	},
+	"snowboard": {
+		"sg": [
+			"snowboard",
+			"snowboardu",
+			"snowboardu",
+			"snowboard",
+			"snowboarde",
+			"snowboardu",
+			"snowboardem"
+		]
+	},
+	"sýr": {
+		"sg": ["sýr", "sýra", "sýru", "sýr", "sýre", "sýru", "sýrem"],
+		"variants_sg": {
+			"1": ["sýru"]
+		}
+	},
+	"únor": {
+		"sg": ["únor", "února", "únoru", "únor", "únore", "únoru", "únorem"],
+		"variants_sg": {
+			"1": ["únoru"]
+		}
+	},
+	"kostel": {
+		"sg": ["kostel", "kostela", "kostelu", "kostel", "kostele", "kostele", "kostelem"],
+		"variants_sg": {
+			"1": ["kostelu"],
+			"5": ["kostelu"]
+		}
+	},
+	"tábor": {
+		"sg": ["tábor", "tábora", "táboru", "tábor", "tábore", "táboře", "táborem"],
+		"variants_sg": {
+			"1": ["táboru"],
+			"5": ["táboru"]
+		}
+	},
+	"klášter": {
+		"sg": ["klášter", "kláštera", "klášteru", "klášter", "kláštere", "klášteře", "klášterem"],
+		"variants_sg": {
+			"1": ["klášteru"],
+			"5": ["klášteru"]
+		}
+	},
+	"jelen": {
+		"pl": ["jeleni", "jelenů", "jelenům", "jeleny", "jeleni", "jelenech", "jeleny"],
+		"variants_pl": {
+			"0": ["jelenové"],
+			"4": ["jelenové"]
+		}
+	},
+	"zlatokop": {
+		"pl": [
+			"zlatokopi",
+			"zlatokopů",
+			"zlatokopům",
+			"zlatokopy",
+			"zlatokopi",
+			"zlatokopech",
+			"zlatokopy"
+		],
+		"variants_pl": {
+			"0": ["zlatokopové"],
+			"4": ["zlatokopové"]
+		}
+	},
+	"kohout": {
+		"pl": ["kohouti", "kohoutů", "kohoutům", "kohouty", "kohouti", "kohoutech", "kohouty"],
+		"variants_pl": {
+			"0": ["kohoutové"],
+			"4": ["kohoutové"]
+		}
+	},
+	"pan": {
+		"sg": ["pan", "pana", "panu", "pana", "pane", "panu", "panem"],
+		"variants_sg": {
+			"2": ["panovi"],
+			"5": ["panovi"]
+		},
+		"pl": ["páni", "pánů", "pánům", "pány", "páni", "pánech", "pány"],
+		"variants_pl": {
+			"0": ["pánové"],
+			"4": ["pánové"]
+		},
+		"gender": "m",
+		"animate": true
+	},
+	"chovatel": {
+		"remove_variants_pl": [0, 4]
+	},
+	"hroch": {
+		"remove_variants_pl": [0, 4]
+	},
+	"humr": {
+		"remove_variants_pl": [0, 4]
+	},
+	"instalatér": {
+		"remove_variants_pl": [0, 4]
+	},
+	"houser": {
+		"remove_variants_pl": [0, 4]
+	},
+	"kocourek": {
+		"remove_variants_pl": [0, 4]
+	},
+	"králíček": {
+		"remove_variants_pl": [0, 4]
+	},
+	"mazlíček": {
+		"remove_variants_pl": [0, 4]
+	},
+	"medvídek": {
+		"remove_variants_pl": [0, 4]
+	},
+	"alkoholik": {
+		"remove_variants_pl": [0, 4]
+	},
+	"automechanik": {
+		"remove_variants_pl": [0, 4]
+	},
+	"auditor": {
+		"remove_variants_pl": [0, 4]
+	},
+	"beran": {
+		"remove_variants_pl": [0, 4]
+	},
+	"disident": {
+		"remove_variants_pl": [0, 4]
+	},
+	"tygr": {
+		"remove_variants_pl": [0, 4]
+	},
+	"reformátor": {
+		"remove_variants_pl": [0, 4]
+	},
+	"batoh": {
+		"remove_variants_pl": [5]
+	},
+	"foťák": {
+		"remove_variants_pl": [5]
+	},
+	"chlebíček": {
+		"remove_variants_pl": [5]
+	},
+	"dopoledne": {
+		"remove_variants_pl": [5]
+	},
+	"antibiotikum": {
+		"remove_variants_pl": [5]
+	},
+	"aerobik": {
+		"remove_variants_pl": [5]
+	},
+	"hostel": {
+		"remove_variants_pl": [5]
+	},
+	"odpadek": {
+		"remove_variants_pl": [5]
+	},
+	"reprák": {
+		"remove_variants_pl": [5]
+	},
+	"sklípek": {
+		"remove_variants_pl": [5]
+	},
+	"smajlík": {
+		"remove_variants_pl": [5],
+		"remove_variants_sg": [1, 3]
+	},
+	"sporák": {
+		"remove_variants_pl": [5]
+	},
+	"střih": {
+		"remove_variants_pl": [5]
+	},
+	"úvazek": {
+		"remove_variants_pl": [5]
+	},
+	"činžák": {
+		"remove_variants_pl": [5]
+	},
+	"řidičák": {
+		"remove_variants_pl": [5]
+	},
+	"šátek": {
+		"remove_variants_pl": [5]
+	},
+	"vláček": {
+		"remove_variants_pl": [5]
+	},
+	"hranolek": {
+		"remove_variants_pl": [5]
+	},
+	"kelímek": {
+		"remove_variants_pl": [5]
+	},
+	"kousíček": {
+		"remove_variants_pl": [5]
+	},
+	"nepořádek": {
+		"remove_variants_pl": [5]
+	},
+	"oblázek": {
+		"remove_variants_pl": [5]
+	},
+	"kůň": {
+		"remove_variants_sg": [2, 5],
+		"variants_sg": {
+			"2": ["koňovi"],
+			"5": ["koňovi"]
+		}
+	},
+	"filozof": {
+		"variants_pl": {
+			"0": ["filozofi"],
+			"4": ["filozofi"]
+		}
+	},
+	"zákon": {
+		"remove_variants_sg": [1]
+	},
+	"jazyk": {
+		"remove_variants_sg": [1, 2, 3, 5],
+		"variants_sg": {
+			"5": ["jazyce"]
+		},
+		"remove_variants_pl": [0, 4]
+	},
+	"esej": {
+		"variants_sg": {
+			"6": ["esejí"]
+		},
+		"variants_pl": {
+			"1": ["esejí"],
+			"2": ["esejím"],
+			"6": ["esejemi"]
+		}
+	},
+	"neurolog": {
+		"variants_pl": {
+			"0": ["neurolozi"],
+			"4": ["neurolozi"]
+		}
+	},
+	"čtvrtek": {
+		"sg": ["čtvrtek", "čtvrtka", "čtvrtku", "čtvrtek", "čtvrtku", "čtvrtku", "čtvrtkem"],
+		"variants_sg": {
+			"1": ["čtvrtku"]
+		}
+	},
+	"oběd": {
+		"sg": ["oběd", "oběda", "obědu", "oběd", "oběde", "obědě", "obědem"],
+		"variants_sg": {
+			"1": ["obědu"],
+			"5": ["obědu"]
+		}
+	},
+	"kastrol": {
+		"sg": ["kastrol", "kastrolu", "kastrolu", "kastrol", "kastrole", "kastrolu", "kastrolem"],
+		"variants_sg": {
+			"5": ["kastrole"]
+		}
+	},
+	"noc": {
+		"remove_variants_sg": [1],
+		"remove_variants_pl": [0, 2, 3, 4]
+	},
+	"fakturant": {
+		"remove_variants_pl": [0, 4]
 	}
 }

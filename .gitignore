@@ -52,3 +52,5 @@ static/audio/cs/
 
 # Playwright
 test-results/
+# Python bytecode from pipeline scripts
+__pycache__/
