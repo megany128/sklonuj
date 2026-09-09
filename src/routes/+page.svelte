@@ -2251,14 +2251,22 @@
 		}
 	});
 
-	function pickDrillType(): DrillType {
+	function pickDrillType(content: 'noun' | 'pronoun' = 'noun'): DrillType {
 		// No case identification when a specific case is selected or fewer than 2 cases enabled
 		let allowed = drillSettings.selectedDrillTypes;
 		if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
 			allowed = allowed.filter((dt) => dt !== 'case_identification');
 		}
-		// No form_production when only nominative is enabled — nom→nom is trivial
-		const nonNomCases = effectiveEnabledCases.filter((c) => c !== 'nom');
+		// multi_step (paradigm → case → form) is noun-only; a pronoun question
+		// must never pick it, or the caller would fall through to a noun.
+		if (content === 'pronoun') {
+			allowed = allowed.filter((dt) => dt !== 'multi_step');
+		}
+		// No form_production when only nominative is in play (all-mode with just
+		// nom enabled, or the nom chip selected) — nom→nom is trivial, and
+		// re-picking another case would break the learner's selection.
+		const activeCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+		const nonNomCases = activeCases.filter((c) => c !== 'nom');
 		if (nonNomCases.length === 0) {
 			allowed = allowed.filter((dt) => dt !== 'form_production');
 		}
@@ -2270,8 +2278,6 @@
 		if (allowed.length === 0) allowed = ['sentence_fill_in'];
 
 		if (allowed.length === 1) return allowed[0];
-
-		const activeCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 
 		// Check if sentence-based drills are viable (sentence_fill_in, case_identification, multi_step all need templates)
 		const needsTemplates = allowed.some(
@@ -2460,9 +2466,7 @@
 			}
 		}
 
-		const drillType = pickDrillType();
-		// multi_step is a noun-specific drill type (paradigm + case + form) — skip pronouns
-		if (drillType === 'multi_step') return null;
+		const drillType = pickDrillType('pronoun');
 		// Exclude vocative for pronoun drills (almost no pronoun has a vocative form),
 		// and gate by the level's unlocked cases so the single-case branch can't
 		// surface a pronoun in a case this level hides.
@@ -2690,19 +2694,79 @@
 		return generateAdjectiveSentenceDrill(template, adj, word);
 	}
 
+	/**
+	 * Exhaustive last resort for pronoun-only practice: any pronoun, any
+	 * enabled non-vocative case, either number, as plain form production.
+	 * Used so that a miss in the probabilistic generator never surfaces a noun
+	 * when the learner has deselected nouns.
+	 */
+	function generateFallbackPronounQuestion(): DrillQuestion | null {
+		const prog = get(progress);
+		const levelConfig = curriculum[prog.level];
+		const pronouns = loadPronounBank().filter((p) =>
+			levelConfig.unlocked_difficulty.includes(p.difficulty)
+		);
+		const cases = (selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]).filter(
+			(c) => c !== 'voc' && c !== 'nom' && levelConfig.unlocked_cases.includes(c)
+		);
+		const numbers: Number_[] =
+			effectiveNumberMode === 'both' ? ['sg', 'pl'] : [effectiveNumberMode];
+		const shuffled = [...pronouns].sort(() => Math.random() - 0.5);
+		for (const c of [...cases].sort(() => Math.random() - 0.5)) {
+			for (const n of numbers) {
+				for (const pronoun of shuffled) {
+					const q = generatePronounFormProduction(pronoun, c, n);
+					if (q) return q;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Exhaustive last resort for adjective-only practice: retry adjective form
+	 * production (the generator's random noun/adjective pairing can miss).
+	 */
+	function generateFallbackAdjectiveQuestion(): DrillQuestion | null {
+		for (let attempt = 0; attempt < 20; attempt++) {
+			const q = generateAdjectiveQuestion('form_production');
+			if (q) return q;
+		}
+		return null;
+	}
+
+	/**
+	 * Last resort when the main generator produced nothing. Stays inside the
+	 * learner's selection: content type, selected case(s), number mode and
+	 * chapter vocabulary — a fallback that ignores those is a wrong question,
+	 * not a helpful one.
+	 */
 	function generateFallbackQuestion(): DrillQuestion | null {
+		if (effectiveWordMode === 'adjectives') return generateFallbackAdjectiveQuestion();
+		if (effectiveContentMode === 'pronouns') return generateFallbackPronounQuestion();
 		const wordBank = loadWordBank();
 		const prog = get(progress);
 		const levelConfig = curriculum[prog.level];
+		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 		const eligibleWords = filterByParadigm(
 			wordBank.filter((w) => levelConfig.unlocked_difficulty.includes(w.difficulty))
 		);
-		const fallbackCases: Case[] = ['gen', 'acc', 'dat', 'loc', 'ins', 'voc'];
-		for (const fc of fallbackCases) {
-			const validWords = eligibleWords.filter((w) => hasValidForm(w, fc, 'sg'));
-			if (validWords.length > 0) {
-				const word = validWords[Math.floor(Math.random() * validWords.length)];
-				const q = generateFormProduction(word, fc, 'sg');
+		const fallbackCases = (selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]).filter(
+			(c) => c !== 'nom'
+		);
+		const numbers: Number_[] =
+			effectiveNumberMode === 'both' ? ['sg', 'pl'] : [effectiveNumberMode];
+		for (const fc of [...fallbackCases].sort(() => Math.random() - 0.5)) {
+			for (const n of numbers) {
+				let word: WordEntry | null;
+				if (isChapterMode) {
+					word = pickWordForChapter(eligibleWords, prog, fc, n);
+				} else {
+					const validWords = eligibleWords.filter((w) => hasValidForm(w, fc, n));
+					word = validWords.length > 0 ? pickWord(validWords, prog, fc, n) : null;
+				}
+				if (!word) continue;
+				const q = generateFormProduction(word, fc, n);
 				if (q) return q;
 			}
 		}
@@ -2781,7 +2845,16 @@
 		})();
 
 		if (contentDecision === 'pronoun') {
-			const pronounQ = generatePronounQuestion();
+			const pronounOnly = effectiveContentMode === 'pronouns';
+			let pronounQ = generatePronounQuestion();
+			// The pronoun generator is probabilistic (drill type, case, number,
+			// pronoun) and returns null when its pick has no usable form. With
+			// nouns deselected that miss must not fall through to a noun, so
+			// retry, then fall back to any pronoun form-production question.
+			for (let attempt = 0; pronounQ === null && pronounOnly && attempt < 10; attempt++) {
+				pronounQ = generatePronounQuestion();
+			}
+			if (pronounQ === null && pronounOnly) pronounQ = generateFallbackPronounQuestion();
 			if (pronounQ) {
 				question = pronounQ;
 				multiStepQuestion = null;
@@ -2796,7 +2869,10 @@
 				autoPlayPrompt(pronounQ);
 				return;
 			}
-			// Fall through to noun generation if pronoun generation failed
+			// Pronoun-only practice never shows a noun; leave the question empty
+			// (the outer fallback is pronoun-aware too). With both content types
+			// enabled, fall through to noun generation instead.
+			if (pronounOnly) return;
 		}
 
 		// Adjective questions are handled in the main drill-type flow below:
@@ -2896,11 +2972,18 @@
 		// form_production and sentence_fill_in are both supported; case_identification
 		// falls back to sentence_fill_in since adjective case ID is not yet implemented.
 		if (contentDecision === 'adjective' && drillType !== 'multi_step') {
+			const adjectivesOnly = effectiveWordMode === 'adjectives';
 			const adjDrillType =
 				drillType === 'form_production' || drillType === 'sentence_fill_in'
 					? drillType
 					: 'sentence_fill_in';
-			const adjQ = generateAdjectiveQuestion(adjDrillType);
+			let adjQ = generateAdjectiveQuestion(adjDrillType);
+			// Same contract as pronouns: with nouns deselected, a miss in the
+			// random noun/adjective pairing must not surface a bare noun.
+			for (let attempt = 0; adjQ === null && adjectivesOnly && attempt < 10; attempt++) {
+				adjQ = generateAdjectiveQuestion(adjDrillType);
+			}
+			if (adjQ === null && adjectivesOnly) adjQ = generateFallbackAdjectiveQuestion();
 			if (adjQ) {
 				question = adjQ;
 				multiStepQuestion = null;
@@ -2915,17 +2998,22 @@
 				autoPlayPrompt(adjQ);
 				return;
 			}
-			// Fall through to noun generation if adjective generation failed
+			// Adjective-only practice never shows a bare noun; with nouns enabled
+			// too, fall through to noun generation.
+			if (adjectivesOnly) return;
 		}
 
 		if (drillType === 'multi_step') {
 			// Multi-step: needs a template + word, produces a MultiStepQuestion
 			const templates = loadTemplates();
+			// Adjective-only practice attaches an adjective step, which vocative
+			// templates never get (see wantAdj below), so skip them up front.
 			const msEligibleTemplates = templates.filter(
 				(t) =>
 					activeCasesForPick.includes(t.requiredCase) &&
 					matchesNumberMode(t.number) &&
-					unlockedDifficulties.includes(t.difficulty)
+					unlockedDifficulties.includes(t.difficulty) &&
+					!(effectiveWordMode === 'adjectives' && t.requiredCase === 'voc')
 			);
 			if (msEligibleTemplates.length > 0) {
 				// Prefer templates matching the weighted case pick to respect spaced repetition
@@ -3036,7 +3124,25 @@
 					}
 				}
 			}
-			// Fall through to form_production if multi-step generation failed
+			// Multi-step failed. With nouns deselected, fall back to adjective form
+			// production rather than a bare noun; otherwise noun form production.
+			if (effectiveWordMode === 'adjectives') {
+				const adjQ = generateFallbackAdjectiveQuestion();
+				if (adjQ) {
+					question = adjQ;
+					multiStepQuestion = null;
+					lastResult = null;
+					paradigmNotes = null;
+					submitted = false;
+					pushRecent(recentTemplateIds, adjQ.template.id, RECENT_TEMPLATE_LIMIT);
+					if (advanceTimer !== null) {
+						clearTimeout(advanceTimer);
+						advanceTimer = null;
+					}
+					autoPlayPrompt(adjQ);
+				}
+				return;
+			}
 		}
 
 		if (drillType === 'form_production' || drillType === 'multi_step') {
@@ -4732,7 +4838,10 @@
 						if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
 							hidden.push('case_identification');
 						}
-						if (!isMultiStepUnlocked()) {
+						if (selectedCase === 'nom') {
+							hidden.push('form_production');
+						}
+						if (!isMultiStepUnlocked() || effectiveContentMode === 'pronouns') {
 							hidden.push('multi_step');
 						}
 						return hidden;
