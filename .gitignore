@@ -49,6 +49,7 @@ scripts/.venv-tts/
 
 # TTS audio blobs — hosted in R2, not git
 static/audio/cs/
+static/audio/.uploaded-index.json
 
 # Playwright
 test-results/

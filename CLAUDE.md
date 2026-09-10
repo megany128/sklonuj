@@ -100,7 +100,7 @@ Lemmas missing from the bank are reported, not silently dropped. Proper nouns, i
 
 - Pre-generated MP3s in `static/audio/` keyed by `sha1(voice|text)[:16]`, indexed via `static/audio/index.json` (the contract — don't change the scheme without migrating files).
 - Runtime fallback chain in `src/lib/audio.ts`: manifest MP3 → Web Speech API (Czech voice, with `voiceschanged` warmup for Chrome). 500 ms manifest timeout; sentences (>25 chars or with spaces) skip lookup and go straight to Web Speech.
-- Regenerate with `pnpm tts:generate` after any bank change. Voicing must be applied before hashing.
+- Regenerate with `pnpm tts:generate` after any bank change, then `bash scripts/upload_audio_to_r2.sh sklonuj-audio` (needs `wrangler login` as the gmail Cloudflare account). The script uploads only what changed since its last successful run, tracked in the gitignored `static/audio/.uploaded-index.json`; `--since <ref>` or `--all` override that. Voicing must be applied before hashing.
 
 ## Auth / sync
 

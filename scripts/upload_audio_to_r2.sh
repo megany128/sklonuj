@@ -12,18 +12,20 @@ set -euo pipefail
 
 usage() {
 	cat >&2 <<'EOF'
-usage: bash scripts/upload_audio_to_r2.sh <bucket-name> [--prefix <prefix>] [--new-only | --since <git-ref>]
+usage: bash scripts/upload_audio_to_r2.sh <bucket-name> [--prefix <prefix>] [--all | --since <git-ref>]
 
 env:
   CONCURRENCY   parallel upload count (default: 16)
 
 Uploads static/audio/cs/**/*.mp3 to r2://<bucket-name>/<prefix><key>, where
 <key> is the file path relative to static/audio/ (e.g. cs/ab/<hash>.mp3).
---since <git-ref> uploads just the files whose manifest entry is not in that
-commit's static/audio/index.json — pass the last commit whose audio was
-uploaded, so a 3k-file vocabulary delta doesn't re-push 26k objects.
---new-only is shorthand for --since HEAD (only useful before committing
-the regenerated manifest).
+
+By default only the delta is uploaded: manifest entries that were not in
+static/audio/.uploaded-index.json, a gitignored snapshot of index.json taken
+after the last successful upload of this machine. So the routine after a
+vocabulary change is just `pnpm tts:generate` then this script. With no
+snapshot yet (fresh clone) everything is uploaded, as with --all.
+--since <git-ref> diffs against that commit's index.json instead.
 index.json is NOT uploaded — the SvelteKit app serves it from the Pages
 origin at /audio/index.json.
 EOF
@@ -39,10 +41,11 @@ shift
 
 PREFIX=""
 SINCE=""
+ALL=0
 while [[ $# -gt 0 ]]; do
 	case "$1" in
-		--new-only)
-			SINCE="HEAD"
+		--all)
+			ALL=1
 			shift
 			;;
 		--since)
@@ -122,21 +125,39 @@ if [[ ! -d static/audio/cs ]]; then
 	exit 1
 fi
 
-# NUL-separated list of files to upload: everything on disk, or with
-# --since just the manifest paths that ref's index.json doesn't have.
+SNAPSHOT="static/audio/.uploaded-index.json"
+
+# NUL-separated list of files to upload: the manifest paths missing from the
+# baseline (last-upload snapshot, or --since ref's index.json), or with --all
+# (and on a machine without a snapshot) everything on disk.
 list_file="$(mktemp)"
-if [[ -n "$SINCE" ]]; then
+baseline=""
+if (( ALL )); then
+	baseline=""
+elif [[ -n "$SINCE" ]]; then
 	if ! git rev-parse --verify --quiet "$SINCE^{commit}" >/dev/null; then
 		echo "error: --since: unknown git ref '$SINCE'" >&2
 		exit 2
 	fi
-	SINCE="$SINCE" python3 - >"$list_file" <<'PY'
+	baseline="git:$SINCE"
+elif [[ -f "$SNAPSHOT" ]]; then
+	baseline="file:$SNAPSHOT"
+else
+	echo "no $SNAPSHOT yet — uploading everything (use --since <ref> to narrow)"
+fi
+
+if [[ -n "$baseline" ]]; then
+	BASELINE="$baseline" python3 - >"$list_file" <<'PY'
 import json, os, subprocess, sys
-ref = os.environ["SINCE"]
-old = json.loads(subprocess.check_output(["git", "show", f"{ref}:static/audio/index.json"]))["entries"]
+kind, _, where = os.environ["BASELINE"].partition(":")
+if kind == "git":
+    raw = subprocess.check_output(["git", "show", f"{where}:static/audio/index.json"])
+else:
+    raw = open(where, "rb").read()
+old = json.loads(raw)["entries"]
 new = json.load(open("static/audio/index.json", encoding="utf-8"))["entries"]
 for text, rel in new.items():
-    if text not in old:
+    if old.get(text) != rel:
         sys.stdout.write(f"static/audio/{rel}\0")
 PY
 else
@@ -145,8 +166,8 @@ fi
 
 total="$(tr -cd '\0' <"$list_file" | wc -c | tr -d ' ')"
 if [[ "$total" -eq 0 ]]; then
-	if [[ -n "$SINCE" ]]; then
-		echo "nothing to do: every manifest entry is already in $SINCE's index.json"
+	if [[ -n "$baseline" ]]; then
+		echo "nothing to do: every manifest entry is already in the baseline (${baseline#*:})"
 		rm -f "$list_file"
 		exit 0
 	fi
@@ -207,5 +228,10 @@ echo "done: ${final}/${total} files uploaded to r2://${BUCKET}/${PREFIX}"
 
 if [[ "$final" -ne "$total" ]]; then
 	echo "warning: count mismatch — some uploads may have failed, check stderr above" >&2
+	echo "         snapshot not updated; re-run to retry the failed files" >&2
 	exit 1
 fi
+
+# Everything landed: remember this manifest as the baseline for next time.
+cp static/audio/index.json "$SNAPSHOT"
+echo "snapshot updated: $SNAPSHOT"
