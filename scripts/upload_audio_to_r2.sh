@@ -12,16 +12,18 @@ set -euo pipefail
 
 usage() {
 	cat >&2 <<'EOF'
-usage: bash scripts/upload_audio_to_r2.sh <bucket-name> [--prefix <prefix>] [--new-only]
+usage: bash scripts/upload_audio_to_r2.sh <bucket-name> [--prefix <prefix>] [--new-only | --since <git-ref>]
 
 env:
   CONCURRENCY   parallel upload count (default: 16)
 
 Uploads static/audio/cs/**/*.mp3 to r2://<bucket-name>/<prefix><key>, where
 <key> is the file path relative to static/audio/ (e.g. cs/ab/<hash>.mp3).
---new-only uploads just the files whose manifest entry is not in the
-committed static/audio/index.json (git HEAD) — use it after adding
-vocabulary so a 3k-file delta doesn't re-push 26k objects.
+--since <git-ref> uploads just the files whose manifest entry is not in that
+commit's static/audio/index.json — pass the last commit whose audio was
+uploaded, so a 3k-file vocabulary delta doesn't re-push 26k objects.
+--new-only is shorthand for --since HEAD (only useful before committing
+the regenerated manifest).
 index.json is NOT uploaded — the SvelteKit app serves it from the Pages
 origin at /audio/index.json.
 EOF
@@ -36,11 +38,23 @@ BUCKET="$1"
 shift
 
 PREFIX=""
-NEW_ONLY=0
+SINCE=""
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 		--new-only)
-			NEW_ONLY=1
+			SINCE="HEAD"
+			shift
+			;;
+		--since)
+			if [[ $# -lt 2 ]]; then
+				echo "error: --since requires a git ref" >&2
+				exit 2
+			fi
+			SINCE="$2"
+			shift 2
+			;;
+		--since=*)
+			SINCE="${1#--since=}"
 			shift
 			;;
 		--prefix)
@@ -109,12 +123,17 @@ if [[ ! -d static/audio/cs ]]; then
 fi
 
 # NUL-separated list of files to upload: everything on disk, or with
-# --new-only just the manifest paths that HEAD's index.json doesn't have.
+# --since just the manifest paths that ref's index.json doesn't have.
 list_file="$(mktemp)"
-if (( NEW_ONLY )); then
-	python3 - >"$list_file" <<'PY'
-import json, subprocess, sys
-old = json.loads(subprocess.check_output(["git", "show", "HEAD:static/audio/index.json"]))["entries"]
+if [[ -n "$SINCE" ]]; then
+	if ! git rev-parse --verify --quiet "$SINCE^{commit}" >/dev/null; then
+		echo "error: --since: unknown git ref '$SINCE'" >&2
+		exit 2
+	fi
+	SINCE="$SINCE" python3 - >"$list_file" <<'PY'
+import json, os, subprocess, sys
+ref = os.environ["SINCE"]
+old = json.loads(subprocess.check_output(["git", "show", f"{ref}:static/audio/index.json"]))["entries"]
 new = json.load(open("static/audio/index.json", encoding="utf-8"))["entries"]
 for text, rel in new.items():
     if text not in old:
@@ -126,8 +145,8 @@ fi
 
 total="$(tr -cd '\0' <"$list_file" | wc -c | tr -d ' ')"
 if [[ "$total" -eq 0 ]]; then
-	if (( NEW_ONLY )); then
-		echo "nothing to do: every manifest entry is already in HEAD's index.json"
+	if [[ -n "$SINCE" ]]; then
+		echo "nothing to do: every manifest entry is already in $SINCE's index.json"
 		rm -f "$list_file"
 		exit 0
 	fi
