@@ -68,6 +68,7 @@
 		generateSentenceDrill,
 		generateMultiStepQuestion,
 		getCandidates,
+		pickWeightedTemplate,
 		checkAnswer,
 		weightedRandom,
 		hasValidForm,
@@ -2394,14 +2395,42 @@
 		return idx >= 0 ? idx : 0;
 	}
 
-	function pickTemplate(templates: SentenceTemplate[]): SentenceTemplate {
-		if (templates.length > 1 && recentTemplateIds.length > 0) {
-			const filtered = templates.filter((t) => !recentTemplateIds.includes(t.id));
-			if (filtered.length > 0) {
-				return filtered[Math.floor(Math.random() * filtered.length)];
-			}
-		}
-		return templates[Math.floor(Math.random() * templates.length)];
+	/**
+	 * Pick a template weighted by how many words it can drill (see
+	 * `pickWeightedTemplate`), skipping recently used ones. Callers check for an
+	 * empty list before calling, hence the throw.
+	 */
+	function pickTemplate(
+		templates: SentenceTemplate[],
+		poolSize: (template: SentenceTemplate) => number
+	): SentenceTemplate {
+		const picked = pickWeightedTemplate(templates, poolSize, recentTemplateIds);
+		if (!picked) throw new Error('pickTemplate called with empty templates array');
+		return picked;
+	}
+
+	/**
+	 * Nouns a sentence template can drill right now: level-gated candidates
+	 * (paradigm-filtered), plus in chapter mode the chapter's coreLemmas that
+	 * match the template's category even when their CEFR level isn't unlocked.
+	 */
+	function nounPoolForTemplate(template: SentenceTemplate, prog: Progress): WordEntry[] {
+		const diffFiltered = filterByParadigm(getCandidates(template, prog));
+		if (chapterBook === null || chapterSelection === null) return diffFiltered;
+		const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
+		const chapterLemmasLower = new Set([
+			...curL.map((l) => l.toLowerCase()),
+			...prevL.map((l) => l.toLowerCase())
+		]);
+		const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
+		const chapterExtras = filterByParadigm(loadWordBank()).filter(
+			(w) =>
+				chapterLemmasLower.has(w.lemma.toLowerCase()) &&
+				!diffLemmas.has(w.lemma) &&
+				templateMatchesWordCategory(template, w) &&
+				hasValidForm(w, template.requiredCase, template.number)
+		);
+		return [...diffFiltered, ...chapterExtras];
 	}
 
 	function pickWord(
@@ -2456,6 +2485,15 @@
 
 		// In chapter mode, filter by corePronounLemmas
 		const isChapterMode = chapterBook !== null && chapterSelection !== null;
+		const chapterPronounLemmas = isChapterMode
+			? getSelectedKzkChapter()?.corePronounLemmas
+			: undefined;
+		// Pronouns a template can drill: level/chapter-gated and with a form in
+		// the template's number.
+		const pronounPoolForTemplate = (t: SentenceTemplate): PronounEntry[] =>
+			getPronounCandidates(t, prog, chapterPronounLemmas).filter((p) =>
+				t.number === 'sg' ? p.forms.sg !== null : p.forms.pl !== null
+			);
 		let candidates = eligiblePronouns;
 		if (isChapterMode) {
 			const chapter = getSelectedKzkChapter();
@@ -2544,20 +2582,8 @@
 				return generatePronounFormProduction(pronoun, fpCase, number_);
 			}
 
-			const template = pickTemplate(eligibleTemplates);
-
-			// Get pronoun candidates for this specific template
-			const templateCandidates = getPronounCandidates(
-				template,
-				prog,
-				isChapterMode ? getSelectedKzkChapter()?.corePronounLemmas : undefined
-			);
-
-			// Filter by number
-			const validCandidates = templateCandidates.filter((p) => {
-				if (template.number === 'sg') return p.forms.sg !== null;
-				return p.forms.pl !== null;
-			});
+			const template = pickTemplate(eligibleTemplates, (t) => pronounPoolForTemplate(t).length);
+			const validCandidates = pronounPoolForTemplate(template);
 
 			if (validCandidates.length === 0) {
 				// Fall back: pick any candidate and do form production
@@ -2579,16 +2605,8 @@
 
 			if (eligibleTemplates.length === 0) return null;
 
-			const template = pickTemplate(eligibleTemplates);
-			const templateCandidates = getPronounCandidates(
-				template,
-				prog,
-				isChapterMode ? getSelectedKzkChapter()?.corePronounLemmas : undefined
-			);
-			const validCandidates = templateCandidates.filter((p) => {
-				if (template.number === 'sg') return p.forms.sg !== null;
-				return p.forms.pl !== null;
-			});
+			const template = pickTemplate(eligibleTemplates, (t) => pronounPoolForTemplate(t).length);
+			const validCandidates = pronounPoolForTemplate(template);
 
 			if (validCandidates.length === 0) return null;
 
@@ -2674,17 +2692,16 @@
 		);
 		if (eligibleTemplates.length === 0) return null;
 
-		const template = pickTemplate(eligibleTemplates);
-		// Find a noun that matches template requirements
-		let templateWords = eligibleWords.filter((w) =>
-			hasValidForm(w, template.requiredCase, template.number)
-		);
-		if (template.requiredGender) {
-			templateWords = templateWords.filter((w) => w.gender === template.requiredGender);
-		}
-		if (typeof template.requiredAnimate === 'boolean') {
-			templateWords = templateWords.filter((w) => w.animate === template.requiredAnimate);
-		}
+		// Nouns that satisfy a template's case/number/gender/animacy requirements.
+		const nounsForTemplate = (t: SentenceTemplate): WordEntry[] =>
+			eligibleWords.filter(
+				(w) =>
+					hasValidForm(w, t.requiredCase, t.number) &&
+					(!t.requiredGender || w.gender === t.requiredGender) &&
+					(typeof t.requiredAnimate !== 'boolean' || w.animate === t.requiredAnimate)
+			);
+		const template = pickTemplate(eligibleTemplates, (t) => nounsForTemplate(t).length);
+		const templateWords = nounsForTemplate(template);
 		if (templateWords.length === 0) return null;
 
 		const word = pickWord(templateWords, prog, template.requiredCase, template.number);
@@ -3018,33 +3035,14 @@
 			if (msEligibleTemplates.length > 0) {
 				// Prefer templates matching the weighted case pick to respect spaced repetition
 				const caseMatchTemplates = msEligibleTemplates.filter((t) => t.requiredCase === case_);
+				// Multi-step skips irregular nouns: the paradigm step has no good answer for them.
+				const msPool = (t: SentenceTemplate): WordEntry[] =>
+					nounPoolForTemplate(t, prog).filter((w) => !w.irregular);
 				const template = pickTemplate(
-					caseMatchTemplates.length > 0 ? caseMatchTemplates : msEligibleTemplates
+					caseMatchTemplates.length > 0 ? caseMatchTemplates : msEligibleTemplates,
+					(t) => msPool(t).length
 				);
-				let candidates: WordEntry[];
-				if (isChapterMode) {
-					const diffFiltered = filterByParadigm(getCandidates(template, prog)).filter((w) =>
-						hasValidForm(w, template.requiredCase, template.number)
-					);
-					const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
-					const chapterLemmasLower = new Set([
-						...curL.map((l) => l.toLowerCase()),
-						...prevL.map((l) => l.toLowerCase())
-					]);
-					const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
-					const chapterExtras = filterByParadigm(loadWordBank()).filter(
-						(w) =>
-							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
-							!diffLemmas.has(w.lemma) &&
-							templateMatchesWordCategory(template, w) &&
-							hasValidForm(w, template.requiredCase, template.number)
-					);
-					candidates = [...diffFiltered, ...chapterExtras].filter((w) => !w.irregular);
-				} else {
-					candidates = filterByParadigm(getCandidates(template, prog))
-						.filter((w) => hasValidForm(w, template.requiredCase, template.number))
-						.filter((w) => !w.irregular);
-				}
+				const candidates = msPool(template);
 				if (candidates.length > 0) {
 					const word = pickWord(candidates, prog, template.requiredCase, template.number);
 					const showCaseStep = effectiveEnabledCases.length > 1;
@@ -3219,30 +3217,17 @@
 				}
 				question = generateFormProduction(word, fallbackCase, number_);
 			} else {
-				const template = pickTemplate(eligibleTemplates);
+				const template = pickTemplate(
+					eligibleTemplates,
+					(t) => nounPoolForTemplate(t, prog).length
+				);
 
 				let candidates: WordEntry[];
 				if (isChapterMode) {
 					// In chapter mode, get candidates but bias toward coreLemmas.
 					// Chapter coreLemmas bypass CEFR difficulty — include them from
 					// the full word bank even if their level isn't unlocked yet.
-					const diffFiltered = filterByParadigm(getCandidates(template, prog)).filter((w) =>
-						hasValidForm(w, template.requiredCase, template.number)
-					);
-					const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
-					const chapterLemmasLower = new Set([
-						...curL.map((l) => l.toLowerCase()),
-						...prevL.map((l) => l.toLowerCase())
-					]);
-					const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
-					const chapterExtras = filterByParadigm(loadWordBank()).filter(
-						(w) =>
-							chapterLemmasLower.has(w.lemma.toLowerCase()) &&
-							!diffLemmas.has(w.lemma) &&
-							templateMatchesWordCategory(template, w) &&
-							hasValidForm(w, template.requiredCase, template.number)
-					);
-					const baseCandidates = [...diffFiltered, ...chapterExtras];
+					const baseCandidates = nounPoolForTemplate(template, prog);
 					if (baseCandidates.length === 0) {
 						// Try picking a chapter word directly
 						const word = pickWordForChapter(
@@ -3354,9 +3339,7 @@
 						question = generateSentenceDrill(template, picked);
 					}
 				} else {
-					candidates = filterByParadigm(getCandidates(template, prog)).filter((w) =>
-						hasValidForm(w, template.requiredCase, template.number)
-					);
+					candidates = nounPoolForTemplate(template, prog);
 
 					if (candidates.length === 0) {
 						// Fallback to form_production — skip nom→nom (trivial)

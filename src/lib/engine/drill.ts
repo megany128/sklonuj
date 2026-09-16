@@ -269,7 +269,6 @@ export function templateMatchesWordCategory(template: SentenceTemplate, word: Wo
 }
 
 export function getCandidates(template: SentenceTemplate, progress: Progress): WordEntry[] {
-	const wordBank = loadWordBank();
 	const level = curriculum[progress.level];
 	if (!level) {
 		// Unknown level — fall back to the first curriculum level if available, else return no candidates
@@ -300,13 +299,42 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	// Check curriculum constraints: is the template's difficulty unlocked?
 	if (!unlockedDifficulties.includes(template.difficulty)) return [];
 
+	return matchingWords(template, progress.level, unlockedDifficulties).slice();
+}
+
+/**
+ * Words a template can drill at a level, before any progress-dependent gating:
+ * category join, difficulty, pluralia tantum, the three block lists, semantic
+ * tags, required gender, excluded categories, and a non-empty form in the
+ * template's case/number. Everything here is static data, so the result is
+ * memoized per template + level; `getCandidates` and the template weighting
+ * both read it, and the weighting scans every eligible template per question.
+ */
+const matchingWordsCache = new Map<string, WordEntry[]>();
+
+/** Tests that swap the lemma block list at runtime must also drop the memoized pools. */
+export function _resetCandidateCacheForTests(): void {
+	matchingWordsCache.clear();
+}
+
+function matchingWords(
+	template: SentenceTemplate,
+	levelKey: string,
+	unlockedDifficulties: string[]
+): WordEntry[] {
+	const cacheKey = `${template.id}|${levelKey}`;
+	const cached = matchingWordsCache.get(cacheKey);
+	if (cached) return cached;
+
+	const wordBank = loadWordBank();
 	const categoryMatches = wordBank.filter(
 		(word) =>
 			templateMatchesWordCategory(template, word) &&
 			unlockedDifficulties.includes(word.difficulty) &&
 			// Skip pluralia tantum nouns for singular templates
 			!(template.number === 'sg' && word.pluralOnly === true) &&
-			!isBlockedTemplateNounPair(template.id, word.lemma)
+			!isBlockedTemplateNounPair(template.id, word.lemma) &&
+			hasValidForm(word, template.requiredCase, template.number)
 	);
 
 	// If template has semantic tags, only return words that match at least one tag.
@@ -335,7 +363,43 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 		filtered = filtered.filter((word) => !blocked.has(word.lemma));
 	}
 
+	matchingWordsCache.set(cacheKey, filtered);
 	return filtered;
+}
+
+/**
+ * Pick a template with probability proportional to the square root of how
+ * many words it can drill. A uniform pick over templates made a template with
+ * 8 nouns as likely as one with 900, so a third of A1 locative questions came
+ * from two dozen furniture and landscape nouns. The square root keeps some
+ * sentence variety: a 900-word template is ~10x as likely as a 9-word one, not
+ * 100x. Templates seen recently are skipped when anything else remains, and a
+ * pool of zero everywhere falls back to a uniform pick so callers keep their
+ * existing empty-candidate handling.
+ */
+export function pickWeightedTemplate<T extends { id: string }>(
+	templates: T[],
+	poolSize: (template: T) => number,
+	recentIds: readonly string[],
+	random: () => number = Math.random
+): T | null {
+	if (templates.length === 0) return null;
+	let pool = templates;
+	if (templates.length > 1 && recentIds.length > 0) {
+		const fresh = templates.filter((t) => !recentIds.includes(t.id));
+		if (fresh.length > 0) pool = fresh;
+	}
+	const weights = pool.map((t) => Math.sqrt(Math.max(0, poolSize(t))));
+	const total = weights.reduce((sum, w) => sum + w, 0);
+	if (total <= 0) return pool[Math.floor(random() * pool.length)];
+	// Strict comparison so a zero-weight template is never chosen, even when
+	// random() returns exactly 0.
+	let r = random() * total;
+	for (let i = 0; i < pool.length; i++) {
+		r -= weights[i];
+		if (r < 0) return pool[i];
+	}
+	return pool[pool.length - 1];
 }
 
 const PLACEHOLDER_TEMPLATE: SentenceTemplate = {

@@ -27,7 +27,7 @@ const mockBlocks = vi.hoisted(() => ({
 
 vi.mock('../data/lemma_blocks.json', () => mockBlocks);
 
-import { getCandidates, loadTemplates, loadWordBank } from './drill';
+import { getCandidates, loadTemplates, loadWordBank, _resetCandidateCacheForTests } from './drill';
 import {
 	loadAdjectiveTemplates,
 	getAdjectiveCandidates,
@@ -41,6 +41,7 @@ function clearMock(): void {
 	mockBlocks.default.adjective = {};
 	mockBlocks.default.pronoun = {};
 	_resetLemmaBlockCacheForTests();
+	_resetCandidateCacheForTests();
 }
 
 beforeEach(() => {
@@ -67,6 +68,7 @@ describe('lemma blocks · sentence (noun) drill', () => {
 		// Inject a block, clear cache, re-query.
 		mockBlocks.default.sentence[template.id] = ['dům'];
 		_resetLemmaBlockCacheForTests();
+		_resetCandidateCacheForTests();
 		const blocked = getCandidates(template, PROGRESS_B2);
 		expect(blocked.some((w) => w.lemma === 'dům')).toBe(false);
 		// Sanity check: the template still produces other candidates.
@@ -78,6 +80,7 @@ describe('lemma blocks · sentence (noun) drill', () => {
 		const template = requireTemplate(loadTemplates(), 'loc_v_001');
 		mockBlocks.default.sentence[template.id] = ['dům'];
 		_resetLemmaBlockCacheForTests();
+		_resetCandidateCacheForTests();
 		const blocked = getCandidates(template, PROGRESS_B2);
 		const hrad = loadWordBank().find((w) => w.lemma === 'hrad');
 		const lemmaCats = Array.isArray(template.lemmaCategory)
@@ -109,6 +112,7 @@ describe('lemma blocks · adjective drill', () => {
 		const victim = baseline[0].lemma;
 		mockBlocks.default.adjective[target.id] = [victim];
 		_resetLemmaBlockCacheForTests();
+		_resetCandidateCacheForTests();
 
 		const filtered = filterAdjectivesByTemplate(allCandidates, target);
 		expect(filtered.some((a) => a.lemma === victim)).toBe(false);
@@ -146,6 +150,7 @@ describe('lemma blocks · pronoun drill', () => {
 
 		mockBlocks.default.pronoun[target.template.id] = [target.victim];
 		_resetLemmaBlockCacheForTests();
+		_resetCandidateCacheForTests();
 
 		const blocked = getPronounCandidates(target.template, PROGRESS_B2);
 		expect(blocked.some((p) => p.lemma === target.victim)).toBe(false);

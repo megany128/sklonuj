@@ -8,6 +8,7 @@ import {
 	loadTemplates,
 	loadWordBank,
 	weightedRandom,
+	pickWeightedTemplate,
 	applyPrepositionVoicing,
 	casesWithContent,
 	caseUnlockLevel,
@@ -452,5 +453,59 @@ describe('lockedCasesForLevel', () => {
 			numberMode: 'both'
 		});
 		for (const c of locked) expect(available).not.toContain(c);
+	});
+});
+
+describe('pickWeightedTemplate', () => {
+	const templates = [
+		{ id: 'tiny', pool: 9 },
+		{ id: 'big', pool: 900 }
+	];
+	const bySize = (t: { pool: number }) => t.pool;
+
+	it('returns null for an empty list', () => {
+		expect(pickWeightedTemplate([], bySize, [])).toBeNull();
+	});
+
+	it('weights by the square root of the pool size', () => {
+		// sqrt(9)=3, sqrt(900)=30: the first 3/33 of the unit interval picks "tiny".
+		expect(pickWeightedTemplate(templates, bySize, [], () => 0.05)?.id).toBe('tiny');
+		expect(pickWeightedTemplate(templates, bySize, [], () => 0.1)?.id).toBe('big');
+		expect(pickWeightedTemplate(templates, bySize, [], () => 0.99)?.id).toBe('big');
+	});
+
+	it('skips recently used templates when others remain', () => {
+		expect(pickWeightedTemplate(templates, bySize, ['big'], () => 0.99)?.id).toBe('tiny');
+		// Everything recent: fall back to the full list.
+		expect(pickWeightedTemplate(templates, bySize, ['big', 'tiny'], () => 0.99)?.id).toBe('big');
+	});
+
+	it('falls back to a uniform pick when every pool is empty', () => {
+		expect(
+			pickWeightedTemplate(
+				templates,
+				() => 0,
+				[],
+				() => 0.6
+			)?.id
+		).toBe('big');
+		expect(
+			pickWeightedTemplate(
+				templates,
+				() => 0,
+				[],
+				() => 0.4
+			)?.id
+		).toBe('tiny');
+	});
+
+	it('never picks a template whose pool is empty when another has words', () => {
+		const mixed = [
+			{ id: 'empty', pool: 0 },
+			{ id: 'full', pool: 4 }
+		];
+		for (const r of [0, 0.25, 0.5, 0.99]) {
+			expect(pickWeightedTemplate(mixed, bySize, [], () => r)?.id).toBe('full');
+		}
 	});
 });
