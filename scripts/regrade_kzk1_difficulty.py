@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""Re-grade CEFR difficulty for KzK1-sourced nouns by lesson position.
+"""Cap CEFR difficulty for KzK1 chapter vocabulary by lesson position.
 
-bulk_add_missing.py originally stamped every KzK1 word with a blanket A1. In
-reality "Čeština krok za krokem 1" spans A1->A2: its first half (lessons 1-10)
-is A1 and its second half (lessons 11-19) is A2. This script corrects the
-difficulty field in word_bank.json for KzK1 nouns accordingly.
+"Čeština krok za krokem 1" spans A1->A2: its first half (lessons 1-12) is A1
+and its second half (lessons 13-24) is A2. Every lemma in a kzk1 chapter's
+``coreLemmas`` (src/lib/data/kzk_chapters.json, the instructor-sheet truth)
+is therefore capped at the level of the earliest lesson that teaches it:
+a B1/B2 word taught in lesson 3 becomes A1, one taught in lesson 20 becomes
+A2. Words already at or below the cap are left alone, so a basic word the
+textbook happens to introduce late is never pushed *up* out of the A1 pool.
 
-Starter-curated lemmas (those present in starter_nouns_meta.csv) keep their
-authoritative difficulty and are never touched. recognition_only status tracks
-production vs. recognition and is orthogonal to the CEFR level.
+The same value is written to scripts/starter_nouns_meta.csv so the bank and
+the meta CSV agree (the bank builder keeps the JSON difficulty in
+``--merge --only`` mode and takes the CSV with ``--take-meta``; either way
+the two must not drift).
 
 Idempotent. After running, normalise formatting with `pnpm format`.
 """
@@ -19,42 +23,69 @@ import os
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORD_BANK = os.path.join(BASE, "src/lib/data/word_bank.json")
-KZK1_NOUNS = os.path.join(BASE, "scripts/kzk1_nouns.json")
+KZK_CHAPTERS = os.path.join(BASE, "src/lib/data/kzk_chapters.json")
 STARTER_META = os.path.join(BASE, "scripts/starter_nouns_meta.csv")
 
-KZK1_A1_MAX_LESSON = 10
+LEVEL_ORDER = ["A1", "A2", "B1", "B2"]
+
+
+def cap_for_chapter(index: int, chapter_count: int) -> str:
+    """0-based chapter index -> CEFR cap. First half A1, second half A2."""
+    return "A1" if index < chapter_count / 2 else "A2"
 
 
 def main() -> None:
     with open(WORD_BANK, encoding="utf-8") as f:
         word_bank = json.load(f)
+    with open(KZK_CHAPTERS, encoding="utf-8") as f:
+        chapters = json.load(f)["kzk1"]["chapters"]
 
-    lesson_by_lemma: dict[str, int] = {}
-    with open(KZK1_NOUNS, encoding="utf-8") as f:
-        for noun in json.load(f).get("nouns", []):
-            for part in noun["lemma"].split("/"):
-                lesson_by_lemma.setdefault(part.strip(), noun["lesson"])
+    # Earliest chapter wins when a lemma recurs.
+    cap_by_lemma: dict[str, str] = {}
+    for index, chapter in enumerate(chapters):
+        cap = cap_for_chapter(index, len(chapters))
+        for lemma in chapter["coreLemmas"]:
+            cap_by_lemma.setdefault(lemma, cap)
 
-    starter: set[str] = set()
-    with open(STARTER_META, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            starter.add(row["lemma"])
-
-    changed = 0
+    new_difficulty: dict[str, str] = {}
+    changed: list[tuple[str, str, str]] = []
     for word in word_bank:
-        lesson = lesson_by_lemma.get(word["lemma"])
-        if lesson is None or word["lemma"] in starter:
+        cap = cap_by_lemma.get(word["lemma"])
+        if cap is None:
             continue
-        expected = "A1" if lesson <= KZK1_A1_MAX_LESSON else "A2"
-        if word["difficulty"] != expected:
-            word["difficulty"] = expected
-            changed += 1
+        current = word["difficulty"]
+        if LEVEL_ORDER.index(current) > LEVEL_ORDER.index(cap):
+            changed.append((word["lemma"], current, cap))
+            word["difficulty"] = cap
+        new_difficulty[word["lemma"]] = word["difficulty"]
 
     with open(WORD_BANK, "w", encoding="utf-8") as f:
         json.dump(word_bank, f, ensure_ascii=False, indent="\t")
         f.write("\n")
 
-    print(f"regraded {changed} KzK1 nouns")
+    # Sync the meta CSV for every KzK1 lemma so the two sources agree.
+    with open(STARTER_META, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames or []
+        rows = list(reader)
+    csv_changed = 0
+    for row in rows:
+        target = new_difficulty.get(row["lemma"])
+        if target is not None and row["difficulty"] != target:
+            row["difficulty"] = target
+            csv_changed += 1
+    with open(STARTER_META, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+    missing = sorted(set(cap_by_lemma) - set(new_difficulty))
+    print(f"capped {len(changed)} KzK1 nouns in word_bank.json")
+    for lemma, before, after in changed:
+        print(f"  {lemma}: {before} -> {after}")
+    print(f"synced {csv_changed} rows in starter_nouns_meta.csv")
+    if missing:
+        print(f"WARNING: {len(missing)} chapter lemmas not in the bank: {', '.join(missing)}")
 
 
 if __name__ == "__main__":

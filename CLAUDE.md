@@ -92,6 +92,7 @@ pnpm tts:generate                                     # generates audio for new 
 ```sh
 python3 scripts/parse_kzk1_sheet.py <sheet.xlsx>   # xlsx export keeps the fills/italics; CSV loses them
 python3 scripts/build_kzk1_chapters.py             # rewrites kzk1 coreLemmas from scripts/kzk1_sheet.json
+python3 scripts/regrade_kzk1_difficulty.py         # caps every kzk1 lemma at A1 (lessons 1-12) / A2 (13-24) in bank + meta CSV
 ```
 
 Lemmas missing from the bank are reported, not silently dropped. Proper nouns, indeclinables and adjectival nouns are not in the bank yet, so they fall out of `coreLemmas`. Sheet typos are corrected in `TYPO_FIXES` in the parser (original spelling kept as `sheetSpelling`); only unambiguous slips go there — `průplava` (lesson 23, filed under _žena_) and whether `připravka` (lesson 20) meant _příprava_ are open questions for the instructor and are left unmatched until answered. `scripts/kzk1_extra_lemmas.json` adds common textbook nouns per chapter that the sheet omits (kept from the pre-sheet chapter lists); the builder unions it in and refuses lemmas missing from the bank. The paradigm model words (`žena`, `hrad`, …) are column headers, not cells, so they are not in any lesson's `coreLemmas`.

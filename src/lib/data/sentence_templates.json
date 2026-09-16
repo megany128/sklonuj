@@ -415,7 +415,7 @@
 	{
 		"id": "loc_na_005",
 		"template": "Sedím na ___.",
-		"lemmaCategory": "objects",
+		"lemmaCategory": ["objects", "nature", "places"],
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
@@ -1383,7 +1383,7 @@
 	{
 		"id": "loc_na_130",
 		"template": "Ležím na ___.",
-		"lemmaCategory": "objects",
+		"lemmaCategory": ["objects", "nature", "places"],
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
@@ -2241,7 +2241,7 @@
 	{
 		"id": "loc_na_216",
 		"template": "Sedím na ___.",
-		"lemmaCategory": "objects",
+		"lemmaCategory": ["objects", "nature", "places"],
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "na",

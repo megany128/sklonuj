@@ -639,5 +639,14 @@
 	},
 	"fakturant": {
 		"remove_variants_pl": [0, 4]
+	},
+	"skála": {
+		"pl": ["skály", "skal", "skalám", "skály", "skály", "skalách", "skalami"],
+		"variants_pl": {
+			"2": ["skálám"],
+			"5": ["skálách"],
+			"6": ["skálami"]
+		},
+		"remove_variants_sg": [6]
 	}
 }
