@@ -41,6 +41,15 @@ export function nounCellsByCase(
 	numbers: readonly Number_[],
 	kind: CellKind
 ): Map<Case, string[]> {
+	if (kind === 'recognition') {
+		// Only "is anything drillable in this case" matters; skip the key sets.
+		const out = new Map<Case, string[]>();
+		for (const c of cases) {
+			const drillable = words.some((w) => numbers.some((n) => hasValidForm(w, c, n)));
+			out.set(c, recognitionCells(c, numbers, drillable));
+		}
+		return out;
+	}
 	const found = new Map<Case, Set<string>>(cases.map((c) => [c, new Set<string>()]));
 	for (const w of words) {
 		for (const [c, set] of found) {
@@ -50,9 +59,7 @@ export function nounCellsByCase(
 		}
 	}
 	const out = new Map<Case, string[]>();
-	for (const [c, set] of found) {
-		out.set(c, kind === 'production' ? [...set] : recognitionCells(c, numbers, set.size > 0));
-	}
+	for (const [c, set] of found) out.set(c, [...set]);
 	return out;
 }
 

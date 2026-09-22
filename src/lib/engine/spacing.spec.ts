@@ -8,6 +8,9 @@ import {
 	W_FLOOR,
 	W_MAX,
 	W_NEW,
+	UNSEEN_CELL_SHARE,
+	clampCellTimestamps,
+	truncateCellSchedule,
 	adjectiveCellKey,
 	advanceCell,
 	caseCellKey,
@@ -157,12 +160,23 @@ describe('caseWeight / pickSpacedCase', () => {
 		'n:hrad:dat:sg': { last: now - 20 * DAY_MS, box: 2, streak: 2 } // long overdue
 	};
 
-	it('averages over the cells a case can drill and gives an undrillable case no weight', () => {
+	it('averages attempted cells, dilutes unseen ones, and gives an undrillable case no weight', () => {
 		expect(caseWeight(['n:hrad:gen:sg', 'n:žena:gen:sg'], schedule, now)).toBe(W_FLOOR);
+		// One overdue cell + one unseen: the unseen counts a tenth of a seen one.
 		expect(caseWeight(['n:hrad:dat:sg', 'n:žena:dat:sg'], schedule, now)).toBeCloseTo(
-			(W_MAX + W_NEW) / 2
+			(W_MAX + UNSEEN_CELL_SHARE * W_NEW) / (1 + UNSEEN_CELL_SHARE)
 		);
+		expect(caseWeight(['n:hrad:loc:sg', 'n:žena:loc:sg'], schedule, now)).toBe(W_NEW);
 		expect(caseWeight([], schedule, now)).toBe(0);
+	});
+
+	it('lets a handful of practised cells move a case with dozens of unseen ones', () => {
+		const keys = Array.from({ length: 28 }, (_, i) => `n:p${i}:gen:sg`);
+		const practised: CellSchedule = {};
+		for (let i = 0; i < 5; i++) practised[keys[i]] = { last: now, box: 2, streak: 2 };
+		// A plain mean would sit at (5 × 0.5 + 23 × 3) / 28 ≈ 2.55; diluted it is
+		// (2.5 + 2.3 × 3) / (5 + 2.3) ≈ 1.29, well below an untouched case's 3.
+		expect(caseWeight(keys, practised, now)).toBeLessThan(1.5);
 	});
 
 	it('never picks a case with no drillable cells while another has some', () => {
@@ -233,7 +247,8 @@ describe('validation', () => {
 		expect(isValidCellState({ last: 0, box: 0, streak: 0 })).toBe(true);
 		expect(isValidCellState({ last: 1, box: MAX_BOX, streak: 12 })).toBe(true);
 		expect(isValidCellState({ last: -1, box: 0, streak: 0 })).toBe(false);
-		expect(isValidCellState({ last: 0, box: MAX_BOX + 1, streak: 0 })).toBe(false);
+		// A box past the top is tolerated here and clamped by the sanitiser.
+		expect(isValidCellState({ last: 0, box: MAX_BOX + 1, streak: 0 })).toBe(true);
 		expect(isValidCellState({ last: 0, box: 1.5, streak: 0 })).toBe(false);
 		expect(isValidCellState({ last: 0, box: 0, streak: -1 })).toBe(false);
 		expect(isValidCellState({ last: Number.NaN, box: 0, streak: 0 })).toBe(false);
@@ -260,6 +275,12 @@ describe('isCellKey', () => {
 		expect(isCellKey('a:hard:x:loc:pl')).toBe(false);
 		expect(isCellKey('c:gen')).toBe(false);
 		expect(isCellKey('')).toBe(false);
+		// Bare prefixes must return false, never throw: this runs in the sanitiser.
+		expect(isCellKey('n')).toBe(false);
+		expect(isCellKey('p')).toBe(false);
+		expect(isCellKey('a')).toBe(false);
+		expect(isCellKey('a:')).toBe(false);
+		expect(isCellKey('c')).toBe(false);
 		expect(isCellKey('n:' + 'a'.repeat(100) + ':gen:sg')).toBe(false);
 	});
 });
@@ -272,13 +293,21 @@ describe('sanitizeCellSchedule', () => {
 				'n:hrad:dat:sg': { last: 9_999_999_999_999, box: 1, streak: 1 },
 				'n:hrad:loc:sg': { last: 100, box: 9, streak: 0 },
 				'n:hrad:acc:sg': { last: 100 },
+				'n:hrad:voc:sg': { last: 100, box: -2, streak: 0 },
 				'garbage-key': { last: 100, box: 1, streak: 1 },
 				'n:hrad:ins:sg': 4
 			})
 		).toEqual({
 			'n:hrad:gen:sg': { last: 100, box: 2, streak: 2 },
-			'n:hrad:dat:sg': { last: 9_999_999_999_999, box: 1, streak: 1 }
+			'n:hrad:dat:sg': { last: 9_999_999_999_999, box: 1, streak: 1 },
+			'n:hrad:loc:sg': { last: 100, box: MAX_BOX, streak: 0 }
 		});
+	});
+
+	it('never throws on hostile keys or values', () => {
+		expect(() =>
+			sanitizeCellSchedule({ n: { last: 1, box: 1, streak: 1 }, 'a:': null, '': 0, 'c:x': [] })
+		).not.toThrow();
 	});
 
 	it('returns an empty schedule for anything that is not a record', () => {
@@ -293,6 +322,29 @@ describe('sanitizeCellSchedule', () => {
 		const out = sanitizeCellSchedule(input);
 		out['n:hrad:gen:sg'].box = 4;
 		expect(input['n:hrad:gen:sg'].box).toBe(1);
+	});
+});
+
+describe('clampCellTimestamps / truncateCellSchedule', () => {
+	it('clamps future timestamps to now and leaves the rest untouched', () => {
+		const out = clampCellTimestamps(
+			{ a: { last: 50, box: 1, streak: 1 }, b: { last: 500, box: 2, streak: 2 } },
+			100
+		);
+		expect(out).toEqual({
+			a: { last: 50, box: 1, streak: 1 },
+			b: { last: 100, box: 2, streak: 2 }
+		});
+	});
+
+	it('keeps the most recently attempted cells when over the limit', () => {
+		const schedule: CellSchedule = {
+			old: { last: 1, box: 1, streak: 1 },
+			mid: { last: 5, box: 1, streak: 1 },
+			new: { last: 9, box: 1, streak: 1 }
+		};
+		expect(Object.keys(truncateCellSchedule(schedule, 2)).sort()).toEqual(['mid', 'new']);
+		expect(truncateCellSchedule(schedule, 3)).toBe(schedule);
 	});
 });
 

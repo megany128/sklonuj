@@ -120,10 +120,21 @@ export function advanceCell(
 }
 
 /**
- * Average cell weight over the cells a case can currently drill. An empty
- * list means nothing in the pool can be asked in that case, so it weighs
- * nothing rather than "unseen" — otherwise an undrillable case would outrank
- * every practised one and render a blank question.
+ * How much one never-attempted cell counts against an attempted one when a
+ * case's weight is averaged. A case spans dozens of cells (every paradigm ×
+ * number in the pool), so a plain mean would let the unseen majority pin
+ * every case near `W_NEW` and drown out the cells actually practised; the
+ * word picker surfaces unseen paradigms once the case is chosen anyway.
+ */
+export const UNSEEN_CELL_SHARE = 0.1;
+
+/**
+ * Weight of a case from the cells it can currently drill: the mean of the
+ * attempted cells' weights, with each unseen cell counting `UNSEEN_CELL_SHARE`
+ * of a seen one at `W_NEW`. A case with no attempted cell is `W_NEW`; an
+ * empty list means nothing in the pool can be asked in that case, so it
+ * weighs nothing rather than "unseen" — otherwise an undrillable case would
+ * outrank every practised one and render a blank question.
  */
 export function caseWeight(
 	cellKeys: readonly string[],
@@ -131,9 +142,20 @@ export function caseWeight(
 	now: number
 ): number {
 	if (cellKeys.length === 0) return 0;
-	let total = 0;
-	for (const key of cellKeys) total += cellWeight(schedule[key], now);
-	return total / cellKeys.length;
+	let seen = 0;
+	let seenTotal = 0;
+	let unseen = 0;
+	for (const key of cellKeys) {
+		const state = schedule[key];
+		if (state === undefined) unseen++;
+		else {
+			seen++;
+			seenTotal += cellWeight(state, now);
+		}
+	}
+	if (seen === 0) return W_NEW;
+	const unseenShare = unseen * UNSEEN_CELL_SHARE;
+	return (seenTotal + unseenShare * W_NEW) / (seen + unseenShare);
 }
 
 /**
@@ -195,7 +217,6 @@ export function isValidCellState(value: unknown): value is CellState {
 		typeof box === 'number' &&
 		Number.isInteger(box) &&
 		box >= 0 &&
-		box <= MAX_BOX &&
 		typeof streak === 'number' &&
 		Number.isInteger(streak) &&
 		streak >= 0
@@ -219,14 +240,16 @@ const GENDER_KEYS: ReadonlySet<string> = new Set(ALL_ADJECTIVE_GENDER_KEYS);
 export function isCellKey(key: string): boolean {
 	if (key.length === 0 || key.length > MAX_CELL_KEY_LENGTH) return false;
 	const parts = key.split(':');
+	// Length is checked before any part is read, so a bare "n" or "a:" can
+	// never throw — this runs inside the never-throws sanitiser.
 	const tail = (from: number): boolean =>
 		parts.length === from + 2 && isCase(parts[from]) && isNumber(parts[from + 1]);
 	switch (parts[0]) {
 		case 'n':
 		case 'p':
-			return parts[1].length > 0 && tail(2);
+			return tail(2) && parts[1].length > 0;
 		case 'a':
-			return ADJECTIVE_TYPES.has(parts[1]) && GENDER_KEYS.has(parts[2]) && tail(3);
+			return tail(3) && ADJECTIVE_TYPES.has(parts[1]) && GENDER_KEYS.has(parts[2]);
 		case 'c':
 			return tail(1);
 		default:
@@ -248,9 +271,36 @@ export function sanitizeCellSchedule(value: unknown): CellSchedule {
 	const out: CellSchedule = {};
 	for (const [key, state] of Object.entries(value)) {
 		if (!isCellKey(key) || !isValidCellState(state)) continue;
-		out[key] = { last: state.last, box: state.box, streak: state.streak };
+		// A box past the top (a version with more intervals) is clamped, not
+		// dropped: those are the learner's best-known rules.
+		out[key] = { last: state.last, box: clampBox(state.box), streak: state.streak };
 	}
 	return out;
+}
+
+/**
+ * Clamp every `last` to `now`. For the server only, whose clock is
+ * authoritative: without this a device running a day fast writes a `last` no
+ * other device's real attempt can ever beat in the latest-wins merge, pinning
+ * the cell at the just-seen floor everywhere.
+ */
+export function clampCellTimestamps(schedule: CellSchedule, now: number): CellSchedule {
+	const out: CellSchedule = {};
+	for (const [key, state] of Object.entries(schedule)) {
+		out[key] = state.last > now ? { ...state, last: now } : state;
+	}
+	return out;
+}
+
+/**
+ * Keep the `limit` most recently attempted cells. Used to bound what a
+ * client can persist without failing its whole sync over the count.
+ */
+export function truncateCellSchedule(schedule: CellSchedule, limit: number): CellSchedule {
+	const entries = Object.entries(schedule);
+	if (entries.length <= limit) return schedule;
+	entries.sort((a, b) => b[1].last - a[1].last);
+	return Object.fromEntries(entries.slice(0, limit));
 }
 
 /**

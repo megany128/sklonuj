@@ -2,7 +2,12 @@ import { json } from '@sveltejs/kit';
 import { isRecord } from '$lib/utils/is-record';
 import type { RequestHandler } from './$types';
 import type { CellSchedule } from '$lib/types';
-import { mergeCellSchedules, sanitizeCellSchedule } from '$lib/engine/spacing';
+import {
+	clampCellTimestamps,
+	mergeCellSchedules,
+	sanitizeCellSchedule,
+	truncateCellSchedule
+} from '$lib/engine/spacing';
 
 type Level = 'A1' | 'A2' | 'B1' | 'B2';
 const VALID_LEVELS: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2']);
@@ -10,8 +15,9 @@ const VALID_LEVELS: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2
 // ~600 cells on top, so a heavy learner's payload passes 100KB.
 const MAX_REQUEST_BYTES = 256 * 1024; // 256KB
 // Every drillable cell (noun paradigm × case × number, adjective type × gender ×
-// case × number, pronoun × case × number) is well under this; anything bigger
-// is a bogus payload.
+// case × number, pronoun × case × number) is well under this; a bigger
+// schedule is truncated to its most recent cells rather than failing the
+// sync, which would freeze scores and streaks for that learner too.
 const MAX_CELL_SCHEDULE_KEYS = 2000;
 
 function isValidLevel(value: unknown): value is Level {
@@ -96,20 +102,18 @@ interface ValidatedProgress {
 }
 
 /**
- * Bound the key count, then keep only well-formed cells under known keys.
- * Malformed cells are dropped rather than failing the whole sync, so one
- * bad entry from one device cannot block progress sync from every device.
+ * Keep only well-formed cells under known keys, clamp timestamps to the
+ * server clock and bound the count. Nothing here fails the sync: one bad
+ * entry, a fast clock or an oversized schedule on one device must not block
+ * progress sync (scores, streak, level) from every device.
  */
 function validateCellSchedule(
-	value: unknown
+	value: unknown,
+	now: number
 ): { valid: true; data: CellSchedule } | { valid: false; reason: string } {
 	if (!isRecord(value)) return { valid: false, reason: 'progress.cellSchedule must be an object' };
-	if (Object.keys(value).length > MAX_CELL_SCHEDULE_KEYS)
-		return {
-			valid: false,
-			reason: `progress.cellSchedule may have at most ${MAX_CELL_SCHEDULE_KEYS} entries`
-		};
-	return { valid: true, data: sanitizeCellSchedule(value) };
+	const cells = clampCellTimestamps(sanitizeCellSchedule(value), now);
+	return { valid: true, data: truncateCellSchedule(cells, MAX_CELL_SCHEDULE_KEYS) };
 }
 
 interface ValidatedSession {
@@ -154,7 +158,7 @@ function validateProgress(
 	const rawCellSchedule = value['cellSchedule'];
 	let cellSchedule: CellSchedule | null = null;
 	if (rawCellSchedule !== undefined) {
-		const cellResult = validateCellSchedule(rawCellSchedule);
+		const cellResult = validateCellSchedule(rawCellSchedule, Date.now());
 		if (!cellResult.valid) return cellResult;
 		cellSchedule = cellResult.data;
 	}
@@ -469,7 +473,10 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			}
 			if (cellSchedule !== null) {
 				const existingCells = sanitizeCellSchedule(existingProgress.cell_schedule);
-				mergedCellSchedule = mergeCellSchedules(cellSchedule, existingCells);
+				mergedCellSchedule = truncateCellSchedule(
+					mergeCellSchedules(cellSchedule, existingCells),
+					MAX_CELL_SCHEDULE_KEYS
+				);
 			}
 		}
 
