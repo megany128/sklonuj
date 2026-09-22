@@ -450,11 +450,17 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		// all-time longest streak (MAX) or roll back the spacing schedule (per
 		// cell, the more recently attempted state wins — a second device or a
 		// pre-deploy tab must not overwrite what another device learned).
-		const { data: existingProgress } = await supabase
+		const { data: existingProgress, error: existingError } = await supabase
 			.from('user_progress')
 			.select('longest_answer_streak, cell_schedule')
 			.eq('user_id', user.id)
 			.maybeSingle();
+		if (existingError) {
+			// Without the stored row the upsert could only overwrite the schedule
+			// and shrink the streak; fail instead — the client retries on its
+			// next result.
+			return json({ error: 'Failed to read existing user progress' }, { status: 500 });
+		}
 
 		let mergedLongestStreak = longestStreak;
 		let mergedCellSchedule: CellSchedule | null = cellSchedule;

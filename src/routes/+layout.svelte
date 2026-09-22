@@ -282,7 +282,7 @@
 				caseScores: spRaw.case_scores,
 				paradigmScores: spRaw.paradigm_scores,
 				lemmaScores: spRaw.lemma_scores ?? {},
-				cellSchedule: spRaw.cell_schedule ?? {},
+				cellSchedule: spRaw.cell_schedule,
 				lastSession: spRaw.last_session,
 				longestStreak: spRaw.longest_answer_streak ?? 0
 			};
@@ -444,7 +444,15 @@
 									case_scores: usableLocalProgress.caseScores,
 									paradigm_scores: usableLocalProgress.paradigmScores,
 									lemma_scores: usableLocalProgress.lemmaScores,
-									cell_schedule: usableLocalProgress.cellSchedule,
+									// No remote row to merge with, but the same skew and size guards apply.
+									cell_schedule: truncateCellSchedule(
+										dropFutureCells(
+											usableLocalProgress.cellSchedule,
+											Date.now(),
+											MAX_CELL_CLOCK_SKEW_MS
+										),
+										MAX_CELL_SCHEDULE_KEYS
+									),
 									last_session: usableLocalProgress.lastSession,
 									longest_answer_streak: usableLocalProgress.longestStreak,
 									updated_at: new Date().toISOString()

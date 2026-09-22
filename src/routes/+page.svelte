@@ -184,6 +184,27 @@
 		return new Blob([body]).size <= KEEPALIVE_BODY_LIMIT;
 	}
 
+	/** The progress sync request, built once so the debounced and unload paths cannot drift. */
+	function buildProgressSyncRequest(current: Progress): RequestInit {
+		const body = JSON.stringify({
+			progress: {
+				level: current.level,
+				caseScores: current.caseScores,
+				paradigmScores: current.paradigmScores,
+				lemmaScores: current.lemmaScores,
+				cellSchedule: current.cellSchedule,
+				lastSession: current.lastSession,
+				longestStreak: current.longestStreak
+			}
+		});
+		return {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			keepalive: fitsKeepalive(body),
+			body
+		};
+	}
+
 	function scheduleSyncToSupabase(): void {
 		if (!user) return;
 		if (syncTimer) clearTimeout(syncTimer);
@@ -191,23 +212,7 @@
 			const current = get(progress);
 			// keepalive lets the request complete through client-side navigation
 			// so the server doesn't see the connection get aborted mid-flight.
-			const body = JSON.stringify({
-				progress: {
-					level: current.level,
-					caseScores: current.caseScores,
-					paradigmScores: current.paradigmScores,
-					lemmaScores: current.lemmaScores,
-					cellSchedule: current.cellSchedule,
-					lastSession: current.lastSession,
-					longestStreak: current.longestStreak
-				}
-			});
-			fetch('/api/sync', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				keepalive: fitsKeepalive(body),
-				body
-			}).catch(() => {});
+			fetch('/api/sync', buildProgressSyncRequest(current)).catch(() => {});
 		}, 1000);
 	}
 
@@ -2118,7 +2123,7 @@
 					caseScores: savedProgress.case_scores,
 					paradigmScores: savedProgress.paradigm_scores,
 					lemmaScores: savedProgress.lemma_scores ?? {},
-					cellSchedule: savedProgress.cell_schedule ?? {},
+					cellSchedule: savedProgress.cell_schedule,
 					lastSession: savedProgress.last_session ?? '',
 					longestStreak: savedProgress.longest_answer_streak ?? 0
 				};
@@ -2187,25 +2192,10 @@
 				clearTimeout(syncTimer);
 				syncTimer = null;
 				const current = get(progress);
-				const body = JSON.stringify({
-					progress: {
-						level: current.level,
-						caseScores: current.caseScores,
-						paradigmScores: current.paradigmScores,
-						lemmaScores: current.lemmaScores,
-						cellSchedule: current.cellSchedule,
-						lastSession: current.lastSession
-					}
-				});
 				// Past the keepalive cap the request may not survive unload; the
 				// debounced sync a second after each answer has already sent the
 				// same progress, so that is an acceptable best effort.
-				fetch('/api/sync', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					keepalive: fitsKeepalive(body),
-					body
-				}).catch(() => {});
+				fetch('/api/sync', buildProgressSyncRequest(current)).catch(() => {});
 			}
 			if (sessionSyncTimer) {
 				clearTimeout(sessionSyncTimer);
@@ -2343,7 +2333,7 @@
 		const { currentLemmas, previousLemmas } = getChapterLemmas();
 		const lemmas = new Set([...currentLemmas, ...previousLemmas].map((l) => l.toLowerCase()));
 		if (lemmas.size === 0) return null;
-		const words = loadWordBank().filter((w) => lemmas.has(w.lemma.toLowerCase()));
+		const words = filterByParadigm(loadWordBank()).filter((w) => lemmas.has(w.lemma.toLowerCase()));
 		return words.length > 0 ? words : null;
 	}
 
@@ -3292,17 +3282,28 @@
 			);
 
 			if (eligibleTemplates.length === 0) {
-				// Fallback to form_production — but skip nom (trivial nom→nom)
-				let fallbackCase = case_;
-				if (fallbackCase === 'nom') {
-					const nonNom = effectiveEnabledCases.filter((c) => c !== 'nom');
-					if (nonNom.length > 0) {
-						fallbackCase = nonNom[Math.floor(Math.random() * nonNom.length)];
-					} else {
-						question = null;
-						return;
-					}
+				// Fallback to form_production. The case was picked for a sentence
+				// drill (for case_identification over recognition cells, which a
+				// form answer never advances), and nom → nom is trivial, so in
+				// those cases re-pick over the production cells instead.
+				const fallbackPool =
+					drillType === 'case_identification' || case_ === 'nom'
+						? effectiveEnabledCases.filter((c) => c !== 'nom')
+						: [case_];
+				if (fallbackPool.length === 0) {
+					question = null;
+					return;
 				}
+				const fallbackCase = (() => {
+					if (fallbackPool.length === 1) return fallbackPool[0];
+					const cells = nounCellsByCase(
+						chapterWords ?? eligibleWords,
+						fallbackPool,
+						allowedNumbers(),
+						'production'
+					);
+					return pickWeightedCase(fallbackPool, (c) => cells.get(c) ?? []);
+				})();
 				let word: WordEntry | null;
 				if (isChapterMode) {
 					word = pickWordForChapter(eligibleWords, prog, fallbackCase, number_);
