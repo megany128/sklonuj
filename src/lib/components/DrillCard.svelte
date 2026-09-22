@@ -253,20 +253,36 @@
 		}
 	});
 
+	/**
+	 * Submit the typed answer, or skip when the input is empty. Reached from a
+	 * physical Enter (keydown) and from the answer form's submit event — the
+	 * latter is what mobile keyboards actually fire (Android IMEs often report
+	 * a composition keydown rather than "Enter"), and what the Check button uses.
+	 */
+	function submitAnswer(fromKeyboard: boolean) {
+		if (submitted || !question || question.drillType === 'case_identification') return;
+		if (userInput.trim() === '') {
+			// Empty input: treat as skip
+			submitted = true;
+			showFeedback = true;
+			onSubmit('__skip__');
+			enableAdvance(fromKeyboard);
+		} else {
+			handleSubmit(fromKeyboard);
+		}
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
-			if (!submitted && question?.drillType !== 'case_identification') {
-				if (userInput.trim() === '') {
-					// Empty input: treat Enter as skip
-					submitted = true;
-					showFeedback = true;
-					onSubmit('__skip__');
-					enableAdvance(true);
-				} else {
-					handleSubmit(true);
-				}
-			}
+			// Handle it here so the form's implicit submission doesn't run it twice.
+			e.preventDefault();
+			submitAnswer(true);
 		}
+	}
+
+	function handleAnswerFormSubmit(e: SubmitEvent) {
+		e.preventDefault();
+		submitAnswer(false);
 	}
 
 	function handleWindowKeydown(e: KeyboardEvent) {
@@ -660,48 +676,62 @@
 						question.wordCategory === 'pronoun'
 							? (question.pronoun?.lemma ?? question.word.lemma)
 							: question.word.lemma}
-					<div class="relative">
-						<label for="drill-answer" class="sr-only">
-							{#if question.drillType === 'form_production'}
-								Type the {CASE_LABELS[question.case]}
-								{question.number === 'pl' ? 'plural ' : ''}form of {labelLemma}
-							{:else}
-								Type the correct form of {labelLemma} to fill in the blank
-							{/if}
-						</label>
-						<input
-							id="drill-answer"
-							bind:this={inputEl}
-							bind:value={userInput}
-							onkeydown={handleKeydown}
-							disabled={submitted}
-							type="text"
-							autocomplete="off"
-							autocorrect="off"
-							autocapitalize="off"
-							spellcheck="false"
-							placeholder="Type your answer..."
-							class="w-full rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal caret-emphasis outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
+					<!-- A real form so the mobile keyboard's action key submits even when no
+					     Enter keydown is delivered; the button doubles as the visible affordance. -->
+					<form onsubmit={handleAnswerFormSubmit} novalidate>
+						<div class="relative">
+							<label for="drill-answer" class="sr-only">
+								{#if question.drillType === 'form_production'}
+									Type the {CASE_LABELS[question.case]}
+									{question.number === 'pl' ? 'plural ' : ''}form of {labelLemma}
+								{:else}
+									Type the correct form of {labelLemma} to fill in the blank
+								{/if}
+							</label>
+							<input
+								id="drill-answer"
+								bind:this={inputEl}
+								bind:value={userInput}
+								onkeydown={handleKeydown}
+								disabled={submitted}
+								type="text"
+								autocomplete="off"
+								autocorrect="off"
+								autocapitalize="off"
+								spellcheck="false"
+								enterkeyhint="go"
+								placeholder="Type your answer..."
+								class="w-full rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal caret-emphasis outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
 								{submitted && result?.correct
-								? 'border-positive-stroke bg-positive-background text-positive-stroke'
-								: submitted && result && !result.correct
-									? 'border-negative-stroke bg-negative-background text-negative-stroke'
-									: 'border-card-stroke bg-card-bg text-emphasis placeholder:text-text-subtitle focus:border-emphasis'}"
-						/>
-					</div>
-
-					<!-- Diacritics helper bar -->
-					{#if showDiacriticsBar && !submitted}
-						<div class="mt-2.5">
-							<DiacriticsBar {inputEl} inputValue={userInput} />
+									? 'border-positive-stroke bg-positive-background text-positive-stroke'
+									: submitted && result && !result.correct
+										? 'border-negative-stroke bg-negative-background text-negative-stroke'
+										: 'border-card-stroke bg-card-bg text-emphasis placeholder:text-text-subtitle focus:border-emphasis'}"
+							/>
 						</div>
-					{/if}
 
-					{#if !submitted}
-						<p class="mt-2 text-center text-xs text-text-subtitle">
-							{userInput.trim() === '' ? 'Press enter to skip' : 'Press enter to submit'}
-						</p>
-					{/if}
+						<!-- Diacritics helper bar -->
+						{#if showDiacriticsBar && !submitted}
+							<div class="mt-2.5">
+								<DiacriticsBar {inputEl} inputValue={userInput} />
+							</div>
+						{/if}
+
+						{#if !submitted}
+							{@const isSkip = userInput.trim() === ''}
+							<button
+								type="submit"
+								class="mt-3 w-full rounded-[48px] py-3 text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 {isSkip
+									? 'border-2 border-card-stroke bg-card-bg text-text-subtitle'
+									: 'bg-emphasis text-text-inverted'}"
+							>
+								{isSkip ? 'Skip' : 'Check'}
+							</button>
+							<p class="mt-2 hidden text-center text-xs text-text-subtitle sm:block">
+								{isSkip ? 'Press enter to skip' : 'Press enter to submit'}
+							</p>
+						{/if}
+					</form>
 				{/if}
 
 				<!-- Feedback after submission -->

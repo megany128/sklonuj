@@ -168,7 +168,14 @@
 						templateId: question.template?.id ?? null,
 						wordCategory: question.wordCategory ?? null,
 						nominative: nominativeForm,
-						translation: question.word?.translation ?? null,
+						// Adjective/pronoun drills carry a gender-matching noun in `word`
+						// that the learner never sees; report the drilled item's meaning.
+						translation:
+							question.wordCategory === 'adjective'
+								? (question.adjective?.translation ?? null)
+								: question.wordCategory === 'pronoun'
+									? (question.pronoun?.translation ?? null)
+									: (question.word?.translation ?? null),
 						correct: result?.correct ?? null,
 						nearMiss: result?.nearMiss ?? null,
 						// Paradigm helps diagnose incorrect declensions: for nouns

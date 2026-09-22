@@ -133,6 +133,7 @@ Rules: reuse existing components, use project tokens, respect routing/state/data
 - **Content quality**: wrong/missing `semanticTags`, `lemmaCategory`, or `excludesCategories` produce awkward sentence-noun pairings (e.g. "drink the chair"). When adding templates or words, double-check tags + categories and add blocks for any nonsense pairs surfaced.
 - **Pronoun grammar is under native review** — possessives, demonstratives, and interrogatives are not yet implemented; some existing templates may misuse prep forms.
 - **SRS isn't real yet** — selection is weighted random, not SM-2/Leitner.
+- **Weekly leaderboard cost is linear in participants** — `global_leaderboard_week` returns every participant and `global-leaderboard.ts` ranks them all in JS on every home page load, uncached; guest ids (`/api/leaderboard/guest`) are client-minted with no rate limit. If page loads slow down or `guest_practice_sessions` balloons: rank in SQL and return only the window, then cache, then WAF rate-limit.
 - **CSP allows `unsafe-inline`** because of GTM; can't be removed without a GTM refactor.
 
 ## Things NOT to do
