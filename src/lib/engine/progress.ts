@@ -6,17 +6,18 @@ import type {
 	Difficulty,
 	CaseScore,
 	Case,
-	CellSchedule,
-	CellState
+	CellSchedule
 } from '../types.ts';
-import { getAdjectiveGenderKey } from './adjective-drill.ts';
+import { adjectiveParadigmKey, getAdjectiveGenderKey } from './adjective-drill.ts';
 import {
 	adjectiveCellKey,
 	advanceCell,
+	caseCellKey,
 	nounCellKey,
 	pickSpacedCase,
 	pronounCellKey,
-	sanitizeCellSchedule
+	sanitizeCellSchedule,
+	type CellOutcome
 } from './spacing.ts';
 
 export const STORAGE_KEY = 'sklonuj_progress';
@@ -152,18 +153,30 @@ export function recordResult(result: DrillResult): void {
 
 		const paradigmKey =
 			result.question.wordCategory === 'adjective' && result.question.adjective
-				? `adj_${result.question.adjective.lemma}_${getAdjectiveGenderKey(result.question.word)}_${result.question.case}_${result.question.number}`
+				? adjectiveParadigmKey(
+						result.question.adjective.lemma,
+						getAdjectiveGenderKey(result.question.word),
+						result.question.case,
+						result.question.number
+					)
 				: result.question.wordCategory === 'pronoun' && result.question.pronoun
 					? `pronoun_${result.question.pronoun.lemma}_${result.question.case}_${result.question.number}`
 					: `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
 
-		// Spacing cell: the rule the question exercises (paradigm × case × number).
-		// Only production answers move it — case identification never has the
-		// learner produce the ending, the same line recordMultiStepResult draws
-		// by tying the noun cell to the form step alone.
+		// Spacing cell: the rule the question exercises. A production answer
+		// moves the paradigm × case × number cell; case identification never
+		// has the learner produce the ending (the same line recordMultiStepResult
+		// draws by tying the noun cell to the form step), so it moves the
+		// case's recognition cell instead.
 		const producesForm = result.question.drillType !== 'case_identification';
-		const cellKey =
-			result.question.wordCategory === 'adjective' && result.question.adjective
+		const outcome: CellOutcome = result.skipped
+			? 'skipped'
+			: result.correct
+				? 'correct'
+				: 'incorrect';
+		const cellKey = !producesForm
+			? caseCellKey(result.question.case, result.question.number)
+			: result.question.wordCategory === 'adjective' && result.question.adjective
 				? adjectiveCellKey(
 						result.question.adjective.paradigmType,
 						getAdjectiveGenderKey(result.question.word),
@@ -225,12 +238,10 @@ export function recordResult(result: DrillResult): void {
 				...(current.lemmaScores ?? {}),
 				...lemmaScoreUpdates
 			},
-			cellSchedule: producesForm
-				? {
-						...(current.cellSchedule ?? {}),
-						[cellKey]: advanceCell(current.cellSchedule?.[cellKey], result.correct, now)
-					}
-				: (current.cellSchedule ?? {}),
+			cellSchedule: {
+				...(current.cellSchedule ?? {}),
+				[cellKey]: advanceCell(current.cellSchedule?.[cellKey], outcome, now)
+			},
 			lastSession: new Date().toISOString().slice(0, 10)
 		};
 	});
@@ -285,7 +296,19 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			result.question.case,
 			result.question.number
 		);
-		cellUpdates[nounKey] = advanceCell(current.cellSchedule?.[nounKey], result.formCorrect, now);
+		cellUpdates[nounKey] = advanceCell(
+			current.cellSchedule?.[nounKey],
+			result.formCorrect ? 'correct' : 'incorrect',
+			now
+		);
+		if (result.caseCorrect !== null) {
+			const recognitionKey = caseCellKey(result.question.case, result.question.number);
+			cellUpdates[recognitionKey] = advanceCell(
+				current.cellSchedule?.[recognitionKey],
+				result.caseCorrect ? 'correct' : 'incorrect',
+				now
+			);
+		}
 
 		// Record adjective form accuracy (if adjective step was present)
 		if (
@@ -293,7 +316,12 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			result.adjectiveCorrect !== null &&
 			result.adjectiveCorrect !== undefined
 		) {
-			const adjKey = `adj_${result.question.adjective.lemma}_${getAdjectiveGenderKey(result.question.word)}_${result.question.case}_${result.question.number}`;
+			const adjKey = adjectiveParadigmKey(
+				result.question.adjective.lemma,
+				getAdjectiveGenderKey(result.question.word),
+				result.question.case,
+				result.question.number
+			);
 			const existingAdj: CaseScore = current.paradigmScores[adjKey] ?? {
 				attempts: 0,
 				correct: 0
@@ -310,7 +338,7 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			);
 			cellUpdates[adjCellKey] = advanceCell(
 				current.cellSchedule?.[adjCellKey],
-				result.adjectiveCorrect,
+				result.adjectiveCorrect ? 'correct' : 'incorrect',
 				now
 			);
 		}
@@ -425,9 +453,4 @@ export function pickWeightedCase(
 	}
 	const schedule: CellSchedule = get(progress).cellSchedule ?? {};
 	return pickSpacedCase(cases, cellKeysForCase, schedule, now, random);
-}
-
-/** Read-only view of the current spacing state of one cell. */
-export function getCellState(cellKey: string): CellState | undefined {
-	return get(progress).cellSchedule?.[cellKey];
 }

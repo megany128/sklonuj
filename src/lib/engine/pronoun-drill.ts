@@ -17,7 +17,7 @@ import { isCase, isNumber } from '../types';
 import pronounBankData from '../data/pronoun_bank.json';
 import pronounTemplateData from '../data/pronoun_templates.json';
 import { getBlockedLemmaSet } from './lemma-blocks';
-import { cellWeight, pronounCellKey } from './spacing';
+import { cellWeight, pronounCellKey, weightedPick } from './spacing';
 
 // ---------------------------------------------------------------------------
 // Raw JSON interfaces (pre-validation)
@@ -454,15 +454,5 @@ export function weightedRandomPronoun(
 		cellWeight(schedule[pronounCellKey(pronoun.lemma, case_, number_)], now)
 	);
 
-	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let r = random() * totalWeight;
-
-	for (let i = 0; i < candidates.length; i++) {
-		r -= weights[i];
-		if (r < 0) {
-			return candidates[i];
-		}
-	}
-
-	return candidates[candidates.length - 1];
+	return weightedPick(candidates, weights, random);
 }

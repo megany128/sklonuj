@@ -1,4 +1,5 @@
 import type {
+	CaseScore,
 	AdjectiveEntry,
 	AdjectiveGenderKey,
 	AdjectiveParadigmType,
@@ -23,7 +24,7 @@ import blockedAdjNounPairsData from '../data/blocked_adj_noun_pairs.json';
 import wordBankData from '../data/word_bank.json';
 import { stripDiacritics } from '../utils/diacritics';
 import { getBlockedLemmaSet } from './lemma-blocks';
-import { adjectiveCellKey, cellWeight } from './spacing';
+import { adjectiveCellKey, cellWeight, weightedPick } from './spacing';
 
 // Hand-curated list of adjective+noun lemma pairs that the engine should never
 // surface, even when the profile/category compatibility check passes. Used for
@@ -504,14 +505,16 @@ export function checkAdjectiveAnswer(
 }
 
 // ---------------------------------------------------------------------------
-// 9. weightedRandomAdjective — pick adjective weighted by weakness
+// 9. weightedRandomAdjective — pick adjective by cell spacing × lemma weakness
 // ---------------------------------------------------------------------------
 
 /**
  * Pick an adjective weighted by how due its spacing cell is. Adjectives are
  * regular, so the cell is paradigm type (hard/soft) × gender × case × number
  * rather than the lemma: every hard adjective in the same slot exercises the
- * same ending.
+ * same ending. A per-lemma nudge from lifetime accuracy (same shape as the
+ * paradigm nudge in `weightedRandom`) still surfaces the individual
+ * adjectives the learner keeps missing.
  */
 export function weightedRandomAdjective(
 	candidates: AdjectiveEntry[],
@@ -528,21 +531,20 @@ export function weightedRandomAdjective(
 
 	const genderKey = getAdjectiveGenderKey(word);
 	const schedule = progress.cellSchedule ?? {};
-	const weights = candidates.map((adj) =>
-		cellWeight(schedule[adjectiveCellKey(adj.paradigmType, genderKey, case_, number_)], now)
-	);
+	const weights = candidates.map((adj) => {
+		const cell = cellWeight(
+			schedule[adjectiveCellKey(adj.paradigmType, genderKey, case_, number_)],
+			now
+		);
+		const score: CaseScore | undefined =
+			progress.paradigmScores[adjectiveParadigmKey(adj.lemma, genderKey, case_, number_)];
+		const accuracy = score && score.attempts > 0 ? Math.min(score.correct / score.attempts, 1) : 0;
+		// Compressed lemma signal in [0.5, 1] so it nudges without overriding the cell.
+		const lemmaWeight = 0.5 + (1 - accuracy) * 0.5;
+		return cell * lemmaWeight;
+	});
 
-	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let r = random() * totalWeight;
-
-	for (let i = 0; i < candidates.length; i++) {
-		r -= weights[i];
-		if (r < 0) {
-			return candidates[i];
-		}
-	}
-
-	return candidates[candidates.length - 1];
+	return weightedPick(candidates, weights, random);
 }
 
 // ---------------------------------------------------------------------------

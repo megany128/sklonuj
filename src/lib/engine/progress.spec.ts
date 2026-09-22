@@ -10,7 +10,13 @@ import type {
 } from '../types';
 import { loadAdjectiveBank } from './adjective-drill';
 import { loadPronounBank } from './pronoun-drill';
-import { adjectiveCellKey, nounCellKey, nounCellKeysForCase, pronounCellKey } from './spacing';
+import {
+	adjectiveCellKey,
+	caseCellKey,
+	nounCellKey,
+	nounCellKeysForCase,
+	pronounCellKey
+} from './spacing';
 import {
 	isValidProgress,
 	isValidCaseScore,
@@ -442,16 +448,28 @@ describe('cellSchedule recording', () => {
 		).toMatchObject({ box: 0, streak: 0 });
 	});
 
-	it('does not move a cell on case identification (no form was produced)', () => {
+	it('moves the recognition cell, not the paradigm cell, on case identification', () => {
 		recordResult(
 			makeDrillResult(true, {
 				question: makeQuestion({ drillType: 'case_identification', correctAnswer: 'gen' }),
 				userAnswer: 'gen'
 			})
 		);
-		expect(get(progress).cellSchedule).toEqual({});
+		const cells = get(progress).cellSchedule;
+		expect(cells[nounCellKey('hrad', 'gen', 'sg')]).toBeUndefined();
+		expect(cells[caseCellKey('gen', 'sg')]).toMatchObject({ box: 1, streak: 1 });
 		// Lifetime stats still record it.
 		expect(get(progress).caseScores['gen_sg']).toEqual({ attempts: 1, correct: 1 });
+	});
+
+	it('drops a cell one box on a skip instead of two', () => {
+		for (let i = 0; i < 4; i++) recordResult(makeDrillResult(true));
+		expect(get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')].box).toBe(4);
+		recordResult(makeDrillResult(false, { userAnswer: '', skipped: true }));
+		expect(get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')]).toMatchObject({
+			box: 3,
+			streak: 0
+		});
 	});
 
 	it('is cleared by resetProgress', () => {

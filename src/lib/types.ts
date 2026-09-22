@@ -205,6 +205,8 @@ export interface DrillResult {
 	userAnswer: string;
 	correct: boolean;
 	nearMiss: boolean;
+	/** The learner submitted an empty answer to see the solution. */
+	skipped?: boolean;
 	accidentalCase?: { case: Case; number: Number_ };
 	/** The accepted form (primary or variant) the user's answer matched, when applicable. */
 	matchedForm?: string;

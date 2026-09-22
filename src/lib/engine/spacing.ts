@@ -67,6 +67,18 @@ export function pronounCellKey(lemma: string, case_: Case, number_: Number_): st
 	return `p:${lemma}:${case_}:${number_}`;
 }
 
+/**
+ * Recognition cell: can the learner tell which case a sentence slot calls
+ * for? Keyed by case and number only — case identification never has them
+ * produce an ending, so it must not move a paradigm's production cell, but a
+ * case they keep misreading still has to come up more often.
+ */
+export function caseCellKey(case_: Case, number_: Number_): string {
+	return `c:${case_}:${number_}`;
+}
+
+export type CellOutcome = 'correct' | 'incorrect' | 'skipped';
+
 function clampBox(box: number): number {
 	if (!Number.isFinite(box)) return 0;
 	return Math.min(Math.max(Math.trunc(box), 0), MAX_BOX);
@@ -85,33 +97,63 @@ export function cellWeight(state: CellState | undefined, now: number): number {
 	return W_FLOOR + (W_DUE - W_FLOOR) * ratio;
 }
 
-/** Next state of a cell after an attempt at time `now`. */
+/**
+ * Next state of a cell after an attempt at time `now`. A correct answer moves
+ * up a box, a miss drops two, and a skip (looking at the answer) drops one:
+ * it is a weaker signal than a wrong answer and must not wipe weeks of
+ * spacing just because the learner peeked.
+ */
 export function advanceCell(
 	state: CellState | undefined,
-	correct: boolean,
+	outcome: CellOutcome,
 	now: number
 ): CellState {
 	const box = clampBox(state?.box ?? 0);
 	const streak = state?.streak ?? 0;
-	if (correct) {
+	if (outcome === 'correct') {
 		return { last: now, box: Math.min(box + 1, MAX_BOX), streak: streak + 1 };
 	}
-	return { last: now, box: Math.max(box - 2, 0), streak: 0 };
+	const drop = outcome === 'skipped' ? 1 : 2;
+	return { last: now, box: Math.max(box - drop, 0), streak: 0 };
 }
 
 /**
  * Average cell weight over the cells a case can currently drill. An empty
- * list (nothing in the pool declines in that case yet) counts as unseen.
+ * list means nothing in the pool can be asked in that case, so it weighs
+ * nothing rather than "unseen" — otherwise an undrillable case would outrank
+ * every practised one and render a blank question.
  */
 export function caseWeight(
 	cellKeys: readonly string[],
 	schedule: CellSchedule,
 	now: number
 ): number {
-	if (cellKeys.length === 0) return W_NEW;
+	if (cellKeys.length === 0) return 0;
 	let total = 0;
 	for (const key of cellKeys) total += cellWeight(schedule[key], now);
 	return total / cellKeys.length;
+}
+
+/**
+ * Roulette-wheel pick: item i is chosen with probability weights[i] / total.
+ * A zero-weight item is never chosen while any other has weight (strict
+ * comparison, so a draw of exactly 0 cannot land on it); when every weight is
+ * zero the pick is uniform so callers always get an item back.
+ */
+export function weightedPick<T>(
+	items: readonly T[],
+	weights: readonly number[],
+	random: () => number = Math.random
+): T {
+	if (items.length === 0) throw new Error('weightedPick called with empty items array');
+	const total = weights.reduce((sum, w) => sum + Math.max(0, w), 0);
+	if (total <= 0) return items[Math.floor(random() * items.length)];
+	let r = random() * total;
+	for (let i = 0; i < items.length; i++) {
+		r -= Math.max(0, weights[i]);
+		if (r < 0) return items[i];
+	}
+	return items[items.length - 1];
 }
 
 /**
@@ -130,13 +172,7 @@ export function pickSpacedCase(
 		throw new Error('pickSpacedCase called with empty cases array');
 	}
 	const weights = cases.map((c) => caseWeight(cellKeysForCase(c), schedule, now));
-	const total = weights.reduce((sum, w) => sum + w, 0);
-	let r = random() * total;
-	for (let i = 0; i < cases.length; i++) {
-		r -= weights[i];
-		if (r < 0) return cases[i];
-	}
-	return cases[cases.length - 1];
+	return weightedPick(cases, weights, random);
 }
 
 /** Keys of every noun cell for the given paradigms, case and numbers. */
@@ -202,14 +238,6 @@ export function isValidCellState(value: unknown): value is CellState {
 		Number.isInteger(streak) &&
 		streak >= 0
 	);
-}
-
-export function isValidCellSchedule(value: unknown): value is CellSchedule {
-	if (!isRecordLike(value)) return false;
-	for (const v of Object.values(value)) {
-		if (!isValidCellState(v)) return false;
-	}
-	return true;
 }
 
 /**
