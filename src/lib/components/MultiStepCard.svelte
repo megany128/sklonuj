@@ -764,21 +764,33 @@
 
 						<!-- Text input -->
 						<div class="flex w-full max-w-md flex-col gap-3">
-							<input
-								bind:this={formInputEl}
-								bind:value={formInput}
-								onkeydown={handleFormKeydown}
-								disabled={formSubmitted}
-								type="text"
-								autocomplete="off"
-								autocapitalize="none"
-								spellcheck="false"
-								placeholder="Type the correct form..."
-								class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
-								!formCorrect
-									? 'border-negative-stroke bg-negative-background text-negative-stroke'
-									: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
-							/>
+							<div class="flex items-stretch gap-2">
+								<input
+									bind:this={formInputEl}
+									bind:value={formInput}
+									onkeydown={handleFormKeydown}
+									disabled={formSubmitted}
+									type="text"
+									autocomplete="off"
+									autocapitalize="none"
+									spellcheck="false"
+									placeholder="Type the correct form..."
+									class="min-w-0 flex-1 rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
+									!formCorrect
+										? 'border-negative-stroke bg-negative-background text-negative-stroke'
+										: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
+								/>
+								{#if !formSubmitted}
+									<button
+										type="button"
+										onclick={handleFormSubmit}
+										disabled={formInput.trim() === ''}
+										class="shrink-0 rounded-[48px] bg-emphasis px-5 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6"
+									>
+										Check
+									</button>
+								{/if}
+							</div>
 
 							{#if !formSubmitted}
 								<DiacriticsBar inputEl={formInputEl} inputValue={formInput} />
@@ -786,14 +798,6 @@
 						</div>
 
 						{#if !formSubmitted}
-							<button
-								type="button"
-								onclick={handleFormSubmit}
-								disabled={formInput.trim() === ''}
-								class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-							>
-								Check
-							</button>
 							<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
 						{:else}
 							<!-- Form feedback -->
@@ -925,21 +929,33 @@
 
 						<!-- Text input -->
 						<div class="flex w-full max-w-md flex-col gap-3">
-							<input
-								bind:this={adjFormInputEl}
-								bind:value={adjFormInput}
-								onkeydown={handleAdjFormKeydown}
-								disabled={adjFormSubmitted}
-								type="text"
-								autocomplete="off"
-								autocapitalize="none"
-								spellcheck="false"
-								placeholder="Type the adjective form..."
-								class="w-full rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {adjFormSubmitted &&
-								!adjFormCorrect
-									? 'border-negative-stroke bg-negative-background text-negative-stroke'
-									: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
-							/>
+							<div class="flex items-stretch gap-2">
+								<input
+									bind:this={adjFormInputEl}
+									bind:value={adjFormInput}
+									onkeydown={handleAdjFormKeydown}
+									disabled={adjFormSubmitted}
+									type="text"
+									autocomplete="off"
+									autocapitalize="none"
+									spellcheck="false"
+									placeholder="Type the adjective form..."
+									class="min-w-0 flex-1 rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {adjFormSubmitted &&
+									!adjFormCorrect
+										? 'border-negative-stroke bg-negative-background text-negative-stroke'
+										: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
+								/>
+								{#if !adjFormSubmitted}
+									<button
+										type="button"
+										onclick={handleAdjFormSubmit}
+										disabled={adjFormInput.trim() === ''}
+										class="shrink-0 rounded-[48px] bg-emphasis px-5 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6"
+									>
+										Check
+									</button>
+								{/if}
+							</div>
 
 							{#if !adjFormSubmitted}
 								<DiacriticsBar inputEl={adjFormInputEl} inputValue={adjFormInput} />
@@ -947,14 +963,6 @@
 						</div>
 
 						{#if !adjFormSubmitted}
-							<button
-								type="button"
-								onclick={handleAdjFormSubmit}
-								disabled={adjFormInput.trim() === ''}
-								class="w-full max-w-md rounded-[48px] bg-emphasis py-3 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-							>
-								Check
-							</button>
 							<p class="text-center text-xs text-text-subtitle">Press enter to submit</p>
 						{:else}
 							<!-- Adjective form feedback -->

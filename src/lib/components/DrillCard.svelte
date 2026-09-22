@@ -57,6 +57,8 @@
 	} = $props();
 
 	let userInput = $state('');
+	/** Empty input submits as a skip; the button label and hint follow it. */
+	let isSkip = $derived(userInput.trim() === '');
 	let submitted = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 	let showFeedback = $state(false);
@@ -679,7 +681,7 @@
 					<!-- A real form so the mobile keyboard's action key submits even when no
 					     Enter keydown is delivered; the button doubles as the visible affordance. -->
 					<form onsubmit={handleAnswerFormSubmit} novalidate>
-						<div class="relative">
+						<div class="flex items-stretch gap-2">
 							<label for="drill-answer" class="sr-only">
 								{#if question.drillType === 'form_production'}
 									Type the {CASE_LABELS[question.case]}
@@ -701,13 +703,23 @@
 								spellcheck="false"
 								enterkeyhint="go"
 								placeholder="Type your answer..."
-								class="w-full rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal caret-emphasis outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
+								class="min-w-0 flex-1 rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal caret-emphasis outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
 								{submitted && result?.correct
 									? 'border-positive-stroke bg-positive-background text-positive-stroke'
 									: submitted && result && !result.correct
 										? 'border-negative-stroke bg-negative-background text-negative-stroke'
 										: 'border-card-stroke bg-card-bg text-emphasis placeholder:text-text-subtitle focus:border-emphasis'}"
 							/>
+							{#if !submitted}
+								<button
+									type="submit"
+									class="shrink-0 rounded-[48px] px-5 text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 sm:px-6 {isSkip
+										? 'border-2 border-card-stroke bg-card-bg text-text-subtitle'
+										: 'bg-emphasis text-text-inverted'}"
+								>
+									{isSkip ? 'Skip' : 'Check'}
+								</button>
+							{/if}
 						</div>
 
 						<!-- Diacritics helper bar -->
@@ -718,15 +730,6 @@
 						{/if}
 
 						{#if !submitted}
-							{@const isSkip = userInput.trim() === ''}
-							<button
-								type="submit"
-								class="mt-3 w-full rounded-[48px] py-3 text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 {isSkip
-									? 'border-2 border-card-stroke bg-card-bg text-text-subtitle'
-									: 'bg-emphasis text-text-inverted'}"
-							>
-								{isSkip ? 'Skip' : 'Check'}
-							</button>
 							<p class="mt-2 hidden text-center text-xs text-text-subtitle sm:block">
 								{isSkip ? 'Press enter to skip' : 'Press enter to submit'}
 							</p>
