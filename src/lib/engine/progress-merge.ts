@@ -1,5 +1,6 @@
 import type { Progress, CaseScore, Difficulty } from '../types';
 import { STORAGE_KEY, isValidProgress } from './progress';
+import { mergeCellSchedules } from './spacing';
 
 export function loadProgressFromLocalStorage(): Progress | null {
 	if (typeof window === 'undefined') return null;
@@ -11,6 +12,7 @@ export function loadProgressFromLocalStorage(): Progress | null {
 		if (!isValidProgress(parsed)) return null;
 		parsed.paradigmScores ??= {};
 		parsed.lemmaScores ??= {};
+		parsed.cellSchedule ??= {};
 		if (typeof parsed.longestStreak !== 'number') {
 			parsed.longestStreak = 0;
 		}
@@ -64,6 +66,7 @@ export function mergeProgress(local: Progress, remote: Progress): Progress {
 		caseScores: mergeScores(local.caseScores, remote.caseScores),
 		paradigmScores: mergeScores(local.paradigmScores ?? {}, remote.paradigmScores ?? {}),
 		lemmaScores: mergeScores(local.lemmaScores ?? {}, remote.lemmaScores ?? {}),
+		cellSchedule: mergeCellSchedules(local.cellSchedule ?? {}, remote.cellSchedule ?? {}),
 		lastSession: laterSession(local.lastSession, remote.lastSession),
 		longestStreak: Math.max(local.longestStreak ?? 0, remote.longestStreak ?? 0)
 	};

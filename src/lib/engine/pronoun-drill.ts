@@ -1,7 +1,6 @@
 import type {
 	Case,
 	CaseForms,
-	CaseScore,
 	Difficulty,
 	DrillQuestion,
 	Gender,
@@ -18,6 +17,7 @@ import { isCase, isNumber } from '../types';
 import pronounBankData from '../data/pronoun_bank.json';
 import pronounTemplateData from '../data/pronoun_templates.json';
 import { getBlockedLemmaSet } from './lemma-blocks';
+import { cellWeight, pronounCellKey } from './spacing';
 
 // ---------------------------------------------------------------------------
 // Raw JSON interfaces (pre-validation)
@@ -433,30 +433,33 @@ function getUnlockedDifficulties(level: Difficulty): Difficulty[] {
 // 6. weightedRandomPronoun
 // ---------------------------------------------------------------------------
 
+/**
+ * Pick a pronoun weighted by how due its spacing cell (pronoun × case ×
+ * number) is: each pronoun is its own paradigm.
+ */
 export function weightedRandomPronoun(
 	candidates: PronounEntry[],
 	progress: Progress,
 	case_: Case,
-	number_: Number_
+	number_: Number_,
+	now: number = Date.now(),
+	random: () => number = Math.random
 ): PronounEntry {
 	if (candidates.length === 0) {
 		throw new Error('weightedRandomPronoun called with empty candidates array');
 	}
 
-	const weights = candidates.map((pronoun) => {
-		const paradigmKey = `pronoun_${pronoun.lemma}_${case_}_${number_}`;
-		const score: CaseScore | undefined = progress.paradigmScores[paradigmKey];
-		const rawAccuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
-		const accuracy = Math.min(rawAccuracy, 1);
-		return 1 / (accuracy + 0.1);
-	});
+	const schedule = progress.cellSchedule ?? {};
+	const weights = candidates.map((pronoun) =>
+		cellWeight(schedule[pronounCellKey(pronoun.lemma, case_, number_)], now)
+	);
 
 	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let random = Math.random() * totalWeight;
+	let r = random() * totalWeight;
 
 	for (let i = 0; i < candidates.length; i++) {
-		random -= weights[i];
-		if (random <= 0) {
+		r -= weights[i];
+		if (r < 0) {
 			return candidates[i];
 		}
 	}

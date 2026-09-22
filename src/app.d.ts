@@ -22,6 +22,7 @@ declare global {
 				case_scores: Record<string, { attempts: number; correct: number }>;
 				paradigm_scores: Record<string, { attempts: number; correct: number }>;
 				lemma_scores: Record<string, { attempts: number; correct: number }>;
+				cell_schedule: Record<string, { last: number; box: number; streak: number }>;
 				last_session: string;
 				longest_answer_streak: number;
 			} | null;

@@ -53,6 +53,7 @@ const PROGRESS_B2: Progress = {
 	caseScores: {},
 	paradigmScores: {},
 	lemmaScores: {},
+	cellSchedule: {},
 	lastSession: '',
 	longestStreak: 0
 };

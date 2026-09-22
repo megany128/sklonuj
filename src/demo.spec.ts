@@ -232,6 +232,7 @@ describe('mergeProgress', () => {
 			caseScores: { gen_sg: { attempts: 5, correct: 3 } },
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '2024-01-01',
 			longestStreak: 0
 		};
@@ -240,6 +241,7 @@ describe('mergeProgress', () => {
 			caseScores: { acc_sg: { attempts: 3, correct: 2 } },
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '2024-01-02',
 			longestStreak: 0
 		};
