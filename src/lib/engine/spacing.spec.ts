@@ -9,7 +9,7 @@ import {
 	W_MAX,
 	W_NEW,
 	UNSEEN_CELL_SHARE,
-	clampCellTimestamps,
+	dropFutureCells,
 	truncateCellSchedule,
 	adjectiveCellKey,
 	advanceCell,
@@ -114,7 +114,7 @@ describe('advanceCell', () => {
 	});
 });
 
-describe('advanceCell on skip', () => {
+describe('advanceCell on skip / near-miss', () => {
 	it('drops one box on a skip, not two, and resets the streak', () => {
 		expect(advanceCell({ last: 0, box: 5, streak: 9 }, 'skipped', 3)).toEqual({
 			last: 3,
@@ -122,6 +122,14 @@ describe('advanceCell on skip', () => {
 			streak: 0
 		});
 		expect(advanceCell(undefined, 'skipped', 3)).toEqual({ last: 3, box: 0, streak: 0 });
+	});
+
+	it('treats a diacritics near-miss like a skip: one box, not two', () => {
+		expect(advanceCell({ last: 0, box: 4, streak: 4 }, 'near_miss', 3)).toEqual({
+			last: 3,
+			box: 3,
+			streak: 0
+		});
 	});
 });
 
@@ -325,15 +333,20 @@ describe('sanitizeCellSchedule', () => {
 	});
 });
 
-describe('clampCellTimestamps / truncateCellSchedule', () => {
-	it('clamps future timestamps to now and leaves the rest untouched', () => {
-		const out = clampCellTimestamps(
-			{ a: { last: 50, box: 1, streak: 1 }, b: { last: 500, box: 2, streak: 2 } },
-			100
+describe('dropFutureCells / truncateCellSchedule', () => {
+	it('drops cells stamped further ahead than the tolerance and keeps the rest as they are', () => {
+		const out = dropFutureCells(
+			{
+				past: { last: 50, box: 1, streak: 1 },
+				slightlyAhead: { last: 120, box: 2, streak: 2 },
+				farAhead: { last: 500, box: 3, streak: 3 }
+			},
+			100,
+			30
 		);
 		expect(out).toEqual({
-			a: { last: 50, box: 1, streak: 1 },
-			b: { last: 100, box: 2, streak: 2 }
+			past: { last: 50, box: 1, streak: 1 },
+			slightlyAhead: { last: 120, box: 2, streak: 2 }
 		});
 	});
 

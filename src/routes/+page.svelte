@@ -175,6 +175,15 @@
 	// Debounced sync to Supabase via server API (browser client auth is unreliable)
 	let syncTimer: ReturnType<typeof setTimeout> | null = null;
 
+	// Browsers cap keepalive request bodies at 64 KiB and reject bigger ones
+	// before they leave the page. lemmaScores grows with lemmas × case × number
+	// and cellSchedule adds up to ~600 cells, so a heavy learner's progress can
+	// pass the cap; send those without keepalive rather than never at all.
+	const KEEPALIVE_BODY_LIMIT = 60 * 1024;
+	function fitsKeepalive(body: string): boolean {
+		return new Blob([body]).size <= KEEPALIVE_BODY_LIMIT;
+	}
+
 	function scheduleSyncToSupabase(): void {
 		if (!user) return;
 		if (syncTimer) clearTimeout(syncTimer);
@@ -182,21 +191,22 @@
 			const current = get(progress);
 			// keepalive lets the request complete through client-side navigation
 			// so the server doesn't see the connection get aborted mid-flight.
+			const body = JSON.stringify({
+				progress: {
+					level: current.level,
+					caseScores: current.caseScores,
+					paradigmScores: current.paradigmScores,
+					lemmaScores: current.lemmaScores,
+					cellSchedule: current.cellSchedule,
+					lastSession: current.lastSession,
+					longestStreak: current.longestStreak
+				}
+			});
 			fetch('/api/sync', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				keepalive: true,
-				body: JSON.stringify({
-					progress: {
-						level: current.level,
-						caseScores: current.caseScores,
-						paradigmScores: current.paradigmScores,
-						lemmaScores: current.lemmaScores,
-						cellSchedule: current.cellSchedule,
-						lastSession: current.lastSession,
-						longestStreak: current.longestStreak
-					}
-				})
+				keepalive: fitsKeepalive(body),
+				body
 			}).catch(() => {});
 		}, 1000);
 	}
@@ -2177,20 +2187,24 @@
 				clearTimeout(syncTimer);
 				syncTimer = null;
 				const current = get(progress);
+				const body = JSON.stringify({
+					progress: {
+						level: current.level,
+						caseScores: current.caseScores,
+						paradigmScores: current.paradigmScores,
+						lemmaScores: current.lemmaScores,
+						cellSchedule: current.cellSchedule,
+						lastSession: current.lastSession
+					}
+				});
+				// Past the keepalive cap the request may not survive unload; the
+				// debounced sync a second after each answer has already sent the
+				// same progress, so that is an acceptable best effort.
 				fetch('/api/sync', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					keepalive: true,
-					body: JSON.stringify({
-						progress: {
-							level: current.level,
-							caseScores: current.caseScores,
-							paradigmScores: current.paradigmScores,
-							lemmaScores: current.lemmaScores,
-							cellSchedule: current.cellSchedule,
-							lastSession: current.lastSession
-						}
-					})
+					keepalive: fitsKeepalive(body),
+					body
 				}).catch(() => {});
 			}
 			if (sessionSyncTimer) {
@@ -2320,14 +2334,17 @@
 		return numbers[Math.floor(Math.random() * numbers.length)];
 	}
 
-	/** Words to weigh the spaced case pick over: the chapter's vocabulary when a chapter is active and has any, else the pool as given. */
-	function chapterCellWords(pool: readonly WordEntry[]): readonly WordEntry[] {
-		if (chapterBook === null || chapterSelection === null) return pool;
+	/**
+	 * The active chapter's words (current + previous lessons) from the full
+	 * bank, or null outside chapter mode / when the chapter lists none.
+	 */
+	function chapterWordPool(): WordEntry[] | null {
+		if (chapterBook === null || chapterSelection === null) return null;
 		const { currentLemmas, previousLemmas } = getChapterLemmas();
 		const lemmas = new Set([...currentLemmas, ...previousLemmas].map((l) => l.toLowerCase()));
-		if (lemmas.size === 0) return pool;
+		if (lemmas.size === 0) return null;
 		const words = loadWordBank().filter((w) => lemmas.has(w.lemma.toLowerCase()));
-		return words.length > 0 ? words : pool;
+		return words.length > 0 ? words : null;
 	}
 
 	/**
@@ -2430,11 +2447,6 @@
 		return idx >= 0 ? idx : 0;
 	}
 
-	/**
-	 * Pick a template weighted by how many words it can drill (see
-	 * `pickWeightedTemplate`), skipping recently used ones. Callers check for an
-	 * empty list before calling, hence the throw.
-	 */
 	/**
 	 * Weighted template pick (see `pickWeightedTemplate`), preferring the case
 	 * the spaced picker chose when given one. Pool sizes are memoised so the
@@ -3019,59 +3031,6 @@
 		// enabled, the picker would otherwise serve those 1–2 words on roughly
 		// 1/N turns, drowning out the other vocab. Dampen voc to roughly match
 		// its share of the chapter pool.
-		const damped = (() => {
-			if (selectedCase !== 'all') return effectiveEnabledCases;
-			if (!chapterBook || !chapterSelection) return effectiveEnabledCases;
-			if (!effectiveEnabledCases.includes('voc')) return effectiveEnabledCases;
-			const { currentLemmas, previousLemmas } = getChapterLemmas();
-			const allLemmas = [...currentLemmas, ...previousLemmas];
-			if (allLemmas.length === 0) return effectiveEnabledCases;
-			const wb = loadWordBank();
-			const lemmaSet = new Set(allLemmas.map((l) => l.toLowerCase()));
-			const chapterWords = wb.filter((w) => lemmaSet.has(w.lemma.toLowerCase()));
-			if (chapterWords.length === 0) return effectiveEnabledCases;
-			const vocableCount = chapterWords.filter((w) => canVocative(w)).length;
-			const ratio = vocableCount / chapterWords.length;
-			const baselineShare = 1 / effectiveEnabledCases.length;
-			if (ratio >= baselineShare) return effectiveEnabledCases;
-			const keepProb = Math.max(ratio / baselineShare, 0.1);
-			if (Math.random() > keepProb) {
-				return effectiveEnabledCases.filter((c) => c !== 'voc');
-			}
-			return effectiveEnabledCases;
-		})();
-
-		// Pick case: either the selected one, or weighted random from effective enabled cases.
-		// For case_identification specifically, drop nominative from the pool when the
-		// user is in 'all' mode and another case is available — "To je ___" → nom is a
-		// give-away once the learner spots the pattern, so it shouldn't dominate the mix.
-		const casePool =
-			drillType === 'case_identification' && selectedCase === 'all'
-				? (() => {
-						const nonNom = damped.filter((c) => c !== 'nom');
-						return nonNom.length > 0 ? nonNom : damped;
-					})()
-				: damped;
-		const case_ =
-			selectedCase === 'all'
-				? (() => {
-						// In chapter mode the picker serves the chapter's words, so weigh
-						// the cases over those; the level-wide pool would keep every case
-						// near "unseen" through paradigms the chapter never drills.
-						const cells = nounCellsByCase(
-							chapterCellWords(eligibleWords),
-							casePool,
-							allowedNumbers(),
-							drillType === 'case_identification' ? 'recognition' : 'production'
-						);
-						return pickWeightedCase(casePool, (c) => cells.get(c) ?? []);
-					})()
-				: selectedCase;
-
-		// Pick number (respecting chapter constraints)
-		let number_: Number_ = pickNumber();
-
-		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
 		// For adjective content with non-multi-step types, generate adjective drill
 		// form_production and sentence_fill_in are both supported; case_identification
@@ -3107,6 +3066,58 @@
 			// too, fall through to noun generation.
 			if (adjectivesOnly) return;
 		}
+
+		// The case pick sweeps the word pool, so it runs only once an adjective
+		// question (which never uses it) is off the table.
+		const chapterWords = chapterWordPool();
+		const damped = (() => {
+			if (selectedCase !== 'all') return effectiveEnabledCases;
+			if (chapterWords === null) return effectiveEnabledCases;
+			if (!effectiveEnabledCases.includes('voc')) return effectiveEnabledCases;
+			const vocableCount = chapterWords.filter((w) => canVocative(w)).length;
+			const ratio = vocableCount / chapterWords.length;
+			const baselineShare = 1 / effectiveEnabledCases.length;
+			if (ratio >= baselineShare) return effectiveEnabledCases;
+			const keepProb = Math.max(ratio / baselineShare, 0.1);
+			if (Math.random() > keepProb) {
+				return effectiveEnabledCases.filter((c) => c !== 'voc');
+			}
+			return effectiveEnabledCases;
+		})();
+
+		// Pick case: either the selected one, or spaced-weighted from the effective
+		// enabled cases. In 'all' mode nominative leaves the pool for
+		// case_identification ("To je ___" → nom is a give-away once the learner
+		// spots the pattern) and for form_production (nom → nom is trivial and the
+		// branch below would re-roll it uniformly, bypassing the spacing).
+		const casePool =
+			(drillType === 'case_identification' || drillType === 'form_production') &&
+			selectedCase === 'all'
+				? (() => {
+						const nonNom = damped.filter((c) => c !== 'nom');
+						return nonNom.length > 0 ? nonNom : damped;
+					})()
+				: damped;
+		const case_ =
+			selectedCase === 'all'
+				? (() => {
+						// In chapter mode the picker serves the chapter's words, so weigh
+						// the cases over those; the level-wide pool would keep every case
+						// near "unseen" through paradigms the chapter never drills.
+						const cells = nounCellsByCase(
+							chapterWords ?? eligibleWords,
+							casePool,
+							allowedNumbers(),
+							drillType === 'case_identification' ? 'recognition' : 'production'
+						);
+						return pickWeightedCase(casePool, (c) => cells.get(c) ?? []);
+					})()
+				: selectedCase;
+
+		// Pick number (respecting chapter constraints)
+		let number_: Number_ = pickNumber();
+
+		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
 		if (drillType === 'multi_step') {
 			// Multi-step: needs a template + word, produces a MultiStepQuestion

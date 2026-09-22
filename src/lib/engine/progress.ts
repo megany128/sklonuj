@@ -161,7 +161,9 @@ export function recordResult(result: DrillResult): void {
 			? 'skipped'
 			: result.correct
 				? 'correct'
-				: 'incorrect';
+				: result.nearMiss
+					? 'near_miss'
+					: 'incorrect';
 		const cellKey = !producesForm
 			? caseCellKey(result.question.case, result.question.number)
 			: result.question.wordCategory === 'adjective' && result.question.adjective
@@ -286,7 +288,7 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 		);
 		cellUpdates[nounKey] = advanceCell(
 			current.cellSchedule?.[nounKey],
-			result.formCorrect ? 'correct' : 'incorrect',
+			result.formCorrect ? 'correct' : result.formNearMiss ? 'near_miss' : 'incorrect',
 			now
 		);
 		if (result.caseCorrect !== null) {
@@ -326,7 +328,7 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			);
 			cellUpdates[adjCellKey] = advanceCell(
 				current.cellSchedule?.[adjCellKey],
-				result.adjectiveCorrect ? 'correct' : 'incorrect',
+				result.adjectiveCorrect ? 'correct' : result.adjectiveNearMiss ? 'near_miss' : 'incorrect',
 				now
 			);
 		}

@@ -79,7 +79,7 @@ export function caseCellKey(case_: Case, number_: Number_): string {
 	return `c:${case_}:${number_}`;
 }
 
-export type CellOutcome = 'correct' | 'incorrect' | 'skipped';
+export type CellOutcome = 'correct' | 'incorrect' | 'near_miss' | 'skipped';
 
 function clampBox(box: number): number {
 	if (!Number.isFinite(box)) return 0;
@@ -101,9 +101,10 @@ export function cellWeight(state: CellState | undefined, now: number): number {
 
 /**
  * Next state of a cell after an attempt at time `now`. A correct answer moves
- * up a box, a miss drops two, and a skip (looking at the answer) drops one:
- * it is a weaker signal than a wrong answer and must not wipe weeks of
- * spacing just because the learner peeked.
+ * up a box and a miss drops two. A skip (looking at the answer) and a
+ * near-miss (right ending, wrong diacritics — graded wrong at B1+) drop one:
+ * both are weaker signals than a wrong ending and must not wipe weeks of
+ * spacing.
  */
 export function advanceCell(
 	state: CellState | undefined,
@@ -115,7 +116,7 @@ export function advanceCell(
 	if (outcome === 'correct') {
 		return { last: now, box: Math.min(box + 1, MAX_BOX), streak: streak + 1 };
 	}
-	const drop = outcome === 'skipped' ? 1 : 2;
+	const drop = outcome === 'incorrect' ? 2 : 1;
 	return { last: now, box: Math.max(box - drop, 0), streak: 0 };
 }
 
@@ -279,15 +280,22 @@ export function sanitizeCellSchedule(value: unknown): CellSchedule {
 }
 
 /**
- * Clamp every `last` to `now`. For the server only, whose clock is
- * authoritative: without this a device running a day fast writes a `last` no
- * other device's real attempt can ever beat in the latest-wins merge, pinning
- * the cell at the just-seen floor everywhere.
+ * Drop cells whose `last` lies more than `toleranceMs` past `now`. For the
+ * server only, whose clock is authoritative: a device running fast would
+ * otherwise write timestamps no genuine later attempt on another device can
+ * beat in the latest-wins merge — and re-stamping them to "now" instead
+ * would let that device's stale states win on every sync. Its lifetime
+ * scores still sync; only its cells stay local until its clock is right.
  */
-export function clampCellTimestamps(schedule: CellSchedule, now: number): CellSchedule {
+export function dropFutureCells(
+	schedule: CellSchedule,
+	now: number,
+	toleranceMs: number
+): CellSchedule {
+	const limit = now + toleranceMs;
 	const out: CellSchedule = {};
 	for (const [key, state] of Object.entries(schedule)) {
-		out[key] = state.last > now ? { ...state, last: now } : state;
+		if (state.last <= limit) out[key] = state;
 	}
 	return out;
 }

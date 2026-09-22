@@ -10,6 +10,16 @@ import { loadWordBank } from './drill.ts';
 import { loadPronounBank } from './pronoun-drill.ts';
 
 describe('nounCellsByCase', () => {
+	it('lists recognition cells only for numbers with a drillable word', () => {
+		const bank = loadWordBank();
+		const pluralOnly = bank.find((w) => w.pluralOnly === true);
+		expect(pluralOnly).toBeDefined();
+		if (!pluralOnly) return;
+		expect(nounCellsByCase([pluralOnly], ['gen'], ['sg', 'pl'], 'recognition').get('gen')).toEqual([
+			'c:gen:pl'
+		]);
+	});
+
 	it('lists only slots with a valid form and adds the recognition cell', () => {
 		const bank = loadWordBank();
 		const hrad = bank.find((w) => w.lemma === 'hrad');
@@ -58,9 +68,9 @@ describe('pronounCellsByCase', () => {
 		expect(pronounCellsByCase([ja], ['dat'], ['sg', 'pl'], 'production').get('dat')).toEqual([
 			'p:já:dat:sg'
 		]);
+		// Recognition cells only for the numbers something can be asked in.
 		expect(pronounCellsByCase([ja], ['dat'], ['sg', 'pl'], 'recognition').get('dat')).toEqual([
-			'c:dat:sg',
-			'c:dat:pl'
+			'c:dat:sg'
 		]);
 		expect(pronounCellsByCase([ja], ['dat'], ['pl'], 'production').get('dat')).toEqual([]);
 		expect(pronounCellsByCase([ja], ['dat'], ['pl'], 'recognition').get('dat')).toEqual([]);
