@@ -12,7 +12,7 @@ export function loadProgressFromLocalStorage(): Progress | null {
 		if (!isValidProgress(parsed)) return null;
 		parsed.paradigmScores ??= {};
 		parsed.lemmaScores ??= {};
-		parsed.cellSchedule = sanitizeCellSchedule(parsed.cellSchedule, Date.now());
+		parsed.cellSchedule = sanitizeCellSchedule(parsed.cellSchedule);
 		if (typeof parsed.longestStreak !== 'number') {
 			parsed.longestStreak = 0;
 		}

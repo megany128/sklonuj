@@ -23,6 +23,8 @@ import type {
 	CellState,
 	Number_
 } from '../types.ts';
+import { ALL_ADJECTIVE_GENDER_KEYS, isCase, isNumber } from '../types.ts';
+import { isRecord } from '../utils/is-record.ts';
 
 const MINUTE_MS = 60_000;
 const DAY_MS = 24 * 60 * MINUTE_MS;
@@ -149,11 +151,17 @@ export function weightedPick<T>(
 	const total = weights.reduce((sum, w) => sum + Math.max(0, w), 0);
 	if (total <= 0) return items[Math.floor(random() * items.length)];
 	let r = random() * total;
+	let lastPositive = 0;
 	for (let i = 0; i < items.length; i++) {
-		r -= Math.max(0, weights[i]);
+		const w = Math.max(0, weights[i]);
+		if (w <= 0) continue;
+		lastPositive = i;
+		r -= w;
 		if (r < 0) return items[i];
 	}
-	return items[items.length - 1];
+	// Floating-point drift can leave r >= 0 after the last subtraction; fall
+	// back to the last item that actually carries weight, never a zero one.
+	return items[lastPositive];
 }
 
 /**
@@ -175,54 +183,8 @@ export function pickSpacedCase(
 	return weightedPick(cases, weights, random);
 }
 
-/** Keys of every noun cell for the given paradigms, case and numbers. */
-export function nounCellKeysForCase(
-	paradigms: readonly string[],
-	case_: Case,
-	numbers: readonly Number_[]
-): string[] {
-	const keys: string[] = [];
-	for (const paradigm of paradigms) {
-		for (const number_ of numbers) keys.push(nounCellKey(paradigm, case_, number_));
-	}
-	return keys;
-}
-
-/** Keys of every adjective cell for the given paradigm types, genders, case and numbers. */
-export function adjectiveCellKeysForCase(
-	paradigmTypes: readonly AdjectiveParadigmType[],
-	genderKeys: readonly AdjectiveGenderKey[],
-	case_: Case,
-	numbers: readonly Number_[]
-): string[] {
-	const keys: string[] = [];
-	for (const type of paradigmTypes) {
-		for (const gender of genderKeys) {
-			for (const number_ of numbers) keys.push(adjectiveCellKey(type, gender, case_, number_));
-		}
-	}
-	return keys;
-}
-
-/** Keys of every pronoun cell for the given lemmas, case and numbers. */
-export function pronounCellKeysForCase(
-	lemmas: readonly string[],
-	case_: Case,
-	numbers: readonly Number_[]
-): string[] {
-	const keys: string[] = [];
-	for (const lemma of lemmas) {
-		for (const number_ of numbers) keys.push(pronounCellKey(lemma, case_, number_));
-	}
-	return keys;
-}
-
-function isRecordLike(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 export function isValidCellState(value: unknown): value is CellState {
-	if (!isRecordLike(value)) return false;
+	if (!isRecord(value)) return false;
 	const last = value['last'];
 	const box = value['box'];
 	const streak = value['streak'];
@@ -240,20 +202,53 @@ export function isValidCellState(value: unknown): value is CellState {
 	);
 }
 
+const MAX_CELL_KEY_LENGTH = 80;
+const ADJECTIVE_TYPES: ReadonlySet<string> = new Set(['hard', 'soft']);
+const GENDER_KEYS: ReadonlySet<string> = new Set(ALL_ADJECTIVE_GENDER_KEYS);
+
 /**
- * Keep the well-formed cells of an untrusted schedule and drop the rest, with
- * any `last` in the future clamped to `now`. Per-entry rather than
- * all-or-nothing: one bad cell (a client on another version, a skewed clock,
- * a hand edit) must never throw away every other cell — or, on the client,
- * the whole progress record. The spacing state only steers selection, so
- * losing a single entry is harmless.
+ * Does a key follow the cell grammar this module produces? Anything else is
+ * dropped on load so a stale or tampered client cannot park garbage keys in
+ * the schedule that every later merge would carry along forever.
+ *
+ *   n:<paradigm>:<case>:<number>
+ *   a:<hard|soft>:<gender>:<case>:<number>
+ *   p:<lemma>:<case>:<number>
+ *   c:<case>:<number>
  */
-export function sanitizeCellSchedule(value: unknown, now: number): CellSchedule {
-	if (!isRecordLike(value)) return {};
+export function isCellKey(key: string): boolean {
+	if (key.length === 0 || key.length > MAX_CELL_KEY_LENGTH) return false;
+	const parts = key.split(':');
+	const tail = (from: number): boolean =>
+		parts.length === from + 2 && isCase(parts[from]) && isNumber(parts[from + 1]);
+	switch (parts[0]) {
+		case 'n':
+		case 'p':
+			return parts[1].length > 0 && tail(2);
+		case 'a':
+			return ADJECTIVE_TYPES.has(parts[1]) && GENDER_KEYS.has(parts[2]) && tail(3);
+		case 'c':
+			return tail(1);
+		default:
+			return false;
+	}
+}
+
+/**
+ * Keep the well-formed cells of an untrusted schedule and drop the rest.
+ * Per-entry rather than all-or-nothing: one bad cell (a client on another
+ * version, a hand edit) must never throw away every other cell — or, on the
+ * client, the whole progress record. Timestamps are kept as they are:
+ * `cellWeight` already treats a future `last` as "just seen", and rewriting
+ * it here would let a device with a slow clock persist wrong times for cells
+ * another device wrote.
+ */
+export function sanitizeCellSchedule(value: unknown): CellSchedule {
+	if (!isRecord(value)) return {};
 	const out: CellSchedule = {};
 	for (const [key, state] of Object.entries(value)) {
-		if (!isValidCellState(state)) continue;
-		out[key] = { last: Math.min(state.last, now), box: state.box, streak: state.streak };
+		if (!isCellKey(key) || !isValidCellState(state)) continue;
+		out[key] = { last: state.last, box: state.box, streak: state.streak };
 	}
 	return out;
 }

@@ -8,6 +8,7 @@ import type {
 	Case,
 	CellSchedule
 } from '../types.ts';
+import { isRecord } from '../utils/is-record.ts';
 import { adjectiveParadigmKey, getAdjectiveGenderKey } from './adjective-drill.ts';
 import {
 	adjectiveCellKey,
@@ -23,38 +24,25 @@ import {
 export const STORAGE_KEY = 'sklonuj_progress';
 export const STORAGE_USER_KEY = 'sklonuj_progress_user';
 
-const DEFAULT_PROGRESS: Progress = {
-	level: 'A1',
-	caseScores: {},
-	paradigmScores: {},
-	lemmaScores: {},
-	cellSchedule: {},
-	lastSession: '',
-	longestStreak: 0
-};
-
 function emptyProgress(): Progress {
 	return {
-		...DEFAULT_PROGRESS,
+		level: 'A1',
 		caseScores: {},
 		paradigmScores: {},
 		lemmaScores: {},
 		cellSchedule: {},
+		lastSession: '',
 		longestStreak: 0
 	};
 }
 
-export function isRecordLike(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 export function isValidCaseScore(value: unknown): value is CaseScore {
-	if (!isRecordLike(value)) return false;
+	if (!isRecord(value)) return false;
 	return typeof value['attempts'] === 'number' && typeof value['correct'] === 'number';
 }
 
 export function isValidScoresRecord(value: unknown): value is Record<string, CaseScore> {
-	if (!isRecordLike(value)) return false;
+	if (!isRecord(value)) return false;
 	for (const [, v] of Object.entries(value)) {
 		if (!isValidCaseScore(v)) return false;
 	}
@@ -62,7 +50,7 @@ export function isValidScoresRecord(value: unknown): value is Record<string, Cas
 }
 
 export function isValidProgress(value: unknown): value is Progress {
-	if (!isRecordLike(value)) return false;
+	if (!isRecord(value)) return false;
 	const rec = value;
 
 	if (
@@ -113,7 +101,7 @@ function loadFromStorage(): Progress {
 		if (isValidProgress(parsed)) {
 			parsed.paradigmScores ??= {};
 			parsed.lemmaScores ??= {};
-			parsed.cellSchedule = sanitizeCellSchedule(parsed.cellSchedule, Date.now());
+			parsed.cellSchedule = sanitizeCellSchedule(parsed.cellSchedule);
 			// Backwards compat: older payloads didn't track longestStreak.
 			if (typeof parsed.longestStreak !== 'number') {
 				parsed.longestStreak = 0;
@@ -439,7 +427,7 @@ export function getAllCaseStrengths(): Record<Case, { accuracy: number; attempts
 /**
  * Pick a case for the next question, weighted by how due its spacing cells
  * are. `cellKeysForCase` lists the cells the current pool can drill in a case
- * (see `nounCellKeysForCase` & co. in spacing.ts); a case whose cells are due
+ * (see `nounCellsByCase` & co. in cell-pools.ts); a case whose cells are due
  * or never seen is favoured, one just practised drops back.
  */
 export function pickWeightedCase(

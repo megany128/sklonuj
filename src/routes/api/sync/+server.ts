@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { isRecord } from '$lib/utils/is-record';
 import type { RequestHandler } from './$types';
 import type { CellSchedule } from '$lib/types';
 import { mergeCellSchedules, sanitizeCellSchedule } from '$lib/engine/spacing';
@@ -12,10 +13,6 @@ const MAX_REQUEST_BYTES = 256 * 1024; // 256KB
 // case × number, pronoun × case × number) is well under this; anything bigger
 // is a bogus payload.
 const MAX_CELL_SCHEDULE_KEYS = 2000;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 function isValidLevel(value: unknown): value is Level {
 	return typeof value === 'string' && VALID_LEVELS.has(value);
@@ -99,14 +96,12 @@ interface ValidatedProgress {
 }
 
 /**
- * Bound the key count, then keep the well-formed cells and clamp any `last`
- * in the future to now. Malformed cells are dropped rather than failing the
- * whole sync: a skewed clock on one device must not block progress sync
- * from every device.
+ * Bound the key count, then keep only well-formed cells under known keys.
+ * Malformed cells are dropped rather than failing the whole sync, so one
+ * bad entry from one device cannot block progress sync from every device.
  */
 function validateCellSchedule(
-	value: unknown,
-	now: number
+	value: unknown
 ): { valid: true; data: CellSchedule } | { valid: false; reason: string } {
 	if (!isRecord(value)) return { valid: false, reason: 'progress.cellSchedule must be an object' };
 	if (Object.keys(value).length > MAX_CELL_SCHEDULE_KEYS)
@@ -114,7 +109,7 @@ function validateCellSchedule(
 			valid: false,
 			reason: `progress.cellSchedule may have at most ${MAX_CELL_SCHEDULE_KEYS} entries`
 		};
-	return { valid: true, data: sanitizeCellSchedule(value, now) };
+	return { valid: true, data: sanitizeCellSchedule(value) };
 }
 
 interface ValidatedSession {
@@ -159,7 +154,7 @@ function validateProgress(
 	const rawCellSchedule = value['cellSchedule'];
 	let cellSchedule: CellSchedule | null = null;
 	if (rawCellSchedule !== undefined) {
-		const cellResult = validateCellSchedule(rawCellSchedule, Date.now());
+		const cellResult = validateCellSchedule(rawCellSchedule);
 		if (!cellResult.valid) return cellResult;
 		cellSchedule = cellResult.data;
 	}
@@ -473,7 +468,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 				mergedLongestStreak = existingValue;
 			}
 			if (cellSchedule !== null) {
-				const existingCells = sanitizeCellSchedule(existingProgress.cell_schedule, Date.now());
+				const existingCells = sanitizeCellSchedule(existingProgress.cell_schedule);
 				mergedCellSchedule = mergeCellSchedules(cellSchedule, existingCells);
 			}
 		}

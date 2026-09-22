@@ -2320,13 +2320,17 @@
 	 * count; when none in that case does, fall back to the whole pool rather
 	 * than hand `pickTemplate` an all-empty list.
 	 */
-	function preferCase<T extends { requiredCase: Case }>(
+	function preferCase<T extends { id: string; requiredCase: Case }>(
 		templates: T[],
 		case_: Case,
 		poolSize: (template: T) => number
 	): T[] {
 		const matching = templates.filter((t) => t.requiredCase === case_ && poolSize(t) > 0);
-		return matching.length > 0 ? matching : templates;
+		// Narrowing to a case with only recently used templates would defeat
+		// pickTemplate's de-dup and repeat the same sentence back to back, so
+		// only prefer the case while it still has a fresh template.
+		const fresh = matching.some((t) => !recentTemplateIds.includes(t.id));
+		return fresh ? matching : templates;
 	}
 
 	/**
@@ -2540,7 +2544,12 @@
 			caseIdPool.length === 1
 				? caseIdPool[0]
 				: (() => {
-						const cells = pronounCellsByCase(candidates, caseIdPool, allowedNumbers());
+						const cells = pronounCellsByCase(
+							candidates,
+							caseIdPool,
+							allowedNumbers(),
+							drillType === 'case_identification' ? 'recognition' : 'production'
+						);
 						return pickWeightedCase(caseIdPool, (c) => cells.get(c) ?? []);
 					})();
 
@@ -3031,7 +3040,12 @@
 		const case_ =
 			selectedCase === 'all'
 				? (() => {
-						const cells = nounCellsByCase(eligibleWords, casePool, allowedNumbers());
+						const cells = nounCellsByCase(
+							eligibleWords,
+							casePool,
+							allowedNumbers(),
+							drillType === 'case_identification' ? 'recognition' : 'production'
+						);
 						return pickWeightedCase(casePool, (c) => cells.get(c) ?? []);
 					})()
 				: selectedCase;
