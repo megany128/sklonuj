@@ -7,7 +7,7 @@
 	import { get } from 'svelte/store';
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
-	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
+	import { progress, STORAGE_USER_KEY, resetProgress } from '$lib/engine/progress';
 	import { sanitizeCellSchedule } from '$lib/engine/spacing';
 	import {
 		syncBadgesToSupabase,
@@ -218,15 +218,7 @@
 	}
 
 	function clearProgress(): void {
-		progress.set({
-			level: 'A1',
-			caseScores: {},
-			paradigmScores: {},
-			lemmaScores: {},
-			cellSchedule: {},
-			lastSession: '',
-			longestStreak: 0
-		});
+		resetProgress();
 		clearStreak();
 		clearMistakes();
 		clearBadges();

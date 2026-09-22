@@ -11,9 +11,9 @@ import {
 	adjectiveCellKey,
 	adjectiveCellKeysForCase,
 	advanceCell,
+	caseCellKey,
 	caseWeight,
 	cellWeight,
-	isValidCellSchedule,
 	isValidCellState,
 	mergeCellSchedules,
 	nounCellKey,
@@ -21,7 +21,8 @@ import {
 	pickSpacedCase,
 	pronounCellKey,
 	pronounCellKeysForCase,
-	sanitizeCellSchedule
+	sanitizeCellSchedule,
+	weightedPick
 } from './spacing.ts';
 
 const MINUTE_MS = 60_000;
@@ -32,6 +33,7 @@ describe('cell keys', () => {
 		expect(nounCellKey('hrad', 'gen', 'sg')).toBe('n:hrad:gen:sg');
 		expect(adjectiveCellKey('hard', 'm_anim', 'acc', 'pl')).toBe('a:hard:m_anim:acc:pl');
 		expect(pronounCellKey('já', 'dat', 'sg')).toBe('p:já:dat:sg');
+		expect(caseCellKey('loc', 'pl')).toBe('c:loc:pl');
 	});
 
 	it('expands paradigms × numbers for a case', () => {
@@ -96,32 +98,65 @@ describe('cellWeight', () => {
 
 describe('advanceCell', () => {
 	it('starts a new cell in box 1 on a correct answer', () => {
-		expect(advanceCell(undefined, true, 42)).toEqual({ last: 42, box: 1, streak: 1 });
+		expect(advanceCell(undefined, 'correct', 42)).toEqual({ last: 42, box: 1, streak: 1 });
 	});
 
 	it('starts a new cell in box 0 on a miss', () => {
-		expect(advanceCell(undefined, false, 42)).toEqual({ last: 42, box: 0, streak: 0 });
+		expect(advanceCell(undefined, 'incorrect', 42)).toEqual({ last: 42, box: 0, streak: 0 });
 	});
 
 	it('moves up one box per correct answer, capped at the top box', () => {
-		let state = advanceCell(undefined, true, 1);
-		for (let i = 0; i < 10; i++) state = advanceCell(state, true, i + 2);
+		let state = advanceCell(undefined, 'correct', 1);
+		for (let i = 0; i < 10; i++) state = advanceCell(state, 'correct', i + 2);
 		expect(state.box).toBe(MAX_BOX);
 		expect(state.streak).toBe(11);
 		expect(state.last).toBe(11);
 	});
 
 	it('drops two boxes on a miss, floored at zero, and resets the streak', () => {
-		expect(advanceCell({ last: 0, box: 4, streak: 4 }, false, 7)).toEqual({
+		expect(advanceCell({ last: 0, box: 4, streak: 4 }, 'incorrect', 7)).toEqual({
 			last: 7,
 			box: 2,
 			streak: 0
 		});
-		expect(advanceCell({ last: 0, box: 1, streak: 1 }, false, 7)).toEqual({
+		expect(advanceCell({ last: 0, box: 1, streak: 1 }, 'incorrect', 7)).toEqual({
 			last: 7,
 			box: 0,
 			streak: 0
 		});
+	});
+});
+
+describe('advanceCell on skip', () => {
+	it('drops one box on a skip, not two, and resets the streak', () => {
+		expect(advanceCell({ last: 0, box: 5, streak: 9 }, 'skipped', 3)).toEqual({
+			last: 3,
+			box: 4,
+			streak: 0
+		});
+		expect(advanceCell(undefined, 'skipped', 3)).toEqual({ last: 3, box: 0, streak: 0 });
+	});
+});
+
+describe('weightedPick', () => {
+	it('throws on an empty list', () => {
+		expect(() => weightedPick([], [], () => 0)).toThrow(
+			'weightedPick called with empty items array'
+		);
+	});
+
+	it('picks proportionally and never lands on a zero-weight item', () => {
+		const items = ['a', 'b', 'c'];
+		expect(weightedPick(items, [0, 1, 3], () => 0)).toBe('b');
+		expect(weightedPick(items, [0, 1, 3], () => 0.24)).toBe('b');
+		expect(weightedPick(items, [0, 1, 3], () => 0.26)).toBe('c');
+		expect(weightedPick(items, [0, 1, 3], () => 0.999)).toBe('c');
+	});
+
+	it('falls back to a uniform pick when every weight is zero', () => {
+		const items = ['a', 'b', 'c'];
+		expect(weightedPick(items, [0, 0, 0], () => 0.5)).toBe('b');
+		expect(weightedPick(items, [-1, 0, 0], () => 0.9)).toBe('c');
 	});
 });
 
@@ -133,12 +168,32 @@ describe('caseWeight / pickSpacedCase', () => {
 		'n:hrad:dat:sg': { last: now - 20 * DAY_MS, box: 2, streak: 2 } // long overdue
 	};
 
-	it('averages over the cells a case can drill and treats an empty list as new', () => {
+	it('averages over the cells a case can drill and gives an undrillable case no weight', () => {
 		expect(caseWeight(['n:hrad:gen:sg', 'n:žena:gen:sg'], schedule, now)).toBe(W_FLOOR);
 		expect(caseWeight(['n:hrad:dat:sg', 'n:žena:dat:sg'], schedule, now)).toBeCloseTo(
 			(W_MAX + W_NEW) / 2
 		);
-		expect(caseWeight([], schedule, now)).toBe(W_NEW);
+		expect(caseWeight([], schedule, now)).toBe(0);
+	});
+
+	it('never picks a case with no drillable cells while another has some', () => {
+		const keys = (c: 'gen' | 'voc' | 'dat' | 'nom' | 'acc' | 'loc' | 'ins'): string[] =>
+			c === 'voc' ? [] : ['n:hrad:gen:sg'];
+		for (const draw of [0, 0.3, 0.7, 0.999]) {
+			expect(pickSpacedCase(['voc', 'gen'], keys, schedule, now, () => draw)).toBe('gen');
+		}
+	});
+
+	it('picks uniformly when no case has drillable cells', () => {
+		expect(
+			pickSpacedCase(
+				['gen', 'dat'],
+				() => [],
+				schedule,
+				now,
+				() => 0.6
+			)
+		).toBe('dat');
 	});
 
 	it('throws on an empty case list', () => {
@@ -194,14 +249,6 @@ describe('validation', () => {
 		expect(isValidCellState({ last: 0, box: 0 })).toBe(false);
 		expect(isValidCellState(null)).toBe(false);
 		expect(isValidCellState([])).toBe(false);
-	});
-
-	it('validates every entry of a schedule', () => {
-		expect(isValidCellSchedule({})).toBe(true);
-		expect(isValidCellSchedule({ a: { last: 0, box: 0, streak: 0 } })).toBe(true);
-		expect(isValidCellSchedule({ a: { last: 0, box: 9, streak: 0 } })).toBe(false);
-		expect(isValidCellSchedule([])).toBe(false);
-		expect(isValidCellSchedule('nope')).toBe(false);
 	});
 });
 

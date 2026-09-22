@@ -28,7 +28,7 @@ import {
 } from './adjective-drill';
 import { loadPronounBank, getPronounForm } from './pronoun-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
-import { cellWeight, nounCellKey, W_MAX } from './spacing';
+import { cellWeight, nounCellKey, W_MAX, weightedPick } from './spacing';
 
 export { applyPrepositionVoicing };
 
@@ -865,15 +865,5 @@ export function weightedRandom(
 		return lemmaWeight * paradigmWeight;
 	});
 
-	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let r = random() * totalWeight;
-
-	for (let i = 0; i < candidates.length; i++) {
-		r -= weights[i];
-		if (r < 0) {
-			return candidates[i];
-		}
-	}
-
-	return candidates[candidates.length - 1];
+	return weightedPick(candidates, weights, random);
 }

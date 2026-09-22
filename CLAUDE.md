@@ -57,7 +57,7 @@ pnpm test             # vitest --run
 - `preposition-voicing.ts` — pure voicing rules.
 - `lemma-blocks.ts` — O(1) lookup over baked admin-curated block list.
 - `progress.ts` — Svelte writable + localStorage; `caseScores`, `paradigmScores`, `lemmaScores`, `cellSchedule`, `longestStreak`, `level`, `lastSession`. `pickWeightedCase` delegates to `spacing.ts`.
-- `spacing.ts` — pure spaced-weighting over cells (noun paradigm × case × number, adjective type × gender × case × number, pronoun × case × number): Leitner box per cell (+1 correct, −2 miss), weight ramps from 0.5 just after an attempt to 4 when due (10 min, 1, 3, 7, 14, 30 d), capped at 5.75; unseen = 3. Drives case, noun-paradigm, adjective and pronoun pickers; lemma weighting inside a cell still picks the exemplar. Only production answers advance a cell (not `case_identification`). `sanitizeCellSchedule` is per-entry — never all-or-nothing.
+- `spacing.ts` — pure spaced-weighting over cells (noun paradigm × case × number, adjective type × gender × case × number, pronoun × case × number): Leitner box per cell (+1 correct, −2 miss), weight ramps from 0.5 just after an attempt to 4 when due (10 min, 1, 3, 7, 14, 30 d), capped at 5.75; unseen = 3. Drives case, noun-paradigm, adjective and pronoun pickers; lemma weighting inside a cell still picks the exemplar. Production answers advance the paradigm cell; `case_identification` advances a per-case recognition cell (`c:<case>:<number>`) instead; a skip drops one box, a miss two. `sanitizeCellSchedule` is per-entry — never all-or-nothing.
 - `progress-merge.ts` — max-wins merge of local + remote on login (preserves longest streak, sums attempts safely).
 - `mistakes.ts`, `streak.ts`, `achievements.ts`, `guest-sessions.ts` — supporting state.
 
