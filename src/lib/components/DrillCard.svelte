@@ -713,9 +713,9 @@
 							{#if !submitted}
 								<button
 									type="submit"
-									class="shrink-0 rounded-[48px] px-5 text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 sm:px-6 {isSkip
-										? 'border-2 border-card-stroke bg-card-bg text-text-subtitle'
-										: 'bg-emphasis text-text-inverted'}"
+									class="min-w-[5.5rem] shrink-0 rounded-[16px] border-2 px-5 text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 sm:min-w-[6rem] sm:rounded-[20px] sm:px-6 {isSkip
+										? 'border-card-stroke bg-card-bg text-text-subtitle'
+										: 'border-emphasis bg-emphasis text-text-inverted'}"
 								>
 									{isSkip ? 'Skip' : 'Check'}
 								</button>

@@ -6,7 +6,6 @@ import type {
 	Case,
 	CaseForms,
 	CaseIndex,
-	CaseScore,
 	Difficulty,
 	DrillQuestion,
 	DrillResult,
@@ -24,6 +23,7 @@ import blockedAdjNounPairsData from '../data/blocked_adj_noun_pairs.json';
 import wordBankData from '../data/word_bank.json';
 import { stripDiacritics } from '../utils/diacritics';
 import { getBlockedLemmaSet } from './lemma-blocks';
+import { adjectiveCellKey, cellWeight } from './spacing';
 
 // Hand-curated list of adjective+noun lemma pairs that the engine should never
 // surface, even when the profile/category compatibility check passes. Used for
@@ -507,32 +507,37 @@ export function checkAdjectiveAnswer(
 // 9. weightedRandomAdjective — pick adjective weighted by weakness
 // ---------------------------------------------------------------------------
 
+/**
+ * Pick an adjective weighted by how due its spacing cell is. Adjectives are
+ * regular, so the cell is paradigm type (hard/soft) × gender × case × number
+ * rather than the lemma: every hard adjective in the same slot exercises the
+ * same ending.
+ */
 export function weightedRandomAdjective(
 	candidates: AdjectiveEntry[],
 	progress: Progress,
 	case_: Case,
 	number_: Number_,
-	word: WordEntry
+	word: WordEntry,
+	now: number = Date.now(),
+	random: () => number = Math.random
 ): AdjectiveEntry {
 	if (candidates.length === 0) {
 		throw new Error('weightedRandomAdjective called with empty candidates array');
 	}
 
 	const genderKey = getAdjectiveGenderKey(word);
-	const weights = candidates.map((adj) => {
-		const paradigmKey = adjectiveParadigmKey(adj.lemma, genderKey, case_, number_);
-		const score: CaseScore | undefined = progress.paradigmScores[paradigmKey];
-		const rawAccuracy = score && score.attempts > 0 ? score.correct / score.attempts : 0;
-		const accuracy = Math.min(rawAccuracy, 1);
-		return 1 / (accuracy + 0.1);
-	});
+	const schedule = progress.cellSchedule ?? {};
+	const weights = candidates.map((adj) =>
+		cellWeight(schedule[adjectiveCellKey(adj.paradigmType, genderKey, case_, number_)], now)
+	);
 
 	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let random = Math.random() * totalWeight;
+	let r = random() * totalWeight;
 
 	for (let i = 0; i < candidates.length; i++) {
-		random -= weights[i];
-		if (random <= 0) {
+		r -= weights[i];
+		if (r < 0) {
 			return candidates[i];
 		}
 	}

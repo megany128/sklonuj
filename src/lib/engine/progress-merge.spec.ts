@@ -8,6 +8,7 @@ function emptyProgress(overrides: Partial<Progress> = {}): Progress {
 		caseScores: {},
 		paradigmScores: {},
 		lemmaScores: {},
+		cellSchedule: {},
 		lastSession: '',
 		longestStreak: 0,
 		...overrides
@@ -126,6 +127,7 @@ describe('mergeProgress', () => {
 			caseScores: { gen_sg: { attempts: 2, correct: 1 } },
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -147,6 +149,7 @@ describe('mergeProgress', () => {
 				hrad_gen_sg: { attempts: 10, correct: 8 }
 			},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '2024-06-15',
 			longestStreak: 7
 		};
@@ -160,6 +163,7 @@ describe('mergeProgress', () => {
 				žena_dat_pl: { attempts: 3, correct: 3 }
 			},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '2024-05-01',
 			longestStreak: 4
 		};
@@ -185,5 +189,38 @@ describe('mergeProgress', () => {
 		const local = emptyProgress();
 		const remote = emptyProgress({ longestStreak: 9 });
 		expect(mergeProgress(local, remote).longestStreak).toBe(9);
+	});
+
+	it('merges cellSchedule by latest attempt per cell, keeping one-sided cells', () => {
+		const local = emptyProgress({
+			cellSchedule: {
+				'n:hrad:gen:sg': { last: 2000, box: 2, streak: 2 },
+				'n:žena:dat:pl': { last: 500, box: 1, streak: 1 }
+			}
+		});
+		const remote = emptyProgress({
+			cellSchedule: {
+				'n:hrad:gen:sg': { last: 1000, box: 4, streak: 4 },
+				'p:já:acc:sg': { last: 900, box: 0, streak: 0 }
+			}
+		});
+		expect(mergeProgress(local, remote).cellSchedule).toEqual({
+			'n:hrad:gen:sg': { last: 2000, box: 2, streak: 2 },
+			'n:žena:dat:pl': { last: 500, box: 1, streak: 1 },
+			'p:já:acc:sg': { last: 900, box: 0, streak: 0 }
+		});
+	});
+
+	it('treats a missing cellSchedule on either side as empty', () => {
+		const withCells = emptyProgress({ cellSchedule: { k: { last: 1, box: 1, streak: 1 } } });
+		const { cellSchedule: _dropped, ...legacy } = emptyProgress();
+		void _dropped;
+		const legacyProgress: Progress = { ...legacy, cellSchedule: {} };
+		expect(mergeProgress(legacyProgress, withCells).cellSchedule).toEqual({
+			k: { last: 1, box: 1, streak: 1 }
+		});
+		expect(mergeProgress(withCells, legacyProgress).cellSchedule).toEqual({
+			k: { last: 1, box: 1, streak: 1 }
+		});
 	});
 });

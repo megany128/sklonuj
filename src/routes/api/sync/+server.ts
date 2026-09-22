@@ -1,9 +1,17 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import type { CellSchedule } from '$lib/types';
+import { isValidCellSchedule } from '$lib/engine/spacing';
 
 type Level = 'A1' | 'A2' | 'B1' | 'B2';
 const VALID_LEVELS: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2']);
 const MAX_REQUEST_BYTES = 100 * 1024; // 100KB
+// Every drillable cell (noun paradigm × case × number, adjective type × gender ×
+// case × number, pronoun × case × number) is well under this; anything bigger
+// is a bogus payload.
+const MAX_CELL_SCHEDULE_KEYS = 2000;
+// A cell's `last` is a client clock reading; allow a day of skew, no more.
+const MAX_CLOCK_SKEW_MS = 86_400_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -84,8 +92,39 @@ interface ValidatedProgress {
 	caseScores: Record<string, { attempts: number; correct: number }>;
 	paradigmScores: Record<string, { attempts: number; correct: number }>;
 	lemmaScores: Record<string, { attempts: number; correct: number }>;
+	cellSchedule: CellSchedule;
 	lastSession: string;
 	longestStreak: number;
+}
+
+/**
+ * Shape check plus the server-side caps `isValidCellSchedule` does not apply:
+ * a bounded key count and no `last` timestamp meaningfully in the future.
+ */
+function validateCellSchedule(
+	value: unknown,
+	now: number
+): { valid: true; data: CellSchedule } | { valid: false; reason: string } {
+	if (!isValidCellSchedule(value))
+		return {
+			valid: false,
+			reason:
+				'progress.cellSchedule must be a record of { last: number, box: integer 0..5, streak: integer >= 0 }'
+		};
+	if (Object.keys(value).length > MAX_CELL_SCHEDULE_KEYS)
+		return {
+			valid: false,
+			reason: `progress.cellSchedule may have at most ${MAX_CELL_SCHEDULE_KEYS} entries`
+		};
+	const maxLast = now + MAX_CLOCK_SKEW_MS;
+	for (const state of Object.values(value)) {
+		if (state.last > maxLast)
+			return {
+				valid: false,
+				reason: 'progress.cellSchedule entries must not have `last` more than 1 day in the future'
+			};
+	}
+	return { valid: true, data: value };
 }
 
 interface ValidatedSession {
@@ -125,6 +164,15 @@ function validateProgress(
 			reason: 'progress.lemmaScores must be a record of { attempts: number, correct: number }'
 		};
 
+	// cellSchedule is optional for backwards compatibility (older clients omit it).
+	const rawCellSchedule = value['cellSchedule'];
+	let cellSchedule: CellSchedule = {};
+	if (rawCellSchedule !== undefined) {
+		const cellResult = validateCellSchedule(rawCellSchedule, Date.now());
+		if (!cellResult.valid) return cellResult;
+		cellSchedule = cellResult.data;
+	}
+
 	const lastSession = value['lastSession'];
 	if (!isValidIsoDateString(lastSession))
 		return { valid: false, reason: 'progress.lastSession must be a valid ISO date string' };
@@ -157,6 +205,7 @@ function validateProgress(
 			caseScores,
 			paradigmScores,
 			lemmaScores,
+			cellSchedule,
 			lastSession,
 			longestStreak
 		}
@@ -405,8 +454,15 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			return json({ error: progressResult.reason }, { status: 400 });
 		}
 
-		const { level, caseScores, paradigmScores, lemmaScores, lastSession, longestStreak } =
-			progressResult.data;
+		const {
+			level,
+			caseScores,
+			paradigmScores,
+			lemmaScores,
+			cellSchedule,
+			lastSession,
+			longestStreak
+		} = progressResult.data;
 
 		// Read existing longest_answer_streak so a stale client payload can't
 		// shrink the all-time maximum. We take MAX(existing, incoming).
@@ -431,6 +487,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 				case_scores: caseScores,
 				paradigm_scores: paradigmScores,
 				lemma_scores: lemmaScores,
+				cell_schedule: cellSchedule,
 				last_session: lastSession,
 				longest_answer_streak: mergedLongestStreak,
 				updated_at: new Date().toISOString()

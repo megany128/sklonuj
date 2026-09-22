@@ -5,9 +5,19 @@ import type {
 	MultiStepResult,
 	Difficulty,
 	CaseScore,
-	Case
+	Case,
+	CellSchedule,
+	CellState
 } from '../types.ts';
 import { getAdjectiveGenderKey } from './adjective-drill.ts';
+import {
+	adjectiveCellKey,
+	advanceCell,
+	isValidCellSchedule,
+	nounCellKey,
+	pickSpacedCase,
+	pronounCellKey
+} from './spacing.ts';
 
 export const STORAGE_KEY = 'sklonuj_progress';
 export const STORAGE_USER_KEY = 'sklonuj_progress_user';
@@ -17,9 +27,21 @@ const DEFAULT_PROGRESS: Progress = {
 	caseScores: {},
 	paradigmScores: {},
 	lemmaScores: {},
+	cellSchedule: {},
 	lastSession: '',
 	longestStreak: 0
 };
+
+function emptyProgress(): Progress {
+	return {
+		...DEFAULT_PROGRESS,
+		caseScores: {},
+		paradigmScores: {},
+		lemmaScores: {},
+		cellSchedule: {},
+		longestStreak: 0
+	};
+}
 
 export function isRecordLike(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -62,6 +84,11 @@ export function isValidProgress(value: unknown): value is Progress {
 		return false;
 	}
 
+	// cellSchedule is optional for backwards compatibility — accept when missing.
+	if (rec['cellSchedule'] !== undefined && !isValidCellSchedule(rec['cellSchedule'])) {
+		return false;
+	}
+
 	// longestStreak is optional for backwards compatibility (older payloads
 	// didn't have it). When present it must be a non-negative number.
 	const longestStreak = rec['longestStreak'];
@@ -76,45 +103,26 @@ export function isValidProgress(value: unknown): value is Progress {
 }
 
 function loadFromStorage(): Progress {
-	if (typeof window === 'undefined')
-		return {
-			...DEFAULT_PROGRESS,
-			caseScores: {},
-			paradigmScores: {},
-			lemmaScores: {},
-			longestStreak: 0
-		};
+	if (typeof window === 'undefined') return emptyProgress();
 
 	try {
 		const raw = localStorage.getItem(STORAGE_KEY);
-		if (raw === null)
-			return { ...DEFAULT_PROGRESS, caseScores: {}, paradigmScores: {}, lemmaScores: {} };
+		if (raw === null) return emptyProgress();
 
 		const parsed: unknown = JSON.parse(raw);
 		if (isValidProgress(parsed)) {
 			parsed.paradigmScores ??= {};
 			parsed.lemmaScores ??= {};
+			parsed.cellSchedule ??= {};
 			// Backwards compat: older payloads didn't track longestStreak.
 			if (typeof parsed.longestStreak !== 'number') {
 				parsed.longestStreak = 0;
 			}
 			return parsed;
 		}
-		return {
-			...DEFAULT_PROGRESS,
-			caseScores: {},
-			paradigmScores: {},
-			lemmaScores: {},
-			longestStreak: 0
-		};
+		return emptyProgress();
 	} catch {
-		return {
-			...DEFAULT_PROGRESS,
-			caseScores: {},
-			paradigmScores: {},
-			lemmaScores: {},
-			longestStreak: 0
-		};
+		return emptyProgress();
 	}
 }
 
@@ -149,6 +157,28 @@ export function recordResult(result: DrillResult): void {
 				: result.question.wordCategory === 'pronoun' && result.question.pronoun
 					? `pronoun_${result.question.pronoun.lemma}_${result.question.case}_${result.question.number}`
 					: `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
+
+		// Spacing cell: the rule the question exercises (paradigm × case × number).
+		const cellKey =
+			result.question.wordCategory === 'adjective' && result.question.adjective
+				? adjectiveCellKey(
+						result.question.adjective.paradigmType,
+						getAdjectiveGenderKey(result.question.word),
+						result.question.case,
+						result.question.number
+					)
+				: result.question.wordCategory === 'pronoun' && result.question.pronoun
+					? pronounCellKey(
+							result.question.pronoun.lemma,
+							result.question.case,
+							result.question.number
+						)
+					: nounCellKey(
+							result.question.word.paradigm,
+							result.question.case,
+							result.question.number
+						);
+		const now = Date.now();
 		const existingParadigm: CaseScore = current.paradigmScores[paradigmKey] ?? {
 			attempts: 0,
 			correct: 0
@@ -191,6 +221,10 @@ export function recordResult(result: DrillResult): void {
 			lemmaScores: {
 				...(current.lemmaScores ?? {}),
 				...lemmaScoreUpdates
+			},
+			cellSchedule: {
+				...(current.cellSchedule ?? {}),
+				[cellKey]: advanceCell(current.cellSchedule?.[cellKey], result.correct, now)
 			},
 			lastSession: new Date().toISOString().slice(0, 10)
 		};
@@ -237,6 +271,17 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 			correct: existingParadigm.correct + (result.formCorrect ? 1 : 0)
 		};
 
+		// Spacing cells: the noun cell follows the form step (the only step that
+		// exercises the ending), the adjective cell its own step when shown.
+		const now = Date.now();
+		const cellUpdates: CellSchedule = {};
+		const nounKey = nounCellKey(
+			result.question.correctParadigm,
+			result.question.case,
+			result.question.number
+		);
+		cellUpdates[nounKey] = advanceCell(current.cellSchedule?.[nounKey], result.formCorrect, now);
+
 		// Record adjective form accuracy (if adjective step was present)
 		if (
 			result.question.adjective &&
@@ -252,6 +297,17 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 				attempts: existingAdj.attempts + 1,
 				correct: existingAdj.correct + (result.adjectiveCorrect ? 1 : 0)
 			};
+			const adjCellKey = adjectiveCellKey(
+				result.question.adjective.paradigmType,
+				getAdjectiveGenderKey(result.question.word),
+				result.question.case,
+				result.question.number
+			);
+			cellUpdates[adjCellKey] = advanceCell(
+				current.cellSchedule?.[adjCellKey],
+				result.adjectiveCorrect,
+				now
+			);
 		}
 
 		// Per-lemma score for the noun in the multi-step question, gated on the
@@ -282,6 +338,10 @@ export function recordMultiStepResult(result: MultiStepResult): void {
 				...(current.lemmaScores ?? {}),
 				...lemmaScoreUpdates
 			},
+			cellSchedule: {
+				...(current.cellSchedule ?? {}),
+				...cellUpdates
+			},
 			lastSession: new Date().toISOString().slice(0, 10)
 		};
 	});
@@ -302,14 +362,7 @@ export function setLevel(level: Difficulty): void {
 }
 
 export function resetProgress(): void {
-	progress.set({
-		level: 'A1',
-		caseScores: {},
-		paradigmScores: {},
-		lemmaScores: {},
-		lastSession: '',
-		longestStreak: 0
-	});
+	progress.set(emptyProgress());
 }
 
 /**
@@ -350,25 +403,26 @@ export function getAllCaseStrengths(): Record<Case, { accuracy: number; attempts
 	};
 }
 
-export function pickWeightedCase(cases: Case[]): Case {
+/**
+ * Pick a case for the next question, weighted by how due its spacing cells
+ * are. `cellKeysForCase` lists the cells the current pool can drill in a case
+ * (see `nounCellKeysForCase` & co. in spacing.ts); a case whose cells are due
+ * or never seen is favoured, one just practised drops back.
+ */
+export function pickWeightedCase(
+	cases: Case[],
+	cellKeysForCase: (case_: Case) => readonly string[] = () => [],
+	now: number = Date.now(),
+	random: () => number = Math.random
+): Case {
 	if (cases.length === 0) {
 		throw new Error('pickWeightedCase called with empty cases array');
 	}
+	const schedule: CellSchedule = get(progress).cellSchedule ?? {};
+	return pickSpacedCase(cases, cellKeysForCase, schedule, now, random);
+}
 
-	const strengths = getAllCaseStrengths();
-	const weights = cases.map((c) => {
-		const s = strengths[c];
-		if (s.attempts === 0) return 3; // Untried cases get highest weight
-		return 1 / (s.accuracy + 0.1); // Lower accuracy = higher weight
-	});
-
-	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let random = Math.random() * totalWeight;
-
-	for (let i = 0; i < cases.length; i++) {
-		random -= weights[i];
-		if (random <= 0) return cases[i];
-	}
-
-	return cases[cases.length - 1];
+/** Read-only view of the current spacing state of one cell. */
+export function getCellState(cellKey: string): CellState | undefined {
+	return get(progress).cellSchedule?.[cellKey];
 }

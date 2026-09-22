@@ -93,6 +93,11 @@
 	} from '$lib/engine/progress';
 	import { hasMasteryCelebrated, markMasteryCelebrated } from '$lib/engine/mastery-celebrations';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
+	import {
+		adjectiveCellKeysForCase,
+		nounCellKeysForCase,
+		pronounCellKeysForCase
+	} from '$lib/engine/spacing';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { recordPractice } from '$lib/engine/streak';
@@ -186,6 +191,7 @@
 						caseScores: current.caseScores,
 						paradigmScores: current.paradigmScores,
 						lemmaScores: current.lemmaScores,
+						cellSchedule: current.cellSchedule,
 						lastSession: current.lastSession,
 						longestStreak: current.longestStreak
 					}
@@ -2101,6 +2107,7 @@
 					caseScores: savedProgress.case_scores,
 					paradigmScores: savedProgress.paradigm_scores,
 					lemmaScores: savedProgress.lemma_scores ?? {},
+					cellSchedule: savedProgress.cell_schedule ?? {},
 					lastSession: savedProgress.last_session ?? '',
 					longestStreak: savedProgress.longest_answer_streak ?? 0
 				};
@@ -2179,6 +2186,7 @@
 							caseScores: current.caseScores,
 							paradigmScores: current.paradigmScores,
 							lemmaScores: current.lemmaScores,
+							cellSchedule: current.cellSchedule,
 							lastSession: current.lastSession
 						}
 					})
@@ -2296,6 +2304,39 @@
 	function matchesNumberMode(templateNumber: Number_): boolean {
 		if (effectiveNumberMode === 'both') return true;
 		return templateNumber === effectiveNumberMode;
+	}
+
+	/** Numbers the current number mode lets a question use. */
+	function allowedNumbers(): Number_[] {
+		if (effectiveNumberMode === 'sg') return ['sg'];
+		if (effectiveNumberMode === 'pl') return ['pl'];
+		return ['sg', 'pl'];
+	}
+
+	/** Distinct noun paradigms present in a pool, for the spaced case pick. */
+	function paradigmsIn(words: readonly WordEntry[]): string[] {
+		return [...new Set(words.map((w) => w.paradigm))];
+	}
+
+	/** Adjective cells (type × gender) the given adjectives and nouns can form in a case. */
+	function adjectiveCellsFor(
+		adjectives: readonly AdjectiveEntry[],
+		nouns: readonly WordEntry[],
+		case_: Case
+	): string[] {
+		const types = [...new Set(adjectives.map((a) => a.paradigmType))];
+		const genders = [...new Set(nouns.map((w) => getAdjectiveGenderKey(w)))];
+		return adjectiveCellKeysForCase(types, genders, case_, allowedNumbers());
+	}
+
+	/**
+	 * Prefer the templates that drill the case the spaced picker chose, so the
+	 * pick steers sentence drills too; fall back to the whole pool when no
+	 * template covers that case.
+	 */
+	function preferCase<T extends { requiredCase: Case }>(templates: T[], case_: Case): T[] {
+		const matching = templates.filter((t) => t.requiredCase === case_);
+		return matching.length > 0 ? matching : templates;
 	}
 
 	/**
@@ -2505,7 +2546,16 @@
 						return nonNom.length > 0 ? nonNom : pronounCases;
 					})()
 				: pronounCases;
-		const case_ = caseIdPool.length === 1 ? caseIdPool[0] : pickWeightedCase(caseIdPool);
+		const case_ =
+			caseIdPool.length === 1
+				? caseIdPool[0]
+				: pickWeightedCase(caseIdPool, (c) =>
+						pronounCellKeysForCase(
+							candidates.map((p) => p.lemma),
+							c,
+							allowedNumbers()
+						)
+					);
 
 		// Pick number - for pronouns, we need to respect whether the pronoun has sg or pl forms
 		let number_: Number_;
@@ -2566,7 +2616,10 @@
 				return generatePronounFormProduction(pronoun, fpCase, number_);
 			}
 
-			const template = pickTemplate(eligibleTemplates, (t) => pronounPoolForTemplate(t).length);
+			const template = pickTemplate(
+				preferCase(eligibleTemplates, case_),
+				(t) => pronounPoolForTemplate(t).length
+			);
 			const validCandidates = pronounPoolForTemplate(template);
 
 			if (validCandidates.length === 0) {
@@ -2589,7 +2642,10 @@
 
 			if (eligibleTemplates.length === 0) return null;
 
-			const template = pickTemplate(eligibleTemplates, (t) => pronounPoolForTemplate(t).length);
+			const template = pickTemplate(
+				preferCase(eligibleTemplates, case_),
+				(t) => pronounPoolForTemplate(t).length
+			);
 			const validCandidates = pronounPoolForTemplate(template);
 
 			if (validCandidates.length === 0) return null;
@@ -2640,7 +2696,9 @@
 		if (requestedDrillType === 'form_production') {
 			const nonNomCases = activeCases.filter((c) => c !== 'nom');
 			if (nonNomCases.length === 0) return null;
-			const case_ = pickWeightedCase(nonNomCases);
+			const case_ = pickWeightedCase(nonNomCases, (c) =>
+				adjectiveCellsFor(adjCandidates, eligibleWords, c)
+			);
 			let number_: Number_;
 			if (effectiveNumberMode === 'sg') number_ = 'sg';
 			else if (effectiveNumberMode === 'pl') number_ = 'pl';
@@ -2675,6 +2733,10 @@
 				unlockedDifficulties.includes(t.difficulty)
 		);
 		if (eligibleTemplates.length === 0) return null;
+		const preferredCase =
+			activeCases.length === 1
+				? activeCases[0]
+				: pickWeightedCase(activeCases, (c) => adjectiveCellsFor(adjCandidates, eligibleWords, c));
 
 		// Nouns that satisfy a template's case/number/gender/animacy requirements.
 		const nounsForTemplate = (t: SentenceTemplate): WordEntry[] =>
@@ -2684,7 +2746,10 @@
 					(!t.requiredGender || w.gender === t.requiredGender) &&
 					(typeof t.requiredAnimate !== 'boolean' || w.animate === t.requiredAnimate)
 			);
-		const template = pickTemplate(eligibleTemplates, (t) => nounsForTemplate(t).length);
+		const template = pickTemplate(
+			preferCase(eligibleTemplates, preferredCase),
+			(t) => nounsForTemplate(t).length
+		);
 		const templateWords = nounsForTemplate(template);
 		if (templateWords.length === 0) return null;
 
@@ -2959,7 +3024,12 @@
 						return nonNom.length > 0 ? nonNom : damped;
 					})()
 				: damped;
-		const case_ = selectedCase === 'all' ? pickWeightedCase(casePool) : selectedCase;
+		const case_ =
+			selectedCase === 'all'
+				? pickWeightedCase(casePool, (c) =>
+						nounCellKeysForCase(paradigmsIn(eligibleWords), c, allowedNumbers())
+					)
+				: selectedCase;
 
 		// Pick number (respecting chapter constraints)
 		let number_: Number_;
@@ -3202,7 +3272,7 @@
 				question = generateFormProduction(word, fallbackCase, number_);
 			} else {
 				const template = pickTemplate(
-					eligibleTemplates,
+					preferCase(eligibleTemplates, case_),
 					(t) => nounPoolForTemplate(t, prog).length
 				);
 

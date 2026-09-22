@@ -206,6 +206,7 @@ export const actions: Actions = {
 				case_scores: {},
 				paradigm_scores: {},
 				lemma_scores: {},
+				cell_schedule: {},
 				last_session: '',
 				longest_answer_streak: 0,
 				current_streak: 0,

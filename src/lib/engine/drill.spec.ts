@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { nounCellKey } from './spacing';
 import {
 	checkAnswer,
 	generateFormProduction,
@@ -16,6 +17,8 @@ import {
 	hasValidForm
 } from './drill.ts';
 import type { Case, Difficulty, Progress } from '../types.ts';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 describe('loadWordBank', () => {
 	it('returns non-empty array with expected shape', () => {
@@ -53,6 +56,7 @@ describe('getCandidates', () => {
 			caseScores: {},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -302,6 +306,7 @@ describe('weightedRandom', () => {
 			caseScores: {},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -328,6 +333,7 @@ describe('weightedRandom', () => {
 				[`${hrad.lemma}_loc_sg`]: { attempts: 20, correct: 20 },
 				[`${zena.lemma}_loc_sg`]: { attempts: 20, correct: 20 }
 			},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		};
@@ -344,6 +350,37 @@ describe('weightedRandom', () => {
 		// Unseen lemma (město): lemma_weight ~10. Seen lemmas: lemma_weight ~0.91.
 		// město should dominate the picks heavily.
 		expect(counts[mesto.lemma]).toBeGreaterThan(iterations * 0.7);
+	});
+
+	it('prefers a word whose spacing cell is due over one just practised', () => {
+		const bank = loadWordBank();
+		const hrad = bank.find((w) => w.paradigm === 'hrad');
+		const zena = bank.find((w) => w.paradigm === 'žena');
+		expect(hrad).toBeDefined();
+		expect(zena).toBeDefined();
+		if (!hrad || !zena) return;
+		const candidates = [hrad, zena];
+		const now = 10 * DAY_MS;
+		// Both lemmas equally known; hrad's cell was just seen, žena's is a week overdue.
+		const progress: Progress = {
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {
+				[`${hrad.lemma}_loc_sg`]: { attempts: 5, correct: 5 },
+				[`${zena.lemma}_loc_sg`]: { attempts: 5, correct: 5 }
+			},
+			cellSchedule: {
+				[nounCellKey('hrad', 'loc', 'sg')]: { last: now, box: 1, streak: 1 },
+				[nounCellKey('žena', 'loc', 'sg')]: { last: now - 8 * DAY_MS, box: 1, streak: 1 }
+			},
+			lastSession: '',
+			longestStreak: 0
+		};
+		// hrad weight ≈ 0.91 * 0.5 (floor), žena ≈ 0.91 * 1.0 (capped overdue):
+		// a draw just above hrad's share must land on žena.
+		expect(weightedRandom(candidates, progress, 'loc', 'sg', now, () => 0.4)).toBe(zena);
+		expect(weightedRandom(candidates, progress, 'loc', 'sg', now, () => 0.2)).toBe(hrad);
 	});
 });
 

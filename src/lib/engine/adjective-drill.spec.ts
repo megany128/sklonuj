@@ -2,10 +2,20 @@ import { describe, expect, it } from 'vitest';
 import {
 	adjectiveMatchesNoun,
 	filterAdjectivesByTemplate,
+	getAdjectiveGenderKey,
 	loadAdjectiveBank,
-	loadAdjectiveTemplates
+	loadAdjectiveTemplates,
+	weightedRandomAdjective
 } from './adjective-drill.ts';
-import type { AdjectiveEntry, AdjectiveProfile, SentenceTemplate, WordEntry } from '../types.ts';
+import { loadWordBank } from './drill.ts';
+import { adjectiveCellKey } from './spacing.ts';
+import type {
+	AdjectiveEntry,
+	AdjectiveProfile,
+	Progress,
+	SentenceTemplate,
+	WordEntry
+} from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers — build minimal stubs with only the fields adjectiveMatchesNoun and
@@ -423,5 +433,59 @@ describe('loadAdjectiveBank', () => {
 		expect(first).toHaveProperty('profile');
 		expect(first).toHaveProperty('categories');
 		expect(first).toHaveProperty('forms');
+	});
+});
+
+describe('weightedRandomAdjective', () => {
+	const DAY_MS = 24 * 60 * 60 * 1000;
+
+	it('weights by the paradigm-type × gender cell, preferring a due cell', () => {
+		const bank = loadAdjectiveBank();
+		const hard = bank.find((a) => a.paradigmType === 'hard');
+		const soft = bank.find((a) => a.paradigmType === 'soft');
+		const noun = loadWordBank().find((w) => w.gender === 'f');
+		expect(hard).toBeDefined();
+		expect(soft).toBeDefined();
+		expect(noun).toBeDefined();
+		if (!hard || !soft || !noun) return;
+		const gender = getAdjectiveGenderKey(noun);
+		const now = 20 * DAY_MS;
+		const progress: Progress = {
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			cellSchedule: {
+				[adjectiveCellKey('hard', gender, 'gen', 'sg')]: { last: now, box: 2, streak: 2 },
+				[adjectiveCellKey('soft', gender, 'gen', 'sg')]: { last: 0, box: 2, streak: 2 }
+			},
+			lastSession: '',
+			longestStreak: 0
+		};
+		// hard 0.5 (just seen) vs soft 5.75 (capped overdue): a mid draw is soft.
+		expect(weightedRandomAdjective([hard, soft], progress, 'gen', 'sg', noun, now, () => 0.5)).toBe(
+			soft
+		);
+		expect(
+			weightedRandomAdjective([hard, soft], progress, 'gen', 'sg', noun, now, () => 0.01)
+		).toBe(hard);
+	});
+
+	it('treats every unseen adjective alike and throws on an empty pool', () => {
+		const bank = loadAdjectiveBank().slice(0, 3);
+		const noun = loadWordBank()[0];
+		const progress: Progress = {
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			cellSchedule: {},
+			lastSession: '',
+			longestStreak: 0
+		};
+		expect(weightedRandomAdjective(bank, progress, 'acc', 'pl', noun, 0, () => 0.34)).toBe(bank[1]);
+		expect(() => weightedRandomAdjective([], progress, 'acc', 'pl', noun)).toThrow(
+			'weightedRandomAdjective called with empty candidates array'
+		);
 	});
 });

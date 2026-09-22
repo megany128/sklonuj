@@ -785,7 +785,7 @@
 										type="button"
 										onclick={handleFormSubmit}
 										disabled={formInput.trim() === ''}
-										class="shrink-0 rounded-[48px] bg-emphasis px-5 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6"
+										class="min-w-[5.5rem] shrink-0 rounded-[24px] border-2 border-emphasis bg-emphasis px-5 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[6rem] sm:px-6"
 									>
 										Check
 									</button>
@@ -950,7 +950,7 @@
 										type="button"
 										onclick={handleAdjFormSubmit}
 										disabled={adjFormInput.trim() === ''}
-										class="shrink-0 rounded-[48px] bg-emphasis px-5 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6"
+										class="min-w-[5.5rem] shrink-0 rounded-[24px] border-2 border-emphasis bg-emphasis px-5 text-base font-semibold text-text-inverted transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[6rem] sm:px-6"
 									>
 										Check
 									</button>

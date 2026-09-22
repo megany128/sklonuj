@@ -1,6 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
-import type { Progress, DrillResult, DrillQuestion, WordEntry, SentenceTemplate } from '../types';
+import type {
+	Progress,
+	DrillResult,
+	DrillQuestion,
+	WordEntry,
+	SentenceTemplate,
+	Case
+} from '../types';
+import { loadAdjectiveBank } from './adjective-drill';
+import { loadPronounBank } from './pronoun-drill';
+import { adjectiveCellKey, nounCellKey, nounCellKeysForCase, pronounCellKey } from './spacing';
 import {
 	isValidProgress,
 	isValidCaseScore,
@@ -74,6 +84,7 @@ describe('isValidProgress', () => {
 			caseScores: { gen_sg: { attempts: 5, correct: 3 } },
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '2024-01-01',
 			longestStreak: 0
 		};
@@ -260,6 +271,7 @@ describe('resetProgress', () => {
 			caseScores: {},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -285,6 +297,7 @@ describe('getCombinedCaseStrength', () => {
 			},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -302,6 +315,7 @@ describe('getCombinedCaseStrength', () => {
 			},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -325,32 +339,144 @@ describe('pickWeightedCase', () => {
 		expect(pickWeightedCase(['gen'])).toBe('gen');
 	});
 
-	it('favors cases with lower accuracy (statistical test)', () => {
-		// Mark gen and dat as well-known, leave loc unseen
+	it('favors the case whose spacing cells are due or unseen', () => {
+		const now = 1_000_000_000;
+		// gen and dat cells were just practised; loc has never been seen.
 		progress.set({
 			level: 'A1',
-			caseScores: {
-				gen_sg: { attempts: 20, correct: 20 },
-				gen_pl: { attempts: 20, correct: 20 },
-				dat_sg: { attempts: 20, correct: 20 },
-				dat_pl: { attempts: 20, correct: 20 }
-			},
+			caseScores: {},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {
+				[nounCellKey('hrad', 'gen', 'sg')]: { last: now, box: 2, streak: 2 },
+				[nounCellKey('hrad', 'dat', 'sg')]: { last: now, box: 2, streak: 2 }
+			},
 			lastSession: '',
 			longestStreak: 0
 		});
+		const keys = (c: Case): string[] => nounCellKeysForCase(['hrad'], c, ['sg']);
 
-		const counts: Record<string, number> = { gen: 0, dat: 0, loc: 0 };
-		const iterations = 1000;
-		for (let i = 0; i < iterations; i++) {
-			const picked = pickWeightedCase(['gen', 'dat', 'loc']);
-			counts[picked]++;
-		}
+		// Weights: gen 0.5, dat 0.5, loc 3 (new). Total 4: a draw of 0.3 lands on loc.
+		expect(pickWeightedCase(['gen', 'dat', 'loc'], keys, now, () => 0.3)).toBe('loc');
+		expect(pickWeightedCase(['gen', 'dat', 'loc'], keys, now, () => 0.1)).toBe('gen');
+		expect(pickWeightedCase(['gen', 'dat', 'loc'], keys, now, () => 0.2)).toBe('dat');
+	});
 
-		// Unseen case (loc, weight=3) should be picked much more often than
-		// well-known cases (gen/dat, weight ~= 1/(1+0.1) ~= 0.91)
-		expect(counts['loc']).toBeGreaterThan(iterations * 0.5);
+	it('favors a case that is overdue over one practised recently', () => {
+		const now = 40 * 24 * 60 * 60 * 1000;
+		progress.set({
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			cellSchedule: {
+				[nounCellKey('hrad', 'gen', 'sg')]: { last: now, box: 2, streak: 2 },
+				[nounCellKey('hrad', 'loc', 'sg')]: { last: 0, box: 2, streak: 2 }
+			},
+			lastSession: '',
+			longestStreak: 0
+		});
+		const keys = (c: Case): string[] => nounCellKeysForCase(['hrad'], c, ['sg']);
+		// gen 0.5 vs loc capped overdue 5.75: anything past gen's 8% slice is loc.
+		expect(pickWeightedCase(['gen', 'loc'], keys, now, () => 0.5)).toBe('loc');
+	});
+
+	it('falls back to a uniform pick when no cells are supplied', () => {
+		expect(pickWeightedCase(['gen', 'dat'], undefined, 0, () => 0.51)).toBe('dat');
+		expect(pickWeightedCase(['gen', 'dat'], undefined, 0, () => 0.49)).toBe('gen');
+	});
+});
+
+describe('cellSchedule recording', () => {
+	beforeEach(() => {
+		resetProgress();
+	});
+
+	it('records the noun cell on a noun drill', () => {
+		recordResult(makeDrillResult(true));
+		const state = get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')];
+		expect(state).toBeDefined();
+		expect(state.box).toBe(1);
+		expect(state.streak).toBe(1);
+		expect(state.last).toBeGreaterThan(0);
+	});
+
+	it('advances and demotes the same cell across results', () => {
+		recordResult(makeDrillResult(true));
+		recordResult(makeDrillResult(true));
+		recordResult(makeDrillResult(true));
+		expect(get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')].box).toBe(3);
+		recordResult(makeDrillResult(false));
+		const after = get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')];
+		expect(after.box).toBe(1);
+		expect(after.streak).toBe(0);
+	});
+
+	it('records the pronoun cell on a pronoun drill', () => {
+		const pronoun = loadPronounBank().find((p) => p.lemma === 'já');
+		expect(pronoun).toBeDefined();
+		if (!pronoun) return;
+		recordResult(
+			makeDrillResult(true, {
+				question: makeQuestion({ wordCategory: 'pronoun', pronoun, case: 'dat' })
+			})
+		);
+		expect(get(progress).cellSchedule[pronounCellKey('já', 'dat', 'sg')]).toMatchObject({
+			box: 1,
+			streak: 1
+		});
+	});
+
+	it('records the adjective cell (type × gender) on an adjective drill', () => {
+		const adjective = loadAdjectiveBank().find((a) => a.paradigmType === 'hard');
+		expect(adjective).toBeDefined();
+		if (!adjective) return;
+		recordResult(
+			makeDrillResult(false, {
+				question: makeQuestion({ wordCategory: 'adjective', adjective })
+			})
+		);
+		// hrad is masculine inanimate.
+		expect(
+			get(progress).cellSchedule[adjectiveCellKey('hard', 'm_inanim', 'gen', 'sg')]
+		).toMatchObject({ box: 0, streak: 0 });
+	});
+
+	it('is cleared by resetProgress', () => {
+		recordResult(makeDrillResult(true));
+		resetProgress();
+		expect(get(progress).cellSchedule).toEqual({});
+	});
+});
+
+describe('isValidProgress with cellSchedule', () => {
+	const base = {
+		level: 'A1',
+		caseScores: {},
+		paradigmScores: {},
+		lemmaScores: {},
+		lastSession: '',
+		longestStreak: 0
+	};
+
+	it('accepts a payload without cellSchedule (older clients)', () => {
+		expect(isValidProgress(base)).toBe(true);
+	});
+
+	it('accepts a well-formed cellSchedule', () => {
+		expect(
+			isValidProgress({
+				...base,
+				cellSchedule: { 'n:hrad:gen:sg': { last: 1, box: 1, streak: 1 } }
+			})
+		).toBe(true);
+	});
+
+	it('rejects a malformed cellSchedule', () => {
+		expect(isValidProgress({ ...base, cellSchedule: { k: { last: 1, box: 7, streak: 1 } } })).toBe(
+			false
+		);
+		expect(isValidProgress({ ...base, cellSchedule: [] })).toBe(false);
 	});
 });
 
@@ -369,6 +495,7 @@ describe('getAccuracy', () => {
 			caseScores: { gen_sg: { attempts: 10, correct: 7 } },
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -393,6 +520,7 @@ describe('setLevel', () => {
 			caseScores: { gen_sg: { attempts: 5, correct: 3 } },
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '2024-01-01',
 			longestStreak: 0
 		});

@@ -8,6 +8,7 @@
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
+	import { isValidCellSchedule } from '$lib/engine/spacing';
 	import {
 		syncBadgesToSupabase,
 		loadBadgesFromSupabase,
@@ -25,7 +26,7 @@
 	import { clearMasteryCelebrations } from '$lib/engine/mastery-celebrations';
 	import { addPracticeDays } from '$lib/engine/achievements';
 	import type { SupabaseClient } from '@supabase/supabase-js';
-	import type { Progress, CaseScore, Difficulty } from '$lib/types';
+	import type { Progress, CaseScore, CellSchedule, Difficulty } from '$lib/types';
 	import '../app.css';
 	import { initPostHog } from '$lib/posthog';
 	import posthog from '$lib/posthog';
@@ -193,12 +194,14 @@
 		const caseScores = row.case_scores ?? {};
 		const paradigmScores = row.paradigm_scores ?? {};
 		const lemmaScoresRaw = row.lemma_scores ?? {};
+		const cellScheduleRaw = row.cell_schedule ?? {};
 		const lastSession = row.last_session;
 		const longestAnswerStreak = row.longest_answer_streak;
 
 		if (!isValidScoresRecord(caseScores)) return null;
 		if (!isValidScoresRecord(paradigmScores)) return null;
 		const lemmaScores = isValidScoresRecord(lemmaScoresRaw) ? lemmaScoresRaw : {};
+		const cellSchedule: CellSchedule = isValidCellSchedule(cellScheduleRaw) ? cellScheduleRaw : {};
 		if (typeof row.user_id !== 'string') return null;
 
 		return {
@@ -206,6 +209,7 @@
 			caseScores,
 			paradigmScores,
 			lemmaScores,
+			cellSchedule,
 			lastSession: typeof lastSession === 'string' ? lastSession : '',
 			longestStreak: typeof longestAnswerStreak === 'number' ? longestAnswerStreak : 0
 		};
@@ -217,6 +221,7 @@
 			caseScores: {},
 			paradigmScores: {},
 			lemmaScores: {},
+			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		});
@@ -245,6 +250,7 @@
 				caseScores: spRaw.case_scores,
 				paradigmScores: spRaw.paradigm_scores,
 				lemmaScores: spRaw.lemma_scores ?? {},
+				cellSchedule: spRaw.cell_schedule ?? {},
 				lastSession: spRaw.last_session,
 				longestStreak: spRaw.longest_answer_streak ?? 0
 			};
@@ -276,6 +282,7 @@
 							case_scores: merged.caseScores,
 							paradigm_scores: merged.paradigmScores,
 							lemma_scores: merged.lemmaScores,
+							cell_schedule: merged.cellSchedule,
 							last_session: merged.lastSession,
 							longest_answer_streak: merged.longestStreak,
 							updated_at: new Date().toISOString()
@@ -375,6 +382,7 @@
 										case_scores: merged.caseScores,
 										paradigm_scores: merged.paradigmScores,
 										lemma_scores: merged.lemmaScores,
+										cell_schedule: merged.cellSchedule,
 										last_session: merged.lastSession,
 										longest_answer_streak: merged.longestStreak,
 										updated_at: new Date().toISOString()
@@ -398,6 +406,7 @@
 									case_scores: usableLocalProgress.caseScores,
 									paradigm_scores: usableLocalProgress.paradigmScores,
 									lemma_scores: usableLocalProgress.lemmaScores,
+									cell_schedule: usableLocalProgress.cellSchedule,
 									last_session: usableLocalProgress.lastSession,
 									longest_answer_streak: usableLocalProgress.longestStreak,
 									updated_at: new Date().toISOString()

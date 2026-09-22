@@ -391,6 +391,20 @@ export interface CaseScore {
 	correct: number;
 }
 
+/**
+ * Spacing state for one drillable "cell" (paradigm × case × number). `last` is
+ * the epoch-ms of the latest attempt, `box` the Leitner box (0 = new or just
+ * failed … 5 = long interval) that sets how soon the cell is due again, and
+ * `streak` the run of consecutive correct answers in the cell.
+ */
+export interface CellState {
+	last: number;
+	box: number;
+	streak: number;
+}
+
+export type CellSchedule = { [cellKey: string]: CellState };
+
 export interface Progress {
 	level: Difficulty;
 	caseScores: { [caseKey: string]: CaseScore };
@@ -401,6 +415,12 @@ export interface Progress {
 	 * instead of weighting purely by paradigm.
 	 */
 	lemmaScores: { [lemmaKey: string]: CaseScore };
+	/**
+	 * Spaced-repetition state per cell, keyed by `nounCellKey` /
+	 * `adjectiveCellKey` / `pronounCellKey` from `engine/spacing.ts`. Drives
+	 * selection weighting only; the lifetime stats above are untouched.
+	 */
+	cellSchedule: CellSchedule;
 	lastSession: string;
 	/**
 	 * All-time longest run of consecutive correct answers (in-the-moment streak

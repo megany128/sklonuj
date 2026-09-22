@@ -28,6 +28,7 @@ import {
 } from './adjective-drill';
 import { loadPronounBank, getPronounForm } from './pronoun-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
+import { cellWeight, nounCellKey, W_MAX } from './spacing';
 
 export { applyPrepositionVoicing };
 
@@ -831,7 +832,9 @@ export function weightedRandom(
 	candidates: WordEntry[],
 	progress: Progress,
 	case_: Case,
-	number_: Number_
+	number_: Number_,
+	now: number = Date.now(),
+	random: () => number = Math.random
 ): WordEntry {
 	if (candidates.length === 0) {
 		throw new Error('weightedRandom called with empty candidates array');
@@ -839,9 +842,11 @@ export function weightedRandom(
 
 	// Per-lemma weight dominates: unseen lemmas (attempts=0) get the maximum
 	// weight (1 / 0.1 = 10), so the selector tries each lemma before recycling
-	// any. Multiply by a smaller paradigm signal so weak paradigms still drift
-	// upward in priority once every lemma has been seen at least once.
+	// any. Multiply by a smaller paradigm signal — how due the word's spacing
+	// cell (paradigm × case × number) is — so due or never-seen paradigms
+	// drift upward in priority once every lemma has been seen at least once.
 	const lemmaScores = progress.lemmaScores ?? {};
+	const schedule = progress.cellSchedule ?? {};
 	const weights = candidates.map((word) => {
 		const lemmaKey = `${word.lemma}_${case_}_${number_}`;
 		const lemmaScore: CaseScore | undefined = lemmaScores[lemmaKey];
@@ -853,24 +858,19 @@ export function weightedRandom(
 		// Unseen lemmas: weight = 1/0.1 = 10. Seen lemmas decay toward 1/(1+0.1) ~ 0.91.
 		const lemmaWeight = lemmaAttempts === 0 ? 10 : 1 / (lemmaAccuracy + 0.1);
 
-		const paradigmKey = `${word.paradigm}_${case_}_${number_}`;
-		const paradigmScore: CaseScore | undefined = progress.paradigmScores[paradigmKey];
-		const paradigmAccuracy =
-			paradigmScore && paradigmScore.attempts > 0
-				? Math.min(paradigmScore.correct / paradigmScore.attempts, 1)
-				: 0;
-		// Compressed paradigm signal in [~0.5, ~1.0] so it nudges without overriding.
-		const paradigmWeight = 0.5 + (1 - paradigmAccuracy) * 0.5;
+		// Compressed cell signal in [~0.5, 1.0] so it nudges without overriding.
+		const cell = cellWeight(schedule[nounCellKey(word.paradigm, case_, number_)], now);
+		const paradigmWeight = 0.5 + 0.5 * (cell / W_MAX);
 
 		return lemmaWeight * paradigmWeight;
 	});
 
 	const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-	let random = Math.random() * totalWeight;
+	let r = random() * totalWeight;
 
 	for (let i = 0; i < candidates.length; i++) {
-		random -= weights[i];
-		if (random <= 0) {
+		r -= weights[i];
+		if (r < 0) {
 			return candidates[i];
 		}
 	}
