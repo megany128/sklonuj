@@ -1,17 +1,17 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { CellSchedule } from '$lib/types';
-import { isValidCellSchedule } from '$lib/engine/spacing';
+import { mergeCellSchedules, sanitizeCellSchedule } from '$lib/engine/spacing';
 
 type Level = 'A1' | 'A2' | 'B1' | 'B2';
 const VALID_LEVELS: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2']);
-const MAX_REQUEST_BYTES = 100 * 1024; // 100KB
+// lemmaScores grows with lemmas × case × number and cellSchedule adds up to
+// ~600 cells on top, so a heavy learner's payload passes 100KB.
+const MAX_REQUEST_BYTES = 256 * 1024; // 256KB
 // Every drillable cell (noun paradigm × case × number, adjective type × gender ×
 // case × number, pronoun × case × number) is well under this; anything bigger
 // is a bogus payload.
 const MAX_CELL_SCHEDULE_KEYS = 2000;
-// A cell's `last` is a client clock reading; allow a day of skew, no more.
-const MAX_CLOCK_SKEW_MS = 86_400_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -92,39 +92,29 @@ interface ValidatedProgress {
 	caseScores: Record<string, { attempts: number; correct: number }>;
 	paradigmScores: Record<string, { attempts: number; correct: number }>;
 	lemmaScores: Record<string, { attempts: number; correct: number }>;
-	cellSchedule: CellSchedule;
+	/** null when the client sent no schedule: leave the stored column untouched. */
+	cellSchedule: CellSchedule | null;
 	lastSession: string;
 	longestStreak: number;
 }
 
 /**
- * Shape check plus the server-side caps `isValidCellSchedule` does not apply:
- * a bounded key count and no `last` timestamp meaningfully in the future.
+ * Bound the key count, then keep the well-formed cells and clamp any `last`
+ * in the future to now. Malformed cells are dropped rather than failing the
+ * whole sync: a skewed clock on one device must not block progress sync
+ * from every device.
  */
 function validateCellSchedule(
 	value: unknown,
 	now: number
 ): { valid: true; data: CellSchedule } | { valid: false; reason: string } {
-	if (!isValidCellSchedule(value))
-		return {
-			valid: false,
-			reason:
-				'progress.cellSchedule must be a record of { last: number, box: integer 0..5, streak: integer >= 0 }'
-		};
+	if (!isRecord(value)) return { valid: false, reason: 'progress.cellSchedule must be an object' };
 	if (Object.keys(value).length > MAX_CELL_SCHEDULE_KEYS)
 		return {
 			valid: false,
 			reason: `progress.cellSchedule may have at most ${MAX_CELL_SCHEDULE_KEYS} entries`
 		};
-	const maxLast = now + MAX_CLOCK_SKEW_MS;
-	for (const state of Object.values(value)) {
-		if (state.last > maxLast)
-			return {
-				valid: false,
-				reason: 'progress.cellSchedule entries must not have `last` more than 1 day in the future'
-			};
-	}
-	return { valid: true, data: value };
+	return { valid: true, data: sanitizeCellSchedule(value, now) };
 }
 
 interface ValidatedSession {
@@ -164,9 +154,10 @@ function validateProgress(
 			reason: 'progress.lemmaScores must be a record of { attempts: number, correct: number }'
 		};
 
-	// cellSchedule is optional for backwards compatibility (older clients omit it).
+	// cellSchedule is optional for backwards compatibility (older clients omit
+	// it). Absent means "don't touch the stored schedule", never "clear it".
 	const rawCellSchedule = value['cellSchedule'];
-	let cellSchedule: CellSchedule = {};
+	let cellSchedule: CellSchedule | null = null;
 	if (rawCellSchedule !== undefined) {
 		const cellResult = validateCellSchedule(rawCellSchedule, Date.now());
 		if (!cellResult.valid) return cellResult;
@@ -464,36 +455,54 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			longestStreak
 		} = progressResult.data;
 
-		// Read existing longest_answer_streak so a stale client payload can't
-		// shrink the all-time maximum. We take MAX(existing, incoming).
+		// Read the existing row so a stale client payload can't shrink the
+		// all-time longest streak (MAX) or roll back the spacing schedule (per
+		// cell, the more recently attempted state wins — a second device or a
+		// pre-deploy tab must not overwrite what another device learned).
 		const { data: existingProgress } = await supabase
 			.from('user_progress')
-			.select('longest_answer_streak')
+			.select('longest_answer_streak, cell_schedule')
 			.eq('user_id', user.id)
 			.maybeSingle();
 
 		let mergedLongestStreak = longestStreak;
+		let mergedCellSchedule: CellSchedule | null = cellSchedule;
 		if (existingProgress) {
 			const existingValue = existingProgress.longest_answer_streak;
 			if (typeof existingValue === 'number' && existingValue > mergedLongestStreak) {
 				mergedLongestStreak = existingValue;
 			}
+			if (cellSchedule !== null) {
+				const existingCells = sanitizeCellSchedule(existingProgress.cell_schedule, Date.now());
+				mergedCellSchedule = mergeCellSchedules(cellSchedule, existingCells);
+			}
 		}
 
-		const { error: updateError } = await supabase.from('user_progress').upsert(
-			{
-				user_id: user.id,
-				level,
-				case_scores: caseScores,
-				paradigm_scores: paradigmScores,
-				lemma_scores: lemmaScores,
-				cell_schedule: cellSchedule,
-				last_session: lastSession,
-				longest_answer_streak: mergedLongestStreak,
-				updated_at: new Date().toISOString()
-			},
-			{ onConflict: 'user_id' }
-		);
+		const row: {
+			user_id: string;
+			level: Level;
+			case_scores: Record<string, { attempts: number; correct: number }>;
+			paradigm_scores: Record<string, { attempts: number; correct: number }>;
+			lemma_scores: Record<string, { attempts: number; correct: number }>;
+			cell_schedule?: CellSchedule;
+			last_session: string;
+			longest_answer_streak: number;
+			updated_at: string;
+		} = {
+			user_id: user.id,
+			level,
+			case_scores: caseScores,
+			paradigm_scores: paradigmScores,
+			lemma_scores: lemmaScores,
+			last_session: lastSession,
+			longest_answer_streak: mergedLongestStreak,
+			updated_at: new Date().toISOString()
+		};
+		if (mergedCellSchedule !== null) row.cell_schedule = mergedCellSchedule;
+
+		const { error: updateError } = await supabase
+			.from('user_progress')
+			.upsert(row, { onConflict: 'user_id' });
 
 		if (updateError) {
 			return json({ error: 'Failed to update user progress' }, { status: 500 });

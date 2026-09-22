@@ -13,10 +13,10 @@ import { getAdjectiveGenderKey } from './adjective-drill.ts';
 import {
 	adjectiveCellKey,
 	advanceCell,
-	isValidCellSchedule,
 	nounCellKey,
 	pickSpacedCase,
-	pronounCellKey
+	pronounCellKey,
+	sanitizeCellSchedule
 } from './spacing.ts';
 
 export const STORAGE_KEY = 'sklonuj_progress';
@@ -84,10 +84,9 @@ export function isValidProgress(value: unknown): value is Progress {
 		return false;
 	}
 
-	// cellSchedule is optional for backwards compatibility — accept when missing.
-	if (rec['cellSchedule'] !== undefined && !isValidCellSchedule(rec['cellSchedule'])) {
-		return false;
-	}
+	// cellSchedule is not validated here on purpose: it is sanitised per entry
+	// on load (`sanitizeCellSchedule`), so a single malformed cell can never
+	// invalidate — and thereby wipe — the learner's whole progress record.
 
 	// longestStreak is optional for backwards compatibility (older payloads
 	// didn't have it). When present it must be a non-negative number.
@@ -113,7 +112,7 @@ function loadFromStorage(): Progress {
 		if (isValidProgress(parsed)) {
 			parsed.paradigmScores ??= {};
 			parsed.lemmaScores ??= {};
-			parsed.cellSchedule ??= {};
+			parsed.cellSchedule = sanitizeCellSchedule(parsed.cellSchedule, Date.now());
 			// Backwards compat: older payloads didn't track longestStreak.
 			if (typeof parsed.longestStreak !== 'number') {
 				parsed.longestStreak = 0;
@@ -159,6 +158,10 @@ export function recordResult(result: DrillResult): void {
 					: `${result.question.word.paradigm}_${result.question.case}_${result.question.number}`;
 
 		// Spacing cell: the rule the question exercises (paradigm × case × number).
+		// Only production answers move it — case identification never has the
+		// learner produce the ending, the same line recordMultiStepResult draws
+		// by tying the noun cell to the form step alone.
+		const producesForm = result.question.drillType !== 'case_identification';
 		const cellKey =
 			result.question.wordCategory === 'adjective' && result.question.adjective
 				? adjectiveCellKey(
@@ -222,10 +225,12 @@ export function recordResult(result: DrillResult): void {
 				...(current.lemmaScores ?? {}),
 				...lemmaScoreUpdates
 			},
-			cellSchedule: {
-				...(current.cellSchedule ?? {}),
-				[cellKey]: advanceCell(current.cellSchedule?.[cellKey], result.correct, now)
-			},
+			cellSchedule: producesForm
+				? {
+						...(current.cellSchedule ?? {}),
+						[cellKey]: advanceCell(current.cellSchedule?.[cellKey], result.correct, now)
+					}
+				: (current.cellSchedule ?? {}),
 			lastSession: new Date().toISOString().slice(0, 10)
 		};
 	});

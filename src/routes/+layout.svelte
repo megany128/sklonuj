@@ -8,7 +8,7 @@
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { progress, STORAGE_USER_KEY } from '$lib/engine/progress';
-	import { isValidCellSchedule } from '$lib/engine/spacing';
+	import { sanitizeCellSchedule } from '$lib/engine/spacing';
 	import {
 		syncBadgesToSupabase,
 		loadBadgesFromSupabase,
@@ -201,7 +201,9 @@
 		if (!isValidScoresRecord(caseScores)) return null;
 		if (!isValidScoresRecord(paradigmScores)) return null;
 		const lemmaScores = isValidScoresRecord(lemmaScoresRaw) ? lemmaScoresRaw : {};
-		const cellSchedule: CellSchedule = isValidCellSchedule(cellScheduleRaw) ? cellScheduleRaw : {};
+		// Per-entry: one bad cell must not blank the schedule that the login
+		// merge then writes back over the remote row.
+		const cellSchedule: CellSchedule = sanitizeCellSchedule(cellScheduleRaw, Date.now());
 		if (typeof row.user_id !== 'string') return null;
 
 		return {

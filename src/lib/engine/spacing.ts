@@ -213,6 +213,24 @@ export function isValidCellSchedule(value: unknown): value is CellSchedule {
 }
 
 /**
+ * Keep the well-formed cells of an untrusted schedule and drop the rest, with
+ * any `last` in the future clamped to `now`. Per-entry rather than
+ * all-or-nothing: one bad cell (a client on another version, a skewed clock,
+ * a hand edit) must never throw away every other cell — or, on the client,
+ * the whole progress record. The spacing state only steers selection, so
+ * losing a single entry is harmless.
+ */
+export function sanitizeCellSchedule(value: unknown, now: number): CellSchedule {
+	if (!isRecordLike(value)) return {};
+	const out: CellSchedule = {};
+	for (const [key, state] of Object.entries(value)) {
+		if (!isValidCellState(state)) continue;
+		out[key] = { last: Math.min(state.last, now), box: state.box, streak: state.streak };
+	}
+	return out;
+}
+
+/**
  * Merge two copies of a schedule (local + remote on login): for a cell on
  * both sides the more recently attempted state wins, cells on one side only
  * are kept.

@@ -20,7 +20,8 @@ import {
 	nounCellKeysForCase,
 	pickSpacedCase,
 	pronounCellKey,
-	pronounCellKeysForCase
+	pronounCellKeysForCase,
+	sanitizeCellSchedule
 } from './spacing.ts';
 
 const MINUTE_MS = 60_000;
@@ -201,6 +202,41 @@ describe('validation', () => {
 		expect(isValidCellSchedule({ a: { last: 0, box: 9, streak: 0 } })).toBe(false);
 		expect(isValidCellSchedule([])).toBe(false);
 		expect(isValidCellSchedule('nope')).toBe(false);
+	});
+});
+
+describe('sanitizeCellSchedule', () => {
+	it('keeps valid cells, drops malformed ones and clamps future timestamps', () => {
+		const now = 5000;
+		expect(
+			sanitizeCellSchedule(
+				{
+					good: { last: 100, box: 2, streak: 2 },
+					future: { last: 9999, box: 1, streak: 1 },
+					badBox: { last: 100, box: 9, streak: 0 },
+					badShape: { last: 100 },
+					notObject: 4
+				},
+				now
+			)
+		).toEqual({
+			good: { last: 100, box: 2, streak: 2 },
+			future: { last: 5000, box: 1, streak: 1 }
+		});
+	});
+
+	it('returns an empty schedule for anything that is not a record', () => {
+		expect(sanitizeCellSchedule(undefined, 0)).toEqual({});
+		expect(sanitizeCellSchedule(null, 0)).toEqual({});
+		expect(sanitizeCellSchedule([], 0)).toEqual({});
+		expect(sanitizeCellSchedule('x', 0)).toEqual({});
+	});
+
+	it('copies entries rather than aliasing the input', () => {
+		const input = { k: { last: 1, box: 1, streak: 1 } };
+		const out = sanitizeCellSchedule(input, 10);
+		out['k'].box = 4;
+		expect(input.k.box).toBe(1);
 	});
 });
 

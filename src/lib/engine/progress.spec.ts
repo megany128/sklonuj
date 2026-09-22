@@ -442,6 +442,18 @@ describe('cellSchedule recording', () => {
 		).toMatchObject({ box: 0, streak: 0 });
 	});
 
+	it('does not move a cell on case identification (no form was produced)', () => {
+		recordResult(
+			makeDrillResult(true, {
+				question: makeQuestion({ drillType: 'case_identification', correctAnswer: 'gen' }),
+				userAnswer: 'gen'
+			})
+		);
+		expect(get(progress).cellSchedule).toEqual({});
+		// Lifetime stats still record it.
+		expect(get(progress).caseScores['gen_sg']).toEqual({ attempts: 1, correct: 1 });
+	});
+
 	it('is cleared by resetProgress', () => {
 		recordResult(makeDrillResult(true));
 		resetProgress();
@@ -472,11 +484,11 @@ describe('isValidProgress with cellSchedule', () => {
 		).toBe(true);
 	});
 
-	it('rejects a malformed cellSchedule', () => {
+	it('does not reject progress over a malformed cellSchedule (sanitised on load instead)', () => {
 		expect(isValidProgress({ ...base, cellSchedule: { k: { last: 1, box: 7, streak: 1 } } })).toBe(
-			false
+			true
 		);
-		expect(isValidProgress({ ...base, cellSchedule: [] })).toBe(false);
+		expect(isValidProgress({ ...base, cellSchedule: [] })).toBe(true);
 	});
 });
 
