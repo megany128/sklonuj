@@ -10,13 +10,7 @@ import type {
 } from '../types';
 import { loadAdjectiveBank } from './adjective-drill';
 import { loadPronounBank } from './pronoun-drill';
-import {
-	adjectiveCellKey,
-	caseCellKey,
-	nounCellKey,
-	nounCellKeysForCase,
-	pronounCellKey
-} from './spacing';
+import { adjectiveCellKey, caseCellKey, nounCellKey, pronounCellKey } from './spacing';
 import {
 	isValidProgress,
 	isValidCaseScore,
@@ -360,7 +354,7 @@ describe('pickWeightedCase', () => {
 			lastSession: '',
 			longestStreak: 0
 		});
-		const keys = (c: Case): string[] => nounCellKeysForCase(['hrad'], c, ['sg']);
+		const keys = (c: Case): string[] => [nounCellKey('hrad', c, 'sg')];
 
 		// Weights: gen 0.5, dat 0.5, loc 3 (new). Total 4: a draw of 0.3 lands on loc.
 		expect(pickWeightedCase(['gen', 'dat', 'loc'], keys, now, () => 0.3)).toBe('loc');
@@ -382,7 +376,7 @@ describe('pickWeightedCase', () => {
 			lastSession: '',
 			longestStreak: 0
 		});
-		const keys = (c: Case): string[] => nounCellKeysForCase(['hrad'], c, ['sg']);
+		const keys = (c: Case): string[] => [nounCellKey('hrad', c, 'sg')];
 		// gen 0.5 vs loc capped overdue 5.75: anything past gen's 8% slice is loc.
 		expect(pickWeightedCase(['gen', 'loc'], keys, now, () => 0.5)).toBe('loc');
 	});

@@ -390,17 +390,11 @@ export function pickWeightedTemplate<T extends { id: string }>(
 		const fresh = templates.filter((t) => !recentIds.includes(t.id));
 		if (fresh.length > 0) pool = fresh;
 	}
-	const weights = pool.map((t) => Math.sqrt(Math.max(0, poolSize(t))));
-	const total = weights.reduce((sum, w) => sum + w, 0);
-	if (total <= 0) return pool[Math.floor(random() * pool.length)];
-	// Strict comparison so a zero-weight template is never chosen, even when
-	// random() returns exactly 0.
-	let r = random() * total;
-	for (let i = 0; i < pool.length; i++) {
-		r -= weights[i];
-		if (r < 0) return pool[i];
-	}
-	return pool[pool.length - 1];
+	return weightedPick(
+		pool,
+		pool.map((t) => Math.sqrt(Math.max(0, poolSize(t)))),
+		random
+	);
 }
 
 const PLACEHOLDER_TEMPLATE: SentenceTemplate = {

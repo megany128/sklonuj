@@ -15,19 +15,21 @@ describe('nounCellsByCase', () => {
 		const hrad = bank.find((w) => w.lemma === 'hrad');
 		expect(hrad).toBeDefined();
 		if (!hrad) return;
-		const cells = nounCellsByCase([hrad], ['gen', 'voc'], ['sg', 'pl']);
+		const production = nounCellsByCase([hrad], ['gen', 'voc'], ['sg', 'pl'], 'production');
 		// hrad is an inanimate place noun: no vocative drilling.
-		expect(cells.get('voc')).toEqual([]);
-		expect(cells.get('gen')).toEqual(['n:hrad:gen:sg', 'n:hrad:gen:pl', 'c:gen:sg', 'c:gen:pl']);
+		expect(production.get('voc')).toEqual([]);
+		expect(production.get('gen')).toEqual(['n:hrad:gen:sg', 'n:hrad:gen:pl']);
+		const recognition = nounCellsByCase([hrad], ['gen', 'voc'], ['sg', 'pl'], 'recognition');
+		expect(recognition.get('voc')).toEqual([]);
+		expect(recognition.get('gen')).toEqual(['c:gen:sg', 'c:gen:pl']);
 	});
 
 	it('dedupes paradigms across words', () => {
 		const bank = loadWordBank();
 		const hrads = bank.filter((w) => w.paradigm === 'hrad').slice(0, 5);
 		expect(hrads.length).toBeGreaterThan(1);
-		expect(nounCellsByCase(hrads, ['dat'], ['sg'])?.get('dat')).toEqual([
-			'n:hrad:dat:sg',
-			'c:dat:sg'
+		expect(nounCellsByCase(hrads, ['dat'], ['sg'], 'production').get('dat')).toEqual([
+			'n:hrad:dat:sg'
 		]);
 	});
 });
@@ -48,17 +50,20 @@ describe('adjectiveCellsByCase', () => {
 });
 
 describe('pronounCellsByCase', () => {
-	it('skips numbers a pronoun lacks and adds the recognition cell when anything is drillable', () => {
+	it('skips numbers a pronoun lacks; recognition cells only when anything is drillable', () => {
 		const ja = loadPronounBank().find((p) => p.lemma === 'já');
 		expect(ja).toBeDefined();
 		if (!ja) return;
 		// "já" has no plural forms.
-		expect(pronounCellsByCase([ja], ['dat'], ['sg', 'pl']).get('dat')).toEqual([
-			'p:já:dat:sg',
+		expect(pronounCellsByCase([ja], ['dat'], ['sg', 'pl'], 'production').get('dat')).toEqual([
+			'p:já:dat:sg'
+		]);
+		expect(pronounCellsByCase([ja], ['dat'], ['sg', 'pl'], 'recognition').get('dat')).toEqual([
 			'c:dat:sg',
 			'c:dat:pl'
 		]);
-		expect(pronounCellsByCase([ja], ['dat'], ['pl']).get('dat')).toEqual([]);
+		expect(pronounCellsByCase([ja], ['dat'], ['pl'], 'production').get('dat')).toEqual([]);
+		expect(pronounCellsByCase([ja], ['dat'], ['pl'], 'recognition').get('dat')).toEqual([]);
 	});
 });
 

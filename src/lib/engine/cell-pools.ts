@@ -19,13 +19,27 @@ import { getPronounForm } from './pronoun-drill.ts';
 import { adjectiveCellKey, caseCellKey, nounCellKey, pronounCellKey } from './spacing.ts';
 
 /**
- * Noun production cells (paradigm × number) with a valid form, plus the
- * case's recognition cell so case-identification practice steers the pick.
+ * Which cells the question being generated will advance: a production drill
+ * moves paradigm × case × number cells, a case-identification drill moves
+ * the case's recognition cell. Only those cells should weigh the case pick —
+ * a cell the current drill type can never advance would sit at the "never
+ * seen" weight forever and skew every pick.
+ */
+export type CellKind = 'production' | 'recognition';
+
+function recognitionCells(case_: Case, numbers: readonly Number_[], drillable: boolean): string[] {
+	return drillable ? numbers.map((number_) => caseCellKey(case_, number_)) : [];
+}
+
+/**
+ * Noun cells per case: production cells (paradigm × number) with a valid
+ * form, or the case's recognition cell when at least one word is drillable.
  */
 export function nounCellsByCase(
 	words: readonly WordEntry[],
 	cases: readonly Case[],
-	numbers: readonly Number_[]
+	numbers: readonly Number_[],
+	kind: CellKind
 ): Map<Case, string[]> {
 	const found = new Map<Case, Set<string>>(cases.map((c) => [c, new Set<string>()]));
 	for (const w of words) {
@@ -37,9 +51,7 @@ export function nounCellsByCase(
 	}
 	const out = new Map<Case, string[]>();
 	for (const [c, set] of found) {
-		const keys = [...set];
-		if (keys.length > 0) for (const number_ of numbers) keys.push(caseCellKey(c, number_));
-		out.set(c, keys);
+		out.set(c, kind === 'production' ? [...set] : recognitionCells(c, numbers, set.size > 0));
 	}
 	return out;
 }
@@ -76,11 +88,15 @@ export function adjectiveCellsByCase(
 	return out;
 }
 
-/** Pronoun cells (lemma × number) with a form, plus the case's recognition cell. */
+/**
+ * Pronoun cells per case: production cells (lemma × number) with a form, or
+ * the case's recognition cell when at least one pronoun is drillable.
+ */
 export function pronounCellsByCase(
 	pronouns: readonly PronounEntry[],
 	cases: readonly Case[],
-	numbers: readonly Number_[]
+	numbers: readonly Number_[],
+	kind: CellKind
 ): Map<Case, string[]> {
 	const out = new Map<Case, string[]>();
 	for (const c of cases) {
@@ -92,8 +108,7 @@ export function pronounCellsByCase(
 				}
 			}
 		}
-		if (keys.length > 0) for (const number_ of numbers) keys.push(caseCellKey(c, number_));
-		out.set(c, keys);
+		out.set(c, kind === 'production' ? keys : recognitionCells(c, numbers, keys.length > 0));
 	}
 	return out;
 }

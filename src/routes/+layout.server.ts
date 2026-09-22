@@ -1,4 +1,5 @@
 import type { LayoutServerLoad } from './$types';
+import { isRecord } from '$lib/utils/is-record';
 import type { CellSchedule } from '$lib/types';
 import { sanitizeCellSchedule } from '$lib/engine/spacing';
 
@@ -10,10 +11,6 @@ interface SavedProgress {
 	cell_schedule: CellSchedule;
 	last_session: string;
 	longest_answer_streak: number;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isScoresRecord(
@@ -37,7 +34,7 @@ function parseSavedProgress(data: unknown): SavedProgress | null {
 	// lemma_scores is optional for backwards compatibility (column added later).
 	const lemmaScores = isScoresRecord(data.lemma_scores) ? data.lemma_scores : {};
 	// cell_schedule is optional for the same reason (column added in migration 038).
-	const cellSchedule: CellSchedule = sanitizeCellSchedule(data.cell_schedule, Date.now());
+	const cellSchedule: CellSchedule = sanitizeCellSchedule(data.cell_schedule);
 	const rawLongest = data.longest_answer_streak;
 	const longestAnswerStreak = typeof rawLongest === 'number' ? rawLongest : 0;
 	return {

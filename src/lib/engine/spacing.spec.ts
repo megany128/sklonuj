@@ -9,18 +9,16 @@ import {
 	W_MAX,
 	W_NEW,
 	adjectiveCellKey,
-	adjectiveCellKeysForCase,
 	advanceCell,
 	caseCellKey,
 	caseWeight,
 	cellWeight,
+	isCellKey,
 	isValidCellState,
 	mergeCellSchedules,
 	nounCellKey,
-	nounCellKeysForCase,
 	pickSpacedCase,
 	pronounCellKey,
-	pronounCellKeysForCase,
 	sanitizeCellSchedule,
 	weightedPick
 } from './spacing.ts';
@@ -34,20 +32,6 @@ describe('cell keys', () => {
 		expect(adjectiveCellKey('hard', 'm_anim', 'acc', 'pl')).toBe('a:hard:m_anim:acc:pl');
 		expect(pronounCellKey('já', 'dat', 'sg')).toBe('p:já:dat:sg');
 		expect(caseCellKey('loc', 'pl')).toBe('c:loc:pl');
-	});
-
-	it('expands paradigms × numbers for a case', () => {
-		expect(nounCellKeysForCase(['hrad', 'žena'], 'loc', ['sg', 'pl'])).toEqual([
-			'n:hrad:loc:sg',
-			'n:hrad:loc:pl',
-			'n:žena:loc:sg',
-			'n:žena:loc:pl'
-		]);
-		expect(adjectiveCellKeysForCase(['hard'], ['f', 'n'], 'ins', ['sg'])).toEqual([
-			'a:hard:f:ins:sg',
-			'a:hard:n:ins:sg'
-		]);
-		expect(pronounCellKeysForCase(['on'], 'gen', ['pl'])).toEqual(['p:on:gen:pl']);
 	});
 });
 
@@ -153,6 +137,11 @@ describe('weightedPick', () => {
 		expect(weightedPick(items, [0, 1, 3], () => 0.999)).toBe('c');
 	});
 
+	it('never returns a trailing zero-weight item on floating-point fallthrough', () => {
+		// A draw that survives every subtraction must land on the last weighted item.
+		expect(weightedPick(['a', 'b', 'c', 'zero'], [0.1, 0.2, 0.3, 0], () => 1)).toBe('c');
+	});
+
 	it('falls back to a uniform pick when every weight is zero', () => {
 		const items = ['a', 'b', 'c'];
 		expect(weightedPick(items, [0, 0, 0], () => 0.5)).toBe('b');
@@ -215,8 +204,10 @@ describe('caseWeight / pickSpacedCase', () => {
 	});
 
 	it('favours the case whose cells are due', () => {
-		const keys = (c: 'gen' | 'dat' | 'loc' | 'nom' | 'acc' | 'voc' | 'ins'): string[] =>
-			nounCellKeysForCase(['hrad', 'žena'], c, ['sg']);
+		const keys = (c: 'gen' | 'dat' | 'loc' | 'nom' | 'acc' | 'voc' | 'ins'): string[] => [
+			nounCellKey('hrad', c, 'sg'),
+			nounCellKey('žena', c, 'sg')
+		];
 		// gen weight 0.5, dat weight (5.75 + 3) / 2 = 4.375: any draw past
 		// gen's slice lands on dat.
 		expect(pickSpacedCase(['gen', 'dat'], keys, schedule, now, () => 0.2)).toBe('dat');
@@ -252,38 +243,56 @@ describe('validation', () => {
 	});
 });
 
+describe('isCellKey', () => {
+	it('accepts the four key shapes this module produces', () => {
+		expect(isCellKey(nounCellKey('hrad', 'gen', 'sg'))).toBe(true);
+		expect(isCellKey(adjectiveCellKey('soft', 'f', 'loc', 'pl'))).toBe(true);
+		expect(isCellKey(pronounCellKey('já', 'dat', 'sg'))).toBe(true);
+		expect(isCellKey(caseCellKey('ins', 'pl'))).toBe(true);
+	});
+
+	it('rejects unknown prefixes, bad enums and junk', () => {
+		expect(isCellKey('x:hrad:gen:sg')).toBe(false);
+		expect(isCellKey('n::gen:sg')).toBe(false);
+		expect(isCellKey('n:hrad:xyz:sg')).toBe(false);
+		expect(isCellKey('n:hrad:gen:dual')).toBe(false);
+		expect(isCellKey('a:medium:f:loc:pl')).toBe(false);
+		expect(isCellKey('a:hard:x:loc:pl')).toBe(false);
+		expect(isCellKey('c:gen')).toBe(false);
+		expect(isCellKey('')).toBe(false);
+		expect(isCellKey('n:' + 'a'.repeat(100) + ':gen:sg')).toBe(false);
+	});
+});
+
 describe('sanitizeCellSchedule', () => {
-	it('keeps valid cells, drops malformed ones and clamps future timestamps', () => {
-		const now = 5000;
+	it('keeps valid cells under known keys, drops the rest, and leaves timestamps alone', () => {
 		expect(
-			sanitizeCellSchedule(
-				{
-					good: { last: 100, box: 2, streak: 2 },
-					future: { last: 9999, box: 1, streak: 1 },
-					badBox: { last: 100, box: 9, streak: 0 },
-					badShape: { last: 100 },
-					notObject: 4
-				},
-				now
-			)
+			sanitizeCellSchedule({
+				'n:hrad:gen:sg': { last: 100, box: 2, streak: 2 },
+				'n:hrad:dat:sg': { last: 9_999_999_999_999, box: 1, streak: 1 },
+				'n:hrad:loc:sg': { last: 100, box: 9, streak: 0 },
+				'n:hrad:acc:sg': { last: 100 },
+				'garbage-key': { last: 100, box: 1, streak: 1 },
+				'n:hrad:ins:sg': 4
+			})
 		).toEqual({
-			good: { last: 100, box: 2, streak: 2 },
-			future: { last: 5000, box: 1, streak: 1 }
+			'n:hrad:gen:sg': { last: 100, box: 2, streak: 2 },
+			'n:hrad:dat:sg': { last: 9_999_999_999_999, box: 1, streak: 1 }
 		});
 	});
 
 	it('returns an empty schedule for anything that is not a record', () => {
-		expect(sanitizeCellSchedule(undefined, 0)).toEqual({});
-		expect(sanitizeCellSchedule(null, 0)).toEqual({});
-		expect(sanitizeCellSchedule([], 0)).toEqual({});
-		expect(sanitizeCellSchedule('x', 0)).toEqual({});
+		expect(sanitizeCellSchedule(undefined)).toEqual({});
+		expect(sanitizeCellSchedule(null)).toEqual({});
+		expect(sanitizeCellSchedule([])).toEqual({});
+		expect(sanitizeCellSchedule('x')).toEqual({});
 	});
 
 	it('copies entries rather than aliasing the input', () => {
-		const input = { k: { last: 1, box: 1, streak: 1 } };
-		const out = sanitizeCellSchedule(input, 10);
-		out['k'].box = 4;
-		expect(input.k.box).toBe(1);
+		const input = { 'n:hrad:gen:sg': { last: 1, box: 1, streak: 1 } };
+		const out = sanitizeCellSchedule(input);
+		out['n:hrad:gen:sg'].box = 4;
+		expect(input['n:hrad:gen:sg'].box).toBe(1);
 	});
 });
 

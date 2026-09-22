@@ -203,7 +203,7 @@
 		const lemmaScores = isValidScoresRecord(lemmaScoresRaw) ? lemmaScoresRaw : {};
 		// Per-entry: one bad cell must not blank the schedule that the login
 		// merge then writes back over the remote row.
-		const cellSchedule: CellSchedule = sanitizeCellSchedule(cellScheduleRaw, Date.now());
+		const cellSchedule: CellSchedule = sanitizeCellSchedule(cellScheduleRaw);
 		if (typeof row.user_id !== 'string') return null;
 
 		return {
