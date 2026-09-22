@@ -2314,6 +2314,22 @@
 		return ['sg', 'pl'];
 	}
 
+	/** A number for the next question, uniform over `allowedNumbers()` so the case-pick pool and the question agree. */
+	function pickNumber(): Number_ {
+		const numbers = allowedNumbers();
+		return numbers[Math.floor(Math.random() * numbers.length)];
+	}
+
+	/** Words to weigh the spaced case pick over: the chapter's vocabulary when a chapter is active and has any, else the pool as given. */
+	function chapterCellWords(pool: readonly WordEntry[]): readonly WordEntry[] {
+		if (chapterBook === null || chapterSelection === null) return pool;
+		const { currentLemmas, previousLemmas } = getChapterLemmas();
+		const lemmas = new Set([...currentLemmas, ...previousLemmas].map((l) => l.toLowerCase()));
+		if (lemmas.size === 0) return pool;
+		const words = loadWordBank().filter((w) => lemmas.has(w.lemma.toLowerCase()));
+		return words.length > 0 ? words : pool;
+	}
+
 	/**
 	 * Prefer the templates that drill the case the spaced picker chose, so the
 	 * pick steers sentence drills too. Only templates that still have words
@@ -2419,11 +2435,20 @@
 	 * `pickWeightedTemplate`), skipping recently used ones. Callers check for an
 	 * empty list before calling, hence the throw.
 	 */
+	/**
+	 * Weighted template pick (see `pickWeightedTemplate`), preferring the case
+	 * the spaced picker chose when given one. Pool sizes are memoised so the
+	 * preference filter and the pick don't each rescan the word bank.
+	 */
 	function pickTemplate(
 		templates: SentenceTemplate[],
-		poolSize: (template: SentenceTemplate) => number
+		poolSize: (template: SentenceTemplate) => number,
+		preferredCase?: Case
 	): SentenceTemplate {
-		const picked = pickWeightedTemplate(templates, poolSize, recentTemplateIds);
+		const size = cachedPoolSize(poolSize);
+		const pool =
+			preferredCase === undefined ? templates : preferCase(templates, preferredCase, size);
+		const picked = pickWeightedTemplate(pool, size, recentTemplateIds);
 		if (!picked) throw new Error('pickTemplate called with empty templates array');
 		return picked;
 	}
@@ -2554,10 +2579,7 @@
 					})();
 
 		// Pick number - for pronouns, we need to respect whether the pronoun has sg or pl forms
-		let number_: Number_;
-		if (effectiveNumberMode === 'sg') number_ = 'sg';
-		else if (effectiveNumberMode === 'pl') number_ = 'pl';
-		else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+		let number_: Number_ = pickNumber();
 
 		// Filter candidates that have the right number forms
 		let numberCandidates = candidates.filter((p) => {
@@ -2612,12 +2634,10 @@
 				return generatePronounFormProduction(pronoun, fpCase, number_);
 			}
 
-			const pronounPoolSize = cachedPoolSize(
-				(t: SentenceTemplate) => pronounPoolForTemplate(t).length
-			);
 			const template = pickTemplate(
-				preferCase(eligibleTemplates, case_, pronounPoolSize),
-				pronounPoolSize
+				eligibleTemplates,
+				(t) => pronounPoolForTemplate(t).length,
+				case_
 			);
 			const validCandidates = pronounPoolForTemplate(template);
 
@@ -2641,12 +2661,10 @@
 
 			if (eligibleTemplates.length === 0) return null;
 
-			const pronounPoolSize = cachedPoolSize(
-				(t: SentenceTemplate) => pronounPoolForTemplate(t).length
-			);
 			const template = pickTemplate(
-				preferCase(eligibleTemplates, case_, pronounPoolSize),
-				pronounPoolSize
+				eligibleTemplates,
+				(t) => pronounPoolForTemplate(t).length,
+				case_
 			);
 			const validCandidates = pronounPoolForTemplate(template);
 
@@ -2705,10 +2723,7 @@
 				allowedNumbers()
 			);
 			const case_ = pickWeightedCase(nonNomCases, (c) => adjCells.get(c) ?? []);
-			let number_: Number_;
-			if (effectiveNumberMode === 'sg') number_ = 'sg';
-			else if (effectiveNumberMode === 'pl') number_ = 'pl';
-			else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+			let number_: Number_ = pickNumber();
 
 			// Find a noun to pair the adjective with (determines gender key)
 			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
@@ -2758,10 +2773,10 @@
 					(!t.requiredGender || w.gender === t.requiredGender) &&
 					(typeof t.requiredAnimate !== 'boolean' || w.animate === t.requiredAnimate)
 			);
-		const adjPoolSize = cachedPoolSize((t: SentenceTemplate) => nounsForTemplate(t).length);
 		const template = pickTemplate(
-			preferCase(eligibleTemplates, preferredCase, adjPoolSize),
-			adjPoolSize
+			eligibleTemplates,
+			(t) => nounsForTemplate(t).length,
+			preferredCase
 		);
 		const templateWords = nounsForTemplate(template);
 		if (templateWords.length === 0) return null;
@@ -3040,8 +3055,11 @@
 		const case_ =
 			selectedCase === 'all'
 				? (() => {
+						// In chapter mode the picker serves the chapter's words, so weigh
+						// the cases over those; the level-wide pool would keep every case
+						// near "unseen" through paradigms the chapter never drills.
 						const cells = nounCellsByCase(
-							eligibleWords,
+							chapterCellWords(eligibleWords),
 							casePool,
 							allowedNumbers(),
 							drillType === 'case_identification' ? 'recognition' : 'production'
@@ -3051,10 +3069,7 @@
 				: selectedCase;
 
 		// Pick number (respecting chapter constraints)
-		let number_: Number_;
-		if (effectiveNumberMode === 'sg') number_ = 'sg';
-		else if (effectiveNumberMode === 'pl') number_ = 'pl';
-		else number_ = Math.random() < 0.5 ? 'sg' : 'pl';
+		let number_: Number_ = pickNumber();
 
 		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
@@ -3109,12 +3124,8 @@
 				// Multi-step skips irregular nouns: the paradigm step has no good answer for them.
 				const msPool = (t: SentenceTemplate): WordEntry[] =>
 					nounPoolForTemplate(t, prog).filter((w) => !w.irregular);
-				const msPoolSize = cachedPoolSize((t: SentenceTemplate) => msPool(t).length);
 				// Prefer templates in the spaced case pick that still have words.
-				const template = pickTemplate(
-					preferCase(msEligibleTemplates, case_, msPoolSize),
-					msPoolSize
-				);
+				const template = pickTemplate(msEligibleTemplates, (t) => msPool(t).length, case_);
 				const candidates = msPool(template);
 				if (candidates.length > 0) {
 					const word = pickWord(candidates, prog, template.requiredCase, template.number);
@@ -3290,12 +3301,10 @@
 				}
 				question = generateFormProduction(word, fallbackCase, number_);
 			} else {
-				const nounPoolSize = cachedPoolSize(
-					(t: SentenceTemplate) => nounPoolForTemplate(t, prog).length
-				);
 				const template = pickTemplate(
-					preferCase(eligibleTemplates, case_, nounPoolSize),
-					nounPoolSize
+					eligibleTemplates,
+					(t) => nounPoolForTemplate(t, prog).length,
+					case_
 				);
 
 				let candidates: WordEntry[];

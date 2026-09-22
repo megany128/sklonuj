@@ -8,7 +8,7 @@
 	import { getSupabaseBrowserClient } from '$lib/supabase';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
 	import { progress, STORAGE_USER_KEY, resetProgress } from '$lib/engine/progress';
-	import { sanitizeCellSchedule } from '$lib/engine/spacing';
+	import { mergeCellSchedules, sanitizeCellSchedule } from '$lib/engine/spacing';
 	import {
 		syncBadgesToSupabase,
 		loadBadgesFromSupabase,
@@ -217,6 +217,25 @@
 		};
 	}
 
+	/**
+	 * The login merge writes the row wholesale, so re-read the schedule right
+	 * before writing and merge per cell (latest attempt wins): another device
+	 * may have advanced cells since the row this page loaded with was read.
+	 */
+	async function withFreshCells(
+		client: SupabaseClient,
+		userId: string,
+		local: CellSchedule
+	): Promise<CellSchedule> {
+		const { data } = await client
+			.from('user_progress')
+			.select('cell_schedule')
+			.eq('user_id', userId)
+			.maybeSingle();
+		const fresh = isRecord(data) ? sanitizeCellSchedule(data.cell_schedule) : {};
+		return mergeCellSchedules(local, fresh);
+	}
+
 	function clearProgress(): void {
 		resetProgress();
 		clearStreak();
@@ -269,6 +288,11 @@
 				// leaving the in-memory store dirty — the progress store's own
 				// debounced sync will pick it up.
 				void (async () => {
+					const cellSchedule = await withFreshCells(
+						initSupabase,
+						mergedUserId,
+						merged.cellSchedule
+					);
 					const { error: mergeUpdateError } = await initSupabase
 						.from('user_progress')
 						.update({
@@ -276,7 +300,7 @@
 							case_scores: merged.caseScores,
 							paradigm_scores: merged.paradigmScores,
 							lemma_scores: merged.lemmaScores,
-							cell_schedule: merged.cellSchedule,
+							cell_schedule: cellSchedule,
 							last_session: merged.lastSession,
 							longest_answer_streak: merged.longestStreak,
 							updated_at: new Date().toISOString()
@@ -369,6 +393,7 @@
 							if (remoteProgress) {
 								const merged = mergeProgress(usableLocalProgress, remoteProgress);
 
+								const cellSchedule = await withFreshCells(supabase, userId, merged.cellSchedule);
 								const { error: updateError } = await supabase
 									.from('user_progress')
 									.update({
@@ -376,7 +401,7 @@
 										case_scores: merged.caseScores,
 										paradigm_scores: merged.paradigmScores,
 										lemma_scores: merged.lemmaScores,
-										cell_schedule: merged.cellSchedule,
+										cell_schedule: cellSchedule,
 										last_session: merged.lastSession,
 										longest_answer_streak: merged.longestStreak,
 										updated_at: new Date().toISOString()
@@ -393,6 +418,11 @@
 							}
 						} else if (usableLocalProgress) {
 							// Guest progress exists but no remote row — upload it
+							const cellSchedule = await withFreshCells(
+								supabase,
+								userId,
+								usableLocalProgress.cellSchedule
+							);
 							const { error: insertError } = await supabase.from('user_progress').upsert(
 								{
 									user_id: userId,
@@ -400,7 +430,7 @@
 									case_scores: usableLocalProgress.caseScores,
 									paradigm_scores: usableLocalProgress.paradigmScores,
 									lemma_scores: usableLocalProgress.lemmaScores,
-									cell_schedule: usableLocalProgress.cellSchedule,
+									cell_schedule: cellSchedule,
 									last_session: usableLocalProgress.lastSession,
 									longest_answer_streak: usableLocalProgress.longestStreak,
 									updated_at: new Date().toISOString()
