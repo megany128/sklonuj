@@ -332,11 +332,13 @@ describe('pickWeightedCase', () => {
 	});
 
 	it('throws on empty array', () => {
-		expect(() => pickWeightedCase([])).toThrow('pickWeightedCase called with empty cases array');
+		expect(() => pickWeightedCase([], () => [])).toThrow(
+			'pickWeightedCase called with empty cases array'
+		);
 	});
 
 	it('returns the only case when given a single-element array', () => {
-		expect(pickWeightedCase(['gen'])).toBe('gen');
+		expect(pickWeightedCase(['gen'], () => [])).toBe('gen');
 	});
 
 	it('favors the case whose spacing cells are due or unseen', () => {
@@ -382,8 +384,22 @@ describe('pickWeightedCase', () => {
 	});
 
 	it('falls back to a uniform pick when no cells are supplied', () => {
-		expect(pickWeightedCase(['gen', 'dat'], undefined, 0, () => 0.51)).toBe('dat');
-		expect(pickWeightedCase(['gen', 'dat'], undefined, 0, () => 0.49)).toBe('gen');
+		expect(
+			pickWeightedCase(
+				['gen', 'dat'],
+				() => [],
+				0,
+				() => 0.51
+			)
+		).toBe('dat');
+		expect(
+			pickWeightedCase(
+				['gen', 'dat'],
+				() => [],
+				0,
+				() => 0.49
+			)
+		).toBe('gen');
 	});
 });
 

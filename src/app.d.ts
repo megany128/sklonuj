@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { CellSchedule } from '$lib/types';
 
 interface PublicUser {
 	id: string;
@@ -22,7 +23,7 @@ declare global {
 				case_scores: Record<string, { attempts: number; correct: number }>;
 				paradigm_scores: Record<string, { attempts: number; correct: number }>;
 				lemma_scores: Record<string, { attempts: number; correct: number }>;
-				cell_schedule: Record<string, { last: number; box: number; streak: number }>;
+				cell_schedule: CellSchedule;
 				last_session: string;
 				longest_answer_streak: number;
 			} | null;

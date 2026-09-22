@@ -23,7 +23,7 @@ import type {
 	CellState,
 	Number_
 } from '../types.ts';
-import { ALL_ADJECTIVE_GENDER_KEYS, isCase, isNumber } from '../types.ts';
+import { ALL_ADJECTIVE_GENDER_KEYS, isCase, isNumber, isParadigm } from '../types.ts';
 import { isRecord } from '../utils/is-record.ts';
 
 const MINUTE_MS = 60_000;
@@ -51,6 +51,16 @@ export const W_DUE = 4;
 export const OVERDUE_CAP = 1.5;
 /** Largest weight `cellWeight` can return. */
 export const W_MAX = W_FLOOR + (W_DUE - W_FLOOR) * OVERDUE_CAP;
+
+/**
+ * Most cells a persisted schedule may hold. Every drillable cell (noun
+ * paradigm × case × number, adjective type × gender × case × number, pronoun
+ * × case × number) is well under this; a bigger schedule is truncated rather
+ * than rejected so an oversized schedule never blocks the rest of a sync.
+ */
+export const MAX_CELL_SCHEDULE_KEYS = 2000;
+/** Cell timestamps come from client clocks; further ahead than this is skew, not an attempt. */
+export const MAX_CELL_CLOCK_SKEW_MS = 5 * 60_000;
 
 export function nounCellKey(paradigm: string, case_: Case, number_: Number_): string {
 	return `n:${paradigm}:${case_}:${number_}`;
@@ -247,7 +257,10 @@ export function isCellKey(key: string): boolean {
 		parts.length === from + 2 && isCase(parts[from]) && isNumber(parts[from + 1]);
 	switch (parts[0]) {
 		case 'n':
+			return tail(2) && isParadigm(parts[1]);
 		case 'p':
+			// Pronoun lemmas are only checked for shape: the bank is not
+			// importable here without a dependency cycle.
 			return tail(2) && parts[1].length > 0;
 		case 'a':
 			return tail(3) && ADJECTIVE_TYPES.has(parts[1]) && GENDER_KEYS.has(parts[2]);
@@ -301,13 +314,15 @@ export function dropFutureCells(
 }
 
 /**
- * Keep the `limit` most recently attempted cells. Used to bound what a
- * client can persist without failing its whole sync over the count.
+ * Keep at most `limit` cells, preferring the highest boxes (the learner's
+ * best-spaced rules, whose history is the costliest to lose) and, within a
+ * box, the most recently attempted. Bounds what a client can persist without
+ * failing its whole sync over the count.
  */
 export function truncateCellSchedule(schedule: CellSchedule, limit: number): CellSchedule {
 	const entries = Object.entries(schedule);
 	if (entries.length <= limit) return schedule;
-	entries.sort((a, b) => b[1].last - a[1].last);
+	entries.sort((a, b) => b[1].box - a[1].box || b[1].last - a[1].last);
 	return Object.fromEntries(entries.slice(0, limit));
 }
 

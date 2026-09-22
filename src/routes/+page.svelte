@@ -3069,7 +3069,8 @@
 
 		// The case pick sweeps the word pool, so it runs only once an adjective
 		// question (which never uses it) is off the table.
-		const chapterWords = chapterWordPool();
+		// Only 'all' mode uses the chapter pool (vocative damping + case pick).
+		const chapterWords = selectedCase === 'all' ? chapterWordPool() : null;
 		const damped = (() => {
 			if (selectedCase !== 'all') return effectiveEnabledCases;
 			if (chapterWords === null) return effectiveEnabledCases;
@@ -3088,10 +3089,13 @@
 		// Pick case: either the selected one, or spaced-weighted from the effective
 		// enabled cases. In 'all' mode nominative leaves the pool for
 		// case_identification ("To je ___" → nom is a give-away once the learner
-		// spots the pattern) and for form_production (nom → nom is trivial and the
-		// branch below would re-roll it uniformly, bypassing the spacing).
+		// spots the pattern) and for form_production and multi_step (nom → nom is
+		// trivial, and a failed multi_step falls through to form production, whose
+		// nom re-roll would bypass the spacing).
 		const casePool =
-			(drillType === 'case_identification' || drillType === 'form_production') &&
+			(drillType === 'case_identification' ||
+				drillType === 'form_production' ||
+				drillType === 'multi_step') &&
 			selectedCase === 'all'
 				? (() => {
 						const nonNom = damped.filter((c) => c !== 'nom');
