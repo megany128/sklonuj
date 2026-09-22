@@ -27,8 +27,9 @@ import { adjectiveCellKey, caseCellKey, nounCellKey, pronounCellKey } from './sp
  */
 export type CellKind = 'production' | 'recognition';
 
-function recognitionCells(case_: Case, numbers: readonly Number_[], drillable: boolean): string[] {
-	return drillable ? numbers.map((number_) => caseCellKey(case_, number_)) : [];
+/** Recognition cells for the numbers in which something can actually be asked. */
+function recognitionCells(case_: Case, drillableNumbers: readonly Number_[]): string[] {
+	return drillableNumbers.map((number_) => caseCellKey(case_, number_));
 }
 
 /**
@@ -45,8 +46,8 @@ export function nounCellsByCase(
 		// Only "is anything drillable in this case" matters; skip the key sets.
 		const out = new Map<Case, string[]>();
 		for (const c of cases) {
-			const drillable = words.some((w) => numbers.some((n) => hasValidForm(w, c, n)));
-			out.set(c, recognitionCells(c, numbers, drillable));
+			const drillable = numbers.filter((n) => words.some((w) => hasValidForm(w, c, n)));
+			out.set(c, recognitionCells(c, drillable));
 		}
 		return out;
 	}
@@ -115,7 +116,13 @@ export function pronounCellsByCase(
 				}
 			}
 		}
-		out.set(c, kind === 'production' ? keys : recognitionCells(c, numbers, keys.length > 0));
+		if (kind === 'production') out.set(c, keys);
+		else {
+			const drillable = numbers.filter((n) =>
+				pronouns.some((p) => getPronounForm(p, c, n) !== null)
+			);
+			out.set(c, recognitionCells(c, drillable));
+		}
 	}
 	return out;
 }

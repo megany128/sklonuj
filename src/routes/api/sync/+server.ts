@@ -3,7 +3,7 @@ import { isRecord } from '$lib/utils/is-record';
 import type { RequestHandler } from './$types';
 import type { CellSchedule } from '$lib/types';
 import {
-	clampCellTimestamps,
+	dropFutureCells,
 	mergeCellSchedules,
 	sanitizeCellSchedule,
 	truncateCellSchedule
@@ -19,6 +19,9 @@ const MAX_REQUEST_BYTES = 256 * 1024; // 256KB
 // schedule is truncated to its most recent cells rather than failing the
 // sync, which would freeze scores and streaks for that learner too.
 const MAX_CELL_SCHEDULE_KEYS = 2000;
+// Cell timestamps come from client clocks; anything further ahead than this is
+// a skewed clock, not a real attempt.
+const MAX_CELL_CLOCK_SKEW_MS = 5 * 60_000;
 
 function isValidLevel(value: unknown): value is Level {
 	return typeof value === 'string' && VALID_LEVELS.has(value);
@@ -102,17 +105,17 @@ interface ValidatedProgress {
 }
 
 /**
- * Keep only well-formed cells under known keys, clamp timestamps to the
- * server clock and bound the count. Nothing here fails the sync: one bad
- * entry, a fast clock or an oversized schedule on one device must not block
- * progress sync (scores, streak, level) from every device.
+ * Keep only well-formed cells under known keys with plausible timestamps,
+ * and bound the count. Nothing here fails the sync: one bad entry, a fast
+ * clock or an oversized schedule on one device must not block progress sync
+ * (scores, streak, level) from every device.
  */
 function validateCellSchedule(
 	value: unknown,
 	now: number
 ): { valid: true; data: CellSchedule } | { valid: false; reason: string } {
 	if (!isRecord(value)) return { valid: false, reason: 'progress.cellSchedule must be an object' };
-	const cells = clampCellTimestamps(sanitizeCellSchedule(value), now);
+	const cells = dropFutureCells(sanitizeCellSchedule(value), now, MAX_CELL_CLOCK_SKEW_MS);
 	return { valid: true, data: truncateCellSchedule(cells, MAX_CELL_SCHEDULE_KEYS) };
 }
 

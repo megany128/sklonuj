@@ -466,6 +466,15 @@ describe('cellSchedule recording', () => {
 		});
 	});
 
+	it('drops a cell one box on a graded-wrong near-miss instead of two', () => {
+		for (let i = 0; i < 4; i++) recordResult(makeDrillResult(true));
+		recordResult(makeDrillResult(false, { userAnswer: 'hradu', nearMiss: true }));
+		expect(get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')]).toMatchObject({
+			box: 3,
+			streak: 0
+		});
+	});
+
 	it('is cleared by resetProgress', () => {
 		recordResult(makeDrillResult(true));
 		resetProgress();
