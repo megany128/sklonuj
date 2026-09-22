@@ -434,7 +434,7 @@ export function getAllCaseStrengths(): Record<Case, { accuracy: number; attempts
  */
 export function pickWeightedCase(
 	cases: Case[],
-	cellKeysForCase: (case_: Case) => readonly string[] = () => [],
+	cellKeysForCase: (case_: Case) => readonly string[],
 	now: number = Date.now(),
 	random: () => number = Math.random
 ): Case {

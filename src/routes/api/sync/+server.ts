@@ -3,6 +3,8 @@ import { isRecord } from '$lib/utils/is-record';
 import type { RequestHandler } from './$types';
 import type { CellSchedule } from '$lib/types';
 import {
+	MAX_CELL_CLOCK_SKEW_MS,
+	MAX_CELL_SCHEDULE_KEYS,
 	dropFutureCells,
 	mergeCellSchedules,
 	sanitizeCellSchedule,
@@ -14,14 +16,6 @@ const VALID_LEVELS: ReadonlySet<string> = new Set<string>(['A1', 'A2', 'B1', 'B2
 // lemmaScores grows with lemmas × case × number and cellSchedule adds up to
 // ~600 cells on top, so a heavy learner's payload passes 100KB.
 const MAX_REQUEST_BYTES = 256 * 1024; // 256KB
-// Every drillable cell (noun paradigm × case × number, adjective type × gender ×
-// case × number, pronoun × case × number) is well under this; a bigger
-// schedule is truncated to its most recent cells rather than failing the
-// sync, which would freeze scores and streaks for that learner too.
-const MAX_CELL_SCHEDULE_KEYS = 2000;
-// Cell timestamps come from client clocks; anything further ahead than this is
-// a skewed clock, not a real attempt.
-const MAX_CELL_CLOCK_SKEW_MS = 5 * 60_000;
 
 function isValidLevel(value: unknown): value is Level {
 	return typeof value === 'string' && VALID_LEVELS.has(value);
@@ -107,16 +101,15 @@ interface ValidatedProgress {
 /**
  * Keep only well-formed cells under known keys with plausible timestamps,
  * and bound the count. Nothing here fails the sync: one bad entry, a fast
- * clock or an oversized schedule on one device must not block progress sync
- * (scores, streak, level) from every device.
+ * clock, an oversized schedule or a schedule that is not even an object on
+ * one device must not block progress sync (scores, streak, level) from
+ * every device — a non-object is treated like an absent schedule, and the
+ * stored column is left alone.
  */
-function validateCellSchedule(
-	value: unknown,
-	now: number
-): { valid: true; data: CellSchedule } | { valid: false; reason: string } {
-	if (!isRecord(value)) return { valid: false, reason: 'progress.cellSchedule must be an object' };
+function validateCellSchedule(value: unknown, now: number): CellSchedule | null {
+	if (!isRecord(value)) return null;
 	const cells = dropFutureCells(sanitizeCellSchedule(value), now, MAX_CELL_CLOCK_SKEW_MS);
-	return { valid: true, data: truncateCellSchedule(cells, MAX_CELL_SCHEDULE_KEYS) };
+	return truncateCellSchedule(cells, MAX_CELL_SCHEDULE_KEYS);
 }
 
 interface ValidatedSession {
@@ -159,12 +152,8 @@ function validateProgress(
 	// cellSchedule is optional for backwards compatibility (older clients omit
 	// it). Absent means "don't touch the stored schedule", never "clear it".
 	const rawCellSchedule = value['cellSchedule'];
-	let cellSchedule: CellSchedule | null = null;
-	if (rawCellSchedule !== undefined) {
-		const cellResult = validateCellSchedule(rawCellSchedule, Date.now());
-		if (!cellResult.valid) return cellResult;
-		cellSchedule = cellResult.data;
-	}
+	const cellSchedule: CellSchedule | null =
+		rawCellSchedule === undefined ? null : validateCellSchedule(rawCellSchedule, Date.now());
 
 	const lastSession = value['lastSession'];
 	if (!isValidIsoDateString(lastSession))

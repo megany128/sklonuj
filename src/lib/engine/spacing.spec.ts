@@ -276,6 +276,7 @@ describe('isCellKey', () => {
 
 	it('rejects unknown prefixes, bad enums and junk', () => {
 		expect(isCellKey('x:hrad:gen:sg')).toBe(false);
+		expect(isCellKey('n:zzz:gen:sg')).toBe(false);
 		expect(isCellKey('n::gen:sg')).toBe(false);
 		expect(isCellKey('n:hrad:xyz:sg')).toBe(false);
 		expect(isCellKey('n:hrad:gen:dual')).toBe(false);
@@ -350,13 +351,13 @@ describe('dropFutureCells / truncateCellSchedule', () => {
 		});
 	});
 
-	it('keeps the most recently attempted cells when over the limit', () => {
+	it('keeps the highest boxes, then the most recent, when over the limit', () => {
 		const schedule: CellSchedule = {
-			old: { last: 1, box: 1, streak: 1 },
+			mature: { last: 1, box: 5, streak: 5 },
 			mid: { last: 5, box: 1, streak: 1 },
-			new: { last: 9, box: 1, streak: 1 }
+			fresh: { last: 9, box: 1, streak: 1 }
 		};
-		expect(Object.keys(truncateCellSchedule(schedule, 2)).sort()).toEqual(['mid', 'new']);
+		expect(Object.keys(truncateCellSchedule(schedule, 2)).sort()).toEqual(['fresh', 'mature']);
 		expect(truncateCellSchedule(schedule, 3)).toBe(schedule);
 	});
 });
