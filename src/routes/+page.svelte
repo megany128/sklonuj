@@ -127,7 +127,9 @@
 		playStreakSound
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
-	import { recordGuestSessionActivity } from '$lib/engine/guest-sessions';
+	import { recordGuestSessionActivity, getTodayGuestSession } from '$lib/engine/guest-sessions';
+	import { getOrCreateGuestId } from '$lib/engine/guest-id';
+	import { generateAlias } from '$lib/engine/leaderboard-alias';
 	import paradigmsData from '$lib/data/paradigms.json';
 	import curriculumData from '$lib/data/curriculum.json';
 
@@ -197,6 +199,12 @@
 	let todayCorrect = $state(0);
 	let todayCaseScores = $state<Record<string, { attempted: number; correct: number }>>({});
 	let sessionSyncTimer: ReturnType<typeof setTimeout> | null = null;
+	let guestSyncTimer: ReturnType<typeof setTimeout> | null = null;
+	// Anonymous leaderboard identity (localStorage + cookie, see $lib/engine/guest-id).
+	// Set once in the init effect; null while signed in or before hydration.
+	let guestId = $state<string | null>(null);
+	/** Whose row is "you" on the global leaderboard: the account, else the guest id. */
+	let viewerId = $derived(user?.id ?? guestId);
 
 	function getTodayDate(): string {
 		// Must match server logic: before 5 AM UTC, treat previous day as "today"
@@ -227,6 +235,30 @@
 		}, 1000);
 	}
 
+	/**
+	 * Guest counterpart of scheduleSessionSync: push today's cumulative totals
+	 * (from the localStorage guest-session record) to the guest leaderboard
+	 * table. The server merges per-field MAX, so resends are harmless.
+	 */
+	function scheduleGuestSessionSync(): void {
+		if (user || guestId === null) return;
+		if (guestSyncTimer) clearTimeout(guestSyncTimer);
+		guestSyncTimer = setTimeout(() => {
+			const today = getTodayGuestSession();
+			if (today === null) return;
+			fetch('/api/leaderboard/guest', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				keepalive: true,
+				body: JSON.stringify({
+					sessionDate: today.sessionDate,
+					questionsAttempted: today.questionsAttempted,
+					questionsCorrect: today.questionsCorrect
+				})
+			}).catch(() => {});
+		}, 1000);
+	}
+
 	function recordSessionActivity(correct: boolean, caseKey?: string): void {
 		todayAttempted++;
 		if (correct) todayCorrect++;
@@ -240,8 +272,10 @@
 			scheduleSessionSync();
 		} else {
 			// Track guest activity per-day in localStorage so it can be uploaded
-			// to `practice_sessions` after sign-up (heatmap + Week Warrior badge).
+			// to `practice_sessions` after sign-up (heatmap + Week Warrior badge),
+			// and mirror today's totals to the guest leaderboard table.
 			recordGuestSessionActivity(correct, caseKey);
+			scheduleGuestSessionSync();
 		}
 	}
 
@@ -1027,13 +1061,33 @@
 				});
 			}
 		}
-		globalLeaderboardData = entries;
-		if (typeof data.totalUsers === 'number') {
-			globalLeaderboardTotal = data.totalUsers;
-		}
+		let totalUsers = typeof data.totalUsers === 'number' ? data.totalUsers : entries.length;
 		if (typeof data.showOnLeaderboard === 'boolean') {
 			globalShowOnLeaderboard = data.showOnLeaderboard;
 		}
+		// The server always includes the viewer (at 0 points if idle) — except
+		// the streamed SSR payload for a first-time guest, computed before their
+		// cookie existed. Mirror that rule here so the banner never shows "#0".
+		// Everyone the server returned scored > 0, so a fresh viewer ranks last.
+		if (
+			viewerId !== null &&
+			globalShowOnLeaderboard &&
+			!entries.some((e) => e.userId === viewerId)
+		) {
+			const alias = generateAlias(viewerId);
+			totalUsers += 1;
+			entries.push({
+				rank: totalUsers,
+				userId: viewerId,
+				displayName: alias,
+				firstName: alias,
+				score: 0,
+				questionsAnswered: 0,
+				correctAnswers: 0
+			});
+		}
+		globalLeaderboardData = entries;
+		globalLeaderboardTotal = totalUsers;
 		globalLeaderboardStatus = 'ready';
 		return true;
 	}
@@ -1070,10 +1124,11 @@
 	}
 
 	function updateLeaderboardAfterAnswer(correct: boolean): void {
-		if (!user) return; // Anon users update via sessionCorrect/sessionWrong which feeds mergedGlobalLeaderboard
+		const me = viewerId;
+		if (me === null) return;
 
 		if (globalLeaderboardData.length > 0) {
-			const myGlobalEntry = globalLeaderboardData.find((e) => e.userId === user!.id);
+			const myGlobalEntry = globalLeaderboardData.find((e) => e.userId === me);
 			if (myGlobalEntry) {
 				const pointsGained = correct ? 5 : 1;
 				const newScore = myGlobalEntry.score + pointsGained;
@@ -1088,7 +1143,7 @@
 					.map((e) => e.rank);
 
 				const updated = globalLeaderboardData.map((e) => {
-					if (e.userId !== user!.id) return e;
+					if (e.userId !== me) return e;
 					return {
 						...e,
 						score: newScore,
@@ -1116,85 +1171,6 @@
 	let sessionCorrect = $state(0);
 	let sessionWrong = $state(0);
 	let sessionCaseMisses: Record<string, number> = $state({});
-
-	// For anonymous users, create a client-side leaderboard entry from session stats
-	const ANON_USER_ID = '__anon__';
-	const ANON_ADJECTIVES = [
-		'Happy',
-		'Brave',
-		'Clever',
-		'Swift',
-		'Calm',
-		'Bold',
-		'Bright',
-		'Keen',
-		'Wise',
-		'Merry',
-		'Witty',
-		'Gentle',
-		'Lively',
-		'Plucky',
-		'Steady',
-		'Nimble'
-	];
-	const ANON_ANIMALS = [
-		'Otter',
-		'Fox',
-		'Bear',
-		'Owl',
-		'Hare',
-		'Wolf',
-		'Deer',
-		'Hawk',
-		'Lynx',
-		'Seal',
-		'Crane',
-		'Raven',
-		'Finch',
-		'Badger',
-		'Robin',
-		'Falcon'
-	];
-	const anonAlias = (() => {
-		const seed = Math.floor(Math.random() * 256);
-		return `${ANON_ADJECTIVES[seed % 16]} ${ANON_ANIMALS[Math.floor(seed / 16) % 16]}`;
-	})();
-	let mergedGlobalLeaderboard = $derived.by(() => {
-		if (user) return globalLeaderboardData;
-		const anonScore = sessionCorrect * 5 + sessionWrong;
-		// Figure out anon rank: count how many real users have a higher score
-		// The API returns windowed data, but globalLeaderboardTotal is the full count
-		let anonRank = globalLeaderboardTotal + 1; // default: last
-		if (anonScore > 0) {
-			// Find lowest-ranked visible entry with score <= anonScore
-			// If we beat some visible entries, our rank is just above them
-			// Otherwise we're somewhere in the hidden middle — approximate
-			const beaten = globalLeaderboardData.filter((e) => e.score < anonScore);
-			if (beaten.length > 0) {
-				const bestBeaten = beaten.reduce((a, b) => (a.rank < b.rank ? a : b));
-				anonRank = bestBeaten.rank;
-			} else if (globalLeaderboardData.length > 0) {
-				const worstVisible = globalLeaderboardData.reduce((a, b) => (a.rank > b.rank ? a : b));
-				if (anonScore === worstVisible.score) {
-					anonRank = worstVisible.rank; // tied
-				} else {
-					anonRank = worstVisible.rank + 1;
-				}
-			}
-		}
-		const anonEntry: LeaderboardEntry = {
-			rank: anonRank,
-			userId: ANON_USER_ID,
-			displayName: anonAlias,
-			firstName: anonAlias,
-			score: anonScore,
-			questionsAnswered: sessionCorrect + sessionWrong,
-			correctAnswers: sessionCorrect
-		};
-		const merged = [...globalLeaderboardData, anonEntry];
-		merged.sort((a, b) => a.rank - b.rank || b.score - a.score);
-		return merged;
-	});
 
 	// Streak tracking
 	let streak = $state(0);
@@ -2140,6 +2116,11 @@
 			}
 		}
 
+		// Anonymous visitors get a persistent guest id (and cookie) so the global
+		// leaderboard can score them and window around them. Must precede the
+		// leaderboard payload handling below, which looks the viewer up by id.
+		if (!user) guestId = getOrCreateGuestId();
+
 		// Global leaderboard for all users (including anonymous). The initial
 		// payload is streamed from +page.server.ts (its query starts during SSR,
 		// well before hydration); fall back to the API if it's missing or failed.
@@ -2235,6 +2216,9 @@
 			}
 			if (sessionSyncTimer) {
 				clearTimeout(sessionSyncTimer);
+			}
+			if (guestSyncTimer) {
+				clearTimeout(guestSyncTimer);
 			}
 			if (leaderboardRefreshTimer) {
 				clearInterval(leaderboardRefreshTimer);
@@ -4533,10 +4517,10 @@
 				mode="global"
 				loading={globalLeaderboardStatus === 'loading'}
 				unavailable={globalLeaderboardStatus === 'error'}
-				leaderboard={mergedGlobalLeaderboard}
+				leaderboard={globalLeaderboardData}
 				totalStudents={globalLeaderboardTotal}
 				pointsDelta={globalLeaderboardPointsDelta}
-				currentUserId={user?.id ?? ANON_USER_ID}
+				currentUserId={viewerId ?? ''}
 				showOnLeaderboard={globalShowOnLeaderboard}
 				onToggleVisibility={handleGlobalLeaderboardToggle}
 				isAnonymous={user === null}

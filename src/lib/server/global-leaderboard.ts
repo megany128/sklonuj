@@ -4,57 +4,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
+import { generateAlias } from '$lib/engine/leaderboard-alias';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-const ADJECTIVES = [
-	'Happy',
-	'Brave',
-	'Clever',
-	'Swift',
-	'Calm',
-	'Bold',
-	'Bright',
-	'Keen',
-	'Wise',
-	'Merry',
-	'Witty',
-	'Gentle',
-	'Lively',
-	'Plucky',
-	'Steady',
-	'Nimble'
-];
-const ANIMALS = [
-	'Otter',
-	'Fox',
-	'Bear',
-	'Owl',
-	'Hare',
-	'Wolf',
-	'Deer',
-	'Hawk',
-	'Lynx',
-	'Seal',
-	'Crane',
-	'Raven',
-	'Finch',
-	'Badger',
-	'Robin',
-	'Falcon'
-];
-
-/** Deterministic alias from a UUID — same ID always produces the same name. */
-function generateAlias(userId: string): string {
-	let hash = 0;
-	for (let i = 0; i < userId.length; i++) {
-		hash = (hash * 31 + userId.charCodeAt(i)) | 0;
-	}
-	const adjIdx = ((hash >>> 0) % ADJECTIVES.length) | 0;
-	const aniIdx = ((hash >>> 4) % ANIMALS.length) | 0;
-	return `${ADJECTIVES[adjIdx]} ${ANIMALS[aniIdx]}`;
 }
 
 function toDateString(d: Date): string {
@@ -100,13 +53,19 @@ export interface GlobalLeaderboardResult {
 export class GlobalLeaderboardError extends Error {}
 
 /**
- * Computes the windowed global weekly leaderboard for `user` (or an anonymous
- * viewer when null). Throws `GlobalLeaderboardError` on misconfiguration or
- * query failure — callers decide whether that is a 500 or a soft `null`.
+ * Computes the windowed global weekly leaderboard for the viewer: a signed-in
+ * `user`, else the anonymous visitor identified by `guestId` (the validated
+ * `sklonuj_guest_id` cookie — see `$lib/engine/guest-id`), else nobody.
+ * Guests are scored from `guest_practice_sessions`, unioned into the same
+ * RPC as signed-in users (migration 037); they have no opt-out toggle.
+ * Throws `GlobalLeaderboardError` on misconfiguration or query failure —
+ * callers decide whether that is a 500 or a soft `null`.
  */
 export async function computeGlobalLeaderboard(
-	user: { id: string } | null
+	user: { id: string } | null,
+	guestId: string | null = null
 ): Promise<GlobalLeaderboardResult> {
+	const viewerId = user ? user.id : guestId;
 	const supabaseUrl = env.PUBLIC_SUPABASE_URL;
 	const serviceRoleKey = privateEnv.SUPABASE_SERVICE_ROLE_KEY;
 	if (!supabaseUrl || !serviceRoleKey) {
@@ -160,8 +119,8 @@ export async function computeGlobalLeaderboard(
 
 	// Always include the viewer (even at 0 points) so they can see their rank —
 	// unless they've opted out, in which case the banner shows the toggle strip.
-	if (user && showOnLeaderboard && !scoreMap.has(user.id)) {
-		scoreMap.set(user.id, { attempted: 0, correct: 0 });
+	if (viewerId !== null && showOnLeaderboard && !scoreMap.has(viewerId)) {
+		scoreMap.set(viewerId, { attempted: 0, correct: 0 });
 	}
 
 	const entries: GlobalLeaderboardEntry[] = [];
@@ -195,7 +154,7 @@ export async function computeGlobalLeaderboard(
 	}
 
 	// Window: top 3 + one above self + self + one below
-	const selfIdx = user ? entries.findIndex((e) => e.userId === user.id) : -1;
+	const selfIdx = viewerId !== null ? entries.findIndex((e) => e.userId === viewerId) : -1;
 	const seen = new Set<string>();
 	const windowed: GlobalLeaderboardEntry[] = [];
 

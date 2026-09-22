@@ -283,7 +283,7 @@
 			></span>
 		</button>
 	</div>
-{:else if loading || (leaderboard.length > 0 && (myEntry || isAnonymous))}
+{:else if loading || (leaderboard.length > 0 && myEntry)}
 	<!-- Collapsed banner -->
 	<div
 		role="button"

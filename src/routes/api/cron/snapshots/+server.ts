@@ -189,5 +189,22 @@ export const POST: RequestHandler = async ({ request }) => {
 		snapshotsUpserted += batch.length;
 	}
 
-	return json({ ok: true, snapshots_upserted: snapshotsUpserted });
+	// Housekeeping that piggybacks on this schedule: drop guest leaderboard rows
+	// from before the current week's Monday — the board is weekly, so they can
+	// never score again (migration 037). Failure is logged, never fatal.
+	let guestSessionsPruned = 0;
+	const { data: pruned, error: pruneError } = await adminClient.rpc(
+		'prune_guest_practice_sessions'
+	);
+	if (pruneError) {
+		console.error('snapshots: guest session prune failed', pruneError);
+	} else if (typeof pruned === 'number') {
+		guestSessionsPruned = pruned;
+	}
+
+	return json({
+		ok: true,
+		snapshots_upserted: snapshotsUpserted,
+		guest_sessions_pruned: guestSessionsPruned
+	});
 };

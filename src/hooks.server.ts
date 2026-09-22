@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { createSupabaseServerClient } from '$lib/supabase-server';
+import { GUEST_ID_STORAGE_KEY, isGuestId } from '$lib/engine/guest-id';
 import { handlePostHogProxy, isPostHogProxyRequest } from '$lib/posthog-proxy';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -25,6 +26,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	} = await supabase.auth.getUser();
 
 	event.locals.user = user;
+
+	// Anonymous visitors mirror their localStorage guest id into a cookie so the
+	// global leaderboard can include them (and window around them during SSR).
+	// Parsed for every request; consumers decide whether it applies to a
+	// signed-in user (it never does for scoring — see computeGlobalLeaderboard).
+	const guestCookie = event.cookies.get(GUEST_ID_STORAGE_KEY);
+	event.locals.guestId = isGuestId(guestCookie) ? guestCookie.toLowerCase() : null;
 
 	const response = await resolve(event, {
 		filterSerializedResponseHeaders(name) {

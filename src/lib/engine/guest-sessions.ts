@@ -118,6 +118,11 @@ export function recordGuestSessionActivity(correct: boolean, caseKey?: string): 
 	saveToStorage(sessions);
 }
 
+/** Today's guest session (effective date, see `getTodayDateStr`), or null if none yet. */
+export function getTodayGuestSession(): GuestSession | null {
+	return loadFromStorage()[getTodayDateStr()] ?? null;
+}
+
 /** Return all guest sessions sorted by date ascending. */
 export function getGuestSessions(): GuestSession[] {
 	const sessions = loadFromStorage();

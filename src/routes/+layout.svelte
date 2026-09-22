@@ -21,6 +21,7 @@
 		clearMistakes
 	} from '$lib/engine/mistakes';
 	import { getGuestSessions, clearGuestSessions } from '$lib/engine/guest-sessions';
+	import { clearGuestId } from '$lib/engine/guest-id';
 	import { clearMasteryCelebrations } from '$lib/engine/mastery-celebrations';
 	import { addPracticeDays } from '$lib/engine/achievements';
 	import type { SupabaseClient } from '@supabase/supabase-js';
@@ -106,6 +107,16 @@
 			const dates = sessions.map((s) => s.sessionDate);
 			clearGuestSessions();
 			addPracticeDays(dates);
+			// The same activity now lives under the user's own id, so retire the
+			// guest identity: delete its leaderboard rows (cookie-keyed) and forget
+			// the id so nothing is counted twice and a later sign-out starts fresh.
+			try {
+				const res = await fetch('/api/leaderboard/guest', { method: 'DELETE' });
+				if (!res.ok) console.error('Failed to retire guest leaderboard rows:', res.status);
+			} catch (err) {
+				console.error('Error retiring guest leaderboard rows:', err);
+			}
+			clearGuestId();
 			return dates;
 		} catch (err) {
 			console.error('Error uploading guest sessions:', err);

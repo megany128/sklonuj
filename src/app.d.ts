@@ -12,6 +12,8 @@ declare global {
 		interface Locals {
 			supabase: SupabaseClient;
 			user: User | null;
+			/** Validated `sklonuj_guest_id` cookie (anonymous leaderboard identity), or null. */
+			guestId: string | null;
 		}
 		interface PageData {
 			user: PublicUser | null;

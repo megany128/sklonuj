@@ -57,7 +57,8 @@ export const load: PageServerLoad = async ({ url, locals, cookies }) => {
 	// waiting for hydration + a separate client fetch. Never rejects — a
 	// failure resolves to null and the banner shows an "unavailable" state.
 	const globalLeaderboard: Promise<GlobalLeaderboardResult | null> = computeGlobalLeaderboard(
-		user
+		user,
+		locals.guestId
 	).catch((e: unknown) => {
 		console.error('global leaderboard: initial load failed', e);
 		return null;
