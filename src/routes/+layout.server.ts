@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from './$types';
 import type { CellSchedule } from '$lib/types';
-import { isValidCellSchedule } from '$lib/engine/spacing';
+import { sanitizeCellSchedule } from '$lib/engine/spacing';
 
 interface SavedProgress {
 	level: string;
@@ -37,9 +37,7 @@ function parseSavedProgress(data: unknown): SavedProgress | null {
 	// lemma_scores is optional for backwards compatibility (column added later).
 	const lemmaScores = isScoresRecord(data.lemma_scores) ? data.lemma_scores : {};
 	// cell_schedule is optional for the same reason (column added in migration 038).
-	const cellSchedule: CellSchedule = isValidCellSchedule(data.cell_schedule)
-		? data.cell_schedule
-		: {};
+	const cellSchedule: CellSchedule = sanitizeCellSchedule(data.cell_schedule, Date.now());
 	const rawLongest = data.longest_answer_streak;
 	const longestAnswerStreak = typeof rawLongest === 'number' ? rawLongest : 0;
 	return {

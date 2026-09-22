@@ -56,7 +56,8 @@ pnpm test             # vitest --run
 - `pronoun-drill.ts` — pronoun drills; validates prep vs bare context against `pronoun_templates.json`.
 - `preposition-voicing.ts` — pure voicing rules.
 - `lemma-blocks.ts` — O(1) lookup over baked admin-curated block list.
-- `progress.ts` — Svelte writable + localStorage; `caseScores`, `paradigmScores`, `longestStreak`, `level`, `lastSession`.
+- `progress.ts` — Svelte writable + localStorage; `caseScores`, `paradigmScores`, `lemmaScores`, `cellSchedule`, `longestStreak`, `level`, `lastSession`. `pickWeightedCase` delegates to `spacing.ts`.
+- `spacing.ts` — pure spaced-weighting over cells (noun paradigm × case × number, adjective type × gender × case × number, pronoun × case × number): Leitner box per cell (+1 correct, −2 miss), weight ramps from 0.5 just after an attempt to 4 when due (10 min, 1, 3, 7, 14, 30 d), capped at 5.75; unseen = 3. Drives case, noun-paradigm, adjective and pronoun pickers; lemma weighting inside a cell still picks the exemplar. Only production answers advance a cell (not `case_identification`). `sanitizeCellSchedule` is per-entry — never all-or-nothing.
 - `progress-merge.ts` — max-wins merge of local + remote on login (preserves longest streak, sums attempts safely).
 - `mistakes.ts`, `streak.ts`, `achievements.ts`, `guest-sessions.ts` — supporting state.
 
@@ -132,7 +133,7 @@ Rules: reuse existing components, use project tokens, respect routing/state/data
 - **Three layers of blocked pairs** can hide a "missing combo" bug. Check all three before concluding a template is broken.
 - **Content quality**: wrong/missing `semanticTags`, `lemmaCategory`, or `excludesCategories` produce awkward sentence-noun pairings (e.g. "drink the chair"). When adding templates or words, double-check tags + categories and add blocks for any nonsense pairs surfaced.
 - **Pronoun grammar is under native review** — possessives, demonstratives, and interrogatives are not yet implemented; some existing templates may misuse prep forms.
-- **SRS isn't real yet** — selection is weighted random, not SM-2/Leitner.
+- **Spacing is cell-level, not per-word** — `spacing.ts` weights the existing random pickers by how due a paradigm × case × number cell is; there is no due queue and no per-lemma SM-2. Lifetime `caseScores`/`paradigmScores`/`lemmaScores` are for stats, dashboards and the lemma nudge, not scheduling. The sync endpoint merges `cell_schedule` per cell (latest attempt wins) and leaves the column alone when a client omits it.
 - **Weekly leaderboard cost is linear in participants** — `global_leaderboard_week` returns every participant and `global-leaderboard.ts` ranks them all in JS on every home page load, uncached; guest ids (`/api/leaderboard/guest`) are client-minted with no rate limit. If page loads slow down or `guest_practice_sessions` balloons: rank in SQL and return only the window, then cache, then WAF rate-limit.
 - **CSP allows `unsafe-inline`** because of GTM; can't be removed without a GTM refactor.
 

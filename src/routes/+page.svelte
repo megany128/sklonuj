@@ -93,16 +93,13 @@
 	} from '$lib/engine/progress';
 	import { hasMasteryCelebrated, markMasteryCelebrated } from '$lib/engine/mastery-celebrations';
 	import { mergeProgress, loadProgressFromLocalStorage } from '$lib/engine/progress-merge';
-	import {
-		adjectiveCellKeysForCase,
-		nounCellKeysForCase,
-		pronounCellKeysForCase
-	} from '$lib/engine/spacing';
+	import { adjectiveCellKey, nounCellKey, pronounCellKey } from '$lib/engine/spacing';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { recordPractice } from '$lib/engine/streak';
 	import {
 		loadPronounBank,
+		getPronounForm,
 		loadPronounTemplates,
 		generatePronounFormProduction,
 		generatePronounSentenceDrill,
@@ -2313,29 +2310,67 @@
 		return ['sg', 'pl'];
 	}
 
-	/** Distinct noun paradigms present in a pool, for the spaced case pick. */
-	function paradigmsIn(words: readonly WordEntry[]): string[] {
-		return [...new Set(words.map((w) => w.paradigm))];
+	/**
+	 * Noun cells (paradigm × number) a pool can actually drill in a case, for
+	 * the spaced case pick. Only slots with a valid form count — a paradigm
+	 * with no vocative or no singular would otherwise sit at the "never seen"
+	 * weight forever and inflate that case.
+	 */
+	function drillableNounCells(words: readonly WordEntry[], case_: Case): string[] {
+		const keys: string[] = [];
+		for (const number_ of allowedNumbers()) {
+			const paradigms = new Set(
+				words.filter((w) => hasValidForm(w, case_, number_)).map((w) => w.paradigm)
+			);
+			for (const paradigm of paradigms) keys.push(nounCellKey(paradigm, case_, number_));
+		}
+		return keys;
 	}
 
-	/** Adjective cells (type × gender) the given adjectives and nouns can form in a case. */
+	/** Adjective cells (type × gender × number) the given adjectives and nouns can form in a case. */
 	function adjectiveCellsFor(
 		adjectives: readonly AdjectiveEntry[],
 		nouns: readonly WordEntry[],
 		case_: Case
 	): string[] {
 		const types = [...new Set(adjectives.map((a) => a.paradigmType))];
-		const genders = [...new Set(nouns.map((w) => getAdjectiveGenderKey(w)))];
-		return adjectiveCellKeysForCase(types, genders, case_, allowedNumbers());
+		const keys: string[] = [];
+		for (const number_ of allowedNumbers()) {
+			const genders = new Set(
+				nouns.filter((w) => hasValidForm(w, case_, number_)).map((w) => getAdjectiveGenderKey(w))
+			);
+			for (const type of types) {
+				for (const gender of genders) keys.push(adjectiveCellKey(type, gender, case_, number_));
+			}
+		}
+		return keys;
+	}
+
+	/** Pronoun cells (lemma × number) that have a form in a case. */
+	function drillablePronounCells(pronouns: readonly PronounEntry[], case_: Case): string[] {
+		const keys: string[] = [];
+		for (const number_ of allowedNumbers()) {
+			for (const pronoun of pronouns) {
+				if (getPronounForm(pronoun, case_, number_) !== null) {
+					keys.push(pronounCellKey(pronoun.lemma, case_, number_));
+				}
+			}
+		}
+		return keys;
 	}
 
 	/**
 	 * Prefer the templates that drill the case the spaced picker chose, so the
-	 * pick steers sentence drills too; fall back to the whole pool when no
-	 * template covers that case.
+	 * pick steers sentence drills too. Only templates that still have words
+	 * count; when none in that case does, fall back to the whole pool rather
+	 * than hand `pickTemplate` an all-empty list.
 	 */
-	function preferCase<T extends { requiredCase: Case }>(templates: T[], case_: Case): T[] {
-		const matching = templates.filter((t) => t.requiredCase === case_);
+	function preferCase<T extends { requiredCase: Case }>(
+		templates: T[],
+		case_: Case,
+		poolSize: (template: T) => number
+	): T[] {
+		const matching = templates.filter((t) => t.requiredCase === case_ && poolSize(t) > 0);
 		return matching.length > 0 ? matching : templates;
 	}
 
@@ -2549,13 +2584,7 @@
 		const case_ =
 			caseIdPool.length === 1
 				? caseIdPool[0]
-				: pickWeightedCase(caseIdPool, (c) =>
-						pronounCellKeysForCase(
-							candidates.map((p) => p.lemma),
-							c,
-							allowedNumbers()
-						)
-					);
+				: pickWeightedCase(caseIdPool, (c) => drillablePronounCells(candidates, c));
 
 		// Pick number - for pronouns, we need to respect whether the pronoun has sg or pl forms
 		let number_: Number_;
@@ -2617,7 +2646,7 @@
 			}
 
 			const template = pickTemplate(
-				preferCase(eligibleTemplates, case_),
+				preferCase(eligibleTemplates, case_, (t) => pronounPoolForTemplate(t).length),
 				(t) => pronounPoolForTemplate(t).length
 			);
 			const validCandidates = pronounPoolForTemplate(template);
@@ -2643,7 +2672,7 @@
 			if (eligibleTemplates.length === 0) return null;
 
 			const template = pickTemplate(
-				preferCase(eligibleTemplates, case_),
+				preferCase(eligibleTemplates, case_, (t) => pronounPoolForTemplate(t).length),
 				(t) => pronounPoolForTemplate(t).length
 			);
 			const validCandidates = pronounPoolForTemplate(template);
@@ -2747,7 +2776,7 @@
 					(typeof t.requiredAnimate !== 'boolean' || w.animate === t.requiredAnimate)
 			);
 		const template = pickTemplate(
-			preferCase(eligibleTemplates, preferredCase),
+			preferCase(eligibleTemplates, preferredCase, (t) => nounsForTemplate(t).length),
 			(t) => nounsForTemplate(t).length
 		);
 		const templateWords = nounsForTemplate(template);
@@ -3026,9 +3055,7 @@
 				: damped;
 		const case_ =
 			selectedCase === 'all'
-				? pickWeightedCase(casePool, (c) =>
-						nounCellKeysForCase(paradigmsIn(eligibleWords), c, allowedNumbers())
-					)
+				? pickWeightedCase(casePool, (c) => drillableNounCells(eligibleWords, c))
 				: selectedCase;
 
 		// Pick number (respecting chapter constraints)
@@ -3272,7 +3299,7 @@
 				question = generateFormProduction(word, fallbackCase, number_);
 			} else {
 				const template = pickTemplate(
-					preferCase(eligibleTemplates, case_),
+					preferCase(eligibleTemplates, case_, (t) => nounPoolForTemplate(t, prog).length),
 					(t) => nounPoolForTemplate(t, prog).length
 				);
 

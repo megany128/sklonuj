@@ -1,6 +1,6 @@
 import type { Progress, CaseScore, Difficulty } from '../types';
 import { STORAGE_KEY, isValidProgress } from './progress';
-import { mergeCellSchedules } from './spacing';
+import { mergeCellSchedules, sanitizeCellSchedule } from './spacing';
 
 export function loadProgressFromLocalStorage(): Progress | null {
 	if (typeof window === 'undefined') return null;
@@ -12,7 +12,7 @@ export function loadProgressFromLocalStorage(): Progress | null {
 		if (!isValidProgress(parsed)) return null;
 		parsed.paradigmScores ??= {};
 		parsed.lemmaScores ??= {};
-		parsed.cellSchedule ??= {};
+		parsed.cellSchedule = sanitizeCellSchedule(parsed.cellSchedule, Date.now());
 		if (typeof parsed.longestStreak !== 'number') {
 			parsed.longestStreak = 0;
 		}
