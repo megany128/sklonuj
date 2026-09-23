@@ -50,7 +50,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: cloudflare-build
-          path: .svelte-kit/cloudflare
+          # _worker.js imports from output/ and cloudflare-tmp/; wrangler bundles
+          # them at deploy time, so all three must travel together.
+          path: |
+            .svelte-kit/cloudflare
+            .svelte-kit/cloudflare-tmp
+            .svelte-kit/output
           include-hidden-files: true
           retention-days: 7
 
@@ -75,7 +80,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: cloudflare-build
-          path: .svelte-kit/cloudflare
+          path: .svelte-kit
 
       - uses: pnpm/action-setup@v4
         with:
