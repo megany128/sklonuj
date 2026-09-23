@@ -5,10 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Manual redeploy of the current main (e.g. after changing Pages env vars).
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -30,3 +36,86 @@ jobs:
         run: pnpm check
         env:
           PUBLIC_POSTHOG_KEY: ${{ vars.PUBLIC_POSTHOG_KEY || 'placeholder' }}
+
+      # The `client` vitest project runs component tests in headless Chromium.
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-build
+          path: .svelte-kit/cloudflare
+          include-hidden-files: true
+          retention-days: 7
+
+  # Production deploy: only from main, only after every check above passed.
+  # Cloudflare's own Git auto-deploy is disabled; this is the single path to prod.
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://sklonuj.com
+    # Never run two deploys at once; a newer push waits rather than cancelling
+    # a deploy that is already uploading.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cloudflare-build
+          path: .svelte-kit/cloudflare
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Installs the lockfile-pinned wrangler used by wrangler-action.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          command: >-
+            pages deploy .svelte-kit/cloudflare
+            --project-name=sklonuj
+            --branch=main
+            --commit-hash=${{ github.sha }}
+
+      - name: Smoke test deployment
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          for url in "$DEPLOY_URL" "https://sklonuj.com"; do
+            for attempt in 1 2 3 4 5 6; do
+              status=$(curl -s -o /dev/null -w '%{http_code}' "$url/")
+              if [ "$status" = "200" ]; then
+                echo "$url -> 200"
+                continue 2
+              fi
+              echo "$url -> $status (attempt $attempt), retrying"
+              sleep 10
+            done
+            echo "::error::$url did not return 200 after deploy"
+            exit 1
+          done
