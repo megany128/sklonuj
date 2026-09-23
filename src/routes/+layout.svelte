@@ -11,10 +11,7 @@
 	import {
 		MAX_CELL_CLOCK_SKEW_MS,
 		MAX_CELL_SCHEDULE_KEYS,
-		dropFutureCells,
-		mergeCellSchedules,
-		sanitizeCellSchedule,
-		truncateCellSchedule
+		sanitizeCellSchedule
 	} from '$lib/engine/spacing';
 	import {
 		syncBadgesToSupabase,
@@ -225,34 +222,22 @@
 	}
 
 	/**
-	 * The login merge writes the row wholesale, so re-read the schedule right
-	 * before writing and merge per cell (latest attempt wins): another device
-	 * may have advanced cells since the row this page loaded with was read.
-	 * Applies the same skew and size guards as /api/sync, since this write
-	 * bypasses it. Returns null when the read fails, so the caller leaves the
-	 * stored schedule untouched rather than overwriting it with local cells.
+	 * Merge local cells into the stored schedule per cell (the more recently
+	 * attempted state wins) through merge_cell_schedule (migration 039). It
+	 * runs under a row lock, so a sync from another tab or device can't
+	 * overwrite what this one learned, and re-applies the same skew and size
+	 * guards as /api/sync against the database clock. Failures are logged:
+	 * the progress store's own debounced sync sends the schedule again.
 	 */
-	async function withFreshCells(
-		client: SupabaseClient,
-		userId: string,
-		local: CellSchedule
-	): Promise<CellSchedule | null> {
-		const { data, error } = await client
-			.from('user_progress')
-			.select('cell_schedule')
-			.eq('user_id', userId)
-			.maybeSingle();
+	async function mergeRemoteCells(client: SupabaseClient, local: CellSchedule): Promise<void> {
+		const { error } = await client.rpc('merge_cell_schedule', {
+			p_incoming: local,
+			p_limit: MAX_CELL_SCHEDULE_KEYS,
+			p_skew_ms: MAX_CELL_CLOCK_SKEW_MS
+		});
 		if (error) {
-			console.error('Failed to read remote cell schedule; leaving it untouched:', error);
-			return null;
+			console.error('Failed to merge cell schedule; will retry on next sync:', error);
 		}
-		const fresh = isRecord(data) ? sanitizeCellSchedule(data.cell_schedule) : {};
-		const merged = dropFutureCells(
-			mergeCellSchedules(local, fresh),
-			Date.now(),
-			MAX_CELL_CLOCK_SKEW_MS
-		);
-		return truncateCellSchedule(merged, MAX_CELL_SCHEDULE_KEYS);
 	}
 
 	function clearProgress(): void {
@@ -307,11 +292,6 @@
 				// leaving the in-memory store dirty — the progress store's own
 				// debounced sync will pick it up.
 				void (async () => {
-					const cellSchedule = await withFreshCells(
-						initSupabase,
-						mergedUserId,
-						merged.cellSchedule
-					);
 					const { error: mergeUpdateError } = await initSupabase
 						.from('user_progress')
 						.update({
@@ -319,12 +299,12 @@
 							case_scores: merged.caseScores,
 							paradigm_scores: merged.paradigmScores,
 							lemma_scores: merged.lemmaScores,
-							...(cellSchedule !== null ? { cell_schedule: cellSchedule } : {}),
 							last_session: merged.lastSession,
 							longest_answer_streak: merged.longestStreak,
 							updated_at: new Date().toISOString()
 						})
 						.eq('user_id', mergedUserId);
+					await mergeRemoteCells(initSupabase, merged.cellSchedule);
 					if (mergeUpdateError) {
 						console.error(
 							'Failed to persist merged guest progress; will retry on next sync:',
@@ -412,7 +392,6 @@
 							if (remoteProgress) {
 								const merged = mergeProgress(usableLocalProgress, remoteProgress);
 
-								const cellSchedule = await withFreshCells(supabase, userId, merged.cellSchedule);
 								const { error: updateError } = await supabase
 									.from('user_progress')
 									.update({
@@ -420,12 +399,12 @@
 										case_scores: merged.caseScores,
 										paradigm_scores: merged.paradigmScores,
 										lemma_scores: merged.lemmaScores,
-										...(cellSchedule !== null ? { cell_schedule: cellSchedule } : {}),
 										last_session: merged.lastSession,
 										longest_answer_streak: merged.longestStreak,
 										updated_at: new Date().toISOString()
 									})
 									.eq('user_id', userId);
+								await mergeRemoteCells(supabase, merged.cellSchedule);
 
 								if (updateError) {
 									console.error('Failed to update merged progress:', updateError);
@@ -444,15 +423,6 @@
 									case_scores: usableLocalProgress.caseScores,
 									paradigm_scores: usableLocalProgress.paradigmScores,
 									lemma_scores: usableLocalProgress.lemmaScores,
-									// No remote row to merge with, but the same skew and size guards apply.
-									cell_schedule: truncateCellSchedule(
-										dropFutureCells(
-											usableLocalProgress.cellSchedule,
-											Date.now(),
-											MAX_CELL_CLOCK_SKEW_MS
-										),
-										MAX_CELL_SCHEDULE_KEYS
-									),
 									last_session: usableLocalProgress.lastSession,
 									longest_answer_streak: usableLocalProgress.longestStreak,
 									updated_at: new Date().toISOString()
@@ -463,6 +433,10 @@
 							if (insertError) {
 								console.error('Failed to upload local progress:', insertError);
 							}
+							// The row exists from the auth trigger even before the upsert, so
+							// the cells go through the same locked per-cell merge as every
+							// other write rather than a wholesale column write.
+							await mergeRemoteCells(supabase, usableLocalProgress.cellSchedule);
 
 							progress.set(usableLocalProgress);
 						} else if (remoteData) {

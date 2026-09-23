@@ -6,7 +6,6 @@ import {
 	MAX_CELL_CLOCK_SKEW_MS,
 	MAX_CELL_SCHEDULE_KEYS,
 	dropFutureCells,
-	mergeCellSchedules,
 	sanitizeCellSchedule,
 	truncateCellSchedule
 } from '$lib/engine/spacing';
@@ -447,65 +446,60 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 		} = progressResult.data;
 
 		// Read the existing row so a stale client payload can't shrink the
-		// all-time longest streak (MAX) or roll back the spacing schedule (per
-		// cell, the more recently attempted state wins — a second device or a
-		// pre-deploy tab must not overwrite what another device learned).
+		// all-time longest streak (MAX).
 		const { data: existingProgress, error: existingError } = await supabase
 			.from('user_progress')
-			.select('longest_answer_streak, cell_schedule')
+			.select('longest_answer_streak')
 			.eq('user_id', user.id)
 			.maybeSingle();
 		if (existingError) {
-			// Without the stored row the upsert could only overwrite the schedule
-			// and shrink the streak; fail instead — the client retries on its
-			// next result.
+			// Without the stored row the upsert could shrink the streak; fail
+			// instead — the client retries on its next result.
 			return json({ error: 'Failed to read existing user progress' }, { status: 500 });
 		}
 
 		let mergedLongestStreak = longestStreak;
-		let mergedCellSchedule: CellSchedule | null = cellSchedule;
 		if (existingProgress) {
 			const existingValue = existingProgress.longest_answer_streak;
 			if (typeof existingValue === 'number' && existingValue > mergedLongestStreak) {
 				mergedLongestStreak = existingValue;
 			}
-			if (cellSchedule !== null) {
-				const existingCells = sanitizeCellSchedule(existingProgress.cell_schedule);
-				mergedCellSchedule = truncateCellSchedule(
-					mergeCellSchedules(cellSchedule, existingCells),
-					MAX_CELL_SCHEDULE_KEYS
-				);
-			}
 		}
 
-		const row: {
-			user_id: string;
-			level: Level;
-			case_scores: Record<string, { attempts: number; correct: number }>;
-			paradigm_scores: Record<string, { attempts: number; correct: number }>;
-			lemma_scores: Record<string, { attempts: number; correct: number }>;
-			cell_schedule?: CellSchedule;
-			last_session: string;
-			longest_answer_streak: number;
-			updated_at: string;
-		} = {
-			user_id: user.id,
-			level,
-			case_scores: caseScores,
-			paradigm_scores: paradigmScores,
-			lemma_scores: lemmaScores,
-			last_session: lastSession,
-			longest_answer_streak: mergedLongestStreak,
-			updated_at: new Date().toISOString()
-		};
-		if (mergedCellSchedule !== null) row.cell_schedule = mergedCellSchedule;
-
-		const { error: updateError } = await supabase
-			.from('user_progress')
-			.upsert(row, { onConflict: 'user_id' });
+		// The spacing schedule is deliberately not part of this upsert: it is
+		// merged per cell into the stored row by merge_cell_schedule below,
+		// under a row lock, so two tabs or devices syncing at once can't
+		// overwrite each other's cells.
+		const { error: updateError } = await supabase.from('user_progress').upsert(
+			{
+				user_id: user.id,
+				level,
+				case_scores: caseScores,
+				paradigm_scores: paradigmScores,
+				lemma_scores: lemmaScores,
+				last_session: lastSession,
+				longest_answer_streak: mergedLongestStreak,
+				updated_at: new Date().toISOString()
+			},
+			{ onConflict: 'user_id' }
+		);
 
 		if (updateError) {
 			return json({ error: 'Failed to update user progress' }, { status: 500 });
+		}
+
+		// Per cell the more recently attempted state wins (migration 039); a
+		// client that omits the field leaves the column alone. The function
+		// re-applies the skew and size guards against the database clock.
+		if (cellSchedule !== null) {
+			const { error: mergeError } = await supabase.rpc('merge_cell_schedule', {
+				p_incoming: cellSchedule,
+				p_limit: MAX_CELL_SCHEDULE_KEYS,
+				p_skew_ms: MAX_CELL_CLOCK_SKEW_MS
+			});
+			if (mergeError) {
+				return json({ error: 'Failed to merge cell schedule' }, { status: 500 });
+			}
 		}
 	}
 
