@@ -2318,7 +2318,12 @@
 		return ['sg', 'pl'];
 	}
 
-	/** A number for the next question, uniform over `allowedNumbers()` so the case-pick pool and the question agree. */
+	/**
+	 * The number for the next question, uniform over `allowedNumbers()`. Picked
+	 * before the case so the spaced case pick weighs only this number's cells:
+	 * a due singular cell must not choose a case whose question then lands on
+	 * a fresh plural cell.
+	 */
 	function pickNumber(): Number_ {
 		const numbers = allowedNumbers();
 		return numbers[Math.floor(Math.random() * numbers.length)];
@@ -2338,22 +2343,28 @@
 	}
 
 	/**
-	 * Prefer the templates that drill the case the spaced picker chose, so the
-	 * pick steers sentence drills too. Only templates that still have words
-	 * count; when none in that case does, fall back to the whole pool rather
-	 * than hand `pickTemplate` an all-empty list.
+	 * Prefer the templates that drill the case (and number) the spaced picker
+	 * chose, so the pick steers sentence drills too. Only templates that still
+	 * have words count. When no template matches both, fall back to the case
+	 * alone, then to the whole pool rather than hand `pickTemplate` an
+	 * all-empty list.
 	 */
-	function preferCase<T extends { id: string; requiredCase: Case }>(
+	function preferCase<T extends { id: string; requiredCase: Case; number: Number_ }>(
 		templates: T[],
 		case_: Case,
-		poolSize: (template: T) => number
+		poolSize: (template: T) => number,
+		number_?: Number_
 	): T[] {
-		const matching = templates.filter((t) => t.requiredCase === case_ && poolSize(t) > 0);
-		// Narrowing to a case with only recently used templates would defeat
-		// pickTemplate's de-dup and repeat the same sentence back to back, so
-		// only prefer the case while it still has a fresh template.
-		const fresh = matching.some((t) => !recentTemplateIds.includes(t.id));
-		return fresh ? matching : templates;
+		// Narrowing to only recently used templates would defeat pickTemplate's
+		// de-dup and repeat the same sentence back to back, so only prefer a
+		// slice while it still has a fresh template.
+		const fresh = (pool: T[]): boolean => pool.some((t) => !recentTemplateIds.includes(t.id));
+		const inCase = templates.filter((t) => t.requiredCase === case_ && poolSize(t) > 0);
+		if (number_ !== undefined) {
+			const inCell = inCase.filter((t) => t.number === number_);
+			if (fresh(inCell)) return inCell;
+		}
+		return fresh(inCase) ? inCase : templates;
 	}
 
 	/**
@@ -2439,17 +2450,21 @@
 
 	/**
 	 * Weighted template pick (see `pickWeightedTemplate`), preferring the case
-	 * the spaced picker chose when given one. Pool sizes are memoised so the
-	 * preference filter and the pick don't each rescan the word bank.
+	 * and number the spaced picker chose when given them. Pool sizes are
+	 * memoised so the preference filter and the pick don't each rescan the
+	 * word bank.
 	 */
 	function pickTemplate(
 		templates: SentenceTemplate[],
 		poolSize: (template: SentenceTemplate) => number,
-		preferredCase?: Case
+		preferredCase?: Case,
+		preferredNumber?: Number_
 	): SentenceTemplate {
 		const size = cachedPoolSize(poolSize);
 		const pool =
-			preferredCase === undefined ? templates : preferCase(templates, preferredCase, size);
+			preferredCase === undefined
+				? templates
+				: preferCase(templates, preferredCase, size, preferredNumber);
 		const picked = pickWeightedTemplate(pool, size, recentTemplateIds);
 		if (!picked) throw new Error('pickTemplate called with empty templates array');
 		return picked;
@@ -2567,20 +2582,7 @@
 						return nonNom.length > 0 ? nonNom : pronounCases;
 					})()
 				: pronounCases;
-		const case_ =
-			caseIdPool.length === 1
-				? caseIdPool[0]
-				: (() => {
-						const cells = pronounCellsByCase(
-							candidates,
-							caseIdPool,
-							allowedNumbers(),
-							drillType === 'case_identification' ? 'recognition' : 'production'
-						);
-						return pickWeightedCase(caseIdPool, (c) => cells.get(c) ?? []);
-					})();
-
-		// Pick number - for pronouns, we need to respect whether the pronoun has sg or pl forms
+		// Pick number first - for pronouns, we need to respect whether the pronoun has sg or pl forms
 		let number_: Number_ = pickNumber();
 
 		// Filter candidates that have the right number forms
@@ -2599,6 +2601,20 @@
 			if (numberCandidates.length === 0) return null;
 		}
 		candidates = numberCandidates;
+
+		// Then the case, weighed over the cells this number's question can advance.
+		const case_ =
+			caseIdPool.length === 1
+				? caseIdPool[0]
+				: (() => {
+						const cells = pronounCellsByCase(
+							candidates,
+							caseIdPool,
+							[number_],
+							drillType === 'case_identification' ? 'recognition' : 'production'
+						);
+						return pickWeightedCase(caseIdPool, (c) => cells.get(c) ?? []);
+					})();
 
 		if (drillType === 'form_production') {
 			// Skip nominative for form_production (trivial)
@@ -2639,7 +2655,8 @@
 			const template = pickTemplate(
 				eligibleTemplates,
 				(t) => pronounPoolForTemplate(t).length,
-				case_
+				case_,
+				number_
 			);
 			const validCandidates = pronounPoolForTemplate(template);
 
@@ -2666,7 +2683,8 @@
 			const template = pickTemplate(
 				eligibleTemplates,
 				(t) => pronounPoolForTemplate(t).length,
-				case_
+				case_,
+				number_
 			);
 			const validCandidates = pronounPoolForTemplate(template);
 
@@ -2718,14 +2736,9 @@
 		if (requestedDrillType === 'form_production') {
 			const nonNomCases = activeCases.filter((c) => c !== 'nom');
 			if (nonNomCases.length === 0) return null;
-			const adjCells = adjectiveCellsByCase(
-				adjCandidates,
-				eligibleWords,
-				nonNomCases,
-				allowedNumbers()
-			);
+			const number_: Number_ = pickNumber();
+			const adjCells = adjectiveCellsByCase(adjCandidates, eligibleWords, nonNomCases, [number_]);
 			const case_ = pickWeightedCase(nonNomCases, (c) => adjCells.get(c) ?? []);
-			let number_: Number_ = pickNumber();
 
 			// Find a noun to pair the adjective with (determines gender key)
 			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
@@ -2756,14 +2769,12 @@
 				unlockedDifficulties.includes(t.difficulty)
 		);
 		if (eligibleTemplates.length === 0) return null;
+		const preferredNumber: Number_ = pickNumber();
 		const preferredCase = (() => {
 			if (activeCases.length === 1) return activeCases[0];
-			const cells = adjectiveCellsByCase(
-				adjCandidates,
-				eligibleWords,
-				activeCases,
-				allowedNumbers()
-			);
+			const cells = adjectiveCellsByCase(adjCandidates, eligibleWords, activeCases, [
+				preferredNumber
+			]);
 			return pickWeightedCase(activeCases, (c) => cells.get(c) ?? []);
 		})();
 
@@ -2778,7 +2789,8 @@
 		const template = pickTemplate(
 			eligibleTemplates,
 			(t) => nounsForTemplate(t).length,
-			preferredCase
+			preferredCase,
+			preferredNumber
 		);
 		const templateWords = nounsForTemplate(template);
 		if (templateWords.length === 0) return null;
@@ -3076,6 +3088,10 @@
 			return effectiveEnabledCases;
 		})();
 
+		// Pick number first (respecting chapter constraints), so the case pick
+		// below weighs only the cells this question can advance.
+		const number_: Number_ = pickNumber();
+
 		// Pick case: either the selected one, or spaced-weighted from the effective
 		// enabled cases. In 'all' mode nominative leaves the pool for
 		// case_identification ("To je ___" → nom is a give-away once the learner
@@ -3101,15 +3117,12 @@
 						const cells = nounCellsByCase(
 							chapterWords ?? eligibleWords,
 							casePool,
-							allowedNumbers(),
+							[number_],
 							drillType === 'case_identification' ? 'recognition' : 'production'
 						);
 						return pickWeightedCase(casePool, (c) => cells.get(c) ?? []);
 					})()
 				: selectedCase;
-
-		// Pick number (respecting chapter constraints)
-		let number_: Number_ = pickNumber();
 
 		const isChapterMode = chapterBook !== null && chapterSelection !== null;
 
@@ -3130,7 +3143,7 @@
 				const msPool = (t: SentenceTemplate): WordEntry[] =>
 					nounPoolForTemplate(t, prog).filter((w) => !w.irregular);
 				// Prefer templates in the spaced case pick that still have words.
-				const template = pickTemplate(msEligibleTemplates, (t) => msPool(t).length, case_);
+				const template = pickTemplate(msEligibleTemplates, (t) => msPool(t).length, case_, number_);
 				const candidates = msPool(template);
 				if (candidates.length > 0) {
 					const word = pickWord(candidates, prog, template.requiredCase, template.number);
@@ -3299,7 +3312,7 @@
 					const cells = nounCellsByCase(
 						chapterWords ?? eligibleWords,
 						fallbackPool,
-						allowedNumbers(),
+						[number_],
 						'production'
 					);
 					return pickWeightedCase(fallbackPool, (c) => cells.get(c) ?? []);
@@ -3320,7 +3333,8 @@
 				const template = pickTemplate(
 					eligibleTemplates,
 					(t) => nounPoolForTemplate(t, prog).length,
-					case_
+					case_,
+					number_
 				);
 
 				let candidates: WordEntry[];
