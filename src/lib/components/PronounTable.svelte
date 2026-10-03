@@ -15,15 +15,25 @@
 
 	let {
 		initialPronoun = '',
+		initialCase = null,
 		alwaysExpanded = false
 	}: {
 		/** Pronoun to highlight (the one the learner looked up). */
 		initialPronoun?: string;
+		/** Case to open on, e.g. the case of the pronoun question in view. */
+		initialCase?: Case | null;
 		alwaysExpanded?: boolean;
 	} = $props();
 
 	let expanded = $state(false);
 	let selectedCase: Case = $state('nom');
+
+	// Open where the looked-up pronoun is visible: the question's case when
+	// there is one, else genitive — the nominative tab is a note, not rows.
+	$effect(() => {
+		if (initialCase && CASE_TABS.includes(initialCase)) selectedCase = initialCase;
+		else if (initialPronoun.trim() !== '') selectedCase = 'gen';
+	});
 
 	/** A pronoun's forms in the number it actually has (my, vy, oni are plural-only). */
 	function formsOf(p: PronounEntry): PronounCaseForms | null {

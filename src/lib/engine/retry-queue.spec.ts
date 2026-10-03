@@ -16,7 +16,7 @@ const any = () => true;
 
 describe('retry queue', () => {
 	it('serves a miss only after RETRY_GAP more questions', () => {
-		const queue = enqueueRetry([], q('hrad'), 5);
+		const queue = enqueueRetry([], q('hrad'), 5, 'A1');
 		expect(takeDueRetry(queue, 5 + RETRY_GAP - 1, any)).toBeNull();
 		const due = takeDueRetry(queue, 5 + RETRY_GAP, any);
 		expect(due?.item.question.word.lemma).toBe('hrad');
@@ -24,22 +24,22 @@ describe('retry queue', () => {
 	});
 
 	it('keeps one item per word, case, number and drill type', () => {
-		let queue = enqueueRetry([], q('hrad'), 1);
-		queue = enqueueRetry(queue, q('hrad'), 2);
-		queue = enqueueRetry(queue, q('hrad', 'dat'), 2);
+		let queue = enqueueRetry([], q('hrad'), 1, 'A1');
+		queue = enqueueRetry(queue, q('hrad'), 2, 'A1');
+		queue = enqueueRetry(queue, q('hrad', 'dat'), 2, 'A1');
 		expect(queue).toHaveLength(2);
 		expect(queue[1].dueAt).toBe(2 + RETRY_GAP);
 		expect(retryKey(queue[0].question)).not.toBe(retryKey(queue[1].question));
 	});
 
 	it('drops an item once it has used its re-asks', () => {
-		expect(enqueueRetry([], q('hrad'), 1, MAX_RETRIES - 1)).toHaveLength(1);
-		expect(enqueueRetry([], q('hrad'), 1, MAX_RETRIES)).toEqual([]);
+		expect(enqueueRetry([], q('hrad'), 1, 'A1', MAX_RETRIES - 1)).toHaveLength(1);
+		expect(enqueueRetry([], q('hrad'), 1, 'A1', MAX_RETRIES)).toEqual([]);
 	});
 
 	it('serves the oldest eligible item and keeps ineligible ones queued', () => {
-		let queue = enqueueRetry([], q('hrad'), 1);
-		queue = enqueueRetry(queue, q('žena', 'dat'), 1);
+		let queue = enqueueRetry([], q('hrad'), 1, 'A1');
+		queue = enqueueRetry(queue, q('žena', 'dat'), 1, 'A1');
 		const due = takeDueRetry(queue, 10, (x) => x.case === 'dat');
 		expect(due?.item.question.word.lemma).toBe('žena');
 		expect(due?.rest.map((i) => i.question.word.lemma)).toEqual(['hrad']);

@@ -19,6 +19,9 @@ export interface RetryItem {
 	dueAt: number;
 	/** Re-asks already served for this item. */
 	attempts: number;
+	/** The practice context (level, chapter, assignment) the miss happened in;
+	 * the page drops items whose context no longer matches. */
+	context: string;
 }
 
 /** Same word, case, number and drill type: two misses on it are one item. */
@@ -42,12 +45,13 @@ export function enqueueRetry(
 	queue: readonly RetryItem[],
 	question: DrillQuestion,
 	now: number,
+	context: string,
 	attempts = 0
 ): RetryItem[] {
 	const key = retryKey(question);
 	const rest = queue.filter((item) => retryKey(item.question) !== key);
 	if (attempts >= MAX_RETRIES) return rest;
-	return [...rest, { question, dueAt: now + RETRY_GAP, attempts }];
+	return [...rest, { question, dueAt: now + RETRY_GAP, attempts, context }];
 }
 
 /**

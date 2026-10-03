@@ -1653,6 +1653,11 @@
 	let refSidebarPronoun = $state('');
 	let refSidebarTab = $state<'declension' | 'pronouns' | 'cases'>('cases');
 
+	// Case of the current pronoun question, so the pronoun table opens on it.
+	let refSidebarPronounCase = $derived.by(() => {
+		const q = question;
+		return q?.wordCategory === 'pronoun' ? q.case : null;
+	});
 	// Gender paradigm the current adjective question agrees with — the sidebar's
 	// adjective table outlines this column so learners can find the relevant forms.
 	let refSidebarAdjGenderKey = $derived.by(() => {
@@ -2906,6 +2911,7 @@
 	/** Whether a queued re-ask still fits what the learner is practising now. */
 	function retryEligible(q: DrillQuestion): boolean {
 		if (!effectiveEnabledCases.includes(q.case)) return false;
+		if (selectedCase !== 'all' && q.case !== selectedCase) return false;
 		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
 		if (!drillSettings.selectedDrillTypes.includes(q.drillType)) return false;
 		if (q.wordCategory === 'adjective') return enabledContentTypes.adjectives;
@@ -2914,24 +2920,21 @@
 		return enabledContentTypes.nouns;
 	}
 
+	// A new level, chapter or assignment is a new context: earlier misses
+	// belong to the mistakes list there, not to re-asks here. Items carry the
+	// context they were missed in and are dropped the moment it changes.
+	let retryContext = $derived(`${currentLevel}|${chapterSelection ?? ''}|${assignmentId ?? ''}`);
+
 	function updateRetryQueue(result: DrillResult): void {
 		if (practicingMistakes || result.correct) return;
 		retryQueue = enqueueRetry(
 			retryQueue,
 			result.question,
 			sessionCount,
+			retryContext,
 			currentRetry?.attempts ?? 0
 		);
 	}
-
-	// A new level, chapter or assignment is a new context: earlier misses
-	// belong to the mistakes list there, not to re-asks here.
-	$effect(() => {
-		void currentLevel;
-		void chapterSelection;
-		void assignmentId;
-		retryQueue = [];
-	});
 
 	function generateNextQuestion(): void {
 		try {
@@ -2969,7 +2972,7 @@
 		multiStepQuestion = null;
 		// A re-ask replaced before it was answered (a settings change) goes back
 		// to the front of the queue, still due, with its attempt unspent.
-		if (currentRetry && !submitted) {
+		if (currentRetry && !submitted && currentRetry.context === retryContext) {
 			retryQueue = [
 				{ ...currentRetry, attempts: currentRetry.attempts - 1, dueAt: sessionCount },
 				...retryQueue
@@ -3003,6 +3006,10 @@
 			}
 		}
 
+		const context = retryContext;
+		if (retryQueue.some((item) => item.context !== context)) {
+			retryQueue = retryQueue.filter((item) => item.context === context);
+		}
 		const due = practicingMistakes ? null : takeDueRetry(retryQueue, sessionCount, retryEligible);
 		if (due) {
 			retryQueue = due.rest;
@@ -5159,6 +5166,7 @@
 			<ReferenceSidebar
 				initialWord={refSidebarWord}
 				initialPronoun={refSidebarPronoun}
+				initialPronounCase={refSidebarPronounCase}
 				initialTab={refSidebarTab}
 				adjGenderKey={refSidebarAdjGenderKey}
 				onClose={() => (refSidebarOpen = false)}

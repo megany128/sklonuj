@@ -317,9 +317,17 @@
 		const inTextField = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
 
 		// Paradigm step: M/F/N picks the gender, then 1–n the paradigm.
-		if (currentStep === 'paradigm' && !paradigmSubmitted && !inTextField && !e.repeat) {
+		// Browser shortcuts (Ctrl+1, Cmd+F …) must not pick an answer.
+		const modified = e.metaKey || e.ctrlKey || e.altKey;
+		if (
+			currentStep === 'paradigm' &&
+			!paradigmSubmitted &&
+			!inTextField &&
+			!e.repeat &&
+			!modified
+		) {
 			const gender = GENDER_OPTIONS.find((g) => g.value === e.key.toLowerCase());
-			if (gender && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			if (gender) {
 				e.preventDefault();
 				selectedGender = gender.value;
 				selectedParadigm = '';
