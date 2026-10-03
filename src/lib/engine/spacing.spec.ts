@@ -114,6 +114,17 @@ describe('advanceCell', () => {
 	});
 });
 
+describe('advanceCell on an assisted answer', () => {
+	it('holds the box and streak and only stamps the attempt time', () => {
+		expect(advanceCell({ last: 0, box: 3, streak: 2 }, 'assisted', 9)).toEqual({
+			last: 9,
+			box: 3,
+			streak: 2
+		});
+		expect(advanceCell(undefined, 'assisted', 9)).toEqual({ last: 9, box: 0, streak: 0 });
+	});
+});
+
 describe('advanceCell on skip / near-miss', () => {
 	it('drops one box on a skip, not two, and resets the streak', () => {
 		expect(advanceCell({ last: 0, box: 5, streak: 9 }, 'skipped', 3)).toEqual({

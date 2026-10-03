@@ -1,45 +1,64 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { loadPronounBank } from '$lib/engine/pronoun-drill';
-	import { CASE_LABELS } from '$lib/types';
+	import { CASE_HEX, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import type { Case, PronounCaseForms, PronounEntry } from '$lib/types';
 
-	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+	/**
+	 * Pronoun forms one case at a time: a tab per case, a row per pronoun. A
+	 * learner usually knows the case they need and is looking for the word,
+	 * so every pronoun in that case sits side by side. Vocative is left out —
+	 * pronouns have none of their own.
+	 */
+	const CASE_TABS: Case[] = ['nom', 'gen', 'dat', 'acc', 'loc', 'ins'];
 	const pronounBank = loadPronounBank();
 
 	let {
 		initialPronoun = '',
+		initialCase = null,
 		alwaysExpanded = false
 	}: {
+		/** Pronoun to highlight (the one the learner looked up). */
 		initialPronoun?: string;
+		/** Case to open on, e.g. the case of the pronoun question in view. */
+		initialCase?: Case | null;
 		alwaysExpanded?: boolean;
 	} = $props();
 
 	let expanded = $state(false);
-	let selectedPronoun: PronounEntry | null = $state(pronounBank[0] ?? null);
+	let selectedCase: Case = $state('nom');
 
-	/** Check if a PronounCaseForms object has any non-empty forms */
-	function hasNonEmptyForms(forms: PronounCaseForms | null): boolean {
-		if (!forms) return false;
-		return CASE_ORDER.some((c) => forms[c].prep !== '' || forms[c].bare !== '');
+	// Open where the looked-up pronoun is visible: the question's case when
+	// there is one, else genitive — the nominative tab is a note, not rows.
+	$effect(() => {
+		if (initialCase && CASE_TABS.includes(initialCase)) selectedCase = initialCase;
+		else if (initialPronoun.trim() !== '') selectedCase = 'gen';
+	});
+
+	/** A pronoun's forms in the number it actually has (my, vy, oni are plural-only). */
+	function formsOf(p: PronounEntry): PronounCaseForms | null {
+		return p.forms.sg ?? p.forms.pl;
 	}
 
-	let hasSgForms = $derived(selectedPronoun ? hasNonEmptyForms(selectedPronoun.forms.sg) : false);
+	interface Row {
+		lemma: string;
+		translation: string;
+		bare: string;
+		prep: string;
+	}
 
-	let currentForms: PronounCaseForms | null = $derived.by(() => {
-		if (!selectedPronoun) return null;
-		if (hasSgForms) return selectedPronoun.forms.sg;
-		return selectedPronoun.forms.pl;
-	});
+	let rows: Row[] = $derived(
+		pronounBank.flatMap((p) => {
+			const forms = formsOf(p)?.[selectedCase];
+			if (!forms || (forms.bare === '' && forms.prep === '')) return [];
+			return [{ lemma: p.lemma, translation: p.translation, bare: forms.bare, prep: forms.prep }];
+		})
+	);
 
-	let currentNumber = $derived(hasSgForms ? 'Singular' : 'Plural');
+	/** Some row has a full form beside the everyday one (tě · tebe), so the key is needed. */
+	let hasFullForms = $derived(rows.some((r) => r.bare.includes('/')));
 
-	$effect(() => {
-		if (initialPronoun && initialPronoun.trim() !== '') {
-			const found = pronounBank.find((p) => p.lemma === initialPronoun.trim());
-			if (found) selectedPronoun = found;
-		}
-	});
+	let highlighted = $derived(initialPronoun.trim());
 </script>
 
 <div class="w-full">
@@ -70,42 +89,44 @@
 				? 'rounded-2xl border border-card-stroke bg-card-bg p-4'
 				: 'mt-2 rounded-2xl border border-card-stroke bg-card-bg p-4'}"
 		>
-			<!-- Pronoun selector pills -->
-			<div class="flex flex-wrap gap-1.5">
-				{#each pronounBank as p (p.lemma)}
+			<!-- Case tabs -->
+			<div role="tablist" aria-label="Case" class="flex flex-wrap gap-1.5">
+				{#each CASE_TABS as c (c)}
+					{@const active = selectedCase === c}
 					<button
 						type="button"
-						onclick={() => (selectedPronoun = p)}
-						class="rounded-full border px-2.5 py-1 text-xs transition-colors {selectedPronoun?.lemma ===
-						p.lemma
+						role="tab"
+						aria-selected={active}
+						onclick={() => (selectedCase = c)}
+						class="inline-flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-2.5 text-xs transition-colors {active
 							? 'border-emphasis bg-shaded-background font-semibold text-text-default'
 							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
 					>
-						{p.lemma}
+						<span
+							class="inline-flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+							style="background-color: {CASE_HEX[c]}"
+							><span class="digit-nudge">{CASE_NUMBER[c]}</span></span
+						>
+						{CASE_LABELS[c]}
 					</button>
 				{/each}
 			</div>
 
-			<!-- Selected pronoun info -->
-			{#if selectedPronoun}
-				<div class="flex flex-wrap items-center gap-2 px-1">
-					<span class="text-sm font-semibold text-text-default">
-						{selectedPronoun.lemma}
-					</span>
-					<span class="text-xs text-text-subtitle">
-						{selectedPronoun.translation}
-					</span>
-					<span
-						class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
-					>
-						{currentNumber}
-					</span>
-				</div>
-			{/if}
-
-			<!-- Declension table -->
-			{#if selectedPronoun && currentForms}
-				<div class="overflow-x-auto">
+			{#if selectedCase === 'nom'}
+				<!-- Nominative forms are the pronouns themselves, so a table would only repeat them. -->
+				<p class="px-1 text-sm leading-relaxed text-text-default">
+					The nominative is the pronoun itself: <span class="font-semibold"
+						>{rows.map((r) => r.lemma).join(', ')}</span
+					>.
+					<span class="text-text-subtitle"><span class="italic">Se</span> has no nominative.</span>
+				</p>
+			{:else}
+				<!-- One row per pronoun in the selected case -->
+				<div
+					class="overflow-x-auto"
+					role="tabpanel"
+					aria-label="{CASE_LABELS[selectedCase]} pronouns"
+				>
 					<table class="w-full table-fixed text-sm">
 						<colgroup>
 							<col class="w-[30%]" />
@@ -116,32 +137,41 @@
 							<tr
 								class="border-b border-card-stroke text-left text-xs font-semibold uppercase tracking-wider text-text-subtitle"
 							>
-								<th class="py-2 pr-3">Case</th>
+								<th class="py-2 pl-3 pr-3">Pronoun</th>
+								<th class="py-2 pr-3">No preposition</th>
 								<th class="py-2 pr-3">After prep.</th>
-								<th class="py-2">Without prep.</th>
 							</tr>
 						</thead>
 						<tbody>
-							{#each CASE_ORDER as caseKey, i (caseKey)}
-								{@const forms = currentForms[caseKey]}
+							{#each rows as row, i (row.lemma)}
 								<tr
-									class="border-b border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
+									class="border-b border-card-stroke {row.lemma === highlighted
+										? 'bg-warning-background'
+										: i % 2 === 0
+											? 'bg-shaded-background/50'
+											: ''}"
 								>
-									<td class="py-2 pr-3 text-xs font-normal text-text-subtitle">
-										{CASE_LABELS[caseKey]}
+									<td class="py-2 pl-3 pr-3">
+										<span class="font-semibold text-text-default" title={row.translation}
+											>{row.lemma}</span
+										>
 									</td>
 									<td class="py-2 pr-3">
-										{#if forms.prep === ''}
+										{#if row.bare === ''}
 											<span class="text-darker-shaded-background">&mdash;</span>
 										{:else}
-											<span class="text-text-default">{forms.prep}</span>
+											{@const [everyday, ...full] = row.bare.split('/')}
+											<span class="text-text-default">{everyday}</span>
+											{#if full.length > 0}
+												<span class="text-text-subtitle"> · {full.join(' · ')}</span>
+											{/if}
 										{/if}
 									</td>
-									<td class="py-2">
-										{#if forms.bare === ''}
+									<td class="py-2 pr-3">
+										{#if row.prep === ''}
 											<span class="text-darker-shaded-background">&mdash;</span>
 										{:else}
-											<span class="text-text-default">{forms.bare}</span>
+											<span class="text-text-default">{row.prep}</span>
 										{/if}
 									</td>
 								</tr>
@@ -149,6 +179,13 @@
 						</tbody>
 					</table>
 				</div>
+			{/if}
+			{#if hasFullForms}
+				<p class="text-xs text-text-subtitle">
+					Grey: the full form, for emphasis or to start a sentence (<span class="italic"
+						>Tebe vidím, ne jeho</span
+					>)
+				</p>
 			{/if}
 		</div>
 	</div>

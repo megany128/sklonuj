@@ -314,6 +314,38 @@
 	function handleWindowKeydown(e: KeyboardEvent) {
 		const target = e.target instanceof HTMLElement ? e.target : null;
 		if (target?.closest('[data-modal]')) return;
+		const inTextField = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
+		// Paradigm step: M/F/N picks the gender, then 1–n the paradigm.
+		// Browser shortcuts (Ctrl+1, Cmd+F …) must not pick an answer.
+		const modified = e.metaKey || e.ctrlKey || e.altKey;
+		if (
+			currentStep === 'paradigm' &&
+			!paradigmSubmitted &&
+			!inTextField &&
+			!e.repeat &&
+			!modified
+		) {
+			const gender = GENDER_OPTIONS.find((g) => g.value === e.key.toLowerCase());
+			if (gender) {
+				e.preventDefault();
+				selectedGender = gender.value;
+				selectedParadigm = '';
+				return;
+			}
+			const index = parseInt(e.key, 10) - 1;
+			const picked = Number.isNaN(index) ? undefined : filteredParadigms[index];
+			if (picked && isParadigm(picked.id)) {
+				e.preventDefault();
+				selectedParadigm = picked.id;
+				handleParadigmSubmit();
+				return;
+			}
+		}
+
+		// Held keys repeat; only a fresh press advances, so holding Enter can't
+		// fly past several feedback screens. Space in a text field is typing.
+		if (e.repeat || (e.key === ' ' && inTextField)) return;
 
 		if (e.key === 'Enter' || e.key === ' ') {
 			if (currentStep === 'paradigm' && paradigmSubmitted && canAdvance) {
@@ -507,6 +539,9 @@
 										</button>
 									{/each}
 								</div>
+								<p class="hidden text-xs text-text-subtitle sm:block">
+									Press M, F or N{selectedGender ? `, then 1–${filteredParadigms.length}` : ''}
+								</p>
 							</div>
 
 							<!-- Phase 2: Paradigm selection (shown after gender is picked) -->
@@ -514,7 +549,7 @@
 								<div class="flex w-full max-w-sm flex-col items-center gap-2">
 									<p class="text-xs font-medium text-text-subtitle">Choose paradigm</p>
 									<div role="group" aria-label="Select paradigm" class="flex w-full flex-col gap-2">
-										{#each filteredParadigms as p (p.id)}
+										{#each filteredParadigms as p, i (p.id)}
 											<button
 												type="button"
 												onclick={() => {
@@ -528,7 +563,12 @@
 													? 'border-emphasis bg-emphasis text-text-inverted'
 													: 'border-card-stroke bg-card-bg text-text-default hover:border-emphasis/50'}"
 											>
-												{p.exampleLemma}
+												<span
+													class="mr-1.5 hidden text-xs font-normal sm:inline {selectedParadigm ===
+													p.id
+														? 'text-text-inverted/70'
+														: 'text-text-subtitle'}">{i + 1}</span
+												>{p.exampleLemma}
 												<span
 													class="font-normal {selectedParadigm === p.id
 														? 'text-text-inverted/70'

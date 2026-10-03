@@ -7,19 +7,22 @@
 	import LookupSearch, { type LookupKind } from './LookupSearch.svelte';
 	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
 	import { stripDiacritics } from '$lib/utils/diacritics';
-	import type { AdjectiveGenderKey } from '$lib/types';
+	import type { AdjectiveGenderKey, Case } from '$lib/types';
 
 	type TabId = 'declension' | 'pronouns' | 'cases';
 
 	let {
 		initialWord = '',
 		initialPronoun = '',
+		initialPronounCase = null,
 		initialTab = 'declension',
 		adjGenderKey = null,
 		onClose
 	}: {
 		initialWord?: string;
 		initialPronoun?: string;
+		/** Case of the pronoun question in view; the pronoun table opens on it. */
+		initialPronounCase?: Case | null;
 		initialTab?: TabId;
 		/** Gender paradigm of the current adjective question, outlined in the adjective table. */
 		adjGenderKey?: AdjectiveGenderKey | null;
@@ -161,7 +164,7 @@
 				{/if}
 			</div>
 		{:else if activeTab === 'pronouns'}
-			<PronounTable {initialPronoun} alwaysExpanded={true} />
+			<PronounTable {initialPronoun} initialCase={initialPronounCase} alwaysExpanded={true} />
 		{:else if activeTab === 'cases'}
 			<CaseGuide alwaysExpanded={true} />
 		{/if}

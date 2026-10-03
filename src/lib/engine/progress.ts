@@ -157,13 +157,16 @@ export function recordResult(result: DrillResult): void {
 		// draws by tying the noun cell to the form step), so it moves the
 		// case's recognition cell instead.
 		const producesForm = result.question.drillType !== 'case_identification';
-		const outcome: CellOutcome = result.skipped
-			? 'skipped'
-			: result.correct
-				? 'correct'
-				: result.nearMiss
-					? 'near_miss'
-					: 'incorrect';
+		const outcome: CellOutcome =
+			result.retry || (result.hinted && result.correct)
+				? 'assisted'
+				: result.skipped
+					? 'skipped'
+					: result.correct
+						? 'correct'
+						: result.nearMiss
+							? 'near_miss'
+							: 'incorrect';
 		const cellKey = !producesForm
 			? caseCellKey(result.question.case, result.question.number)
 			: result.question.wordCategory === 'adjective' && result.question.adjective

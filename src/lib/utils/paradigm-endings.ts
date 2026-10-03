@@ -118,3 +118,8 @@ export function matchedEndings(paradigm: Paradigm, c: Case, n: Number_, forms: s
 	}
 	return out;
 }
+
+/** The endings the paradigm's notes list for this case (`''` = zero ending). */
+export function paradigmEndings(paradigm: Paradigm, c: Case, n: Number_): readonly string[] {
+	return PARADIGM_ENDINGS[paradigm][n][CASE_INDEX[c]];
+}

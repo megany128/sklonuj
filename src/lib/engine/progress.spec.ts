@@ -491,6 +491,20 @@ describe('cellSchedule recording', () => {
 		});
 	});
 
+	it('holds a cell on a hinted correct answer or an in-session re-ask', () => {
+		for (let i = 0; i < 3; i++) recordResult(makeDrillResult(true));
+		recordResult(makeDrillResult(true, { hinted: true }));
+		recordResult(makeDrillResult(true, { retry: true }));
+		recordResult(makeDrillResult(false, { userAnswer: 'hradu', retry: true }));
+		expect(get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')]).toMatchObject({
+			box: 3,
+			streak: 3
+		});
+		// A hint doesn't soften a wrong answer.
+		recordResult(makeDrillResult(false, { userAnswer: 'hradu', hinted: true }));
+		expect(get(progress).cellSchedule[nounCellKey('hrad', 'gen', 'sg')].box).toBe(1);
+	});
+
 	it('is cleared by resetProgress', () => {
 		recordResult(makeDrillResult(true));
 		resetProgress();

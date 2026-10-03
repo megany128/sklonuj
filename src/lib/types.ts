@@ -210,6 +210,10 @@ export interface DrillResult {
 	accidentalCase?: { case: Case; number: Number_ };
 	/** The accepted form (primary or variant) the user's answer matched, when applicable. */
 	matchedForm?: string;
+	/** The learner opened at least one hint before answering. */
+	hinted?: boolean;
+	/** An in-session re-ask of a question missed a few questions earlier. */
+	retry?: boolean;
 }
 
 export interface MultiStepQuestion {

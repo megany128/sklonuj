@@ -1,6 +1,6 @@
 import { page, userEvent } from 'vitest/browser';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import type { DrillQuestion, WordEntry } from '$lib/types';
+import type { DrillQuestion, DrillResult, WordEntry } from '$lib/types';
 
 const { default: DrillCard } = await import('./DrillCard.svelte');
 const { render, cleanup } = await import('vitest-browser-svelte');
@@ -38,11 +38,11 @@ const question: DrillQuestion = {
 	wordCategory: 'noun'
 };
 
-function mount() {
-	const onSubmit = vi.fn<(answer: string) => void>();
+function mount(result: DrillResult | null = null) {
+	const onSubmit = vi.fn<(answer: string, meta?: { hinted: boolean }) => void>();
 	render(DrillCard, {
 		question,
-		result: null,
+		result,
 		onSubmit,
 		onSpeak: null,
 		selectedCases: ['dat'],
@@ -65,7 +65,7 @@ describe('DrillCard typed answer submission', () => {
 		await input.fill('muzeu');
 		await userEvent.keyboard('{Enter}');
 		expect(onSubmit).toHaveBeenCalledTimes(1);
-		expect(onSubmit).toHaveBeenCalledWith('muzeu');
+		expect(onSubmit).toHaveBeenCalledWith('muzeu', { hinted: false });
 	});
 
 	it('submits via the Check button', async () => {
@@ -73,7 +73,7 @@ describe('DrillCard typed answer submission', () => {
 		await page.getByRole('textbox').fill('muzeu');
 		await page.getByRole('button', { name: 'Check' }).click();
 		expect(onSubmit).toHaveBeenCalledTimes(1);
-		expect(onSubmit).toHaveBeenCalledWith('muzeu');
+		expect(onSubmit).toHaveBeenCalledWith('muzeu', { hinted: false });
 	});
 
 	it('submits via the form itself (mobile keyboard action key, no Enter keydown)', async () => {
@@ -84,7 +84,7 @@ describe('DrillCard typed answer submission', () => {
 		expect(form).not.toBeNull();
 		form?.requestSubmit();
 		expect(onSubmit).toHaveBeenCalledTimes(1);
-		expect(onSubmit).toHaveBeenCalledWith('muzeu');
+		expect(onSubmit).toHaveBeenCalledWith('muzeu', { hinted: false });
 	});
 
 	it('offers Skip while the input is empty and reports a skip', async () => {
@@ -102,6 +102,64 @@ describe('DrillCard typed answer submission', () => {
 		await userEvent.keyboard('{Enter}');
 		// The window handler turns Enter-after-submit into the advance sentinel;
 		// the answer itself must not be submitted again.
-		expect(onSubmit.mock.calls).toEqual([['muzeu'], ['__advance__']]);
+		expect(onSubmit.mock.calls).toEqual([['muzeu', { hinted: false }], ['__advance__']]);
+	});
+});
+
+describe('DrillCard hints', () => {
+	beforeEach(() => cleanup());
+
+	it('Enter on an empty box opens a hint, and the answer is reported as hinted', async () => {
+		const onSubmit = mount();
+		const input = page.getByRole('textbox');
+		await input.click();
+		await userEvent.keyboard('{Enter}');
+		await expect.element(page.getByText('Needs')).toBeInTheDocument();
+		expect(onSubmit).not.toHaveBeenCalled();
+		await input.fill('muzeu');
+		await userEvent.keyboard('{Enter}');
+		expect(onSubmit).toHaveBeenCalledWith('muzeu', { hinted: true });
+	});
+
+	it('the Hint button steps through to the first letters', async () => {
+		mount();
+		await page.getByRole('button', { name: 'Hint' }).click();
+		await page.getByRole('button', { name: 'Another hint' }).click();
+		await page.getByRole('button', { name: 'Another hint' }).click();
+		await expect.element(page.getByText('Starts with')).toBeInTheDocument();
+		await expect
+			.element(page.getByRole('button', { name: 'Another hint' }))
+			.not.toBeInTheDocument();
+	});
+	it('Enter on an empty box skips once every hint is open', async () => {
+		const onSubmit = mount();
+		await page.getByRole('textbox').click();
+		for (let i = 0; i < 3; i++) await userEvent.keyboard('{Enter}');
+		await expect.element(page.getByText('Starts with')).toBeInTheDocument();
+		expect(onSubmit).not.toHaveBeenCalled();
+		await userEvent.keyboard('{Enter}');
+		expect(onSubmit).toHaveBeenCalledWith('__skip__');
+	});
+});
+
+describe('DrillCard retype after a miss', () => {
+	beforeEach(() => cleanup());
+
+	it('accepts the exact form, then Enter moves on', async () => {
+		// The page grades the answer; DrillCard shows that result once submitted.
+		const onSubmit = mount({ question, userAnswer: 'muzea', correct: false, nearMiss: false });
+		await page.getByRole('textbox').fill('muzea');
+		await userEvent.keyboard('{Enter}');
+		const retype = page.getByLabelText('Practice: type the correct form');
+		await expect.element(retype).toBeInTheDocument();
+		await retype.fill('muzea');
+		await userEvent.keyboard('{Enter}');
+		// A wrong retype keeps the box open instead of advancing.
+		expect(onSubmit.mock.calls.at(-1)).toEqual(['muzea', { hinted: false }]);
+		await retype.fill('muzeu');
+		await userEvent.keyboard('{Enter}');
+		await expect.element(page.getByText("That's right")).toBeInTheDocument();
+		await userEvent.keyboard('{Enter}');
+		expect(onSubmit.mock.calls.at(-1)).toEqual(['__advance__']);
 	});
 });

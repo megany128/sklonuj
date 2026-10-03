@@ -89,7 +89,7 @@ export function caseCellKey(case_: Case, number_: Number_): string {
 	return `c:${case_}:${number_}`;
 }
 
-export type CellOutcome = 'correct' | 'incorrect' | 'near_miss' | 'skipped';
+export type CellOutcome = 'correct' | 'incorrect' | 'near_miss' | 'skipped' | 'assisted';
 
 function clampBox(box: number): number {
 	if (!Number.isFinite(box)) return 0;
@@ -114,7 +114,9 @@ export function cellWeight(state: CellState | undefined, now: number): number {
  * up a box and a miss drops two. A skip (looking at the answer) and a
  * near-miss (right ending, wrong diacritics — graded wrong at B1+) drop one:
  * both are weaker signals than a wrong ending and must not wipe weeks of
- * spacing.
+ * spacing. An assisted answer (correct after a hint, or an in-session re-ask
+ * of a miss whose answer was just shown) holds the box: it shows neither
+ * recall nor a fresh gap.
  */
 export function advanceCell(
 	state: CellState | undefined,
@@ -125,6 +127,9 @@ export function advanceCell(
 	const streak = state?.streak ?? 0;
 	if (outcome === 'correct') {
 		return { last: now, box: Math.min(box + 1, MAX_BOX), streak: streak + 1 };
+	}
+	if (outcome === 'assisted') {
+		return { last: now, box, streak };
 	}
 	const drop = outcome === 'incorrect' ? 2 : 1;
 	return { last: now, box: Math.max(box - drop, 0), streak: 0 };
