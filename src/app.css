@@ -165,6 +165,15 @@ select {
 	}
 }
 
+/* A 10px Gabarito digit in a 16px dot (CaseChip) renders ~0.5px high and
+   right; this centres it (measured 0px off at 2x). Larger badges (12px digit
+   in a 20–24px circle) are already within 0.25px — don't apply it there, it
+   over-corrects them. */
+.digit-nudge {
+	display: inline-block;
+	transform: translate(-0.5px, 0.5px);
+}
+
 /* Wrong-answer nudge on the graded answer field */
 .feedback-shake {
 	animation: feedbackShake 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97);

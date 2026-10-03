@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import type { DrillQuestion, DrillResult, DrillType, Case } from '$lib/types';
 	import {
 		ALL_CASES,
@@ -23,6 +22,7 @@
 	import SubmittedAnswer from '$lib/components/ui/SubmittedAnswer.svelte';
 	import AnswerDiff from '$lib/components/ui/AnswerDiff.svelte';
 	import CaseChip from '$lib/components/ui/CaseChip.svelte';
+	import WhyNote from '$lib/components/ui/WhyNote.svelte';
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import FeedbackPronounDeclensionChart from '$lib/components/ui/FeedbackPronounDeclensionChart.svelte';
@@ -855,28 +855,7 @@
 								question.template.id !== '_adj_form_production'
 									? question.template.why
 									: null}
-							{#if correctTemplateWhy?.trim() || correctWhyNote?.trim()}
-								<div class="w-full border-t border-darker-subtitle/30 pt-4">
-									<div class="mb-2 flex items-center justify-center gap-1.5">
-										<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
-										<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
-									</div>
-									{#if correctTemplateWhy}
-										<p class="text-center text-sm leading-relaxed text-darker-subtitle">
-											{correctTemplateWhy}
-										</p>
-									{/if}
-									{#if correctWhyNote}
-										<p
-											class="text-center text-sm leading-relaxed {correctTemplateWhy
-												? 'mt-1.5'
-												: ''} text-text-subtitle"
-										>
-											{correctWhyNote}
-										</p>
-									{/if}
-								</div>
-							{/if}
+							<WhyNote templateWhy={correctTemplateWhy} whyNote={correctWhyNote} />
 							{#if question.wordCategory === 'adjective' && question.adjective}
 								<div class="w-full">
 									<FeedbackAdjectiveDeclensionChart
@@ -911,35 +890,35 @@
 									? result.userAnswer
 									: null}
 							{#if wasSkipped}
-								<FeedbackVerdict tone="skipped" title="Skipped">
-									No problem — here's the answer.
-								</FeedbackVerdict>
+								<FeedbackVerdict tone="skipped" title="Skipped">Here's the answer.</FeedbackVerdict>
 							{:else if pickedCase}
 								<FeedbackVerdict tone="wrong" title="Not quite">
-									You picked <CaseChip case_={pickedCase} />. This sentence needs the
-									<CaseChip case_={question.case} />.
+									You picked <CaseChip case_={pickedCase} /> — needed <CaseChip
+										case_={question.case}
+									/>
 								</FeedbackVerdict>
 							{:else if result.nearMiss}
 								<FeedbackVerdict tone="almost" title="Almost — check the accents">
-									The letters are right, but accents change the word and count at this level.
+									Right letters, but accents count here.
 								</FeedbackVerdict>
 							{:else if result.accidentalCase}
 								{@const typedAs = result.accidentalCase}
 								{#if typedAs.case === question.case}
 									<FeedbackVerdict tone="wrong" title="Right case, wrong number">
-										<span class="font-semibold">{userTyped}</span> is the
-										{typedAs.number === 'pl' ? 'plural' : 'singular'} — this one needs the
-										{question.number === 'pl' ? 'plural' : 'singular'}.
+										<span class="font-semibold">{userTyped}</span> is {typedAs.number === 'pl'
+											? 'plural'
+											: 'singular'} — needed
+										{question.number === 'pl' ? 'plural' : 'singular'}
 									</FeedbackVerdict>
 								{:else}
 									<FeedbackVerdict tone="wrong" title="Wrong case">
-										<span class="font-semibold">{userTyped}</span> is the
+										<span class="font-semibold">{userTyped}</span> is
 										<CaseChip case_={typedAs.case} plural={showPlural(question, typedAs.number)} /> —
-										this one needs the
+										needed
 										<CaseChip
 											case_={question.case}
 											plural={showPlural(question, question.number)}
-										/>.
+										/>
 									</FeedbackVerdict>
 								{/if}
 							{:else}
@@ -950,7 +929,7 @@
 							{@const noteKey = `${question.case}_${question.number}`}
 							{@const adjGenderNote =
 								question.wordCategory === 'adjective' && question.adjective
-									? `${question.adjective.paradigmType === 'hard' ? 'Hard' : 'Soft'} adjective, ${
+									? `${question.adjective.paradigmType === 'hard' ? 'hard' : 'soft'} adjective · ${
 											question.word.gender === 'm'
 												? question.word.animate
 													? 'masculine animate'

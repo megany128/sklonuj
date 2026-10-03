@@ -17,7 +17,7 @@ import type {
 	VariantForms,
 	WordEntry
 } from '../types';
-import { CASE_INDEX, isCase, isNumber } from '../types';
+import { CASE_INDEX, CASE_LABELS, isCase, isNumber } from '../types';
 import adjectiveBankData from '../data/adjective_bank.json';
 import adjectiveTemplateData from '../data/adjective_templates.json';
 import blockedAdjNounPairsData from '../data/blocked_adj_noun_pairs.json';
@@ -393,6 +393,15 @@ export function generateAdjectiveSentenceDrill(
 	};
 }
 
+// Gender wording used in learner-facing agreement lines; matches the
+// adjective_templates.json `why` style ("agrees with dům · masc. inanimate").
+const AGREEMENT_GENDER_LABELS: Record<AdjectiveGenderKey, string> = {
+	m_anim: 'masc. animate',
+	m_inanim: 'masc. inanimate',
+	f: 'feminine',
+	n: 'neuter'
+};
+
 // ---------------------------------------------------------------------------
 // 7b. generateAdjectiveFormProduction — no sentence context, just lemma + target case/gender/number
 // ---------------------------------------------------------------------------
@@ -420,7 +429,7 @@ export function generateAdjectiveFormProduction(
 		requiredCase: case_,
 		number: number_,
 		trigger: '',
-		why: `Decline the adjective "${adj.lemma}" to match the ${genderKey.replace('_', ' ')} noun "${word.lemma}" in the required case and number.`,
+		why: `agrees with ${word.lemma} · ${AGREEMENT_GENDER_LABELS[genderKey]} · ${CASE_LABELS[case_].toLowerCase()} ${number_}`,
 		difficulty: adj.difficulty
 	};
 

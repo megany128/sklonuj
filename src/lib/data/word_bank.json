@@ -105,7 +105,7 @@
 				"5": ["přítelovi"]
 			}
 		},
-		"declensionNote": "The plural stem changes to přátel-: přátelé, přátel (genitive plural with no ending), přátelům, přátelích."
+		"declensionNote": "Plural stem: přátel- (přátelé, přátelům, přátelích)\nGenitive pl: no ending (přátel)"
 	},
 	{
 		"lemma": "bratr",
@@ -253,7 +253,7 @@
 				"5": ["domu"]
 			}
 		},
-		"declensionNote": "The ů becomes o outside the nominative/accusative singular: domu, domem, v domě; plural domy, genitive plural domů (with ů again)."
+		"declensionNote": "ů → o outside nom/acc sg (domu, v domě)\nGenitive pl keeps ů: domů"
 	},
 	{
 		"lemma": "stůl",
@@ -267,7 +267,7 @@
 			"sg": ["stůl", "stolu", "stolu", "stůl", "stole", "stole", "stolem"],
 			"pl": ["stoly", "stolů", "stolům", "stoly", "stoly", "stolech", "stoly"]
 		},
-		"declensionNote": "The ů becomes o outside the nominative/accusative singular: stolu, stolem, na stole; plural stoly, stolů."
+		"declensionNote": "ů → o outside nom/acc sg (stolu, stolem, na stole)\nPlural: stoly, stolů"
 	},
 	{
 		"lemma": "stromek",
@@ -441,7 +441,7 @@
 				"5": ["lesech"]
 			}
 		},
-		"declensionNote": "Genitive singular lesa (do lesa); dative lesu; locative v lese."
+		"declensionNote": "Genitive sg: -a (do lesa)\nDative lesu, locative v lese"
 	},
 	{
 		"lemma": "hrad",
@@ -793,7 +793,7 @@
 			"sg": ["noc", "noci", "noci", "noc", "noci", "noci", "nocí"],
 			"pl": ["noci", "nocí", "nocím", "noci", "noci", "nocích", "nocemi"]
 		},
-		"declensionNote": "Kost-type feminine, but the plural takes the softer endings: nocí, nocím, nocích, nocemi (not nocech, nocmi)."
+		"declensionNote": "Plural takes soft endings: nocí, nocím, nocích, nocemi\nNot kost-style nocech, nocmi"
 	},
 	{
 		"lemma": "věž",
@@ -1089,7 +1089,7 @@
 			"sg": ["muzeum", "muzea", "muzeu", "muzeum", "muzeum", "muzeu", "muzeem"],
 			"pl": ["muzea", "muzeí", "muzeím", "muzea", "muzea", "muzeích", "muzei"]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — muzea, muzeu, muzeem; genitive, dative and locative plural have -í-: muzeí, muzeím, muzeích; instrumental muzei."
+		"declensionNote": "Latin neuter: -um drops before endings (muzea, muzeu, muzeem)\nGen/dat/loc pl add -í-: muzeí, muzeím, muzeích; ins pl muzei"
 	},
 	{
 		"lemma": "pero",
@@ -1251,7 +1251,7 @@
 			"sg": ["ruka", "ruky", "ruce", "ruku", "ruko", "ruce", "rukou"],
 			"pl": ["ruce", "rukou", "rukám", "ruce", "ruce", "rukou", "rukama"]
 		},
-		"declensionNote": "Dative/locative singular ruce (k changes to c). The plural uses dual forms: ruce, rukou (genitive and locative), rukám, rukama (instrumental)."
+		"declensionNote": "k → c in dat/loc sg: ruce\nPlural uses old dual forms: ruce, rukou (gen/loc), rukám, rukama (ins)"
 	},
 	{
 		"lemma": "noha",
@@ -1265,7 +1265,7 @@
 			"sg": ["noha", "nohy", "noze", "nohu", "noho", "noze", "nohou"],
 			"pl": ["nohy", "nohou", "nohám", "nohy", "nohy", "nohou", "nohama"]
 		},
-		"declensionNote": "Dative/locative singular noze (h changes to z). Dual forms in the plural: genitive and locative nohou, instrumental nohama."
+		"declensionNote": "h → z in dat/loc sg: noze\nPlural uses old dual forms: nohou (gen/loc), nohama (ins)"
 	},
 	{
 		"lemma": "oko",
@@ -1279,7 +1279,7 @@
 			"sg": ["oko", "oka", "oku", "oko", "oko", "oku", "okem"],
 			"pl": ["oči", "očí", "očím", "oči", "oči", "očích", "očima"]
 		},
-		"declensionNote": "The plural keeps the old dual forms: oči, očí, očím, oči, očích, očima (instrumental in -ma)."
+		"declensionNote": "Plural uses old dual forms: oči, očí, očím, očích\nInstrumental pl in -ma: očima"
 	},
 	{
 		"lemma": "ucho",
@@ -1293,7 +1293,7 @@
 			"sg": ["ucho", "ucha", "uchu", "ucho", "ucho", "uchu", "uchem"],
 			"pl": ["uši", "uší", "uším", "uši", "uši", "uších", "ušima"]
 		},
-		"declensionNote": "The plural keeps the old dual forms: uši, uší, uším, uši, uších, ušima (instrumental in -ma)."
+		"declensionNote": "Plural uses old dual forms: uši, uší, uším, uších\nInstrumental pl in -ma: ušima"
 	},
 	{
 		"lemma": "nos",
@@ -1345,7 +1345,7 @@
 				"5": ["chlebu"]
 			}
 		},
-		"declensionNote": "The é shortens outside the nominative/accusative singular: chleba, chlebu, chlebem. The genitive singular takes -a (chleba); colloquially chleba serves as nominative and accusative too, and v chlebu is accepted beside v chlebě."
+		"declensionNote": "é → e outside nom/acc sg (chleba, chlebu, chlebem)\nGenitive sg -a: chleba; colloquially also nom/acc\nLocative v chlebě or v chlebu"
 	},
 	{
 		"lemma": "mléko",
@@ -1382,7 +1382,7 @@
 				"1": ["sýru"]
 			}
 		},
-		"declensionNote": "Genitive singular sýra (kousek sýra), beside the regular sýru; dative and locative sýru, instrumental sýrem."
+		"declensionNote": "Genitive sg: sýra (kousek sýra) or sýru\nDat/loc sýru, ins sýrem"
 	},
 	{
 		"lemma": "máslo",
@@ -1494,7 +1494,7 @@
 			}
 		},
 		"irregular": true,
-		"declensionNote": "Fleeting e: den but dne, dnu, dnem; plural dny, dnů, dnech. The genitive dne appears in phrases like během dne."
+		"declensionNote": "Fleeting e: den → dne, dnu, dnem (pl dny, dnů, dnech)\nGenitive dne in phrases like během dne"
 	},
 	{
 		"lemma": "týden",
@@ -1522,7 +1522,7 @@
 			}
 		},
 		"irregular": true,
-		"declensionNote": "Fleeting e: týden but týdne, týdnu, týdnem; plural týdny, týdnů, týdnech."
+		"declensionNote": "Fleeting e: týden → týdne, týdnu, týdnem (pl týdny, týdnů, týdnech)"
 	},
 	{
 		"lemma": "měsíc",
@@ -1554,7 +1554,7 @@
 				"1": ["let"]
 			}
 		},
-		"declensionNote": "Genitive singular roku, locative v roce (k changes to c); plural roky. After five and in time expressions Czech usually says let instead (pět let), beside roků."
+		"declensionNote": "k → c in loc sg: v roce (gen roku, pl roky)\nAfter 5+ and in time phrases: let (pět let), also roků"
 	},
 	{
 		"lemma": "hodina",
@@ -1868,7 +1868,7 @@
 				"5": ["životu"]
 			}
 		},
-		"declensionNote": "Genitive singular života; dative životu; locative v životě."
+		"declensionNote": "Genitive sg: -a (života)\nDative životu, locative v životě"
 	},
 	{
 		"lemma": "smrt",
@@ -2090,7 +2090,7 @@
 				"5": ["světu"]
 			}
 		},
-		"declensionNote": "Genitive singular světa; dative světu; locative ve světě, na světě."
+		"declensionNote": "Genitive sg: -a (světa)\nDative světu, locative ve světě, na světě"
 	},
 	{
 		"lemma": "cesta",
@@ -2600,7 +2600,7 @@
 				"5": ["zákonu"]
 			}
 		},
-		"declensionNote": "Genitive singular zákona; dative zákonu; locative v zákoně."
+		"declensionNote": "Genitive sg: -a (zákona)\nDative zákonu, locative v zákoně"
 	},
 	{
 		"lemma": "počet",
@@ -3401,7 +3401,7 @@
 				"4": ["ředitelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: ředitelé, like other -tel agent nouns; the singular follows muž: ředitele, řediteli."
+		"declensionNote": "Nominative pl: -é (ředitelé), like other -tel agent nouns\nSingular follows muž: ředitele, řediteli"
 	},
 	{
 		"lemma": "zkušenost",
@@ -3751,7 +3751,7 @@
 			"sg": ["centrum", "centra", "centru", "centrum", "centrum", "centru", "centrem"],
 			"pl": ["centra", "center", "centrům", "centra", "centra", "centrech", "centry"]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — centra, centru, centrem; plural centra, genitive plural center (with inserted e)."
+		"declensionNote": "Latin neuter: -um drops before endings (centra, centru, centrem)\nGenitive pl inserts e: center"
 	},
 	{
 		"lemma": "okamžik",
@@ -3780,12 +3780,12 @@
 		"difficulty": "A1",
 		"categories": ["misc", "abstract"],
 		"forms": {
-			"sg": ["metr", "metru", "metru", "metr", "metre", "metru", "metrem"],
+			"sg": ["metr", "metru", "metru", "metr", "metře", "metru", "metrem"],
 			"pl": ["metry", "metrů", "metrům", "metry", "metry", "metrech", "metry"]
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["metře"]
+				"4": ["metre"]
 			}
 		}
 	},
@@ -4364,7 +4364,7 @@
 				"4": ["rodičové"]
 			}
 		},
-		"declensionNote": "Nominative plural rodiče (the parents), genitive plural rodičů; the singular follows muž: rodiče, rodiči."
+		"declensionNote": "Nominative pl: rodiče (the parents), genitive pl rodičů\nSingular follows muž: rodiče, rodiči"
 	},
 	{
 		"lemma": "neděle",
@@ -4414,7 +4414,7 @@
 				"5": ["jazyce"]
 			}
 		},
-		"declensionNote": "Genitive singular jazyka; dative jazyku; locative plural jazycích (k changes to c)."
+		"declensionNote": "Genitive sg: -a (jazyka), dative jazyku\nk → c in loc pl: jazycích"
 	},
 	{
 		"lemma": "přístup",
@@ -5085,7 +5085,7 @@
 			"sg": ["téma", "tématu", "tématu", "téma", "téma", "tématu", "tématem"],
 			"pl": ["témata", "témat", "tématům", "témata", "témata", "tématech", "tématy"]
 		},
-		"declensionNote": "Greek-style neuter: the stem gains -t- outside the nominative/accusative/vocative singular — tématu, tématem; plural témata, témat, tématech."
+		"declensionNote": "Greek neuter: stem adds -t- outside nom/acc/voc sg (tématu, tématem)\nPlural: témata, témat, tématech"
 	},
 	{
 		"lemma": "stavba",
@@ -5157,7 +5157,7 @@
 				"4": ["obyvatelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: obyvatelé, like other -tel agent nouns; the singular follows muž: obyvatele, obyvateli; genitive plural obyvatelů or obyvatel."
+		"declensionNote": "Nominative pl: -é (obyvatelé), like other -tel agent nouns\nSingular follows muž: obyvatele, obyvateli\nGenitive pl: obyvatelů or obyvatel"
 	},
 	{
 		"lemma": "rameno",
@@ -6002,7 +6002,7 @@
 			"sg": ["studium", "studia", "studiu", "studium", "studium", "studiu", "studiem"],
 			"pl": ["studia", "studií", "studiím", "studia", "studia", "studiích", "studii"]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — studia, studiu, studiem; genitive, dative and locative plural have -í-: studií, studiím, studiích; instrumental studii."
+		"declensionNote": "Latin neuter: -um drops before endings (studia, studiu, studiem)\nGen/dat/loc pl add -í-: studií, studiím, studiích; ins pl studii"
 	},
 	{
 		"lemma": "minulost",
@@ -7240,7 +7240,7 @@
 			"sg": ["leden", "ledna", "lednu", "leden", "ledne", "lednu", "lednem"],
 			"pl": ["ledny", "lednů", "lednům", "ledny", "ledny", "lednech", "ledny"]
 		},
-		"declensionNote": "Fleeting e: the e of leden disappears before endings, and the genitive singular takes -a: ledna, v lednu, lednem."
+		"declensionNote": "Fleeting e: leden → ledna, v lednu, lednem\nGenitive sg: -a (ledna)"
 	},
 	{
 		"lemma": "nástroj",
@@ -7660,7 +7660,7 @@
 				"kilometru",
 				"kilometru",
 				"kilometr",
-				"kilometre",
+				"kilometře",
 				"kilometru",
 				"kilometrem"
 			],
@@ -7676,7 +7676,7 @@
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["kilometře"]
+				"4": ["kilometre"]
 			}
 		}
 	},
@@ -7951,7 +7951,7 @@
 			"sg": ["červen", "června", "červnu", "červen", "červne", "červnu", "červnem"],
 			"pl": ["červny", "červnů", "červnům", "červny", "červny", "červnech", "červny"]
 		},
-		"declensionNote": "Fleeting e: the e of červen disappears before endings, and the genitive singular takes -a: června, v červnu, červnem."
+		"declensionNote": "Fleeting e: červen → června, v červnu, červnem\nGenitive sg: -a (června)"
 	},
 	{
 		"lemma": "reakce",
@@ -7978,7 +7978,7 @@
 			"sg": ["květen", "května", "květnu", "květen", "květne", "květnu", "květnem"],
 			"pl": ["květny", "květnů", "květnům", "květny", "květny", "květnech", "květny"]
 		},
-		"declensionNote": "Fleeting e: the e of květen disappears before endings, and the genitive singular takes -a: května, v květnu, květnem."
+		"declensionNote": "Fleeting e: květen → května, v květnu, květnem\nGenitive sg: -a (května)"
 	},
 	{
 		"lemma": "zub",
@@ -8029,7 +8029,7 @@
 				"5": ["obědu"]
 			}
 		},
-		"declensionNote": "Genitive singular oběda (do oběda), also obědu; locative singular obědě (po obědě)."
+		"declensionNote": "Genitive sg: oběda (do oběda) or obědu\nLocative sg: po obědě"
 	},
 	{
 		"lemma": "loď",
@@ -8054,7 +8054,7 @@
 				"6": ["loďmi"]
 			}
 		},
-		"declensionNote": "Mixed píseň/kost declension: genitive singular lodě or lodi, dative/locative lodi; plural lodě, lodí, lodím, lodích, loděmi."
+		"declensionNote": "Mixes píseň and kost: gen sg lodě or lodi, dat/loc lodi\nPlural: lodě, lodí, lodím, lodích, loděmi"
 	},
 	{
 		"lemma": "vrstva",
@@ -8265,7 +8265,7 @@
 			"sg": ["datum", "data", "datu", "datum", "datum", "datu", "datem"],
 			"pl": ["data", "dat", "datům", "data", "data", "datech", "daty"]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — data, datu, datem; plural data, genitive plural dat."
+		"declensionNote": "Latin neuter: -um drops before endings (data, datu, datem)\nGenitive pl: dat"
 	},
 	{
 		"lemma": "divák",
@@ -8455,7 +8455,7 @@
 				"2": ["koňům"]
 			}
 		},
-		"declensionNote": "The ů becomes o and the stem is soft: koně, koni, koněm; plural koně, koní, koním, koních, koňmi (instrumental in -mi)."
+		"declensionNote": "ů → o, soft stem: koně, koni, koněm\nPlural: koně, koní, koním, koních, koňmi (ins in -mi)"
 	},
 	{
 		"lemma": "okolnost",
@@ -8599,7 +8599,7 @@
 				"5": ["čtvrtkách"]
 			}
 		},
-		"declensionNote": "Fleeting e drops before endings: čtvrtka (do čtvrtka), also čtvrtku; čtvrtkem; ve čtvrtek; plural čtvrtky, locative čtvrtcích."
+		"declensionNote": "Fleeting e: čtvrtka (do čtvrtka) or čtvrtku, čtvrtkem; ve čtvrtek\nPlural čtvrtky; k → c in loc pl: čtvrtcích"
 	},
 	{
 		"lemma": "účast",
@@ -8809,7 +8809,7 @@
 				"5": ["domovu"]
 			}
 		},
-		"declensionNote": "Genitive singular domova (z domova); locative v domově."
+		"declensionNote": "Genitive sg: -a (z domova)\nLocative v domově"
 	},
 	{
 		"lemma": "termín",
@@ -9102,7 +9102,7 @@
 			"sg": ["říjen", "října", "říjnu", "říjen", "říjne", "říjnu", "říjnem"],
 			"pl": ["říjny", "říjnů", "říjnům", "říjny", "říjny", "říjnech", "říjny"]
 		},
-		"declensionNote": "Fleeting e: the e of říjen disappears before endings, and the genitive singular takes -a: října, v říjnu, říjnem."
+		"declensionNote": "Fleeting e: říjen → října, v říjnu, říjnem\nGenitive sg: -a (října)"
 	},
 	{
 		"lemma": "tma",
@@ -9338,7 +9338,7 @@
 			"sg": ["březen", "března", "březnu", "březen", "březne", "březnu", "březnem"],
 			"pl": ["březny", "březnů", "březnům", "březny", "březny", "březnech", "březny"]
 		},
-		"declensionNote": "Fleeting e: the e of březen disappears before endings, and the genitive singular takes -a: března, v březnu, březnem."
+		"declensionNote": "Fleeting e: březen → března, v březnu, březnem\nGenitive sg: -a (března)"
 	},
 	{
 		"lemma": "tradice",
@@ -9640,7 +9640,7 @@
 			"sg": ["duben", "dubna", "dubnu", "duben", "dubne", "dubnu", "dubnem"],
 			"pl": ["dubny", "dubnů", "dubnům", "dubny", "dubny", "dubnech", "dubny"]
 		},
-		"declensionNote": "Fleeting e: the e of duben disappears before endings, and the genitive singular takes -a: dubna, v dubnu, dubnem."
+		"declensionNote": "Fleeting e: duben → dubna, v dubnu, dubnem\nGenitive sg: -a (dubna)"
 	},
 	{
 		"lemma": "rozsah",
@@ -9737,7 +9737,7 @@
 				"4": ["učitelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: učitelé, like other -tel agent nouns; the singular follows muž: učitele, učiteli."
+		"declensionNote": "Nominative pl: -é (učitelé), like other -tel agent nouns\nSingular follows muž: učitele, učiteli"
 	},
 	{
 		"lemma": "adresa",
@@ -9853,7 +9853,7 @@
 			"sg": ["srpen", "srpna", "srpnu", "srpen", "srpne", "srpnu", "srpnem"],
 			"pl": ["srpny", "srpnů", "srpnům", "srpny", "srpny", "srpnech", "srpny"]
 		},
-		"declensionNote": "Fleeting e: the e of srpen disappears before endings, and the genitive singular takes -a: srpna, v srpnu, srpnem."
+		"declensionNote": "Fleeting e: srpen → srpna, v srpnu, srpnem\nGenitive sg: -a (srpna)"
 	},
 	{
 		"lemma": "jistota",
@@ -10066,7 +10066,7 @@
 			"sg": ["knížka", "knížky", "knížce", "knížku", "knížko", "knížce", "knížkou"],
 			"pl": ["knížky", "knížek", "knížkám", "knížky", "knížky", "knížkách", "knížkami"]
 		},
-		"declensionNote": "Diminutive of kniha, in everyday speech simply a book. The k changes to c before -e in dative and locative singular: knížce; genitive plural knížek."
+		"declensionNote": "k → c in dat/loc sg: knížce\nGenitive pl: knížek\nDiminutive of kniha; everyday word for book"
 	},
 	{
 		"lemma": "spor",
@@ -10247,7 +10247,7 @@
 				"5": ["národu"]
 			}
 		},
-		"declensionNote": "Genitive singular národa; dative národu; locative v národě."
+		"declensionNote": "Genitive sg: -a (národa)\nDative národu, locative v národě"
 	},
 	{
 		"lemma": "značka",
@@ -10349,7 +10349,7 @@
 				"1": ["únoru"]
 			}
 		},
-		"declensionNote": "Genitive singular února, as in dates (1. února), beside únoru; locative v únoru."
+		"declensionNote": "Genitive sg: února, as in dates (1. února), or únoru\nLocative v únoru"
 	},
 	{
 		"lemma": "teorie",
@@ -10398,7 +10398,7 @@
 				"5": ["kostelích"]
 			}
 		},
-		"declensionNote": "Genitive singular kostela (do kostela) and locative v kostele; kostelu is also accepted in both."
+		"declensionNote": "Genitive sg kostela (do kostela), locative v kostele\nAlso accepted in both: kostelu"
 	},
 	{
 		"lemma": "politik",
@@ -11386,7 +11386,7 @@
 				"5": ["ostrovu"]
 			}
 		},
-		"declensionNote": "Genitive singular ostrova; dative ostrovu; locative na ostrově."
+		"declensionNote": "Genitive sg: -a (ostrova)\nDative ostrovu, locative na ostrově"
 	},
 	{
 		"lemma": "půlka",
@@ -11535,7 +11535,7 @@
 				"4": ["podnikatelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: podnikatelé, like other -tel agent nouns; the singular follows muž: podnikatele, podnikateli."
+		"declensionNote": "Nominative pl: -é (podnikatelé), like other -tel agent nouns\nSingular follows muž: podnikatele, podnikateli"
 	},
 	{
 		"lemma": "odpor",
@@ -12638,7 +12638,7 @@
 				"5": ["táboru"]
 			}
 		},
-		"declensionNote": "Genitive singular tábora (z tábora) and locative v táboře; táboru is also accepted in both."
+		"declensionNote": "Genitive sg tábora (z tábora), locative v táboře\nAlso accepted in both: táboru"
 	},
 	{
 		"lemma": "úsilí",
@@ -15693,7 +15693,7 @@
 			"sg": ["hřiště", "hřiště", "hřišti", "hřiště", "hřiště", "hřišti", "hřištěm"],
 			"pl": ["hřiště", "hřišť", "hřištím", "hřiště", "hřiště", "hřištích", "hřišti"]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — hřišť (compare moří). Takes na: na hřišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: hřišť (vs moří)\nTakes na: na hřišti"
 	},
 	{
 		"lemma": "kritérium",
@@ -15961,7 +15961,7 @@
 				"5": ["dolu"]
 			}
 		},
-		"declensionNote": "The ů becomes o outside the nominative/accusative singular: dolu, v dole, dolem; plural doly, dolů."
+		"declensionNote": "ů → o outside nom/acc sg (dolu, v dole, dolem)\nPlural: doly, dolů"
 	},
 	{
 		"lemma": "kořen",
@@ -16349,7 +16349,7 @@
 				"4": ["spisovatelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: spisovatelé, like other -tel agent nouns; the singular follows muž: spisovatele, spisovateli."
+		"declensionNote": "Nominative pl: -é (spisovatelé), like other -tel agent nouns\nSingular follows muž: spisovatele, spisovateli"
 	},
 	{
 		"lemma": "odhad",
@@ -16407,7 +16407,7 @@
 			"sg": ["letiště", "letiště", "letišti", "letiště", "letiště", "letišti", "letištěm"],
 			"pl": ["letiště", "letišť", "letištím", "letiště", "letiště", "letištích", "letišti"]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — letišť (compare moří). Takes na: na letišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: letišť (vs moří)\nTakes na: na letišti"
 	},
 	{
 		"lemma": "překážka",
@@ -17363,7 +17363,7 @@
 				"centimetru",
 				"centimetru",
 				"centimetr",
-				"centimetre",
+				"centimetře",
 				"centimetru",
 				"centimetrem"
 			],
@@ -17379,7 +17379,7 @@
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["centimetře"]
+				"4": ["centimetre"]
 			}
 		}
 	},
@@ -17978,12 +17978,12 @@
 		"difficulty": "A2",
 		"categories": ["misc", "abstract"],
 		"forms": {
-			"sg": ["litr", "litru", "litru", "litr", "litre", "litru", "litrem"],
+			"sg": ["litr", "litru", "litru", "litr", "litře", "litru", "litrem"],
 			"pl": ["litry", "litrů", "litrům", "litry", "litry", "litrech", "litry"]
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["litře"]
+				"4": ["litre"]
 			}
 		}
 	},
@@ -19111,12 +19111,12 @@
 		"difficulty": "A1",
 		"categories": ["food", "weighable", "mass"],
 		"forms": {
-			"sg": ["cukr", "cukru", "cukru", "cukr", "cukre", "cukru", "cukrem"],
+			"sg": ["cukr", "cukru", "cukru", "cukr", "cukře", "cukru", "cukrem"],
 			"pl": ["cukry", "cukrů", "cukrům", "cukry", "cukry", "cukrech", "cukry"]
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["cukře"]
+				"4": ["cukre"]
 			}
 		}
 	},
@@ -20256,7 +20256,7 @@
 				"5": ["sklepích"]
 			}
 		},
-		"declensionNote": "Genitive singular sklepa; locative ve sklepě."
+		"declensionNote": "Genitive sg: -a (sklepa)\nLocative ve sklepě"
 	},
 	{
 		"lemma": "odpoledne",
@@ -22817,7 +22817,7 @@
 				"5": ["hřbitovu"]
 			}
 		},
-		"declensionNote": "Genitive singular hřbitova; dative hřbitovu; locative na hřbitově."
+		"declensionNote": "Genitive sg: -a (hřbitova)\nDative hřbitovu, locative na hřbitově"
 	},
 	{
 		"lemma": "psaní",
@@ -22976,7 +22976,7 @@
 			"sg": ["rytmus", "rytmu", "rytmu", "rytmus", "rytme", "rytmu", "rytmem"],
 			"pl": ["rytmy", "rytmů", "rytmům", "rytmy", "rytmy", "rytmech", "rytmy"]
 		},
-		"declensionNote": "Greek and Latin nouns in -us drop the -us before endings: rytmu, rytmem; plural rytmy, rytmů."
+		"declensionNote": "Greek/Latin -us drops before endings (rytmu, rytmem)\nPlural: rytmy, rytmů"
 	},
 	{
 		"lemma": "anděl",
@@ -23937,7 +23937,7 @@
 				"4": ["zaměstnavatelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: zaměstnavatelé, like other -tel agent nouns; the singular follows muž: zaměstnavatele, zaměstnavateli."
+		"declensionNote": "Nominative pl: -é (zaměstnavatelé), like other -tel agent nouns\nSingular follows muž: zaměstnavatele, zaměstnavateli"
 	},
 	{
 		"lemma": "založení",
@@ -24372,12 +24372,12 @@
 		"difficulty": "A1",
 		"categories": ["objects", "portable"],
 		"forms": {
-			"sg": ["kufr", "kufru", "kufru", "kufr", "kufre", "kufru", "kufrem"],
+			"sg": ["kufr", "kufru", "kufru", "kufr", "kufře", "kufru", "kufrem"],
 			"pl": ["kufry", "kufrů", "kufrům", "kufry", "kufry", "kufrech", "kufry"]
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["kufře"]
+				"4": ["kufre"]
 			}
 		}
 	},
@@ -25467,7 +25467,7 @@
 			"sg": ["tričko", "trička", "tričku", "tričko", "tričko", "tričku", "tričkem"],
 			"pl": ["trička", "triček", "tričkům", "trička", "trička", "tričkách", "tričky"]
 		},
-		"declensionNote": "Diminutive of triko, now the usual word for T-shirt. Declines like město: trička, tričku; genitive plural triček, locative plural tričkách."
+		"declensionNote": "Declines like město: trička, tričku\nGenitive pl triček, locative pl tričkách\nDiminutive of triko; now the usual word for T-shirt"
 	},
 	{
 		"lemma": "chod",
@@ -25593,7 +25593,7 @@
 				"parametru",
 				"parametru",
 				"parametr",
-				"parametre",
+				"parametře",
 				"parametru",
 				"parametrem"
 			],
@@ -25609,7 +25609,7 @@
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["parametře"]
+				"4": ["parametre"]
 			}
 		}
 	},
@@ -26954,7 +26954,7 @@
 				"5": ["průvodcovi"]
 			}
 		},
-		"declensionNote": "Soft masculine in -ce: průvodce stays the same in nominative, genitive, accusative and vocative singular; plural průvodci, průvodců."
+		"declensionNote": "Same form in nom/gen/acc/voc sg: průvodce\nPlural: průvodci, průvodců"
 	},
 	{
 		"lemma": "zachování",
@@ -27620,7 +27620,7 @@
 				"5": ["klášteřích"]
 			}
 		},
-		"declensionNote": "Genitive singular kláštera (do kláštera) and locative v klášteře; klášteru is also accepted in both."
+		"declensionNote": "Genitive sg kláštera (do kláštera), locative v klášteře\nAlso accepted in both: klášteru"
 	},
 	{
 		"lemma": "schodiště",
@@ -28389,7 +28389,7 @@
 			"sg": ["sídliště", "sídliště", "sídlišti", "sídliště", "sídliště", "sídlišti", "sídlištěm"],
 			"pl": ["sídliště", "sídlišť", "sídlištím", "sídliště", "sídliště", "sídlištích", "sídlišti"]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — sídlišť (compare moří). Takes na: na sídlišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: sídlišť (vs moří)\nTakes na: na sídlišti"
 	},
 	{
 		"lemma": "éra",
@@ -28445,7 +28445,7 @@
 				"parkovišti"
 			]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — parkovišť (compare moří). Takes na: na parkovišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: parkovišť (vs moří)\nTakes na: na parkovišti"
 	},
 	{
 		"lemma": "nenávist",
@@ -31342,7 +31342,7 @@
 			"sg": ["jeviště", "jeviště", "jevišti", "jeviště", "jeviště", "jevišti", "jevištěm"],
 			"pl": ["jeviště", "jevišť", "jevištím", "jeviště", "jeviště", "jevištích", "jevišti"]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — jevišť (compare moří). Takes na: na jevišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: jevišť (vs moří)\nTakes na: na jevišti"
 	},
 	{
 		"lemma": "bedna",
@@ -35700,7 +35700,7 @@
 				"orchestru",
 				"orchestru",
 				"orchestr",
-				"orchestre",
+				"orchestře",
 				"orchestru",
 				"orchestrem"
 			],
@@ -35716,7 +35716,7 @@
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["orchestře"]
+				"4": ["orchestre"]
 			}
 		}
 	},
@@ -36733,7 +36733,7 @@
 				"4": ["skladatelové"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: skladatelé, like other -tel agent nouns; the singular follows muž: skladatele, skladateli."
+		"declensionNote": "Nominative pl: -é (skladatelé), like other -tel agent nouns\nSingular follows muž: skladatele, skladateli"
 	},
 	{
 		"lemma": "medvěd",
@@ -37980,7 +37980,7 @@
 				"4": ["filozofi"]
 			}
 		},
-		"declensionNote": "Nominative plural usually filozofové (rarely filozofi); the singular is regular: filozofa, filozofovi, filozofem."
+		"declensionNote": "Nominative pl: filozofové (rarely filozofi)\nSingular regular: filozofa, filozofovi, filozofem"
 	},
 	{
 		"lemma": "šperk",
@@ -39211,7 +39211,7 @@
 			"sg": ["vízum", "víza", "vízu", "vízum", "vízum", "vízu", "vízem"],
 			"pl": ["víza", "víz", "vízům", "víza", "víza", "vízech", "vízy"]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — víza, vízu, vízem; plural víza, genitive plural víz."
+		"declensionNote": "Latin neuter: -um drops before endings (víza, vízu, vízem)\nGenitive pl: víz"
 	},
 	{
 		"lemma": "vykání",
@@ -41316,7 +41316,7 @@
 				"silvestru",
 				"silvestru",
 				"silvestr",
-				"silvestre",
+				"silvestře",
 				"silvestru",
 				"silvestrem"
 			],
@@ -41334,7 +41334,7 @@
 			"sg": {
 				"1": ["silvestra"],
 				"3": ["silvestra"],
-				"4": ["silvestře"]
+				"4": ["silvestre"]
 			}
 		}
 	},
@@ -41850,7 +41850,7 @@
 			"sg": ["hlediště", "hlediště", "hledišti", "hlediště", "hlediště", "hledišti", "hledištěm"],
 			"pl": ["hlediště", "hledišť", "hledištím", "hlediště", "hlediště", "hledištích", "hledišti"]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — hledišť (compare moří). Locative: v hledišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: hledišť (vs moří)\nLocative: v hledišti"
 	},
 	{
 		"lemma": "hodiny",
@@ -43579,7 +43579,7 @@
 				"komunismy"
 			]
 		},
-		"declensionNote": "Nouns in -ismus drop the -us before endings: komunismu, komunismem."
+		"declensionNote": "-us drops before endings: komunismu, komunismem"
 	},
 	{
 		"lemma": "korupce",
@@ -43729,7 +43729,7 @@
 				"socialismy"
 			]
 		},
-		"declensionNote": "Nouns in -ismus drop the -us before endings: socialismu, socialismem."
+		"declensionNote": "-us drops before endings: socialismu, socialismem"
 	},
 	{
 		"lemma": "tuzex",
@@ -44092,12 +44092,12 @@
 		"difficulty": "B1",
 		"categories": ["misc", "abstract"],
 		"forms": {
-			"sg": ["žánr", "žánru", "žánru", "žánr", "žánre", "žánru", "žánrem"],
+			"sg": ["žánr", "žánru", "žánru", "žánr", "žánře", "žánru", "žánrem"],
 			"pl": ["žánry", "žánrů", "žánrům", "žánry", "žánry", "žánrech", "žánry"]
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["žánře"]
+				"4": ["žánre"]
 			}
 		}
 	},
@@ -48148,7 +48148,7 @@
 			"sg": ["kola", "koly", "kole", "kolu", "kolo", "kole", "kolou"],
 			"pl": ["koly", "kol", "kolám", "koly", "koly", "kolách", "kolami"]
 		},
-		"declensionNote": "Czech spelling of cola, a regular feminine: koly, kole, kolou. Its genitive plural kol coincides with that of kolo (wheel)."
+		"declensionNote": "Czech spelling of cola; regular žena: koly, kole, kolou\nGenitive pl kol, same as kolo (wheel)"
 	},
 	{
 		"lemma": "limonáda",
@@ -49389,7 +49389,7 @@
 				"stromečky"
 			]
 		},
-		"declensionNote": "Diminutive of stromek (itself from strom): vánoční stromeček. Fleeting e: stromečku, stromečkem; plural stromečky, locative stromečcích."
+		"declensionNote": "Fleeting e: stromečku, stromečkem (pl stromečky)\nk → c in loc pl: stromečcích\nDiminutive of stromek (from strom): vánoční stromeček"
 	},
 	{
 		"lemma": "úklid",
@@ -50156,12 +50156,12 @@
 		"difficulty": "A1",
 		"categories": ["objects", "clothing", "portable"],
 		"forms": {
-			"sg": ["svetr", "svetru", "svetru", "svetr", "svetre", "svetru", "svetrem"],
+			"sg": ["svetr", "svetru", "svetru", "svetr", "svetře", "svetru", "svetrem"],
 			"pl": ["svetry", "svetrů", "svetrům", "svetry", "svetry", "svetrech", "svetry"]
 		},
 		"variantForms": {
 			"sg": {
-				"4": ["svetře"]
+				"4": ["svetre"]
 			}
 		}
 	},
@@ -50614,7 +50614,7 @@
 				"5": ["cestovatelovi"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: cestovatelé, like other -tel agent nouns; the singular follows muž: cestovatele, cestovateli."
+		"declensionNote": "Nominative pl: -é (cestovatelé), like other -tel agent nouns\nSingular follows muž: cestovatele, cestovateli"
 	},
 	{
 		"lemma": "filmář",
@@ -52023,7 +52023,7 @@
 				"infocentry"
 			]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — infocentra, infocentru, infocentrem; plural infocentra, genitive plural infocenter."
+		"declensionNote": "Latin neuter: -um drops before endings (infocentra, infocentru, infocentrem)\nGenitive pl inserts e: infocenter"
 	},
 	{
 		"lemma": "pan",
@@ -52338,7 +52338,7 @@
 			"sg": ["hranolek", "hranolku", "hranolku", "hranolek", "hranolku", "hranolku", "hranolkem"],
 			"pl": ["hranolky", "hranolků", "hranolkům", "hranolky", "hranolky", "hranolcích", "hranolky"]
 		},
-		"declensionNote": "Diminutive of hranol (prism), but in practice a french fry, usually plural hranolky. Fleeting e: hranolku, hranolkem; locative plural hranolcích."
+		"declensionNote": "Fleeting e: hranolku, hranolkem\nk → c in loc pl: hranolcích\nDiminutive of hranol (prism); means french fry, usually pl hranolky"
 	},
 	{
 		"lemma": "brambora",
@@ -52532,7 +52532,7 @@
 				"4": ["čtvrtě"]
 			}
 		},
-		"declensionNote": "Feminine ending in a consonant: genitive čtvrti or čtvrtě, dative and locative čtvrti, instrumental čtvrtí; plural čtvrti (or čtvrtě), čtvrtí, čtvrtím, čtvrtích."
+		"declensionNote": "Gen sg čtvrti or čtvrtě, dat/loc čtvrti, ins čtvrtí\nPlural: čtvrti (or čtvrtě), čtvrtí, čtvrtím, čtvrtích"
 	},
 	{
 		"lemma": "dopoledne",
@@ -53067,7 +53067,7 @@
 			"pl": ["šachy", "šachů", "šachům", "šachy", "šachy", "šachách", "šachy"]
 		},
 		"pluralOnly": true,
-		"declensionNote": "Plural-only, declined like hrad, except the locative plural šachách (o šachách, not šaších)."
+		"declensionNote": "Plural only, like hrad\nLocative pl: šachách (o šachách, not šaších)"
 	},
 	{
 		"lemma": "squash",
@@ -53336,7 +53336,7 @@
 				"kartičkami"
 			]
 		},
-		"declensionNote": "Diminutive of karta (e.g. kartička pojištěnce, insurance card). The k changes to c before -e in dative and locative singular: kartičce; genitive plural kartiček."
+		"declensionNote": "k → c in dat/loc sg: kartičce\nGenitive pl: kartiček\nDiminutive of karta (kartička pojištěnce, insurance card)"
 	},
 	{
 		"lemma": "antibiotikum",
@@ -53366,7 +53366,7 @@
 				"antibiotiky"
 			]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — antibiotika, antibiotiku, antibiotikem; plural antibiotika, antibiotik, locative plural antibiotikách."
+		"declensionNote": "Latin neuter: -um drops before endings (antibiotika, antibiotiku, antibiotikem)\nGenitive pl antibiotik, locative pl antibiotikách"
 	},
 	{
 		"lemma": "antidepresivum",
@@ -53396,7 +53396,7 @@
 				"antidepresivy"
 			]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — antidepresiva, antidepresivu, antidepresivem; plural antidepresiva, antidepresiv."
+		"declensionNote": "Latin neuter: -um drops before endings (antidepresiva, antidepresivu, antidepresivem)\nGenitive pl: antidepresiv"
 	},
 	{
 		"lemma": "vitamín",
@@ -53436,7 +53436,7 @@
 			"sg": ["diabetes", "diabetu", "diabetu", "diabetes", "diabete", "diabetu", "diabetem"],
 			"pl": ["diabety", "diabetů", "diabetům", "diabety", "diabety", "diabetech", "diabety"]
 		},
-		"declensionNote": "Greek-style masculine: the -es drops before endings — diabetu, diabetem; plural diabety. In everyday speech it is often left undeclined."
+		"declensionNote": "Greek -es drops before endings (diabetu, diabetem; pl diabety)\nOften left undeclined in speech"
 	},
 	{
 		"lemma": "cukrovka",
@@ -53552,7 +53552,7 @@
 				"tabletkami"
 			]
 		},
-		"declensionNote": "Diminutive of tableta, and the more common everyday word. The k changes to c before -e in dative and locative singular: tabletce; genitive plural tabletek."
+		"declensionNote": "k → c in dat/loc sg: tabletce\nGenitive pl: tabletek\nDiminutive of tableta, and the more common word"
 	},
 	{
 		"lemma": "obuv",
@@ -53776,7 +53776,7 @@
 			"sg": ["selfíčko", "selfíčka", "selfíčku", "selfíčko", "selfíčko", "selfíčku", "selfíčkem"],
 			"pl": ["selfíčka", "selfíček", "selfíčkům", "selfíčka", "selfíčka", "selfíčkách", "selfíčky"]
 		},
-		"declensionNote": "Czech diminutive-style adaptation of selfie. Declines like město: selfíčka, selfíčku; genitive plural selfíček, locative plural selfíčkách."
+		"declensionNote": "Declines like město: selfíčka, selfíčku\nGenitive pl selfíček, locative pl selfíčkách\nCzech diminutive-style form of selfie"
 	},
 	{
 		"lemma": "sáňky",
@@ -53889,7 +53889,7 @@
 				"nástupišti"
 			]
 		},
-		"declensionNote": "Neuter in -iště: like moře, but the genitive plural has no ending — nástupišť (compare moří). Takes na: na nástupišti."
+		"declensionNote": "Like moře, but genitive pl has no ending: nástupišť (vs moří)\nTakes na: na nástupišti"
 	},
 	{
 		"lemma": "nabíječka",
@@ -53961,7 +53961,7 @@
 			"sg": ["foťák", "foťáku", "foťáku", "foťák", "foťáku", "foťáku", "foťákem"],
 			"pl": ["foťáky", "foťáků", "foťákům", "foťáky", "foťáky", "foťácích", "foťáky"]
 		},
-		"declensionNote": "Colloquial short form of fotoaparát. Declines like hrad: foťáku, foťákem; locative plural foťácích (k changes to c)."
+		"declensionNote": "Declines like hrad: foťáku, foťákem\nk → c in loc pl: foťácích\nColloquial for fotoaparát"
 	},
 	{
 		"lemma": "oblázek",
@@ -54107,7 +54107,7 @@
 				"4": ["beránkové"]
 			}
 		},
-		"declensionNote": "Diminutive of beran (ram); here the Easter lamb cake. Fleeting e drops in every other form: beránka, beránkovi; plural beránci, locative beráncích."
+		"declensionNote": "Fleeting e: beránka, beránkovi\nk → c in nom/loc pl: beránci, beráncích\nDiminutive of beran (ram); here the Easter lamb cake"
 	},
 	{
 		"lemma": "mazanec",
@@ -54281,7 +54281,7 @@
 				"1": ["chlebíčka"]
 			}
 		},
-		"declensionNote": "Diminutive of chléb, but it means an open-faced sandwich. Fleeting e: chlebíčku, chlebíčkem; plural chlebíčky, locative chlebíčcích."
+		"declensionNote": "Fleeting e: chlebíčku, chlebíčkem (pl chlebíčky)\nk → c in loc pl: chlebíčcích\nDiminutive of chléb; means open-faced sandwich"
 	},
 	{
 		"lemma": "jednohubka",
@@ -54592,7 +54592,7 @@
 			"sg": ["ručička", "ručičky", "ručičce", "ručičku", "ručičko", "ručičce", "ručičkou"],
 			"pl": ["ručičky", "ručiček", "ručičkám", "ručičky", "ručičky", "ručičkách", "ručičkami"]
 		},
-		"declensionNote": "Diminutive of ruka; also the hand of a clock or gauge. The k changes to c before -e in dative and locative singular: ručičce; genitive plural ručiček."
+		"declensionNote": "k → c in dat/loc sg: ručičce\nGenitive pl: ručiček\nDiminutive of ruka; also a clock or gauge hand"
 	},
 	{
 		"lemma": "exponát",
@@ -54916,7 +54916,7 @@
 			"sg": ["software", "softwaru", "softwaru", "software", "software", "softwaru", "softwarem"],
 			"pl": ["softwary", "softwarů", "softwarům", "softwary", "softwary", "softwarech", "softwary"]
 		},
-		"declensionNote": "Silent final -e: declines like a hard masculine inanimate on the stem softwar-: softwaru, softwarem; plural softwary."
+		"declensionNote": "Silent final -e: declines like hrad on stem softwar- (softwaru, softwarem; pl softwary)"
 	},
 	{
 		"lemma": "holička",
@@ -54998,7 +54998,7 @@
 			"sg": ["reprák", "repráku", "repráku", "reprák", "repráku", "repráku", "reprákem"],
 			"pl": ["repráky", "repráků", "reprákům", "repráky", "repráky", "reprácích", "repráky"]
 		},
-		"declensionNote": "Colloquial short form of reproduktor. Declines like hrad: repráku, reprákem; locative plural reprácích (k changes to c)."
+		"declensionNote": "Declines like hrad: repráku, reprákem\nk → c in loc pl: reprácích\nColloquial for reproduktor"
 	},
 	{
 		"lemma": "zástrčka",
@@ -55049,7 +55049,7 @@
 				"smartphony"
 			]
 		},
-		"declensionNote": "Silent final -e: declines like a hard masculine inanimate on the stem smartphon-: smartphonu, smartphonem; plural smartphony."
+		"declensionNote": "Silent final -e: declines like hrad on stem smartphon- (smartphonu, smartphonem; pl smartphony)"
 	},
 	{
 		"lemma": "teenager",
@@ -55281,7 +55281,7 @@
 				"kapitalismy"
 			]
 		},
-		"declensionNote": "Nouns in -ismus drop the -us before endings: kapitalismu, kapitalismem."
+		"declensionNote": "-us drops before endings: kapitalismu, kapitalismem"
 	},
 	{
 		"lemma": "teenagerka",
@@ -55580,7 +55580,7 @@
 				"stoličkami"
 			]
 		},
-		"declensionNote": "Diminutive of stolice (stool); also means a molar tooth. The k changes to c before -e in dative and locative singular: stoličce; genitive plural stoliček."
+		"declensionNote": "k → c in dat/loc sg: stoličce\nGenitive pl: stoliček\nDiminutive of stolice (stool); also a molar"
 	},
 	{
 		"lemma": "stěhovák",
@@ -55712,7 +55712,7 @@
 				"5": ["kutilu"]
 			}
 		},
-		"declensionNote": "Hard masculine animate despite the final -l: kutila, kutilovi, kutilem; nominative plural kutilové."
+		"declensionNote": "Hard (pán-type) despite final -l: kutila, kutilovi, kutilem\nNominative pl: kutilové"
 	},
 	{
 		"lemma": "švec",
@@ -55732,7 +55732,7 @@
 				"5": ["ševcovi"]
 			}
 		},
-		"declensionNote": "The fleeting e moves: švec but ševce, ševci, ševcem; plural ševci, ševců."
+		"declensionNote": "Fleeting e moves: švec → ševce, ševci, ševcem\nPlural: ševci, ševců"
 	},
 	{
 		"lemma": "pneumatika",
@@ -55907,7 +55907,7 @@
 			"sg": ["miminko", "miminka", "miminku", "miminko", "miminko", "miminku", "miminkem"],
 			"pl": ["miminka", "miminek", "miminkům", "miminka", "miminka", "miminkách", "miminky"]
 		},
-		"declensionNote": "Diminutive of mimino, and the more common everyday word. Declines like město: miminka, miminku; genitive plural miminek, locative plural miminkách."
+		"declensionNote": "Declines like město: miminka, miminku\nGenitive pl miminek, locative pl miminkách\nDiminutive of mimino, and the more common word"
 	},
 	{
 		"lemma": "batole",
@@ -56113,7 +56113,7 @@
 			"sg": ["nacismus", "nacismu", "nacismu", "nacismus", "nacisme", "nacismu", "nacismem"],
 			"pl": ["nacismy", "nacismů", "nacismům", "nacismy", "nacismy", "nacismech", "nacismy"]
 		},
-		"declensionNote": "Nouns in -ismus drop the -us before endings: nacismu, nacismem."
+		"declensionNote": "-us drops before endings: nacismu, nacismem"
 	},
 	{
 		"lemma": "přelet",
@@ -56140,7 +56140,7 @@
 			"sg": ["slovíčko", "slovíčka", "slovíčku", "slovíčko", "slovíčko", "slovíčku", "slovíčkem"],
 			"pl": ["slovíčka", "slovíček", "slovíčkům", "slovíčka", "slovíčka", "slovíčkách", "slovíčky"]
 		},
-		"declensionNote": "Diminutive of slovo; also a vocabulary item. Declines like město: slovíčka, slovíčku; genitive plural slovíček, locative plural slovíčkách."
+		"declensionNote": "Declines like město: slovíčka, slovíčku\nGenitive pl slovíček, locative pl slovíčkách\nDiminutive of slovo; also a vocabulary item"
 	},
 	{
 		"lemma": "trojče",
@@ -56198,7 +56198,7 @@
 				"4": ["broučkové"]
 			}
 		},
-		"declensionNote": "Diminutive of brouk (beetle), a common term of endearment (broučku). Fleeting e: broučka, broučkovi; plural broučci."
+		"declensionNote": "Fleeting e: broučka, broučkovi\nk → c in nom pl: broučci\nDiminutive of brouk (beetle); endearment: broučku"
 	},
 	{
 		"lemma": "kouření",
@@ -56347,7 +56347,7 @@
 				"5": ["kocourku"]
 			}
 		},
-		"declensionNote": "Diminutive of kocour. Fleeting e drops in every other form: kocourka, kocourkovi; plural kocourci."
+		"declensionNote": "Fleeting e: kocourka, kocourkovi\nk → c in nom pl: kocourci\nDiminutive of kocour"
 	},
 	{
 		"lemma": "popcorn",
@@ -56374,7 +56374,7 @@
 			"sg": ["kočička", "kočičky", "kočičce", "kočičku", "kočičko", "kočičce", "kočičkou"],
 			"pl": ["kočičky", "kočiček", "kočičkám", "kočičky", "kočičky", "kočičkách", "kočičkami"]
 		},
-		"declensionNote": "Diminutive of kočka, also an endearment (kočičko). The k changes to c before -e in dative and locative singular: kočičce; genitive plural kočiček."
+		"declensionNote": "k → c in dat/loc sg: kočičce\nGenitive pl: kočiček\nDiminutive of kočka; endearment: kočičko"
 	},
 	{
 		"lemma": "eskalátor",
@@ -56431,7 +56431,7 @@
 				"5": ["medvídku"]
 			}
 		},
-		"declensionNote": "Diminutive of medvěd (note the vowel change ě to í). Fleeting e: medvídka, medvídkovi; plural medvídci."
+		"declensionNote": "Fleeting e: medvídka, medvídkovi\nk → c in nom pl: medvídci\nDiminutive of medvěd (ě → í)"
 	},
 	{
 		"lemma": "vjezd",
@@ -56476,7 +56476,7 @@
 			"sg": ["pusinka", "pusinky", "pusince", "pusinku", "pusinko", "pusince", "pusinkou"],
 			"pl": ["pusinky", "pusinek", "pusinkám", "pusinky", "pusinky", "pusinkách", "pusinkami"]
 		},
-		"declensionNote": "Diminutive of pusa (mouth, kiss), used as an endearment (pusinko). The k changes to c before -e in dative and locative singular: pusince; genitive plural pusinek."
+		"declensionNote": "k → c in dat/loc sg: pusince\nGenitive pl: pusinek\nDiminutive of pusa (mouth, kiss); endearment: pusinko"
 	},
 	{
 		"lemma": "husa",
@@ -56679,7 +56679,7 @@
 			"sg": ["kafíčko", "kafíčka", "kafíčku", "kafíčko", "kafíčko", "kafíčku", "kafíčkem"],
 			"pl": ["kafíčka", "kafíček", "kafíčkům", "kafíčka", "kafíčka", "kafíčkách", "kafíčky"]
 		},
-		"declensionNote": "Diminutive of kafe, a cozy 'little coffee'. Declines like město: kafíčka, kafíčku; genitive plural kafíček, locative plural kafíčkách."
+		"declensionNote": "Declines like město: kafíčka, kafíčku\nGenitive pl kafíček, locative pl kafíčkách\nDiminutive of kafe: a cozy little coffee"
 	},
 	{
 		"lemma": "pečeně",
@@ -56706,7 +56706,7 @@
 			"sg": ["srdíčko", "srdíčka", "srdíčku", "srdíčko", "srdíčko", "srdíčku", "srdíčkem"],
 			"pl": ["srdíčka", "srdíček", "srdíčkům", "srdíčka", "srdíčka", "srdíčkách", "srdíčky"]
 		},
-		"declensionNote": "Diminutive of srdce, also an endearment. Declines like město, not like srdce: srdíčka, srdíčku, srdíčkem; genitive plural srdíček."
+		"declensionNote": "Declines like město, not srdce: srdíčka, srdíčku, srdíčkem\nGenitive pl: srdíček\nDiminutive of srdce; also an endearment"
 	},
 	{
 		"lemma": "kalorie",
@@ -56733,7 +56733,7 @@
 			"sg": ["nebíčko", "nebíčka", "nebíčku", "nebíčko", "nebíčko", "nebíčku", "nebíčkem"],
 			"pl": ["nebíčka", "nebíček", "nebíčkům", "nebíčka", "nebíčka", "nebíčkách", "nebíčky"]
 		},
-		"declensionNote": "Diminutive of nebe, as in the food praise nebíčko v hubě. Declines like město: nebíčka, nebíčku; genitive plural nebíček."
+		"declensionNote": "Declines like město: nebíčka, nebíčku\nGenitive pl: nebíček\nDiminutive of nebe, as in nebíčko v hubě"
 	},
 	{
 		"lemma": "dekagram",
@@ -56818,7 +56818,7 @@
 			"sg": ["kousíček", "kousíčku", "kousíčku", "kousíček", "kousíčku", "kousíčku", "kousíčkem"],
 			"pl": ["kousíčky", "kousíčků", "kousíčkům", "kousíčky", "kousíčky", "kousíčcích", "kousíčky"]
 		},
-		"declensionNote": "Diminutive of kousek (itself a diminutive of kus). Fleeting e drops before endings: kousíčku, kousíčkem; plural kousíčky, locative kousíčcích."
+		"declensionNote": "Fleeting e: kousíčku, kousíčkem (pl kousíčky)\nk → c in loc pl: kousíčcích\nDiminutive of kousek (from kus)"
 	},
 	{
 		"lemma": "kelímek",
@@ -56853,7 +56853,7 @@
 				"mrkvičkami"
 			]
 		},
-		"declensionNote": "Diminutive of mrkev, often used for grated or baby carrots. The k changes to c before -e in dative and locative singular: mrkvičce; genitive plural mrkviček."
+		"declensionNote": "k → c in dat/loc sg: mrkvičce\nGenitive pl: mrkviček\nDiminutive of mrkev; often grated or baby carrots"
 	},
 	{
 		"lemma": "přípravka",
@@ -57009,7 +57009,7 @@
 				"želvičkami"
 			]
 		},
-		"declensionNote": "Diminutive of želva. The k changes to c before -e in dative and locative singular: želvičce; genitive plural želviček."
+		"declensionNote": "k → c in dat/loc sg: želvičce\nGenitive pl: želviček\nDiminutive of želva"
 	},
 	{
 		"lemma": "opice",
@@ -57036,7 +57036,7 @@
 			"sg": ["prasátko", "prasátka", "prasátku", "prasátko", "prasátko", "prasátku", "prasátkem"],
 			"pl": ["prasátka", "prasátek", "prasátkům", "prasátka", "prasátka", "prasátkách", "prasátky"]
 		},
-		"declensionNote": "Diminutive of prase. Unlike prase (prasete), it declines like město: prasátka, prasátku; genitive plural prasátek, locative plural prasátkách."
+		"declensionNote": "Declines like město, not prase (prasete): prasátka, prasátku\nGenitive pl prasátek, locative pl prasátkách\nDiminutive of prase"
 	},
 	{
 		"lemma": "králík",
@@ -57083,7 +57083,7 @@
 				"5": ["králíčku"]
 			}
 		},
-		"declensionNote": "Diminutive of králík. The -ek suffix has a fleeting e that drops in every other form: králíčka, králíčkovi; plural králíčci."
+		"declensionNote": "Fleeting e: králíčka, králíčkovi\nk → c in nom pl: králíčci\nDiminutive of králík"
 	},
 	{
 		"lemma": "chovatel",
@@ -57119,7 +57119,7 @@
 				"5": ["chovatelovi"]
 			}
 		},
-		"declensionNote": "Nominative plural takes -é: chovatelé, like other -tel agent nouns; the singular follows muž: chovatele, chovateli."
+		"declensionNote": "Nominative pl: -é (chovatelé), like other -tel agent nouns\nSingular follows muž: chovatele, chovateli"
 	},
 	{
 		"lemma": "rybička",
@@ -57133,7 +57133,7 @@
 			"sg": ["rybička", "rybičky", "rybičce", "rybičku", "rybičko", "rybičce", "rybičkou"],
 			"pl": ["rybičky", "rybiček", "rybičkám", "rybičky", "rybičky", "rybičkách", "rybičkami"]
 		},
-		"declensionNote": "Diminutive of ryba. The k changes to c before -e in dative and locative singular: rybičce; genitive plural rybiček."
+		"declensionNote": "k → c in dat/loc sg: rybičce\nGenitive pl: rybiček\nDiminutive of ryba"
 	},
 	{
 		"lemma": "biologie",
@@ -57168,7 +57168,7 @@
 			"sg": ["morčátko", "morčátka", "morčátku", "morčátko", "morčátko", "morčátku", "morčátkem"],
 			"pl": ["morčátka", "morčátek", "morčátkům", "morčátka", "morčátka", "morčátkách", "morčátky"]
 		},
-		"declensionNote": "Diminutive of morče. Unlike morče (morčete), it declines like město: morčátka, morčátku; genitive plural morčátek."
+		"declensionNote": "Declines like město, not morče (morčete): morčátka, morčátku\nGenitive pl: morčátek\nDiminutive of morče"
 	},
 	{
 		"lemma": "pavouček",
@@ -57200,7 +57200,7 @@
 				"4": ["pavoučkové"]
 			}
 		},
-		"declensionNote": "Diminutive of pavouk. Fleeting e drops in every other form: pavoučka, pavoučkovi; plural pavoučci."
+		"declensionNote": "Fleeting e: pavoučka, pavoučkovi\nk → c in nom pl: pavoučci\nDiminutive of pavouk"
 	},
 	{
 		"lemma": "svišť",
@@ -57290,7 +57290,7 @@
 			"sg": ["vláček", "vláčku", "vláčku", "vláček", "vláčku", "vláčku", "vláčkem"],
 			"pl": ["vláčky", "vláčků", "vláčkům", "vláčky", "vláčky", "vláčcích", "vláčky"]
 		},
-		"declensionNote": "Diminutive of vlak (e.g. a toy train). Fleeting e drops before endings: vláčku, vláčkem; plural vláčky, locative vláčcích."
+		"declensionNote": "Fleeting e: vláčku, vláčkem (pl vláčky)\nk → c in loc pl: vláčcích\nDiminutive of vlak (toy train)"
 	},
 	{
 		"lemma": "opička",
@@ -57304,7 +57304,7 @@
 			"sg": ["opička", "opičky", "opičce", "opičku", "opičko", "opičce", "opičkou"],
 			"pl": ["opičky", "opiček", "opičkám", "opičky", "opičky", "opičkách", "opičkami"]
 		},
-		"declensionNote": "Diminutive of opice. The k changes to c before -e in dative and locative singular: opičce; genitive plural opiček."
+		"declensionNote": "k → c in dat/loc sg: opičce\nGenitive pl: opiček\nDiminutive of opice"
 	},
 	{
 		"lemma": "modernizace",
@@ -57404,7 +57404,7 @@
 			"sg": ["terárium", "terária", "teráriu", "terárium", "terárium", "teráriu", "teráriem"],
 			"pl": ["terária", "terárií", "teráriím", "terária", "terária", "teráriích", "terárii"]
 		},
-		"declensionNote": "Latin-style neuter: the -um drops before endings — terária, teráriu, teráriem; genitive, dative and locative plural have -í-: terárií, teráriím, teráriích."
+		"declensionNote": "Latin neuter: -um drops before endings (terária, teráriu, teráriem)\nGen/dat/loc pl add -í-: terárií, teráriím, teráriích; ins pl terárii"
 	},
 	{
 		"lemma": "kůzle",
@@ -57441,7 +57441,7 @@
 				"4": ["pejskové"]
 			}
 		},
-		"declensionNote": "Diminutive of pes. Fleeting e drops in every other form: pejska, pejskovi; plural pejsci, locative pejscích."
+		"declensionNote": "Fleeting e: pejska, pejskovi\nk → c in nom/loc pl: pejsci, pejscích\nDiminutive of pes"
 	},
 	{
 		"lemma": "kanec",
@@ -57490,7 +57490,7 @@
 				"panoramaty"
 			]
 		},
-		"declensionNote": "Neuter of Greek origin: the stem gains -t- outside the nominative/accusative singular — panoramatu, panoramatem; plural panoramata, panoramat. A separate feminine noun panoráma also exists; the neuter always keeps its -t- (not panoramy)."
+		"declensionNote": "Greek neuter: stem adds -t- outside nom/acc sg (panoramatu, panoramatem; pl panoramata, panoramat)\nAlways keeps -t- (not panoramy); panoráma is a separate feminine noun"
 	},
 	{
 		"lemma": "hříbě",
@@ -57563,7 +57563,7 @@
 				"5": ["mazlíčku"]
 			}
 		},
-		"declensionNote": "Formed with the diminutive suffix -íček (from mazlit se, to cuddle). Fleeting e drops in every other form: mazlíčka, mazlíčkovi; plural mazlíčci."
+		"declensionNote": "Fleeting e: mazlíčka, mazlíčkovi\nk → c in nom pl: mazlíčci\nSuffix -íček on mazlit se (to cuddle)"
 	},
 	{
 		"lemma": "ptáček",
@@ -57587,7 +57587,7 @@
 				"4": ["ptáčkové"]
 			}
 		},
-		"declensionNote": "Diminutive of pták. Fleeting e drops in every other form: ptáčka, ptáčkovi; plural ptáčci."
+		"declensionNote": "Fleeting e: ptáčka, ptáčkovi\nk → c in nom pl: ptáčci\nDiminutive of pták"
 	},
 	{
 		"lemma": "house",
@@ -58275,7 +58275,7 @@
 			"sg": ["fixka", "fixky", "fixce", "fixku", "fixko", "fixce", "fixkou"],
 			"pl": ["fixky", "fixek", "fixkám", "fixky", "fixky", "fixkách", "fixkami"]
 		},
-		"declensionNote": "Variant of fixa (felt-tip marker), equally common. The k changes to c before -e in dative and locative singular: fixce; genitive plural fixek."
+		"declensionNote": "k → c in dat/loc sg: fixce\nGenitive pl: fixek\nVariant of fixa (felt-tip marker), equally common"
 	},
 	{
 		"lemma": "rekreace",
@@ -58858,7 +58858,7 @@
 				"5": ["pedagogu"]
 			}
 		},
-		"declensionNote": "Nominative plural pedagogové (not pedagogi); locative plural pedagozích, where g changes to z."
+		"declensionNote": "Nominative pl: pedagogové (not pedagogi)\ng → z in loc pl: pedagozích"
 	},
 	{
 		"lemma": "porotce",
@@ -59332,7 +59332,7 @@
 				"5": ["cirkusu"]
 			}
 		},
-		"declensionNote": "Unlike -ismus nouns, the -us is kept before endings: cirkusu, cirkusem; plural cirkusy, cirkusů."
+		"declensionNote": "Keeps -us before endings, unlike -ismus nouns: cirkusu, cirkusem\nPlural: cirkusy, cirkusů"
 	},
 	{
 		"lemma": "hláška",
@@ -59680,7 +59680,7 @@
 			"sg": ["vínečko", "vínečka", "vínečku", "vínečko", "vínečko", "vínečku", "vínečkem"],
 			"pl": ["vínečka", "víneček", "vínečkům", "vínečka", "vínečka", "vínečkách", "vínečky"]
 		},
-		"declensionNote": "Diminutive of víno, an affectionate 'nice little wine'. Declines like město: vínečka, vínečku; genitive plural víneček, locative plural vínečkách."
+		"declensionNote": "Declines like město: vínečka, vínečku\nGenitive pl víneček, locative pl vínečkách\nDiminutive of víno: an affectionate nice little wine"
 	},
 	{
 		"lemma": "lípa",
@@ -59756,7 +59756,7 @@
 			"sg": ["fašismus", "fašismu", "fašismu", "fašismus", "fašisme", "fašismu", "fašismem"],
 			"pl": ["fašismy", "fašismů", "fašismům", "fašismy", "fašismy", "fašismech", "fašismy"]
 		},
-		"declensionNote": "Nouns in -ismus drop the -us before endings: fašismu, fašismem."
+		"declensionNote": "-us drops before endings: fašismu, fašismem"
 	},
 	{
 		"lemma": "mor",
@@ -59837,7 +59837,7 @@
 				"6": ["chmeli"]
 			}
 		},
-		"declensionNote": "Fluctuates between hrad and stroj: hard chmelu, chmelem beside soft chmele, chmeli; both are standard."
+		"declensionNote": "Wavers between hrad and stroj; both standard\nHard chmelu, chmelem; soft chmele, chmeli"
 	},
 	{
 		"lemma": "šalina",
@@ -59851,7 +59851,7 @@
 			"sg": ["šalina", "šaliny", "šalině", "šalinu", "šalino", "šalině", "šalinou"],
 			"pl": ["šaliny", "šalin", "šalinám", "šaliny", "šaliny", "šalinách", "šalinami"]
 		},
-		"declensionNote": "Brno and Moravian colloquial word for tramvaj; a regular žena-type: šaliny, šalině, šalinou."
+		"declensionNote": "Regular žena: šaliny, šalině, šalinou\nBrno/Moravian colloquial for tramvaj"
 	},
 	{
 		"lemma": "sklípek",
@@ -59865,7 +59865,7 @@
 			"sg": ["sklípek", "sklípku", "sklípku", "sklípek", "sklípku", "sklípku", "sklípkem"],
 			"pl": ["sklípky", "sklípků", "sklípkům", "sklípky", "sklípky", "sklípcích", "sklípky"]
 		},
-		"declensionNote": "Diminutive of sklep; a vinný sklípek is a wine cellar. Fleeting e drops before endings: sklípku, sklípkem; plural sklípky, locative sklípcích."
+		"declensionNote": "Fleeting e: sklípku, sklípkem (pl sklípky)\nk → c in loc pl: sklípcích\nDiminutive of sklep; vinný sklípek is a wine cellar"
 	},
 	{
 		"lemma": "česnečka",
@@ -59978,7 +59978,7 @@
 				"frajárkami"
 			]
 		},
-		"declensionNote": "Moravian dialect word (standard frajerka); a regular žena-type with k→c: frajárce; genitive plural frajárek."
+		"declensionNote": "Regular žena; k → c in dat/loc sg: frajárce\nGenitive pl: frajárek\nMoravian dialect (standard frajerka)"
 	},
 	{
 		"lemma": "rozhledna",

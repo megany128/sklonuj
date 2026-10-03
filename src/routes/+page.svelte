@@ -3522,7 +3522,7 @@
 		}
 		if (pronoun.notes['general']) {
 			notes[noteKey] = notes[noteKey]
-				? `${notes[noteKey]} ${pronoun.notes['general']}`
+				? `${notes[noteKey]}\n\n${pronoun.notes['general']}`
 				: pronoun.notes['general'];
 		}
 		return Object.keys(notes).length > 0 ? notes : null;
@@ -3553,7 +3553,11 @@
 		// such a word needs, so only the paradigm rules are suppressed.
 		if (word.irregular && !word.declensionNote) return null;
 		const entry = word.irregular ? undefined : paradigms.find((p) => p.id === paradigmId);
-		const notes: Record<string, string> = entry?.whyNotes ? { ...entry.whyNotes } : {};
+		// Trim the paradigm's gotcha lines to this word before anything else is
+		// joined in, so the lemma note and plural-only note are never filtered.
+		const notes: Record<string, string> = entry?.whyNotes
+			? filterParadigmNotes({ ...entry.whyNotes }, word)
+			: {};
 
 		// Lemma-specific remark (diminutive fleeting vowel, -um stems, …) leads
 		// every case note so the learner sees the word's quirk before the rule.
@@ -3565,7 +3569,7 @@
 				const rule = notes[key];
 				notes[key] =
 					rule && paradigmRuleApplies(word.paradigm, c, n, word)
-						? `${word.declensionNote} ${rule}`
+						? `${word.declensionNote}\n\n${rule}`
 						: word.declensionNote;
 			}
 		}
@@ -3573,15 +3577,15 @@
 		// Add a note for plural-only words (all sg forms are empty)
 		const allSgEmpty = word.forms.sg.every((f) => f === '');
 		if (allSgEmpty) {
-			const pluralNote = `"${word.lemma}" is always plural — it has no singular form.`;
+			const pluralNote = `Always plural: ${word.lemma} has no singular`;
 			for (const c of ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'] as const) {
 				const key = `${c}_pl`;
-				notes[key] = notes[key] ? `${notes[key]} ${pluralNote}` : pluralNote;
+				notes[key] = notes[key] ? `${notes[key]}\n\n${pluralNote}` : pluralNote;
 			}
 		}
 
 		if (Object.keys(notes).length === 0) return null;
-		return filterParadigmNotes(notes, word);
+		return notes;
 	}
 
 	function trackSessionStats(result: DrillResult): void {

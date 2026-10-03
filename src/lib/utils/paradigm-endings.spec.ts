@@ -79,8 +79,11 @@ describe('paradigmRuleApplies', () => {
 	});
 
 	it('drops rules whose whyNote does not mention the ending the word takes', () => {
-		expect(paradigmRuleApplies('hrad', 'voc', 'sg', rok)).toBe(false); // roku, note says -e
 		expect(paradigmRuleApplies('hrad', 'loc', 'pl', rok)).toBe(false); // rocích, note says -ech
+	});
+
+	it('keeps the vocative rule for velar stems, whose -u the note names', () => {
+		expect(paradigmRuleApplies('hrad', 'voc', 'sg', rok)).toBe(true); // roku: "After k/h/ch: -u"
 	});
 
 	it('keeps "same as nominative" rules whatever the ending', () => {

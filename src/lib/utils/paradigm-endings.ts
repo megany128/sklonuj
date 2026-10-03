@@ -5,19 +5,20 @@ import { CASE_INDEX } from '$lib/types';
  * The endings each paradigm's `whyNotes` describe, per case, in the internal
  * 7-tuple order (nom, gen, dat, acc, voc, loc, ins). A `''` entry is the
  * zero ending. Alternatives are listed where the paradigm itself admits more
- * than one (pánovi/pánu, na hradě/ve vlaku …) *and its whyNote says so*;
- * palatalised `-e` (roce, ruce) is listed beside `-ě` because that is how it
- * is spelled after c/z/s. Endings the notes don't mention (voc -u after
- * velars, loc pl -ích/-ách) are left out on purpose, so a lemma-specific note
- * stands alone there instead of beside a rule it contradicts.
+ * than one (pánovi/pánu, na hradě/ve vlaku, voc -u after k/h/ch …) *and its
+ * whyNote says so*; palatalised `-e` (roce, ruce) is listed beside `-ě`
+ * because that is how it is spelled after c/z/ř/s/l. Endings the notes don't
+ * mention (hrad gen -a, loc pl -ích after velars) are left out on purpose, so a
+ * lemma-specific note stands alone there instead of beside a rule it
+ * contradicts.
  */
 const PARADIGM_ENDINGS: Record<Paradigm, { sg: string[][]; pl: string[][] }> = {
 	hrad: {
-		sg: [[''], ['u'], ['u'], [''], ['e'], ['u', 'ě', 'e'], ['em']],
+		sg: [[''], ['u'], ['u'], [''], ['e', 'u'], ['u', 'ě', 'e'], ['em']],
 		pl: [['y'], ['ů'], ['ům'], ['y'], ['y'], ['ech'], ['y']]
 	},
 	pán: {
-		sg: [[''], ['a'], ['ovi', 'u'], ['a'], ['e'], ['ovi', 'u'], ['em']],
+		sg: [[''], ['a'], ['ovi', 'u'], ['a'], ['e', 'u'], ['ovi', 'u'], ['em']],
 		pl: [['i', 'ové'], ['ů'], ['ům'], ['y'], ['i', 'ové'], ['ech'], ['y']]
 	},
 	muž: {
@@ -95,4 +96,25 @@ export function paradigmRuleApplies(
 	return endings.some((ending) =>
 		ending === '' ? !VOWEL.test(form) : form.toLowerCase().endsWith(ending)
 	);
+}
+
+/**
+ * The paradigm endings the given forms actually carry for this case, in form
+ * order and de-duplicated: the longest listed ending each form ends in, or `''`
+ * for a zero-ending rule met by a consonant-final form. Forms the paradigm's
+ * endings don't describe contribute nothing.
+ */
+export function matchedEndings(paradigm: Paradigm, c: Case, n: Number_, forms: string[]): string[] {
+	const endings = [...PARADIGM_ENDINGS[paradigm][n][CASE_INDEX[c]]].sort(
+		(a, b) => b.length - a.length
+	);
+	const out: string[] = [];
+	for (const form of forms) {
+		const lower = form.toLowerCase();
+		const match = endings.find((ending) =>
+			ending === '' ? !VOWEL.test(lower) : lower.endsWith(ending)
+		);
+		if (match !== undefined && !out.includes(match)) out.push(match);
+	}
+	return out;
 }

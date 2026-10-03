@@ -265,7 +265,7 @@ const PRONOUN_PLACEHOLDER_TEMPLATE: SentenceTemplate = {
 	requiredCase: 'nom',
 	number: 'sg',
 	trigger: '',
-	why: 'Pure pronoun form recall drill.',
+	why: 'form recall · no preposition',
 	difficulty: 'A1'
 };
 
