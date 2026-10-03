@@ -674,58 +674,79 @@
 	},
 	"metr": {
 		"variants_sg": {
-			"4": ["metře"]
-		}
+			"4": ["metre"]
+		},
+		"sg": ["metr", "metru", "metru", "metr", "metře", "metru", "metrem"]
 	},
 	"kilometr": {
 		"variants_sg": {
-			"4": ["kilometře"]
-		}
+			"4": ["kilometre"]
+		},
+		"sg": ["kilometr", "kilometru", "kilometru", "kilometr", "kilometře", "kilometru", "kilometrem"]
 	},
 	"centimetr": {
 		"variants_sg": {
-			"4": ["centimetře"]
-		}
+			"4": ["centimetre"]
+		},
+		"sg": [
+			"centimetr",
+			"centimetru",
+			"centimetru",
+			"centimetr",
+			"centimetře",
+			"centimetru",
+			"centimetrem"
+		]
 	},
 	"litr": {
 		"variants_sg": {
-			"4": ["litře"]
-		}
+			"4": ["litre"]
+		},
+		"sg": ["litr", "litru", "litru", "litr", "litře", "litru", "litrem"]
 	},
 	"cukr": {
 		"variants_sg": {
-			"4": ["cukře"]
-		}
+			"4": ["cukre"]
+		},
+		"sg": ["cukr", "cukru", "cukru", "cukr", "cukře", "cukru", "cukrem"]
 	},
 	"kufr": {
 		"variants_sg": {
-			"4": ["kufře"]
-		}
+			"4": ["kufre"]
+		},
+		"sg": ["kufr", "kufru", "kufru", "kufr", "kufře", "kufru", "kufrem"]
 	},
 	"parametr": {
 		"variants_sg": {
-			"4": ["parametře"]
-		}
+			"4": ["parametre"]
+		},
+		"sg": ["parametr", "parametru", "parametru", "parametr", "parametře", "parametru", "parametrem"]
 	},
 	"orchestr": {
 		"variants_sg": {
-			"4": ["orchestře"]
-		}
+			"4": ["orchestre"]
+		},
+		"sg": ["orchestr", "orchestru", "orchestru", "orchestr", "orchestře", "orchestru", "orchestrem"]
 	},
 	"silvestr": {
 		"variants_sg": {
-			"4": ["silvestře"]
-		}
+			"1": ["silvestra"],
+			"3": ["silvestra"],
+			"4": ["silvestre"]
+		},
+		"sg": ["silvestr", "silvestru", "silvestru", "silvestr", "silvestře", "silvestru", "silvestrem"]
 	},
 	"žánr": {
 		"variants_sg": {
-			"4": ["žánře"]
-		}
+			"4": ["žánre"]
+		},
+		"sg": ["žánr", "žánru", "žánru", "žánr", "žánře", "žánru", "žánrem"]
 	},
 	"svetr": {
 		"variants_sg": {
-			"4": ["svetře"]
-		}
+			"4": ["svetre"]
+		},
+		"sg": ["svetr", "svetru", "svetru", "svetr", "svetře", "svetru", "svetrem"]
 	},
 	"citron": {
 		"variants_sg": {

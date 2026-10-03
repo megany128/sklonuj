@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import type { AdjectiveGenderKey, Case, DrillType, Number_ } from '$lib/types';
 	import { CASE_HEX, CASE_LABELS, CASE_NUMBER } from '$lib/types';
 	import AnswerDiff from './AnswerDiff.svelte';
 	import CaseBadge from './CaseBadge.svelte';
 	import DottedUnderline from './DottedUnderline.svelte';
+	import WhyNote from './WhyNote.svelte';
 	import FeedbackDeclensionChart from './FeedbackDeclensionChart.svelte';
 	import FeedbackAdjectiveDeclensionChart from './FeedbackAdjectiveDeclensionChart.svelte';
 	import FeedbackPronounDeclensionChart from './FeedbackPronounDeclensionChart.svelte';
@@ -48,7 +48,6 @@
 		pronounLemma?: string;
 	} = $props();
 
-	let hasWhy = $derived(!!templateWhy?.trim() || !!whyNote?.trim());
 	let showDiff = $derived(!!userAnswer?.trim());
 </script>
 
@@ -129,28 +128,7 @@
 		{/if}
 	</div>
 
-	{#if hasWhy}
-		<div class="w-full border-t border-darker-subtitle/30 pt-4">
-			<div class="mb-2 flex items-center justify-center gap-1.5">
-				<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
-				<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
-			</div>
-			{#if templateWhy}
-				<p class="text-center text-sm leading-relaxed text-darker-subtitle">
-					{templateWhy}
-				</p>
-			{/if}
-			{#if whyNote}
-				<p
-					class="text-center text-sm leading-relaxed {templateWhy
-						? 'mt-1.5'
-						: ''} text-text-subtitle"
-				>
-					{whyNote}
-				</p>
-			{/if}
-		</div>
-	{/if}
+	<WhyNote {templateWhy} {whyNote} />
 
 	{#if (chartLemma ?? nominative) && number_}
 		<FeedbackDeclensionChart lemma={chartLemma ?? nominative ?? ''} {case_} {number_} />

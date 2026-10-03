@@ -6,7 +6,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "After 'to jsou' (these are), the noun stays in the nominative case (plural).",
+		"why": "to jsou (these are) + noun → nominative plural",
 		"difficulty": "A1"
 	},
 	{
@@ -16,7 +16,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "do",
-		"why": "'Do' (to/into) always takes the genitive case.",
+		"why": "do (to/into) → genitive",
 		"difficulty": "A1",
 		"semanticTags": ["v_place"]
 	},
@@ -27,7 +27,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "z",
-		"why": "'Z' (from) always takes the genitive case.",
+		"why": "z (from) → genitive",
 		"difficulty": "A1",
 		"excludesCategories": ["indoor"]
 	},
@@ -38,7 +38,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "od",
-		"why": "'Od' (from a person) always takes the genitive case.",
+		"why": "od (from a person) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -48,7 +48,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "bez",
-		"why": "'Bez' (without) always takes the genitive case.",
+		"why": "bez (without) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -58,7 +58,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "u",
-		"why": "'U' (at/near) always takes the genitive case.",
+		"why": "u (at/near) → genitive",
 		"difficulty": "A1",
 		"excludesCategories": ["region"]
 	},
@@ -69,7 +69,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "vedle",
-		"why": "'Vedle' (next to) always takes the genitive case.",
+		"why": "vedle (next to) → genitive",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -80,7 +80,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "kolem",
-		"why": "'Kolem' (around) always takes the genitive case.",
+		"why": "kolem (around) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["landmark"]
 	},
@@ -91,7 +91,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "podle",
-		"why": "'Podle' (according to) always takes the genitive case.",
+		"why": "podle (according to) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -101,7 +101,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "do",
-		"why": "'Do' (to/back to) always takes the genitive case.",
+		"why": "do (to/back to) → genitive",
 		"difficulty": "A1",
 		"semanticTags": ["v_place"]
 	},
@@ -112,7 +112,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "bez",
-		"why": "'Bez' (without) always takes the genitive case.",
+		"why": "bez (without) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["portable"]
 	},
@@ -123,7 +123,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "k",
-		"why": "'K' (towards/to a person's place) always takes the dative case.",
+		"why": "k (towards/to someone's place) → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -133,7 +133,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "The indirect object of 'dát' (to give) takes the dative case — the person receiving something.",
+		"why": "dát (to give) + recipient → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -143,7 +143,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "The indirect object of 'říct' (to tell) takes the dative case — the person being told.",
+		"why": "říct (to tell) + person told → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -153,7 +153,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Pomáhat' (to help) governs the dative case.",
+		"why": "pomáhat (to help) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -163,7 +163,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Věřit' (to believe/trust) governs the dative case.",
+		"why": "věřit (to believe/trust) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -173,7 +173,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'volat' (to call/phone someone) takes the accusative case.",
+		"why": "volat (to call/phone) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -183,7 +183,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "k",
-		"why": "'K' (towards) always takes the dative case when expressing movement toward something.",
+		"why": "k (towards) + movement → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -193,7 +193,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "k",
-		"why": "'K' (towards/to someone's place) always takes the dative case.",
+		"why": "k (towards/to someone's place) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -203,7 +203,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
+		"why": "vidět (to see) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -213,7 +213,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'mít' (to have) takes the accusative case.",
+		"why": "mít (to have) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -223,7 +223,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'chtít' (to want) takes the accusative case.",
+		"why": "chtít (to want) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -234,7 +234,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (to/onto) takes the accusative case when expressing direction or movement toward a destination. Note: many places (e.g. kino, divadlo, škola) take 'do' + genitive instead — only an open/elevated/institutional subset takes 'na'.",
+		"why": "na (to/onto) + direction → accusative\nna for events, open spaces, surfaces and some institutions (na koncert, na náměstí, na poštu)",
 		"difficulty": "A1"
 	},
 	{
@@ -244,7 +244,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'kupovat' (to buy) takes the accusative case.",
+		"why": "kupovat (to buy) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -254,7 +254,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'číst' (to read) takes the accusative case.",
+		"why": "číst (to read) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -264,7 +264,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'hledat' (to look for) takes the accusative case.",
+		"why": "hledat (to look for) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -274,7 +274,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "pro",
-		"why": "'Pro' (for) always takes the accusative case.",
+		"why": "pro (for) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -284,7 +284,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "přes",
-		"why": "'Přes' (across) always takes the accusative case.",
+		"why": "přes (across) → accusative",
 		"difficulty": "A2",
 		"semanticTags": ["v_place", "na_place"],
 		"excludesCategories": ["flora"]
@@ -296,7 +296,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'znát' (to know someone) takes the accusative case.",
+		"why": "znát (to know someone) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -306,7 +306,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'mít rád' (to like) takes the accusative case.",
+		"why": "mít rád (to like) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -316,7 +316,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When directly addressing someone, Czech uses the vocative case.",
+		"why": "addressing someone → vocative",
 		"difficulty": "A1",
 		"semanticTags": ["address_informal"]
 	},
@@ -328,7 +328,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When calling out to someone to get their attention, Czech uses the vocative case. With professional titles, use 'paní'/'pane' first (see paní/pane templates).",
+		"why": "calling for attention → vocative\nWith titles, add pane/paní first",
 		"difficulty": "A1",
 		"semanticTags": ["address_formal"]
 	},
@@ -339,7 +339,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When thanking someone by name, Czech uses the vocative case for direct address.",
+		"why": "thanking someone by name → vocative",
 		"difficulty": "A1",
 		"semanticTags": ["address_informal"]
 	},
@@ -351,7 +351,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When greeting someone by name, Czech uses the vocative case for direct address. With professional titles, prefix 'paní'/'pane' (e.g. 'Dobrý den, paní profesorko.').",
+		"why": "greeting someone by name → vocative\nWith titles, add pane/paní first (dobrý den, paní profesorko)",
 		"difficulty": "A1",
 		"semanticTags": ["address_formal"]
 	},
@@ -363,7 +363,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Czech requires the honorific 'paní' before a female professional title in formal address. The title itself stays in the vocative.",
+		"why": "formal address: paní + title → title in vocative",
 		"difficulty": "A1",
 		"semanticTags": ["title"]
 	},
@@ -375,7 +375,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Czech requires the honorific 'pane' (vocative of 'pán') before a male professional title in formal address. The title itself stays in the vocative.",
+		"why": "formal address: pane (vocative of pán) + title → title in vocative",
 		"difficulty": "A1",
 		"semanticTags": ["title"]
 	},
@@ -387,7 +387,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing location inside an enclosed place. Open/institutional places (pošta, nádraží, pláž…) take 'na' instead.",
+		"why": "v (in) + location inside → locative\nv for buildings, rooms, cities and countries (v domě, ve škole, v Praze)",
 		"difficulty": "A1"
 	},
 	{
@@ -398,7 +398,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (on/at) takes the locative case. Some places (pošta, nádraží, letiště, pláž…) take 'na'; enclosed/institutional places (kino, divadlo, škola, obchod) take 'v' instead.",
+		"why": "na (on/at) + location → locative\nna for surfaces, open spaces, events and some institutions (na stole, na náměstí, na koncertě, na poště)",
 		"difficulty": "A1"
 	},
 	{
@@ -408,7 +408,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "A1"
 	},
 	{
@@ -419,7 +419,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case for enclosed workplaces. Some workplaces (pošta, úřad, nádraží) take 'na' instead.",
+		"why": "v (in) + workplace → locative\nv for workplaces you are inside: buildings, shops, companies (v bance, v obchodě, ve firmě)",
 		"difficulty": "A1"
 	},
 	{
@@ -429,7 +429,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (on) takes the locative case when expressing the surface where someone is sitting.",
+		"why": "na (on) + surface you sit on → locative",
 		"difficulty": "A1",
 		"semanticTags": ["sittable"]
 	},
@@ -441,7 +441,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "po",
-		"why": "'Po' (after) takes the locative case when expressing time sequence.",
+		"why": "po (after) + time sequence → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -452,7 +452,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "při",
-		"why": "'Při' (during) always takes the locative case.",
+		"why": "při (during) → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -462,7 +462,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing location.",
+		"why": "v (in) + location → locative",
 		"difficulty": "A2",
 		"semanticTags": ["v_place"]
 	},
@@ -473,7 +473,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -483,7 +483,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (on) takes the locative case when expressing location on a surface.",
+		"why": "na (on) + surface → locative",
 		"difficulty": "A1",
 		"semanticTags": ["na_place"]
 	},
@@ -494,7 +494,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -504,7 +504,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "za",
-		"why": "'Za' (behind) takes the instrumental case when expressing location.",
+		"why": "za (behind) + location → instrumental",
 		"difficulty": "A2",
 		"semanticTags": ["large_object"]
 	},
@@ -515,7 +515,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "pod",
-		"why": "'Pod' (under) takes the instrumental case when expressing location.",
+		"why": "pod (under) + location → instrumental",
 		"difficulty": "A2",
 		"semanticTags": ["large_object"]
 	},
@@ -526,7 +526,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "nad",
-		"why": "'Nad' (above) takes the instrumental case when expressing location.",
+		"why": "nad (above) + location → instrumental",
 		"difficulty": "A2",
 		"semanticTags": ["large_object"]
 	},
@@ -537,7 +537,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "před",
-		"why": "'Před' (in front of) takes the instrumental case when expressing location.",
+		"why": "před (in front of) + location → instrumental",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -548,7 +548,7 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "mezi",
-		"why": "'Mezi' (between/among) takes the instrumental case when expressing location or static position.",
+		"why": "mezi (between/among) + location → instrumental",
 		"difficulty": "B1"
 	},
 	{
@@ -559,7 +559,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Být' (to be) takes the instrumental case when expressing profession or identity in formal/written Czech. In colloquial Czech, the nominative is sometimes used instead.",
+		"why": "být + profession/identity → instrumental\nColloquial: nominative also heard",
 		"difficulty": "B1"
 	},
 	{
@@ -569,7 +569,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -579,7 +579,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -589,7 +589,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "pod",
-		"why": "'Pod' (under) takes the instrumental case when expressing location.",
+		"why": "pod (under) + location → instrumental",
 		"difficulty": "A2",
 		"semanticTags": ["large_object"]
 	},
@@ -600,7 +600,7 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -611,7 +611,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "z",
-		"why": "'Z' (from) always takes the genitive case.",
+		"why": "z (from) → genitive",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -623,7 +623,7 @@
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing location.",
+		"why": "v (in) + location → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -633,7 +633,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Pomáhat' (to help) governs the dative case.",
+		"why": "pomáhat (to help) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -643,7 +643,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
+		"why": "vidět (to see) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -653,7 +653,7 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "před",
-		"why": "'Před' (in front of) takes the instrumental case when expressing location.",
+		"why": "před (in front of) + location → instrumental",
 		"difficulty": "B1",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -664,7 +664,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "u",
-		"why": "'U' (at/near) always takes the genitive case.",
+		"why": "u (at/near) → genitive",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -675,7 +675,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'být' (to be) stays in the nominative case, even in questions.",
+		"why": "subject of být (to be) → nominative, even in questions",
 		"difficulty": "A1"
 	},
 	{
@@ -685,7 +685,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The thing that pleases ('líbí se') is the subject and takes the nominative case.",
+		"why": "líbit se (to please): the thing liked is the subject → nominative",
 		"difficulty": "A1"
 	},
 	{
@@ -695,7 +695,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'existovat' (to exist) takes the nominative case.",
+		"why": "existovat (to exist): subject → nominative",
 		"difficulty": "A2"
 	},
 	{
@@ -705,7 +705,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The thing or person that is missed ('chybět') is the subject and takes the nominative case.",
+		"why": "chybět (to be missing): the thing/person missed is the subject → nominative",
 		"difficulty": "A2"
 	},
 	{
@@ -715,7 +715,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "The subject of 'být' (to be) stays in the nominative case, even in questions.",
+		"why": "subject of být (to be) → nominative, even in questions",
 		"difficulty": "A1"
 	},
 	{
@@ -725,7 +725,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "The subject of 'být' (to be) takes the nominative case.",
+		"why": "subject of být (to be) → nominative",
 		"difficulty": "A1"
 	},
 	{
@@ -735,7 +735,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The body part that hurts ('bolet') is the subject and takes the nominative case.",
+		"why": "bolet (to hurt): the body part is the subject → nominative",
 		"difficulty": "A2",
 		"excludesCategories": ["painless"]
 	},
@@ -747,7 +747,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'začínat' (to begin) takes the nominative case.",
+		"why": "začínat (to begin): subject → nominative",
 		"difficulty": "A2"
 	},
 	{
@@ -758,7 +758,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'být' (to be) takes the nominative case.",
+		"why": "subject of být (to be) → nominative",
 		"difficulty": "B1"
 	},
 	{
@@ -768,7 +768,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The thing that pleases ('líbí se') is the subject and takes the nominative case.",
+		"why": "líbit se (to please): the thing liked is the subject → nominative",
 		"difficulty": "A2"
 	},
 	{
@@ -778,7 +778,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'stačit' (to suffice) takes the nominative case.",
+		"why": "stačit (to suffice): subject → nominative",
 		"difficulty": "B1"
 	},
 	{
@@ -788,7 +788,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "The things that please ('líbí se') are the subject and take the nominative case (plural).",
+		"why": "líbit se (to please): the things liked are the subject → nominative plural",
 		"difficulty": "A2"
 	},
 	{
@@ -798,7 +798,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "The things that are missed ('chybět') are the subject and take the nominative case (plural).",
+		"why": "chybět (to be missing): the things missed are the subject → nominative plural",
 		"difficulty": "A2"
 	},
 	{
@@ -808,7 +808,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "After 'to jsou' (these are), the noun stays in the nominative case (plural).",
+		"why": "to jsou (these are) + noun → nominative plural",
 		"difficulty": "A1"
 	},
 	{
@@ -818,7 +818,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "The body parts that hurt ('bolet') are the subject and take the nominative case.",
+		"why": "bolet (to hurt): the body parts are the subject → nominative plural",
 		"difficulty": "A2",
 		"semanticTags": ["paired_body"],
 		"excludesCategories": ["painless"]
@@ -830,7 +830,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "blízko",
-		"why": "'Blízko' (near) always takes the genitive case.",
+		"why": "blízko (near) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["landmark"]
 	},
@@ -841,7 +841,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "uprostřed",
-		"why": "'Uprostřed' (in the middle of) always takes the genitive case.",
+		"why": "uprostřed (in the middle of) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -852,7 +852,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "během",
-		"why": "'Během' (during) always takes the genitive case.",
+		"why": "během (during) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -862,7 +862,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "do",
-		"why": "'Do' (to/into) always takes the genitive case.",
+		"why": "do (to/into) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["leisure_do"],
 		"excludesCategories": ["region", "indoor"]
@@ -874,7 +874,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "bez",
-		"why": "'Bez' (without) always takes the genitive case.",
+		"why": "bez (without) → genitive",
 		"difficulty": "B1",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -885,7 +885,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "od",
-		"why": "'Od' (from) always takes the genitive case.",
+		"why": "od (from) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -895,7 +895,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "kolem",
-		"why": "'Kolem' (around) always takes the genitive case.",
+		"why": "kolem (around) → genitive",
 		"difficulty": "B1",
 		"semanticTags": ["landmark"]
 	},
@@ -906,7 +906,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Dost' (enough) triggers the genitive case for the noun it quantifies.",
+		"why": "dost (enough) + counted noun → genitive",
 		"difficulty": "B1",
 		"semanticTags": ["portable"]
 	},
@@ -917,7 +917,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Kolik' (how many) triggers the genitive case for the noun being counted.",
+		"why": "kolik (how many) + counted noun → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -927,7 +927,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "mimo",
-		"why": "'Mimo' (past/outside of) takes the accusative case in modern Czech (the older genitive is now bookish).",
+		"why": "mimo (past/outside of) → accusative\nNote: mimo + genitive is now bookish",
 		"difficulty": "B1"
 	},
 	{
@@ -937,7 +937,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "kvůli",
-		"why": "'Kvůli' (because of) always takes the dative case.",
+		"why": "kvůli (because of) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -947,7 +947,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Rozumět' (to understand) governs the dative case.",
+		"why": "rozumět (to understand) → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -957,7 +957,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Gratulovat' (to congratulate) governs the dative case.",
+		"why": "gratulovat (to congratulate) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -967,7 +967,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Patřit' (to belong to) governs the dative case.",
+		"why": "patřit (to belong to) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -977,7 +977,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Podobat se' (to resemble) governs the dative case.",
+		"why": "podobat se (to resemble) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -987,7 +987,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Závidět' (to envy) governs the dative case.",
+		"why": "závidět (to envy) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -997,7 +997,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "The indirect object of 'ukázat' (to show) takes the dative case — the person being shown something.",
+		"why": "ukázat (to show) + person shown → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -1007,7 +1007,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "k",
-		"why": "'K' (towards) always takes the dative case when expressing movement toward something.",
+		"why": "k (towards) + movement → dative",
 		"difficulty": "A1",
 		"semanticTags": ["large_object"]
 	},
@@ -1018,7 +1018,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "naproti",
-		"why": "'Naproti' (opposite/across from) always takes the dative case.",
+		"why": "naproti (opposite) → dative",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -1029,7 +1029,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "",
-		"why": "The indirect object of 'dát' (to give) takes the dative case — the recipients.",
+		"why": "dát (to give) + recipients → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -1039,7 +1039,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Rozumět' (to understand) governs the dative case.",
+		"why": "rozumět (to understand) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -1049,7 +1049,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Věřit' (to believe/trust) governs the dative case.",
+		"why": "věřit (to believe/trust) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -1059,7 +1059,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "k",
-		"why": "'K' (towards) always takes the dative case.",
+		"why": "k (towards) → dative",
 		"difficulty": "A2",
 		"semanticTags": ["landmark"]
 	},
@@ -1070,7 +1070,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'potřebovat' (to need) takes the accusative case.",
+		"why": "potřebovat (to need) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1080,7 +1080,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "o",
-		"why": "'O' (about) takes the accusative case with 'zajímat se' (to be interested in).",
+		"why": "zajímat se o (to be interested in) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -1091,7 +1091,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' takes the accusative case with 'čekat' (to wait for).",
+		"why": "čekat na (to wait for) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -1101,7 +1101,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' takes the accusative case with 'dívat se' (to look at).",
+		"why": "dívat se na (to look at) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -1111,7 +1111,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'mít' (to have) takes the accusative case.",
+		"why": "mít (to have) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1121,7 +1121,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'chtít' (to want) takes the accusative case.",
+		"why": "chtít (to want) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1132,7 +1132,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "na",
-		"why": "'Na' (to/onto) takes the accusative case when expressing direction. Note: many places (e.g. kino, divadlo, škola) take 'do' + genitive instead.",
+		"why": "na (to/onto) + direction → accusative\nna for events, open spaces, surfaces and some institutions (na koncert, na náměstí, na poštu)",
 		"difficulty": "A2",
 		"excludesCategories": ["region", "indoor"]
 	},
@@ -1143,7 +1143,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'kupovat' (to buy) takes the accusative case.",
+		"why": "kupovat (to buy) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1153,7 +1153,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "přes",
-		"why": "'Přes' (across) always takes the accusative case.",
+		"why": "přes (across) → accusative",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor"]
 	},
@@ -1164,7 +1164,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "pro",
-		"why": "'Pro' (for) always takes the accusative case.",
+		"why": "pro (for) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -1174,7 +1174,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'znát' (to know) takes the accusative case.",
+		"why": "znát (to know) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1184,7 +1184,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'potřebovat' (to need) takes the accusative case.",
+		"why": "potřebovat (to need) + direct object → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -1194,7 +1194,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'hledat' (to look for) takes the accusative case.",
+		"why": "hledat (to look for) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1204,7 +1204,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "na",
-		"why": "'Na' takes the accusative case with 'čekat' (to wait for).",
+		"why": "čekat na (to wait for) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -1215,7 +1215,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When calling someone to come, Czech uses the vocative case for direct address.",
+		"why": "calling someone over → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1227,7 +1227,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When calling for someone's attention ('Listen!'), Czech uses the vocative case.",
+		"why": "calling for attention → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_formal"]
 	},
@@ -1239,7 +1239,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When saying goodbye to someone by name, Czech uses the vocative case. With professional titles, prefix 'paní'/'pane'.",
+		"why": "saying goodbye by name → vocative\nWith titles, add pane/paní first",
 		"difficulty": "A2",
 		"semanticTags": ["address_formal"]
 	},
@@ -1251,7 +1251,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Formal goodbye to a female professional uses 'paní' + the title in the vocative.",
+		"why": "formal goodbye: paní + title → title in vocative",
 		"difficulty": "A1",
 		"semanticTags": ["title"]
 	},
@@ -1263,7 +1263,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Formal goodbye to a male professional uses 'pane' + the title in the vocative.",
+		"why": "formal goodbye: pane + title → title in vocative",
 		"difficulty": "A1",
 		"semanticTags": ["title"]
 	},
@@ -1275,7 +1275,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When politely addressing someone ('Please, ...'), Czech uses the vocative case. With professional titles, prefix 'paní'/'pane'.",
+		"why": "polite request (prosím vás) → vocative\nWith titles, add pane/paní first",
 		"difficulty": "A2",
 		"semanticTags": ["address_formal"]
 	},
@@ -1287,7 +1287,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Formal polite address to a female professional uses 'paní' + the title in the vocative.",
+		"why": "formal request: paní + title → title in vocative",
 		"difficulty": "A2",
 		"semanticTags": ["title"]
 	},
@@ -1299,7 +1299,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Formal polite address to a male professional uses 'pane' + the title in the vocative.",
+		"why": "formal request: pane + title → title in vocative",
 		"difficulty": "A2",
 		"semanticTags": ["title"]
 	},
@@ -1311,7 +1311,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When telling someone to wait and addressing them by name, Czech uses the vocative case.",
+		"why": "addressing someone by name → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_formal"]
 	},
@@ -1323,7 +1323,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "In letter greetings ('Dear ...'), Czech uses the vocative case for the addressee. 'Milý' is the masculine form.",
+		"why": "letter greeting (milý = dear, masculine) → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1335,7 +1335,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "In letter greetings ('Dear ...'), Czech uses the vocative case for the addressee. 'Milá' is the feminine form.",
+		"why": "letter greeting (milá = dear, feminine) → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1347,7 +1347,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When telling someone to look and addressing them, Czech uses the vocative case.",
+		"why": "addressing someone → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_formal"]
 	},
@@ -1358,7 +1358,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When inviting someone in by name ('Come in, ...'), Czech uses the vocative case.",
+		"why": "inviting someone in by name → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1370,7 +1370,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When inviting someone by name ('Come sit down, ...!'), Czech uses the vocative case for direct address.",
+		"why": "inviting someone by name → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1381,7 +1381,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When asking someone for help by name ('Help me, ...'), Czech uses the vocative case.",
+		"why": "asking someone for help by name → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1392,7 +1392,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When casually greeting someone by name, Czech uses the vocative case.",
+		"why": "casual greeting by name → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1404,7 +1404,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When asking someone how they are by name, Czech uses the vocative case (the informal 'jak se máš' implies tykání, so it doesn't fit formal titles).",
+		"why": "asking how someone is by name → vocative\nNote: jak se máš is informal (tykání), so no formal titles",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1415,7 +1415,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "A1"
 	},
 	{
@@ -1426,7 +1426,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing being inside something.",
+		"why": "v (in) + being inside → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1436,7 +1436,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (on) takes the locative case when expressing location on a surface.",
+		"why": "na (on) + surface → locative",
 		"difficulty": "A1",
 		"semanticTags": ["sittable"]
 	},
@@ -1447,7 +1447,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "po",
-		"why": "'Po' (after) takes the locative case when expressing time sequence.",
+		"why": "po (after) + time sequence → locative",
 		"difficulty": "A2",
 		"semanticTags": ["time_point", "holiday"]
 	},
@@ -1459,7 +1459,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "při",
-		"why": "'Při' (during) always takes the locative case.",
+		"why": "při (during) → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1469,7 +1469,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1480,7 +1480,7 @@
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing location (plural: 've městech', 'v domech').",
+		"why": "v (in) + location → locative (ve městech, v domech)",
 		"difficulty": "A2"
 	},
 	{
@@ -1490,7 +1490,7 @@
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1500,7 +1500,7 @@
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "na",
-		"why": "'Na' (on/at) takes the locative case when expressing location.",
+		"why": "na (on/at) + location → locative",
 		"difficulty": "B1",
 		"semanticTags": ["na_place"]
 	},
@@ -1511,7 +1511,7 @@
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "B1"
 	},
 	{
@@ -1522,7 +1522,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "po",
-		"why": "'Po' (after) takes the locative case when expressing time sequence.",
+		"why": "po (after) + time sequence → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1533,7 +1533,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing being inside.",
+		"why": "v (in) + being inside → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1543,7 +1543,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "o",
-		"why": "'O' takes the locative case when expressing the topic of discussion (about).",
+		"why": "o (about) + topic → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1553,7 +1553,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A2"
 	},
 	{
@@ -1563,7 +1563,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "za",
-		"why": "'Za' (behind) takes the instrumental case when expressing location.",
+		"why": "za (behind) + location → instrumental",
 		"difficulty": "A2",
 		"semanticTags": ["landmark"]
 	},
@@ -1574,7 +1574,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "nad",
-		"why": "'Nad' (above) takes the instrumental case when expressing location.",
+		"why": "nad (above) + location → instrumental",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor"]
 	},
@@ -1586,7 +1586,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "The means of transport takes the instrumental case when no preposition is used.",
+		"why": "means of transport, no preposition → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -1596,7 +1596,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -1606,7 +1606,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Zabývat se' (to deal with) governs the instrumental case.",
+		"why": "zabývat se (to deal with) → instrumental",
 		"difficulty": "B1"
 	},
 	{
@@ -1617,7 +1617,7 @@
 		"number": "pl",
 		"trigger": "mezi",
 		"semanticTags": ["portable"],
-		"why": "'Mezi' (between/among) takes the instrumental case when expressing static location. 'Mezi' needs several things to lie among, so the noun is plural.",
+		"why": "mezi (between/among) + location → instrumental\nNote: mezi needs several things, so the noun is plural",
 		"difficulty": "B1"
 	},
 	{
@@ -1627,7 +1627,7 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -1638,7 +1638,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "pod",
-		"why": "'Pod' (under) takes the instrumental case when expressing location.",
+		"why": "pod (under) + location → instrumental",
 		"difficulty": "B1",
 		"semanticTags": ["shade"]
 	},
@@ -1649,7 +1649,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "od",
-		"why": "'Od' (from) always takes the genitive case.",
+		"why": "od (from) → genitive",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor"]
 	},
@@ -1660,7 +1660,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "z",
-		"why": "'Z' (from) always takes the genitive case.",
+		"why": "z (from) → genitive",
 		"difficulty": "A1"
 	},
 	{
@@ -1670,7 +1670,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "vedle",
-		"why": "'Vedle' (next to) always takes the genitive case.",
+		"why": "vedle (next to) → genitive",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -1681,7 +1681,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'mýt' (to wash) takes the accusative case.",
+		"why": "mýt (to wash) + direct object → accusative",
 		"difficulty": "A2",
 		"semanticTags": ["paired_body"]
 	},
@@ -1692,7 +1692,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "na",
-		"why": "'Na' takes the accusative case with 'dívat se' (to look at).",
+		"why": "dívat se na (to look at) → accusative",
 		"difficulty": "A2",
 		"semanticTags": ["landmark", "flora", "celestial"]
 	},
@@ -1703,7 +1703,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Telefonovat' (to phone) governs the dative case for the person being called.",
+		"why": "telefonovat (to phone) + person called → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -1713,7 +1713,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "k",
-		"why": "'K' (towards) always takes the dative case when expressing approaching something.",
+		"why": "k (towards) + approaching → dative",
 		"difficulty": "A2",
 		"excludesCategories": ["region"]
 	},
@@ -1725,7 +1725,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "v",
-		"why": "'V' (in) takes the locative case when expressing location.",
+		"why": "v (in) + location → locative",
 		"difficulty": "A1",
 		"excludesCategories": ["region"]
 	},
@@ -1736,7 +1736,7 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A2"
 	},
 	{
@@ -1746,7 +1746,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "bez",
-		"why": "'Bez' (without) always takes the genitive case.",
+		"why": "bez (without) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["portable"]
 	},
@@ -1757,7 +1757,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "The indirect object of 'slíbit' (to promise) takes the dative case — the person being promised.",
+		"why": "slíbit (to promise) + person promised → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -1767,7 +1767,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
+		"why": "vidět (to see) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1777,7 +1777,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When reassuring someone by name ('Don't be afraid, ...'), Czech uses the vocative case.",
+		"why": "reassuring someone by name → vocative",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1789,7 +1789,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (on) takes the locative case when expressing location on a body part.",
+		"why": "na (on) + body part → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -1799,7 +1799,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "za",
-		"why": "'Za' (behind) takes the instrumental case when expressing static location.",
+		"why": "za (behind) + location → instrumental",
 		"difficulty": "A2",
 		"semanticTags": ["large_object"]
 	},
@@ -1810,7 +1810,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "do",
-		"why": "'Do' (by/before a time) takes the genitive case.",
+		"why": "do (by a time) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["time_point"],
 		"excludesCategories": ["season"]
@@ -1822,7 +1822,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'mít rád' (to like) takes the accusative case.",
+		"why": "mít rád (to like) + direct object → accusative",
 		"difficulty": "A1"
 	},
 	{
@@ -1833,7 +1833,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When casually thanking someone by name, Czech uses the vocative case ('díky' is informal — for formal titles use 'Děkuji, pane <title>').",
+		"why": "casual thanks by name → vocative\nNote: díky is informal; formal: děkuji, pane + title",
 		"difficulty": "A2",
 		"semanticTags": ["address_informal"]
 	},
@@ -1844,7 +1844,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "před",
-		"why": "'Před' (in front of) takes the instrumental case when expressing location.",
+		"why": "před (in front of) + location → instrumental",
 		"difficulty": "A2",
 		"excludesCategories": ["indoor", "region"]
 	},
@@ -1856,7 +1856,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'padat' (to fall) takes the nominative case.",
+		"why": "padat (to fall): subject → nominative",
 		"difficulty": "A2"
 	},
 	{
@@ -1866,7 +1866,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "After 'to je' (this is), the noun stays in the nominative case.",
+		"why": "to je (this is) + noun → nominative",
 		"difficulty": "A1"
 	},
 	{
@@ -1876,7 +1876,7 @@
 		"requiredCase": "nom",
 		"number": "sg",
 		"trigger": "",
-		"why": "The subject of 'být' (to be) takes the nominative case.",
+		"why": "subject of být (to be) → nominative",
 		"difficulty": "A1"
 	},
 	{
@@ -1886,7 +1886,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "After 'to jsou' (these are), the noun stays in the nominative case (plural).",
+		"why": "to jsou (these are) + noun → nominative plural",
 		"difficulty": "A1"
 	},
 	{
@@ -1896,7 +1896,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "After 'to jsou' (these are), the noun stays in the nominative case (plural).",
+		"why": "to jsou (these are) + noun → nominative plural",
 		"difficulty": "A1"
 	},
 	{
@@ -1906,7 +1906,7 @@
 		"requiredCase": "nom",
 		"number": "pl",
 		"trigger": "",
-		"why": "The subject of 'být' (to be) stays in the nominative case, even in questions.",
+		"why": "subject of být (to be) → nominative, even in questions",
 		"difficulty": "A1"
 	},
 	{
@@ -1916,7 +1916,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "od",
-		"why": "'Od' (of/from) always takes the genitive case to express belonging.",
+		"why": "od (of/for) + what something belongs to → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["lockable"]
 	},
@@ -1928,7 +1928,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Time duration expressions take the accusative case. 'Celou' is the feminine accusative form of 'whole'.",
+		"why": "time duration → accusative\ncelou = feminine accusative of celý (whole)",
 		"difficulty": "A2",
 		"semanticTags": ["whole_span"]
 	},
@@ -1940,7 +1940,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Time duration expressions ('celý den', 'celý týden') take the accusative case.",
+		"why": "time duration (celý den, celý týden) → accusative",
 		"difficulty": "A2",
 		"semanticTags": ["whole_span"]
 	},
@@ -1952,7 +1952,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Time duration expressions take the accusative case. 'Celou' is the feminine accusative form of 'whole'.",
+		"why": "time duration → accusative\ncelou = feminine accusative of celý (whole)",
 		"difficulty": "A2",
 		"semanticTags": ["whole_span"]
 	},
@@ -1964,7 +1964,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Time duration expressions take the accusative case. 'Celý' is the masculine accusative form of 'whole'.",
+		"why": "time duration → accusative\ncelý = masculine inanimate accusative (same as nominative)",
 		"difficulty": "A2",
 		"semanticTags": ["whole_span"]
 	},
@@ -1977,7 +1977,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Být' (to be) takes the instrumental case when expressing someone's profession or role.",
+		"why": "být + profession/role → instrumental",
 		"difficulty": "A2"
 	},
 	{
@@ -1989,7 +1989,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Stát se' (to become) takes the instrumental case for the new role.",
+		"why": "stát se (to become) + new role → instrumental",
 		"difficulty": "B1"
 	},
 	{
@@ -2000,7 +2000,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Zůstat' (to remain) takes the instrumental case for continued identity.",
+		"why": "zůstat (to remain) + identity → instrumental",
 		"difficulty": "B1"
 	},
 	{
@@ -2011,7 +2011,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "při",
-		"why": "'Při' (during/at) always takes the locative case.",
+		"why": "při (during/at) → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -2022,7 +2022,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "při",
-		"why": "'Při' (during/at) always takes the locative case.",
+		"why": "při (during/at) → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -2032,7 +2032,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Bát se' (to be afraid of) governs the genitive case.",
+		"why": "bát se (to be afraid of) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -2042,7 +2042,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Všimnout si' (to notice) governs the genitive case.",
+		"why": "všimnout si (to notice) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -2053,7 +2053,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Zúčastnit se' (to participate in) governs the genitive case.",
+		"why": "zúčastnit se (to take part in) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -2063,7 +2063,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Zbavit se' (to get rid of) governs the genitive case.",
+		"why": "zbavit se (to get rid of) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -2073,7 +2073,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Ptát se' (to ask) governs the genitive case for the person being asked.",
+		"why": "ptát se (to ask) + person asked → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -2083,7 +2083,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Dotýkat se' (to touch) governs the genitive case.",
+		"why": "dotýkat se (to touch) → genitive",
 		"difficulty": "B1"
 	},
 	{
@@ -2093,7 +2093,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Děkovat' (to thank) governs the dative case.",
+		"why": "děkovat (to thank) → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -2103,7 +2103,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Odpovídat' (to answer) governs the dative case for the person being answered.",
+		"why": "odpovídat (to answer) + person answered → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -2113,7 +2113,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Blahopřát' (to congratulate) governs the dative case.",
+		"why": "blahopřát (to congratulate) → dative",
 		"difficulty": "B1"
 	},
 	{
@@ -2123,7 +2123,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Vonět' (to smell of) governs the instrumental case.",
+		"why": "vonět (to smell of) → instrumental",
 		"difficulty": "A2"
 	},
 	{
@@ -2133,7 +2133,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Nehledě na' (regardless of) takes the accusative case.",
+		"why": "nehledě na (regardless of) → accusative",
 		"difficulty": "B2",
 		"semanticTags": ["adversity"]
 	},
@@ -2144,7 +2144,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "navzdory",
-		"why": "'Navzdory' (despite) always takes the dative case.",
+		"why": "navzdory (despite) → dative",
 		"difficulty": "B2",
 		"semanticTags": ["adversity"]
 	},
@@ -2155,7 +2155,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "namísto",
-		"why": "'Namísto' (instead of) always takes the genitive case.",
+		"why": "namísto (instead of) → genitive",
 		"difficulty": "B2"
 	},
 	{
@@ -2165,7 +2165,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "kromě",
-		"why": "'Kromě' (except for/besides) always takes the genitive case.",
+		"why": "kromě (except/besides) → genitive",
 		"difficulty": "B2"
 	},
 	{
@@ -2175,7 +2175,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "vůči",
-		"why": "'Vůči' (towards/regarding) always takes the dative case.",
+		"why": "vůči (towards/regarding) → dative",
 		"difficulty": "B2"
 	},
 	{
@@ -2185,7 +2185,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "uprostřed",
-		"why": "'Uprostřed' (in the middle of) always takes the genitive case.",
+		"why": "uprostřed (in the middle of) → genitive",
 		"difficulty": "B2"
 	},
 	{
@@ -2195,7 +2195,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "místo",
-		"why": "'Místo' (instead of) always takes the genitive case.",
+		"why": "místo (instead of) → genitive",
 		"difficulty": "B2"
 	},
 	{
@@ -2205,7 +2205,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "oproti",
-		"why": "'Oproti' (compared to/as opposed to) always takes the dative case.",
+		"why": "oproti (compared to) → dative",
 		"difficulty": "B2"
 	},
 	{
@@ -2215,7 +2215,7 @@
 		"requiredCase": "gen",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Bát se' (to be afraid of) governs the genitive case.",
+		"why": "bát se (to be afraid of) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -2225,7 +2225,7 @@
 		"requiredCase": "acc",
 		"number": "pl",
 		"trigger": "",
-		"why": "The direct object of 'vidět' (to see) takes the accusative case.",
+		"why": "vidět (to see) + direct object → accusative",
 		"difficulty": "A1",
 		"semanticTags": ["v_place", "na_place", "flora"]
 	},
@@ -2236,7 +2236,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "",
-		"why": "The indirect object of 'dát' (to give) takes the dative case.",
+		"why": "dát (to give) + recipient → dative",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -2247,7 +2247,7 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -2258,7 +2258,7 @@
 		"requiredCase": "voc",
 		"number": "pl",
 		"trigger": "",
-		"why": "When directly addressing a group, Czech uses the vocative case (plural). In the plural, the vocative is always identical to the nominative.",
+		"why": "addressing a group → vocative plural\nPlural vocative = nominative",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -2270,7 +2270,7 @@
 		"requiredCase": "voc",
 		"number": "pl",
 		"trigger": "",
-		"why": "When formally greeting a group by name, Czech uses the vocative case. In the plural, the vocative is always identical to the nominative.",
+		"why": "formal greeting to a group → vocative plural\nPlural vocative = nominative",
 		"difficulty": "A2",
 		"semanticTags": ["address_group_formal"]
 	},
@@ -2281,7 +2281,7 @@
 		"requiredCase": "voc",
 		"number": "pl",
 		"trigger": "",
-		"why": "When calling a group to come ('Come on, ...!'), Czech uses the vocative case. In the plural, the vocative is always identical to the nominative.",
+		"why": "calling a group over → vocative plural\nPlural vocative = nominative",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -2293,7 +2293,7 @@
 		"requiredCase": "voc",
 		"number": "pl",
 		"trigger": "",
-		"why": "When casually thanking a group, Czech uses the vocative case. In the plural, the vocative is always identical to the nominative.",
+		"why": "casual thanks to a group → vocative plural\nPlural vocative = nominative",
 		"difficulty": "A2",
 		"semanticTags": ["address_group"]
 	},
@@ -2305,7 +2305,7 @@
 		"number": "pl",
 		"trigger": "mezi",
 		"semanticTags": ["nature"],
-		"why": "'Mezi' (among) takes the instrumental case when expressing location. 'Mezi' needs several things to live among, so the noun is plural.",
+		"why": "mezi (among) + location → instrumental\nNote: mezi needs several things, so the noun is plural",
 		"difficulty": "A2"
 	},
 	{
@@ -2315,7 +2315,7 @@
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "na",
-		"why": "'Na' (on) takes the locative case when expressing location.",
+		"why": "na (on) + location → locative",
 		"difficulty": "A2",
 		"semanticTags": ["sittable"]
 	},
@@ -2326,7 +2326,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "po",
-		"why": "'Po' (after) takes the locative case when expressing time sequence.",
+		"why": "po (after) + time sequence → locative",
 		"difficulty": "A2",
 		"semanticTags": ["season"]
 	},
@@ -2337,7 +2337,7 @@
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "",
-		"why": "'Děkovat' (to thank) governs the dative case.",
+		"why": "děkovat (to thank) → dative",
 		"difficulty": "A2",
 		"excludesCategories": ["unique_relation"]
 	},
@@ -2349,7 +2349,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "za",
-		"why": "'Za' (in/after) takes the accusative case when expressing time duration.",
+		"why": "za (in) + time from now → accusative (za hodinu = in an hour)",
 		"difficulty": "A2"
 	},
 	{
@@ -2360,7 +2360,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "za",
-		"why": "'Za' (in/after) takes the accusative case when expressing time duration.",
+		"why": "za (in) + time from now → accusative (za hodinu = in an hour)",
 		"difficulty": "A2"
 	},
 	{
@@ -2370,7 +2370,7 @@
 		"requiredCase": "loc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Na' (on) takes the locative case in the expression 'záležet na' (to depend on).",
+		"why": "záležet na (to depend on) → locative",
 		"difficulty": "A2"
 	},
 	{
@@ -2380,7 +2380,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "od",
-		"why": "'Od' (from) takes the genitive case when expressing the starting point of a time period.",
+		"why": "od (from) + start of a time period → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["time_point"]
 	},
@@ -2391,7 +2391,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "do",
-		"why": "'Do' (until/to) takes the genitive case when expressing the end point of a time period.",
+		"why": "do (until) + end of a time period → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["time_point"]
 	},
@@ -2404,7 +2404,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Být' (to be) takes the instrumental case when expressing profession or occupation.",
+		"why": "být + profession → instrumental",
 		"difficulty": "A2"
 	},
 	{
@@ -2415,7 +2415,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Stát se' (to become) takes the instrumental case when expressing a change of profession or role.",
+		"why": "stát se (to become) + new profession/role → instrumental",
 		"difficulty": "B1",
 		"requiredGender": "m"
 	},
@@ -2428,7 +2428,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Být' (to be) takes the instrumental case when expressing profession or occupation.",
+		"why": "být + profession → instrumental",
 		"difficulty": "A2"
 	},
 	{
@@ -2438,7 +2438,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "The genitive case expresses possession — 'dům otce' means 'father's house'.",
+		"why": "possession: noun + owner → genitive (dům otce = father's house)",
 		"difficulty": "A2"
 	},
 	{
@@ -2448,7 +2448,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "The genitive case expresses possession — 'auto bratra' means 'brother's car'.",
+		"why": "possession: noun + owner → genitive (auto bratra = brother's car)",
 		"difficulty": "A2"
 	},
 	{
@@ -2459,7 +2459,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "After quantity words like 'kousek' (a piece of), the noun takes the genitive case.",
+		"why": "quantity word (kousek = a piece of) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -2470,7 +2470,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "After units of measurement like 'kilo', the noun takes the genitive case.",
+		"why": "unit of measure (kilo) → genitive",
 		"difficulty": "A2"
 	},
 	{
@@ -2481,7 +2481,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Těšit se na' (to look forward to) takes 'na' + accusative case.",
+		"why": "těšit se na (to look forward to) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -2491,7 +2491,7 @@
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "na",
-		"why": "'Myslet na' (to think about) takes 'na' + accusative case.",
+		"why": "myslet na (to think about) → accusative",
 		"difficulty": "A2"
 	},
 	{
@@ -2501,7 +2501,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "díky",
-		"why": "'Díky' (thanks to) always takes the dative case.",
+		"why": "díky (thanks to) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -2511,7 +2511,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "díky",
-		"why": "'Díky' (thanks to) always takes the dative case.",
+		"why": "díky (thanks to) → dative",
 		"difficulty": "A2"
 	},
 	{
@@ -2521,7 +2521,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When calling out to a family member, Czech uses the vocative case for direct address.",
+		"why": "calling a family member → vocative",
 		"difficulty": "A1",
 		"semanticTags": ["address_informal"]
 	},
@@ -2533,7 +2533,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "m",
-		"why": "Formal letter salutations use the vocative case — 'Vážený pane řediteli' (Dear Director). The title after 'pane' is also in the vocative.",
+		"why": "formal letter: vážený pane + title → title in vocative (vážený pane řediteli)",
 		"difficulty": "A2",
 		"semanticTags": ["formal_title"]
 	},
@@ -2545,7 +2545,7 @@
 		"number": "sg",
 		"trigger": "",
 		"requiredGender": "f",
-		"why": "Formal letter salutations use the vocative case — 'Vážená paní doktorko' (Dear Doctor). The title after 'paní' is also in the vocative.",
+		"why": "formal letter: vážená paní + title → title in vocative (vážená paní doktorko)",
 		"difficulty": "A2",
 		"semanticTags": ["formal_title"]
 	},
@@ -2556,7 +2556,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When making a personal request and addressing someone by name, Czech uses the vocative case.",
+		"why": "personal request (prosím tě) → vocative",
 		"difficulty": "A1",
 		"semanticTags": ["address_informal"]
 	},
@@ -2567,7 +2567,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When warning someone, Czech uses the vocative case for direct address.",
+		"why": "warning someone → vocative",
 		"difficulty": "A1",
 		"semanticTags": ["address_informal"]
 	},
@@ -2578,7 +2578,7 @@
 		"requiredCase": "voc",
 		"number": "sg",
 		"trigger": "",
-		"why": "When reassuring someone, Czech uses the vocative case for direct address.",
+		"why": "reassuring someone → vocative",
 		"difficulty": "A1",
 		"semanticTags": ["address_informal"]
 	},
@@ -2589,7 +2589,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Bát se' (to be afraid of) governs the genitive case.",
+		"why": "bát se (to be afraid of) → genitive",
 		"difficulty": "A1"
 	},
 	{
@@ -2599,7 +2599,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "dost",
-		"why": "'Dost' (enough) is a quantifier and takes the genitive.",
+		"why": "dost (enough) + noun → genitive",
 		"difficulty": "A1",
 		"semanticTags": ["mass"]
 	},
@@ -2610,7 +2610,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "Container + noun: the contents are in the genitive (a glass of water).",
+		"why": "container + contents → genitive (sklenice vody)",
 		"difficulty": "A1"
 	},
 	{
@@ -2620,7 +2620,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Kousek' (a piece) is a quantifier and takes the genitive.",
+		"why": "kousek (a piece of) → genitive",
 		"difficulty": "A1",
 		"excludesCategories": ["drink"]
 	},
@@ -2631,7 +2631,7 @@
 		"requiredCase": "gen",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Trochu' (a little) is a quantifier and takes the genitive.",
+		"why": "trochu (a little) → genitive",
 		"difficulty": "A1",
 		"semanticTags": ["mass"]
 	},
@@ -2642,7 +2642,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "The recipient of 'psát' (to write to someone) takes the dative.",
+		"why": "psát (to write) + recipient → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -2652,7 +2652,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "The recipient of 'kupovat' (to buy) takes the dative — the person you're buying for.",
+		"why": "kupovat (to buy) + person bought for → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -2662,7 +2662,7 @@
 		"requiredCase": "dat",
 		"number": "sg",
 		"trigger": "",
-		"why": "'Pomáhat' (to help) governs the dative case.",
+		"why": "pomáhat (to help) → dative",
 		"difficulty": "A1"
 	},
 	{
@@ -2672,7 +2672,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -2682,7 +2682,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	},
 	{
@@ -2692,7 +2692,7 @@
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
-		"why": "'S' (with) always takes the instrumental case.",
+		"why": "s (with) → instrumental",
 		"difficulty": "A1"
 	}
 ]

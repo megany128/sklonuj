@@ -7,7 +7,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'dům' (masc. inanimate) in nominative singular.",
+		"why": "agrees with dům · masc. inanimate · nominative sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"],
 		"nounLemma": "dům"
@@ -20,7 +20,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'kniha' (feminine) in nominative singular.",
+		"why": "agrees with kniha · feminine · nominative sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "kniha"
@@ -33,7 +33,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'město' (neuter) in nominative singular.",
+		"why": "agrees with město · neuter · nominative sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -46,7 +46,7 @@
 		"trigger": "z",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'Z' takes genitive. The adjective agrees with 'města' (neuter) in genitive singular.",
+		"why": "z (from) → genitive\nagrees with města · neuter · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -59,7 +59,7 @@
 		"trigger": "od",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "'Od' takes genitive. The adjective agrees with 'autorky' (feminine) in genitive singular.",
+		"why": "od (from) → genitive\nagrees with autorky · feminine · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "autorka"
@@ -72,7 +72,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Indirect object takes dative. The adjective agrees with 'student' (masc. animate) in dative singular.",
+		"why": "indirect object → dative\nagrees with studentovi · masc. animate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "student"
@@ -85,7 +85,7 @@
 		"trigger": "k",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "'K' takes dative. The adjective agrees with 'kamarádce' (feminine) in dative singular.",
+		"why": "k (to) → dative\nagrees with kamarádce · feminine · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kamarádka"
@@ -98,7 +98,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'strom' (masc. inanimate) in accusative singular.",
+		"why": "direct object → accusative\nagrees with strom · masc. inanimate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "strom"
@@ -111,7 +111,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'knihu' (feminine) in accusative singular.",
+		"why": "direct object → accusative\nagrees with knihu · feminine · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "kniha"
@@ -124,7 +124,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'auto' (neuter) in accusative singular.",
+		"why": "direct object → accusative\nagrees with auto · neuter · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "speed", "color", "object"],
 		"nounLemma": "auto"
@@ -137,7 +137,7 @@
 		"trigger": "v",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'V' (in) takes locative. The adjective agrees with 'domě' (masc. inanimate) in locative singular.",
+		"why": "v (in) → locative\nagrees with domě · masc. inanimate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"],
 		"nounLemma": "dům"
@@ -150,7 +150,7 @@
 		"trigger": "o",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'O' (about) takes locative. The adjective agrees with 'zemi' (feminine) in locative singular.",
+		"why": "o (about) → locative\nagrees with zemi · feminine · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "země"
@@ -163,7 +163,7 @@
 		"trigger": "v",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'V' takes locative. The adjective agrees with 'městě' (neuter) in locative singular.",
+		"why": "v (in) → locative\nagrees with městě · neuter · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -176,7 +176,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Instrumental of means. The adjective agrees with 'autem' (neuter) in instrumental singular.",
+		"why": "means (by/with what) → instrumental\nagrees with autem · neuter · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "speed", "color", "object"],
 		"nounLemma": "auto"
@@ -189,7 +189,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "Instrumental of path. The adjective agrees with 'ulicí' (feminine) in instrumental singular.",
+		"why": "path (along which) → instrumental\nagrees with ulicí · feminine · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "object", "temperature"],
 		"nounLemma": "ulice"
@@ -202,7 +202,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "The adjective agrees with 'studenti' (masc. animate plural) in nominative.",
+		"why": "agrees with studenti · masc. animate · nominative pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "student"
@@ -215,7 +215,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'knihy' (feminine plural) in nominative.",
+		"why": "agrees with knihy · feminine · nominative pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "kniha"
@@ -228,7 +228,7 @@
 		"trigger": "hodně",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'lidí' (masc. animate) in genitive plural.",
+		"why": "hodně (many) → genitive\nagrees with lidí · masc. animate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "člověk"
@@ -241,7 +241,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'věci' (feminine plural) in accusative.",
+		"why": "direct object → accusative\nagrees with věci · feminine · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "věc"
@@ -254,7 +254,7 @@
 		"trigger": "o",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'O' takes locative. The adjective agrees with 'městech' (neuter plural) in locative.",
+		"why": "o (about) → locative\nagrees with městech · neuter · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -267,7 +267,7 @@
 		"trigger": "s",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'S' (with) takes instrumental. The adjective agrees with 'přáteli' (masc. animate) in instrumental plural.",
+		"why": "s (with) → instrumental\nagrees with přáteli · masc. animate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "přítel"
@@ -280,7 +280,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "Indirect object takes dative. The adjective agrees with 'studentkám' (feminine plural) in dative.",
+		"why": "pomáhat (help) → dative\nagrees with studentkám · feminine · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "studentka"
@@ -293,7 +293,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Direct address takes vocative. The adjective agrees with 'pane' (masc. animate) in vocative singular.",
+		"why": "direct address → vocative\nagrees with pane · masc. animate · sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "pán"
@@ -306,7 +306,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'Vlakem' is instrumental — the adjective must agree in instrumental singular masculine inanimate.",
+		"why": "means (by what) → instrumental\nagrees with vlakem · masc. inanimate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "speed", "size", "color", "temperature", "object"],
 		"nounLemma": "vlak"
@@ -319,7 +319,7 @@
 		"trigger": "s",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'S' (with) takes instrumental. The adjective agrees with 'kamarádem' (masc. animate) in instrumental singular.",
+		"why": "s (with) → instrumental\nagrees with kamarádem · masc. animate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kamarád"
@@ -332,7 +332,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'Přátelé' is vocative plural — the adjective must match in vocative plural masculine animate.",
+		"why": "direct address → vocative\nagrees with přátelé · masc. animate · pl",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "přítel"
@@ -345,7 +345,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Direct object (animate) takes accusative=genitive. The adjective agrees with 'učitel' (masc. animate) in accusative singular.",
+		"why": "animate direct object → accusative (= genitive form)\nagrees with učitele · masc. animate · sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "učitel"
@@ -358,7 +358,7 @@
 		"trigger": "od",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'Od' takes genitive. The adjective agrees with 'kolegy' (masc. animate) in genitive singular.",
+		"why": "od (from) → genitive\nagrees with kolegy · masc. animate · sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kolega"
@@ -371,7 +371,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'stůl' (masc. inanimate) in nominative singular.",
+		"why": "agrees with stůl · masc. inanimate · nominative sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"],
 		"nounLemma": "stůl"
@@ -384,7 +384,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "The adjective agrees with 'žena' (feminine) in nominative singular.",
+		"why": "agrees with žena · feminine · nominative sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "žena"
@@ -397,7 +397,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'auto' (neuter) in nominative singular.",
+		"why": "agrees with auto · neuter · nominative sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "speed", "color"],
 		"nounLemma": "auto"
@@ -410,7 +410,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "The adjective agrees with 'kluk' (masc. animate) in nominative singular.",
+		"why": "agrees with kluk · masc. animate · nominative sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kluk"
@@ -423,7 +423,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'dům' (masc. inanimate) in accusative singular.",
+		"why": "direct object → accusative\nagrees with dům · masc. inanimate · sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "dům"
@@ -436,7 +436,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'tašku' (feminine) in accusative singular.",
+		"why": "direct object → accusative\nagrees with tašku · feminine · sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "taška"
@@ -449,7 +449,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'auto' (neuter) in accusative singular.",
+		"why": "direct object → accusative\nagrees with auto · neuter · sg",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "speed", "color", "object"],
 		"nounLemma": "auto"
@@ -462,7 +462,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'kočky' (feminine plural) in nominative.",
+		"why": "agrees with kočky · feminine · nominative pl",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "color", "speed", "person"],
 		"nounLemma": "kočka"
@@ -475,7 +475,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'auta' (neuter plural) in nominative.",
+		"why": "agrees with auta · neuter · nominative pl",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "speed", "color"],
 		"nounLemma": "auto"
@@ -488,7 +488,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'domy' (masc. inanimate plural) in nominative.",
+		"why": "agrees with domy · masc. inanimate · nominative pl",
 		"difficulty": "A1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "dům"
@@ -501,7 +501,7 @@
 		"trigger": "v",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'V' (in) takes locative. The adjective agrees with 'obchodě' (masc. inanimate) in locative singular.",
+		"why": "v (in) → locative\nagrees with obchodě · masc. inanimate · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "obchod"
@@ -514,7 +514,7 @@
 		"trigger": "v",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'V' takes locative. The adjective agrees with 'městě' (neuter) in locative singular.",
+		"why": "v (in) → locative\nagrees with městě · neuter · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -527,7 +527,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "The adjective agrees with 'muž' (masc. animate) in nominative singular.",
+		"why": "agrees with muž · masc. animate · nominative sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "muž"
@@ -540,7 +540,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'kočka' (feminine) in nominative singular.",
+		"why": "agrees with kočka · feminine · nominative sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "speed", "person"],
 		"nounLemma": "kočka"
@@ -553,7 +553,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'okno' (neuter) in nominative singular.",
+		"why": "agrees with okno · neuter · nominative sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -566,7 +566,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'svetr' (masc. inanimate) in accusative singular.",
+		"why": "direct object → accusative\nagrees with svetr · masc. inanimate · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature", "object"],
 		"nounLemma": "svetr"
@@ -579,7 +579,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'školu' (feminine) in accusative singular.",
+		"why": "direct object → accusative\nagrees with školu · feminine · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "škola"
@@ -592,7 +592,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'jídlo' (neuter) in accusative singular.",
+		"why": "direct object → accusative\nagrees with jídlo · neuter · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "temperature", "taste"],
 		"nounLemma": "jídlo"
@@ -605,7 +605,7 @@
 		"trigger": "blízko",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'Blízko' (near) takes genitive. The adjective agrees with 'parku' (masc. inanimate) in genitive singular.",
+		"why": "blízko (near) → genitive\nagrees with parku · masc. inanimate · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "park"
@@ -618,7 +618,7 @@
 		"trigger": "blízko",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'Blízko' (near) takes genitive. The adjective agrees with 'školy' (feminine) in genitive singular.",
+		"why": "blízko (near) → genitive\nagrees with školy · feminine · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "škola"
@@ -631,7 +631,7 @@
 		"trigger": "k",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'K' (toward) takes dative. The adjective agrees with 'domu' (masc. inanimate) in dative singular.",
+		"why": "k (toward) → dative\nagrees with domu · masc. inanimate · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "dům"
@@ -644,7 +644,7 @@
 		"trigger": "k",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'K' (toward) takes dative. The adjective agrees with 'náměstí' (neuter) in dative singular.",
+		"why": "k (toward) → dative\nagrees with náměstí · neuter · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "náměstí"
@@ -657,7 +657,7 @@
 		"trigger": "v",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'V' (in) takes locative. The adjective agrees with 'restauraci' (feminine) in locative singular.",
+		"why": "v (in) → locative\nagrees with restauraci · feminine · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "object", "temperature"],
 		"nounLemma": "restaurace"
@@ -670,7 +670,7 @@
 		"trigger": "o",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'O' (about) takes locative. The adjective agrees with 'kamarádovi' (masc. animate) in locative singular.",
+		"why": "o (about) → locative\nagrees with kamarádovi · masc. animate · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kamarád"
@@ -683,7 +683,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "Instrumental of means. The adjective agrees with 'lžící' (feminine) in instrumental singular.",
+		"why": "means (by/with what) → instrumental\nagrees with lžící · feminine · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "lžíce"
@@ -696,7 +696,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Instrumental of means. The adjective agrees with 'perem' (neuter) in instrumental singular.",
+		"why": "means (by/with what) → instrumental\nagrees with perem · neuter · sg",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "pero"
@@ -709,7 +709,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "The adjective agrees with 'kluci' (masc. animate plural) in nominative.",
+		"why": "agrees with kluci · masc. animate · nominative pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kluk"
@@ -722,7 +722,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'stoly' (masc. inanimate plural) in nominative.",
+		"why": "agrees with stoly · masc. inanimate · nominative pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "stůl"
@@ -735,7 +735,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'okna' (neuter plural) in nominative.",
+		"why": "agrees with okna · neuter · nominative pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -748,7 +748,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'stromy' (masc. inanimate plural) in accusative.",
+		"why": "direct object → accusative\nagrees with stromy · masc. inanimate · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "strom"
@@ -761,7 +761,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'okna' (neuter plural) in accusative.",
+		"why": "direct object → accusative\nagrees with okna · neuter · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -774,7 +774,7 @@
 		"trigger": "hodně",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'knih' (feminine plural) in genitive.",
+		"why": "hodně (many) → genitive\nagrees with knih · feminine · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "kniha"
@@ -787,7 +787,7 @@
 		"trigger": "hodně",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'měst' (neuter plural) in genitive.",
+		"why": "hodně (many) → genitive\nagrees with měst · neuter · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -800,7 +800,7 @@
 		"trigger": "hodně",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'stromů' (masc. inanimate plural) in genitive.",
+		"why": "hodně (many) → genitive\nagrees with stromů · masc. inanimate · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "strom"
@@ -813,7 +813,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Indirect object takes dative. The adjective agrees with 'psům' (masc. animate plural) in dative.",
+		"why": "indirect object → dative\nagrees with psům · masc. animate · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "pes"
@@ -826,7 +826,7 @@
 		"trigger": "k",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'K' (toward) takes dative. The adjective agrees with 'městům' (neuter plural) in dative.",
+		"why": "k (toward) → dative\nagrees with městům · neuter · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -839,7 +839,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Direct object takes accusative. The adjective agrees with 'kluky' (masc. animate plural) in accusative.",
+		"why": "direct object → accusative\nagrees with kluky · masc. animate · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kluk"
@@ -852,7 +852,7 @@
 		"trigger": "s",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "'S' (with) takes instrumental. The adjective agrees with 'kamarádkami' (feminine plural) in instrumental.",
+		"why": "s (with) → instrumental\nagrees with kamarádkami · feminine · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kamarádka"
@@ -865,7 +865,7 @@
 		"trigger": "mezi",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'Mezi' (between) takes instrumental. The adjective agrees with 'městy' (neuter plural) in instrumental.",
+		"why": "mezi (between) → instrumental\nagrees with městy · neuter · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -878,7 +878,7 @@
 		"trigger": "v",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'V' (in) takes locative. The adjective agrees with 'domech' (masc. inanimate plural) in locative.",
+		"why": "v (in) → locative\nagrees with domech · masc. inanimate · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "dům"
@@ -891,7 +891,7 @@
 		"trigger": "v",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'V' (in) takes locative. The adjective agrees with 'ulicích' (feminine plural) in locative.",
+		"why": "v (in) → locative\nagrees with ulicích · feminine · pl",
 		"difficulty": "A2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "ulice"
@@ -904,7 +904,7 @@
 		"trigger": "blízko",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'Blízko' (near) takes genitive. The adjective agrees with 'lesa' (masc. inanimate) in genitive singular.",
+		"why": "blízko (near) → genitive\nagrees with lesa · masc. inanimate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "les"
@@ -917,7 +917,7 @@
 		"trigger": "k",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'K' (toward) takes dative. The adjective agrees with 'kostelu' (masc. inanimate) in dative singular.",
+		"why": "k (toward) → dative\nagrees with kostelu · masc. inanimate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "object"],
 		"nounLemma": "kostel"
@@ -930,7 +930,7 @@
 		"trigger": "k",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'K' (toward) takes dative. The adjective agrees with 'oknu' (neuter) in dative singular.",
+		"why": "k (toward) → dative\nagrees with oknu · neuter · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -943,7 +943,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'města' (neuter plural) in nominative.",
+		"why": "agrees with města · neuter · nominative pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "město"
@@ -956,7 +956,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "The adjective agrees with 'stromy' (masc. inanimate plural) in nominative.",
+		"why": "agrees with stromy · masc. inanimate · nominative pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "strom"
@@ -969,7 +969,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Direct object takes accusative. The adjective agrees with 'studenty' (masc. animate plural) in accusative.",
+		"why": "direct object → accusative\nagrees with studenty · masc. animate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "student"
@@ -982,7 +982,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'domy' (masc. inanimate plural) in accusative.",
+		"why": "direct object → accusative\nagrees with domy · masc. inanimate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "dům"
@@ -995,7 +995,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Direct object takes accusative. The adjective agrees with 'okna' (neuter plural) in accusative.",
+		"why": "direct object → accusative\nagrees with okna · neuter · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -1008,7 +1008,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Indirect object takes dative. The adjective agrees with 'kolegům' (masc. animate plural) in dative.",
+		"why": "pomáhat (help) → dative\nagrees with kolegům · masc. animate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kolega"
@@ -1021,7 +1021,7 @@
 		"trigger": "k",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'K' (toward) takes dative. The adjective agrees with 'oknům' (neuter plural) in dative.",
+		"why": "k (toward) → dative\nagrees with oknům · neuter · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -1034,7 +1034,7 @@
 		"trigger": "o",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'O' (about) takes locative. The adjective agrees with 'bratrovi' (masc. animate) in locative singular.",
+		"why": "o (about) → locative\nagrees with bratrovi · masc. animate · sg",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "bratr"
@@ -1047,7 +1047,7 @@
 		"trigger": "o",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'O' (about) takes locative. The adjective agrees with 'domech' (masc. inanimate plural) in locative.",
+		"why": "o (about) → locative\nagrees with domech · masc. inanimate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "dům"
@@ -1060,7 +1060,7 @@
 		"trigger": "po",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'Po' (around/through) takes locative. The adjective agrees with 'zemích' (feminine plural) in locative.",
+		"why": "po (around/through) → locative\nagrees with zemích · feminine · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "země"
@@ -1073,7 +1073,7 @@
 		"trigger": "s",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "'S' (with) takes instrumental. The adjective agrees with 'kolegyněmi' (feminine plural) in instrumental.",
+		"why": "s (with) → instrumental\nagrees with kolegyněmi · feminine · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kolegyně"
@@ -1086,7 +1086,7 @@
 		"trigger": "za",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "Sedíme za + ins of plural neuter location.",
+		"why": "za (behind) + location → instrumental\nagrees with okny · neuter · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color", "temperature"],
 		"nounLemma": "okno"
@@ -1099,7 +1099,7 @@
 		"trigger": "hodně",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'kamarádek' (feminine plural) in genitive.",
+		"why": "hodně (many) → genitive\nagrees with kamarádek · feminine · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "kamarádka"
@@ -1112,7 +1112,7 @@
 		"trigger": "hodně",
 		"requiredGender": "n",
 		"requiredAnimate": false,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'míst' (neuter plural) in genitive.",
+		"why": "hodně (many) → genitive\nagrees with míst · neuter · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "místo"
@@ -1125,7 +1125,7 @@
 		"trigger": "hodně",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'Hodně' (many) takes genitive. The adjective agrees with 'obchodů' (masc. inanimate plural) in genitive.",
+		"why": "hodně (many) → genitive\nagrees with obchodů · masc. inanimate · pl",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "obchod"
@@ -1138,7 +1138,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "Direct address takes vocative. The adjective agrees with 'paní' (feminine) in vocative singular.",
+		"why": "direct address → vocative\nagrees with paní · feminine · sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "paní"
@@ -1151,7 +1151,7 @@
 		"trigger": "",
 		"requiredGender": "n",
 		"requiredAnimate": true,
-		"why": "Direct address takes vocative. The adjective agrees with 'dítě' (neuter) in vocative singular.",
+		"why": "direct address → vocative\nagrees with dítě · neuter · sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "dítě"
@@ -1164,7 +1164,7 @@
 		"trigger": "",
 		"requiredGender": "f",
 		"requiredAnimate": true,
-		"why": "Direct address takes vocative. The adjective agrees with 'dámy' (feminine plural) in vocative.",
+		"why": "direct address → vocative\nagrees with dámy · feminine · pl",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "dáma"
@@ -1177,7 +1177,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "The adjective agrees with 'doktor' (masc. animate) in nominative singular.",
+		"why": "agrees with doktor · masc. animate · nominative sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "doktor"
@@ -1190,7 +1190,7 @@
 		"trigger": "",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "Direct object (animate) takes accusative=genitive. The adjective agrees with 'lékaře' (masc. animate) in accusative singular.",
+		"why": "animate direct object → accusative (= genitive form)\nagrees with lékaře · masc. animate · sg",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "lékař"
@@ -1203,7 +1203,7 @@
 		"trigger": "o",
 		"requiredGender": "m",
 		"requiredAnimate": true,
-		"why": "'O' (about) takes locative. The adjective agrees with 'studentech' (masc. animate plural) in locative.",
+		"why": "o (about) → locative\nagrees with studentech · masc. animate · pl",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "person"],
 		"nounLemma": "student"
@@ -1216,7 +1216,7 @@
 		"trigger": "mezi",
 		"requiredGender": "m",
 		"requiredAnimate": false,
-		"why": "'Mezi' (between) takes instrumental. The adjective agrees with 'lesy' (masc. inanimate plural) in instrumental.",
+		"why": "mezi (between) → instrumental\nagrees with lesy · masc. inanimate · pl",
 		"difficulty": "B2",
 		"adjectiveCategories": ["universal", "size", "color"],
 		"nounLemma": "les"

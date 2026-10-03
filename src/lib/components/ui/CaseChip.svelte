@@ -19,6 +19,7 @@
 <span class="inline-flex items-baseline gap-1 whitespace-nowrap font-semibold text-text-default"
 	><span
 		class="inline-flex size-4 translate-y-[2px] items-center justify-center self-start rounded-full text-[10px] font-bold text-white"
-		style="background-color: {CASE_HEX[case_]}">{CASE_NUMBER[case_]}</span
+		style="background-color: {CASE_HEX[case_]}"
+		><span class="digit-nudge">{CASE_NUMBER[case_]}</span></span
 	>{CASE_LABELS[case_]}{plural ? ' plural' : ''}</span
 >

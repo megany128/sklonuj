@@ -180,7 +180,7 @@ polovina,half,f,false,žena,A2,"misc,abstract",polovina,poloviny,polovině,polov
 republika,republic,f,false,žena,A1,"misc,places,v_place,region",republika,republiky,republice,republiku,republiko,republice,republikou,republiky,republik,republikám,republiky,republiky,republikách,republikami
 názor,opinion,m,false,hrad,A2,"misc,abstract",názor,názoru,názoru,názor,názore,názoru,názorem,názory,názorů,názorům,názory,názory,názorech,názory
 prostředí,environment,n,false,stavení,A2,"misc,abstract",prostředí,prostředí,prostředí,prostředí,prostředí,prostředí,prostředím,prostředí,prostředí,prostředím,prostředí,prostředí,prostředích,prostředími
-léto,summer,n,false,město,A1,"time,season,mass,time_point",léto,léta,létu,léto,léto,létě,létem,léta,lét,létům,léta,léta,létech,léty
+léto,summer,n,false,město,A1,"time,season,time_point",léto,léta,létu,léto,léto,létě,létem,léta,lét,létům,léta,léta,létech,léty
 zpráva,news,f,false,žena,A1,"misc,readable",zpráva,zprávy,zprávě,zprávu,zprávo,zprávě,zprávou,zprávy,zpráv,zprávám,zprávy,zprávy,zprávách,zprávami
 osoba,person,f,false,žena,A1,"misc,people",osoba,osoby,osobě,osobu,osobo,osobě,osobou,osoby,osob,osobám,osoby,osoby,osobách,osobami
 století,century,n,false,stavení,A2,"time,era",století,století,století,století,století,století,stoletím,století,století,stoletím,století,století,stoletích,stoletími
@@ -226,7 +226,7 @@ byt,flat,m,false,hrad,A1,"places,v_place,dwelling,lockable",byt,bytu,bytu,byt,by
 stránka,page,f,false,žena,A2,"misc,abstract",stránka,stránky,stránce,stránku,stránko,stránce,stránkou,stránky,stránek,stránkám,stránky,stránky,stránkách,stránkami
 centrum,centre,n,false,město,A1,"places,v_place,dwelling",centrum,centra,centru,centrum,centrum,centru,centrem,centra,center,centrům,centra,centra,centrech,centry
 okamžik,moment,m,false,hrad,A1,"time,duration,in_time",okamžik,okamžiku,okamžiku,okamžik,okamžiku,okamžiku,okamžikem,okamžiky,okamžiků,okamžikům,okamžiky,okamžiky,okamžicích,okamžiky
-metr,metre,m,false,hrad,A1,"misc,abstract",metr,metru,metru,metr,metre,metru,metrem,metry,metrů,metrům,metry,metry,metrech,metry
+metr,metre,m,false,hrad,A1,"misc,abstract",metr,metru,metru,metr,metře,metru,metrem,metry,metrů,metrům,metry,metry,metrech,metry
 holka,girl,f,false,žena,A1,"people,address_informal,address_group",holka,holky,holce,holku,holko,holce,holkou,holky,holek,holkám,holky,holky,holkách,holkami
 bůh,God,m,true,pán,A1,"misc,abstract",bůh,boha,bohu,boha,bože,bohu,bohem,bohové,bohů,bohům,bohy,bohové,bozích,bohy
 spousta,plenty,f,false,žena,A1,"misc,abstract",spousta,spousty,spoustě,spoustu,spousto,spoustě,spoustou,spousty,spoust,spoustám,spousty,spousty,spoustách,spoustami
@@ -284,7 +284,7 @@ název,title,m,false,hrad,A1,"misc,abstract",název,názvu,názvu,název,názve,
 máma,mum,f,false,žena,A1,"family,address_informal,unique_relation",máma,mámy,mámě,mámu,mámo,mámě,mámou,mámy,mám,mámám,mámy,mámy,mámách,mámami
 šéf,boss,m,true,pán,A1,"misc,people,address_formal",šéf,šéfa,šéfovi,šéfa,šéfe,šéfovi,šéfem,šéfové,šéfů,šéfům,šéfy,šéfové,šéfech,šéfy
 pozornost,attention,f,false,kost,B1,"misc,abstract",pozornost,pozornosti,pozornosti,pozornost,pozornosti,pozornosti,pozorností,pozornosti,pozorností,pozornostem,pozornosti,pozornosti,pozornostech,pozornostmi
-zima,winter,f,false,žena,A1,"time,season,adversity,mass,time_point,whole_span",zima,zimy,zimě,zimu,zimo,zimě,zimou,zimy,zim,zimám,zimy,zimy,zimách,zimami
+zima,winter,f,false,žena,A1,"time,season,adversity,time_point,whole_span",zima,zimy,zimě,zimu,zimo,zimě,zimou,zimy,zim,zimám,zimy,zimy,zimách,zimami
 prezident,president,m,true,pán,A1,"misc,people,profession,title,formal_title",prezident,prezidenta,prezidentovi,prezidenta,prezidente,prezidentovi,prezidentem,prezidenti,prezidentů,prezidentům,prezidenty,prezidenti,prezidentech,prezidenty
 politika,politics,f,false,žena,A2,"misc,abstract",politika,politiky,politice,politiku,politiko,politice,politikou,politiky,politik,politikám,politiky,politiky,politikách,politikami
 sobota,Saturday,f,false,žena,A1,"time,calendar_unit,time_point",sobota,soboty,sobotě,sobotu,soboto,sobotě,sobotou,soboty,sobot,sobotám,soboty,soboty,sobotách,sobotami
@@ -445,7 +445,7 @@ ráno,morning,n,false,město,A1,"time,calendar_unit,time_point",ráno,rána,rán
 scéna,scene,f,false,žena,B1,"misc,abstract",scéna,scény,scéně,scénu,scéno,scéně,scénou,scény,scén,scénám,scény,scény,scénách,scénami
 projev,expression,m,false,hrad,B1,"misc,abstract",projev,projevu,projevu,projev,projeve,projevu,projevem,projevy,projevů,projevům,projevy,projevy,projevech,projevy
 moc,power,f,false,kost,A2,"misc,abstract",moc,moci,moci,moc,moci,moci,mocí,moci,mocí,mocím,moci,moci,mocích,mocemi
-kilometr,kilometre,m,false,hrad,A1,"misc,abstract",kilometr,kilometru,kilometru,kilometr,kilometre,kilometru,kilometrem,kilometry,kilometrů,kilometrům,kilometry,kilometry,kilometrech,kilometry
+kilometr,kilometre,m,false,hrad,A1,"misc,abstract",kilometr,kilometru,kilometru,kilometr,kilometře,kilometru,kilometrem,kilometry,kilometrů,kilometrům,kilometry,kilometry,kilometrech,kilometry
 proud,stream,m,false,hrad,B1,"misc,abstract",proud,proudu,proudu,proud,proude,proudu,proudem,proudy,proudů,proudům,proudy,proudy,proudech,proudy
 výběr,selection,m,false,hrad,B1,"misc,event",výběr,výběru,výběru,výběr,výběre,výběru,výběrem,výběry,výběrů,výběrům,výběry,výběry,výběrech,výběry
 osobnost,personality,f,false,kost,A2,abstract,osobnost,osobnosti,osobnosti,osobnost,osobnosti,osobnosti,osobností,osobnosti,osobností,osobnostem,osobnosti,osobnosti,osobnostech,osobnostmi
@@ -469,7 +469,7 @@ loď,ship,f,false,píseň,A1,transportation,loď,lodě,lodi,loď,lodi,lodi,lodí
 vrstva,layer,f,false,žena,A2,"misc,abstract",vrstva,vrstvy,vrstvě,vrstvu,vrstvo,vrstvě,vrstvou,vrstvy,vrstev,vrstvám,vrstvy,vrstvy,vrstvách,vrstvami
 orgán,organ,m,false,hrad,A2,"misc,abstract",orgán,orgánu,orgánu,orgán,orgáne,orgánu,orgánem,orgány,orgánů,orgánům,orgány,orgány,orgánech,orgány
 objekt,object,m,false,hrad,A2,"misc,abstract",objekt,objektu,objektu,objekt,objekte,objektu,objektem,objekty,objektů,objektům,objekty,objekty,objektech,objekty
-jaro,spring,n,false,město,A1,"time,season,mass,time_point",jaro,jara,jaru,jaro,jaro,jaru,jarem,jara,jar,jarům,jara,jara,jarech,jary
+jaro,spring,n,false,město,A1,"time,season,time_point,mass",jaro,jara,jaru,jaro,jaro,jaru,jarem,jara,jar,jarům,jara,jara,jarech,jary
 plocha,surface,f,false,žena,A1,"misc,abstract",plocha,plochy,ploše,plochu,plocho,ploše,plochou,plochy,ploch,plochám,plochy,plochy,plochách,plochami
 potíž,trouble,f,false,píseň,A2,"misc,abstract,adversity",potíž,potíže,potíži,potíž,potíži,potíži,potíží,potíže,potíží,potížím,potíže,potíže,potížích,potížemi
 stroj,machine,m,false,stroj,A1,objects,stroj,stroje,stroji,stroj,stroji,stroji,strojem,stroje,strojů,strojům,stroje,stroje,strojích,stroji
@@ -572,7 +572,7 @@ nemoc,illness,f,false,kost,A1,"abstract,adversity",nemoc,nemoci,nemoci,nemoc,nem
 srpen,August,m,false,hrad,A1,"time,calendar_unit,time_point",srpen,srpna,srpnu,srpen,srpne,srpnu,srpnem,srpny,srpnů,srpnům,srpny,srpny,srpnech,srpny
 jistota,confidence,f,false,žena,B1,"misc,abstract",jistota,jistoty,jistotě,jistotu,jistoto,jistotě,jistotou,jistoty,jistot,jistotám,jistoty,jistoty,jistotách,jistotami
 kategorie,category,f,false,růže,B1,"misc,abstract",kategorie,kategorie,kategorii,kategorii,kategorie,kategorii,kategorií,kategorie,kategorií,kategoriím,kategorie,kategorie,kategoriích,kategoriemi
-podzim,autumn,m,false,hrad,A1,"time,season,mass,time_point,whole_span",podzim,podzimu,podzimu,podzim,podzime,podzimu,podzimem,podzimy,podzimů,podzimům,podzimy,podzimy,podzimech,podzimy
+podzim,autumn,m,false,hrad,A1,"time,season,time_point,whole_span,mass",podzim,podzimu,podzimu,podzim,podzime,podzimu,podzimem,podzimy,podzimů,podzimům,podzimy,podzimy,podzimech,podzimy
 důkaz,proof,m,false,hrad,B1,"misc,abstract",důkaz,důkazu,důkazu,důkaz,důkaze,důkaze,důkazem,důkazy,důkazů,důkazům,důkazy,důkazy,důkazech,důkazy
 postoj,posture,m,false,stroj,B1,"misc,abstract",postoj,postoje,postoji,postoj,postoji,postoji,postojem,postoje,postojů,postojům,postoje,postoje,postojích,postoji
 díl,part,m,false,hrad,A1,"misc,abstract",díl,dílu,dílu,díl,díle,dílu,dílem,díly,dílů,dílům,díly,díly,dílech,díly
@@ -981,7 +981,7 @@ jed,poison,m,false,hrad,B1,"misc,abstract",jed,jedu,jedu,jed,jede,jedu,jedem,jed
 kapela,band,f,false,žena,A1,"misc,abstract",kapela,kapely,kapele,kapelu,kapelo,kapele,kapelou,kapely,kapel,kapelám,kapely,kapely,kapelách,kapelami
 dopad,impact,m,false,hrad,A2,"misc,abstract",dopad,dopadu,dopadu,dopad,dopade,dopadu,dopadem,dopady,dopadů,dopadům,dopady,dopady,dopadech,dopady
 přestávka,break,f,false,žena,B1,"misc,abstract",přestávka,přestávky,přestávce,přestávku,přestávko,přestávce,přestávkou,přestávky,přestávek,přestávkám,přestávky,přestávky,přestávkách,přestávkami
-centimetr,centimetre,m,false,hrad,A1,"misc,abstract",centimetr,centimetru,centimetru,centimetr,centimetre,centimetru,centimetrem,centimetry,centimetrů,centimetrům,centimetry,centimetry,centimetrech,centimetry
+centimetr,centimetre,m,false,hrad,A1,"misc,abstract",centimetr,centimetru,centimetru,centimetr,centimetře,centimetru,centimetrem,centimetry,centimetrů,centimetrům,centimetry,centimetry,centimetrech,centimetry
 nerv,nerve,m,false,hrad,B1,"misc,abstract",nerv,nervu,nervu,nerv,nerve,nervu,nervem,nervy,nervů,nervům,nervy,nervy,nervech,nervy
 kolej,rail,f,false,píseň,B1,"misc,places,na_place",kolej,koleje,koleji,kolej,koleji,koleji,kolejí,koleje,kolejí,kolejím,koleje,koleje,kolejích,kolejemi
 vchod,entrance,m,false,hrad,A1,"misc,abstract",vchod,vchodu,vchodu,vchod,vchode,vchodu,vchodem,vchody,vchodů,vchodům,vchody,vchody,vchodech,vchody
@@ -1012,7 +1012,7 @@ zákaz,prohibition,m,false,hrad,A2,"misc,abstract,adversity",zákaz,zákazu,zák
 vlastník,owner,m,true,pán,A2,"misc,people",vlastník,vlastníka,vlastníkovi,vlastníka,vlastníku,vlastníkovi,vlastníkem,vlastníci,vlastníků,vlastníkům,vlastníky,vlastníci,vlastnících,vlastníky
 poznatek,(piece of) knowledge,m,false,hrad,A2,"misc,abstract",poznatek,poznatku,poznatku,poznatek,poznatku,poznatku,poznatkem,poznatky,poznatků,poznatkům,poznatky,poznatky,poznatcích,poznatky
 vědec,scholar,m,true,muž,A1,"misc,profession",vědec,vědce,vědci,vědce,vědče,vědci,vědcem,vědci,vědců,vědcům,vědce,vědci,vědcích,vědci
-litr,litre,m,false,hrad,A2,"misc,abstract",litr,litru,litru,litr,litre,litru,litrem,litry,litrů,litrům,litry,litry,litrech,litry
+litr,litre,m,false,hrad,A2,"misc,abstract",litr,litru,litru,litr,litře,litru,litrem,litry,litrů,litrům,litry,litry,litrech,litry
 nápis,inscription,m,false,hrad,A2,"misc,readable",nápis,nápisu,nápisu,nápis,nápise,nápise,nápisem,nápisy,nápisů,nápisům,nápisy,nápisy,nápisech,nápisy
 hrob,grave,m,false,hrad,A2,"misc,abstract",hrob,hrobu,hrobu,hrob,hrobe,hrobě,hrobem,hroby,hrobů,hrobům,hroby,hroby,hrobech,hroby
 důchod,pension,m,false,hrad,A2,"misc,abstract",důchod,důchodu,důchodu,důchod,důchode,důchodě,důchodem,důchody,důchodů,důchodům,důchody,důchody,důchodech,důchody
@@ -1074,7 +1074,7 @@ příkaz,order,m,false,hrad,A2,"misc,abstract",příkaz,příkazu,příkazu,př�
 snídaně,breakfast,f,false,růže,A1,"food,meal,mealtime",snídaně,snídaně,snídani,snídani,snídaně,snídani,snídaní,snídaně,snídaní,snídaním,snídaně,snídaně,snídaních,snídaněmi
 filozofie,philosophy,f,false,růže,A2,"misc,abstract",filozofie,filozofie,filozofii,filozofii,filozofie,filozofii,filozofií,filozofie,filozofií,filozofiím,filozofie,filozofie,filozofiích,filozofiemi
 malíř,painter,m,true,muž,A2,"misc,people,profession",malíř,malíře,malíři,malíře,malíři,malíři,malířem,malíři,malířů,malířům,malíře,malíři,malířích,malíři
-cukr,sugar,m,false,hrad,A1,"food,weighable,mass",cukr,cukru,cukru,cukr,cukre,cukru,cukrem,cukry,cukrů,cukrům,cukry,cukry,cukrech,cukry
+cukr,sugar,m,false,hrad,A1,"food,weighable,mass",cukr,cukru,cukru,cukr,cukře,cukru,cukrem,cukry,cukrů,cukrům,cukry,cukry,cukrech,cukry
 půlnoc,midnight,f,false,kost,A2,"time,calendar_unit,time_point",půlnoc,půlnoci,půlnoci,půlnoc,půlnoci,půlnoci,půlnocí,půlnoci,půlnocí,půlnocím,půlnoci,půlnoci,půlnocích,půlnocemi
 hospodářství,economy,n,false,stavení,A2,"misc,abstract",hospodářství,hospodářství,hospodářství,hospodářství,hospodářství,hospodářství,hospodářstvím,hospodářství,hospodářství,hospodářstvím,hospodářství,hospodářství,hospodářstvích,hospodářstvími
 vyšetřování,investigation,n,false,stavení,B1,"misc,abstract",vyšetřování,vyšetřování,vyšetřování,vyšetřování,vyšetřování,vyšetřování,vyšetřováním,vyšetřování,vyšetřování,vyšetřováním,vyšetřování,vyšetřování,vyšetřováních,vyšetřováními
@@ -1354,7 +1354,7 @@ obtíž,trouble,f,false,píseň,A2,"misc,abstract,adversity",obtíž,obtíže,ob
 zrušení,cancellation,n,false,stavení,B1,"misc,abstract",zrušení,zrušení,zrušení,zrušení,zrušení,zrušení,zrušením,zrušení,zrušení,zrušením,zrušení,zrušení,zrušeních,zrušeními
 plátno,cloth,n,false,město,B1,"misc,abstract",plátno,plátna,plátnu,plátno,plátno,plátně,plátnem,plátna,pláten,plátnům,plátna,plátna,plátnech,plátny
 oddíl,section,m,false,hrad,A2,"misc,abstract",oddíl,oddílu,oddílu,oddíl,oddíle,oddíle,oddílem,oddíly,oddílů,oddílům,oddíly,oddíly,oddílech,oddíly
-kufr,suitcase,m,false,hrad,A1,"objects,portable",kufr,kufru,kufru,kufr,kufre,kufru,kufrem,kufry,kufrů,kufrům,kufry,kufry,kufrech,kufry
+kufr,suitcase,m,false,hrad,A1,"objects,portable",kufr,kufru,kufru,kufr,kufře,kufru,kufrem,kufry,kufrů,kufrům,kufry,kufry,kufrech,kufry
 financování,financing,n,false,stavení,B1,"misc,abstract",financování,financování,financování,financování,financování,financování,financováním,financování,financování,financováním,financování,financování,financováních,financováními
 záběr,stroke,m,false,hrad,A2,"misc,abstract",záběr,záběru,záběru,záběr,záběre,záběru,záběrem,záběry,záběrů,záběrům,záběry,záběry,záběrech,záběry
 lůžko,bed,n,false,město,A1,"objects,sittable,large_object",lůžko,lůžka,lůžku,lůžko,lůžko,lůžku,lůžkem,lůžka,lůžek,lůžkům,lůžka,lůžka,lůžkách,lůžky
@@ -1417,7 +1417,7 @@ krabička,box,f,false,žena,A2,"objects,portable",krabička,krabičky,krabičce,
 sebevražda,suicide,f,false,žena,A2,"misc,abstract",sebevražda,sebevraždy,sebevraždě,sebevraždu,sebevraždo,sebevraždě,sebevraždou,sebevraždy,sebevražd,sebevraždám,sebevraždy,sebevraždy,sebevraždách,sebevraždami
 minimum,minimum,n,false,město,B1,"misc,abstract",minimum,minima,minimu,minimum,minimum,minimu,minimem,minima,minim,minimům,minima,minima,minimech,minimy
 zastávka,stop,f,false,žena,A1,"misc,abstract",zastávka,zastávky,zastávce,zastávku,zastávko,zastávce,zastávkou,zastávky,zastávek,zastávkám,zastávky,zastávky,zastávkách,zastávkami
-parametr,parameter,m,false,hrad,B2,"misc,abstract",parametr,parametru,parametru,parametr,parametre,parametru,parametrem,parametry,parametrů,parametrům,parametry,parametry,parametrech,parametry
+parametr,parameter,m,false,hrad,B2,"misc,abstract",parametr,parametru,parametru,parametr,parametře,parametru,parametrem,parametry,parametrů,parametrům,parametry,parametry,parametrech,parametry
 bouře,storm,f,false,růže,A2,"nature,weather,adversity",bouře,bouře,bouři,bouři,bouře,bouři,bouří,bouře,bouří,bouřím,bouře,bouře,bouřích,bouřemi
 kauza,case,f,false,žena,A2,"misc,abstract",kauza,kauzy,kauze,kauzu,kauzo,kauze,kauzou,kauzy,kauz,kauzám,kauzy,kauzy,kauzách,kauzami
 záchrana,rescue,f,false,žena,A2,"misc,abstract",záchrana,záchrany,záchraně,záchranu,záchrano,záchraně,záchranou,záchrany,záchran,záchranám,záchrany,záchrany,záchranách,záchranami
@@ -1941,7 +1941,7 @@ zájezd,trip,m,false,hrad,B1,"misc,abstract",zájezd,zájezdu,zájezdu,zájezd,z
 zánik,termination,m,false,hrad,A2,"misc,abstract",zánik,zániku,zániku,zánik,zániku,zániku,zánikem,zániky,zániků,zánikům,zániky,zániky,zánicích,zániky
 stehno,thigh,n,false,město,A2,"body,surface_body,paired_body",stehno,stehna,stehnu,stehno,stehno,stehně,stehnem,stehna,stehen,stehnům,stehna,stehna,stehnech,stehny
 aparát,machinery,m,false,hrad,B1,"objects,portable",aparát,aparátu,aparátu,aparát,aparáte,aparátě,aparátem,aparáty,aparátů,aparátům,aparáty,aparáty,aparátech,aparáty
-orchestr,orchestra,m,false,hrad,A2,"misc,abstract",orchestr,orchestru,orchestru,orchestr,orchestre,orchestru,orchestrem,orchestry,orchestrů,orchestrům,orchestry,orchestry,orchestrech,orchestry
+orchestr,orchestra,m,false,hrad,A2,"misc,abstract",orchestr,orchestru,orchestru,orchestr,orchestře,orchestru,orchestrem,orchestry,orchestrů,orchestrům,orchestry,orchestry,orchestrech,orchestry
 psychologie,psychology,f,false,růže,A2,"misc,abstract",psychologie,psychologie,psychologii,psychologii,psychologie,psychologii,psychologií,psychologie,psychologií,psychologiím,psychologie,psychologie,psychologiích,psychologiemi
 výslech,interrogation,m,false,hrad,A2,"misc,abstract",výslech,výslechu,výslechu,výslech,výslechu,výslechu,výslechem,výslechy,výslechů,výslechům,výslechy,výslechy,výsleších,výslechy
 lednička,fridge,f,false,žena,A1,"objects,large_object",lednička,ledničky,ledničce,ledničku,ledničko,ledničce,ledničkou,ledničky,ledniček,ledničkám,ledničky,ledničky,ledničkách,ledničkami
@@ -2218,7 +2218,7 @@ dušička,All Souls Day,f,false,žena,B1,no_templates,dušička,dušičky,duši�
 valentýn,Valentine’s Day,m,false,hrad,B1,"time,holiday",valentýn,valentýnu,valentýnu,valentýn,valentýne,valentýnu,valentýnem,valentýny,valentýnů,valentýnům,valentýny,valentýny,valentýnech,valentýny
 Vánoce,Christmas,f,false,růže,A1,"misc,abstract",,,,,,,,Vánoce,Vánoc,Vánocům,Vánoce,Vánoce,Vánocích,Vánocemi
 Velikonoce,Easter,f,false,růže,A1,"misc,abstract",,,,,,,,Velikonoce,Velikonoc,Velikonocům,Velikonoce,Velikonoce,Velikonocích,Velikonocemi
-silvestr,New Year’s Eve,m,false,hrad,B1,"time,holiday",silvestr,silvestru,silvestru,silvestr,silvestre,silvestru,silvestrem,silvestry,silvestrů,silvestrům,silvestry,silvestry,silvestrech,silvestry
+silvestr,New Year’s Eve,m,false,hrad,B1,"time,holiday",silvestr,silvestru,silvestru,silvestr,silvestře,silvestru,silvestrem,silvestry,silvestrů,silvestrům,silvestry,silvestry,silvestrech,silvestry
 autoservis,car-repair shop,m,false,hrad,B1,"places,v_place",autoservis,autoservisu,autoservisu,autoservis,autoservise,autoservise,autoservisem,autoservisy,autoservisů,autoservisům,autoservisy,autoservisy,autoservisech,autoservisy
 čistírna,dry-cleaner‘s,f,false,žena,A2,"misc,abstract",čistírna,čistírny,čistírně,čistírnu,čistírno,čistírně,čistírnou,čistírny,čistíren,čistírnám,čistírny,čistírny,čistírnách,čistírnami
 dělení,division,n,false,stavení,B1,"misc,abstract",dělení,dělení,dělení,dělení,dělení,dělení,dělením,dělení,dělení,dělením,dělení,dělení,děleních,děleními
@@ -2353,7 +2353,7 @@ realismus,Realism,m,false,hrad,B1,"misc,abstract",realismus,realismu,realismu,re
 romantismus,Romanticism,m,false,hrad,B1,abstract,romantismus,romantismu,romantismu,romantismus,romantisme,romantismu,romantismem,romantismy,romantismů,romantismům,romantismy,romantismy,romantismech,romantismy
 surrealismus,Surrealism,m,false,hrad,B1,"misc,abstract",surrealismus,surrealismu,surrealismu,surrealismus,surrealisme,surrealismu,surrealismem,surrealismy,surrealismů,surrealismům,surrealismy,surrealismy,surrealismech,surrealismy
 underground,underground,m,false,hrad,B1,"misc,abstract",underground,undergroundu,undergroundu,underground,undergrounde,undergroundu,undergroundem,undergroundy,undergroundů,undergroundům,undergroundy,undergroundy,undergroundech,undergroundy
-žánr,genre,m,false,hrad,B1,"misc,abstract",žánr,žánru,žánru,žánr,žánre,žánru,žánrem,žánry,žánrů,žánrům,žánry,žánry,žánrech,žánry
+žánr,genre,m,false,hrad,B1,"misc,abstract",žánr,žánru,žánru,žánr,žánře,žánru,žánrem,žánry,žánrů,žánrům,žánry,žánry,žánrech,žánry
 přírůstek,increment/increase,m,false,hrad,B2,"misc,abstract",přírůstek,přírůstku,přírůstku,přírůstek,přírůstku,přírůstku,přírůstkem,přírůstky,přírůstků,přírůstkům,přírůstky,přírůstky,přírůstcích,přírůstky
 přehmat,blunder/misstep,m,false,hrad,B2,"misc,abstract",přehmat,přehmatu,přehmatu,přehmat,přehmate,přehmatu,přehmatem,přehmaty,přehmatů,přehmatům,přehmaty,přehmaty,přehmatech,přehmaty
 průlom,breakthrough,m,false,hrad,B2,"misc,abstract",průlom,průlomu,průlomu,průlom,průlome,průlomu,průlomem,průlomy,průlomů,průlomům,průlomy,průlomy,průlomech,průlomy
@@ -2651,7 +2651,7 @@ komička,female comedian,f,true,žena,A2,people,komička,komičky,komičce,komi�
 konzerva,"tin, can",f,false,žena,A2,objects,konzerva,konzervy,konzervě,konzervu,konzervo,konzervě,konzervou,konzervy,konzerv,konzervám,konzervy,konzervy,konzervách,konzervami
 punkerka,female punk,f,true,žena,A2,people,punkerka,punkerky,punkerce,punkerku,punkerko,punkerce,punkerkou,punkerky,punkerek,punkerkám,punkerky,punkerky,punkerkách,punkerkami
 rolák,turtleneck,m,false,hrad,A1,clothing,rolák,roláku,roláku,rolák,roláku,roláku,rolákem,roláky,roláků,rolákům,roláky,roláky,rolácích,roláky
-svetr,sweater; pullover,m,false,hrad,A1,"objects,clothing,portable",svetr,svetru,svetru,svetr,svetre,svetru,svetrem,svetry,svetrů,svetrům,svetry,svetry,svetrech,svetry
+svetr,sweater; pullover,m,false,hrad,A1,"objects,clothing,portable",svetr,svetru,svetru,svetr,svetře,svetru,svetrem,svetry,svetrů,svetrům,svetry,svetry,svetrech,svetry
 triko,T-shirt,n,false,město,A2,"misc,objects",triko,trika,triku,triko,triko,triku,trikem,trika,trik,trikům,trika,trika,trikách,triky
 citrón,lemon,m,false,hrad,A1,food,citrón,citrónu,citrónu,citrón,citróne,citrónu,citrónem,citróny,citrónů,citrónům,citróny,citróny,citrónech,citróny
 doktorát,doctorate,m,false,hrad,A2,abstract,doktorát,doktorátu,doktorátu,doktorát,doktoráte,doktorátě,doktorátem,doktoráty,doktorátů,doktorátům,doktoráty,doktoráty,doktorátech,doktoráty

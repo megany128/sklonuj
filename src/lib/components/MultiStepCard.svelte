@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import CircleX from '@lucide/svelte/icons/circle-x';
 	import type {
@@ -22,6 +21,7 @@
 	import SubmittedAnswer from '$lib/components/ui/SubmittedAnswer.svelte';
 	import AnswerDiff from '$lib/components/ui/AnswerDiff.svelte';
 	import CaseChip from '$lib/components/ui/CaseChip.svelte';
+	import WhyNote from '$lib/components/ui/WhyNote.svelte';
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
@@ -51,57 +51,21 @@
 	// and fall through to the gender-based explanation.
 	const HARD_CONSONANTS = new Set(['h', 'k', 'g', 'd', 't', 'n', 'r']);
 
+	/** Terse reason a lemma belongs to its paradigm: "hrad: masculine inanimate · ends in hard -d". */
 	function getParadigmExplanation(lemma: string, paradigm: ParadigmEntry): string {
 		const lastChar = lemma.slice(-1).toLowerCase();
 		const genderLabel =
-			paradigm.gender === 'm' ? 'masculine' : paradigm.gender === 'f' ? 'feminine' : 'neuter';
-		const animateLabel = paradigm.animate ? 'animate' : 'inanimate';
-
-		// Ending-based paradigms
-		if (lastChar === 'a' && paradigm.gender === 'f') {
-			return `"${lemma}" ends in -a and is feminine, so it follows the ${paradigm.exampleLemma} paradigm.`;
-		}
-		if (lastChar === 'a' && paradigm.gender === 'm') {
-			return `"${lemma}" ends in -a but is masculine animate, so it follows the ${paradigm.exampleLemma} paradigm.`;
-		}
-		if (lastChar === 'e' || lastChar === 'ě') {
-			if (paradigm.gender === 'f') {
-				return `"${lemma}" ends in -${lastChar} and is feminine, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-			if (paradigm.gender === 'n') {
-				return `"${lemma}" ends in -${lastChar} and is neuter, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-			if (paradigm.gender === 'm') {
-				return `"${lemma}" ends in -${lastChar} and is masculine animate, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-		}
-		if (lastChar === 'o' && paradigm.gender === 'n') {
-			return `"${lemma}" ends in -o and is neuter, so it follows the ${paradigm.exampleLemma} paradigm.`;
-		}
-		if (lastChar === 'í' && paradigm.gender === 'n') {
-			return `"${lemma}" ends in -í and is neuter, so it follows the ${paradigm.exampleLemma} paradigm.`;
-		}
-
-		// Consonant-ending paradigms
-		if (SOFT_CONSONANTS.has(lastChar)) {
-			if (paradigm.gender === 'm') {
-				return `"${lemma}" ends in the soft consonant -${lastChar} and is ${genderLabel} ${animateLabel}, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-			if (paradigm.gender === 'f') {
-				return `"${lemma}" ends in the soft consonant -${lastChar} and is feminine, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-		}
-		if (HARD_CONSONANTS.has(lastChar)) {
-			if (paradigm.gender === 'm') {
-				return `"${lemma}" ends in the hard consonant -${lastChar} and is ${genderLabel} ${animateLabel}, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-			if (paradigm.gender === 'f') {
-				return `"${lemma}" ends in the hard consonant -${lastChar} and is feminine, so it follows the ${paradigm.exampleLemma} paradigm.`;
-			}
-		}
-
-		// Fallback
-		return `"${lemma}" is ${genderLabel}${paradigm.gender === 'm' ? ` ${animateLabel}` : ''}, so it follows the ${paradigm.exampleLemma} paradigm.`;
+			paradigm.gender === 'm'
+				? `masculine ${paradigm.animate ? 'animate' : 'inanimate'}`
+				: paradigm.gender === 'f'
+					? 'feminine'
+					: 'neuter';
+		const ending = SOFT_CONSONANTS.has(lastChar)
+			? `soft -${lastChar}`
+			: HARD_CONSONANTS.has(lastChar)
+				? `hard -${lastChar}`
+				: `-${lastChar}`;
+		return `${lemma}: ${genderLabel} · ends in ${ending}`;
 	}
 
 	let {
@@ -612,7 +576,7 @@
 									<FeedbackVerdict tone="correct" title="Correct!">
 										<span class="text-text-subtitle">
 											{paradigmExplanation ??
-												`${question.word.lemma} follows the ${correctParadigmEntry?.exampleLemma} paradigm (${correctParadigmEntry?.name})`}
+												`${correctParadigmEntry?.exampleLemma} paradigm · ${correctParadigmEntry?.name}`}
 										</span>
 									</FeedbackVerdict>
 								{:else}
@@ -682,8 +646,8 @@
 									</FeedbackVerdict>
 								{:else}
 									<FeedbackVerdict tone="wrong" title="Not quite">
-										{#if selectedCase}You picked <CaseChip case_={selectedCase} />.{/if}
-										This sentence needs the <CaseChip case_={question.correctCase} />.
+										{#if selectedCase}You picked <CaseChip case_={selectedCase} /> —{/if}
+										needed <CaseChip case_={question.correctCase} />
 										{#if question.template.why}
 											<span class="mt-1 block text-text-subtitle">{question.template.why}</span>
 										{/if}
@@ -814,7 +778,7 @@
 								<div class="flex w-full max-w-md flex-col gap-4">
 									{#if formNearMiss}
 										<FeedbackVerdict tone="almost" title="Almost — check the accents">
-											The letters are right, but accents change the word and count at this level.
+											Right letters, but accents count here.
 										</FeedbackVerdict>
 									{:else}
 										<FeedbackVerdict tone="wrong" title="Not quite" />
@@ -835,23 +799,8 @@
 							{/if}
 
 							{#if formCorrect && whyNote}
-								<div class="w-full max-w-md border-t border-darker-subtitle/30 pt-3">
-									<div class="mb-2 flex items-center justify-center gap-1.5">
-										<Lightbulb class="h-3.5 w-3.5 text-darker-subtitle" aria-hidden="true" />
-										<p class="text-xs font-semibold text-darker-subtitle">Why?</p>
-									</div>
-									{#if templateWhy}
-										<p class="text-center text-sm leading-relaxed text-darker-subtitle">
-											{templateWhy}
-										</p>
-									{/if}
-									<p
-										class="text-center text-sm leading-relaxed {templateWhy
-											? 'mt-1.5'
-											: ''} text-text-subtitle"
-									>
-										{whyNote}
-									</p>
+								<div class="w-full max-w-md">
+									<WhyNote {templateWhy} {whyNote} />
 								</div>
 
 								<FeedbackDeclensionChart

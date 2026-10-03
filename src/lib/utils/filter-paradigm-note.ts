@@ -1,147 +1,265 @@
 import type { Case, Number_, WordEntry } from '$lib/types';
-import { CASE_INDEX } from '$lib/types';
+import { CASE_INDEX, isParadigm } from '$lib/types';
+import { matchedEndings } from './paradigm-endings';
 
-function lemmaStem(lemma: string): string {
-	if (/[aoe]$/i.test(lemma)) return lemma.slice(0, -1);
-	return lemma;
-}
+/**
+ * Paradigm `whyNotes` are terse rule lines separated by "\n":
+ *
+ *   hrad-type · locative sg → -ě or -u (na hradě, ve vlaku)
+ *   Before -ě: k→c (rok → roce), r→ř (papír → papíře)
+ *   After h/ch: -u (na břehu, o smíchu)
+ *   Fleeting e drops: dárek → dárku
+ *
+ * Learners shouldn't have to work out which paradigm their word is or which of
+ * several endings it took, so the first line is rewritten around the drilled
+ * word ("park → parku: ending -u"). Every later line is a
+ * gotcha, kept only when this word's form for this case actually shows it.
+ */
 
-function hasFleetingE(word: WordEntry): boolean {
-	const lemma = word.lemma;
-	if (!/[bcčdďfghjklmnňprřsštťvzž]e[bcčdďfghjklmnňprřsštťvzž]$/i.test(lemma)) return false;
-	const stripped = (lemma.slice(0, -2) + lemma.slice(-1)).toLowerCase();
-	const genSg = (word.forms.sg[CASE_INDEX.gen] ?? '').toLowerCase();
-	const datSg = (word.forms.sg[CASE_INDEX.dat] ?? '').toLowerCase();
-	return genSg.startsWith(stripped) || datSg.startsWith(stripped);
-}
-
-function splitSentences(text: string): string[] {
-	// Protect abbreviations whose internal period would otherwise split the sentence.
-	const protectedText = text
-		.replace(/\be\.g\./gi, 'e__DOT__g__DOT__')
-		.replace(/\bi\.e\./gi, 'i__DOT__e__DOT__');
-	const matches = protectedText.match(/[^.!?]+[.!?]+/g);
-	if (!matches) return [text];
-	return matches.map((s) => s.replace(/__DOT__/g, '.').trim()).filter(Boolean);
-}
-
-interface LemmaTraits {
-	endsK: boolean;
-	endsR: boolean;
-	endsH: boolean;
-	endsCh: boolean;
-	fleeting: boolean;
-}
-
-/** Trim irrelevant alternations inside a single sentence in place — drop
- * "k→c", "r→ř", "h/ch take -u", "ch→š" sub-clauses that the lemma doesn't
- * exercise. Returns null if the whole sentence becomes empty after pruning. */
-function pruneSentence(sentence: string, t: LemmaTraits): string | null {
-	let s = sentence;
-
-	// Strip "k→c (...)", "r→ř (...)", "h→z (...)", "ch→š (...)" alternation
-	// fragments when the lemma doesn't end in that consonant. The fragments
-	// appear as comma-separated lists inside "Watch out: ..." or "Before -ě: ..."
-	// sentences, so we treat each as an optional comma-prefixed unit.
-	const alternations: Array<{ pattern: RegExp; keep: boolean }> = [
-		{ pattern: /(,\s*)?k→c(\s*\([^)]*\))?/g, keep: t.endsK },
-		{ pattern: /(,\s*)?r→ř(\s*\([^)]*\))?/g, keep: t.endsR },
-		{ pattern: /(,\s*)?h→z(\s*\([^)]*\))?/g, keep: t.endsH },
-		{ pattern: /(,\s*)?ch→š(\s*\([^)]*\))?/g, keep: t.endsCh }
-	];
-	for (const { pattern, keep } of alternations) {
-		if (!keep) s = s.replace(pattern, '');
-	}
-
-	// "; nouns with h/ch take -u instead (e.g. břehu, smíchu)" — only relevant
-	// if lemma stem ends in h or ch.
-	if (!t.endsH && !t.endsCh) {
-		s = s.replace(/;\s*nouns with h\/ch take -u instead(\s*\([^)]*\))?/gi, '');
-	}
-
-	// Clean up dangling punctuation/whitespace left by removals.
-	s = s.replace(/:\s*[,;]+\s*/g, ': ');
-	s = s.replace(/,\s*,/g, ',');
-	s = s.replace(/\s*,\s*\./g, '.');
-	s = s.replace(/\s*;\s*\./g, '.');
-	s = s.replace(/\s{2,}/g, ' ').trim();
-
-	// If a "Watch out: ..." or "Before -ě: ..." preamble survived but lost all
-	// its alternations, drop the whole sentence — the preamble alone has no
-	// information.
-	if (/^(Watch out:|Before -ě:)\s*\.?$/i.test(s)) return null;
-	if (/^(Watch out: some consonants change before -[^:]*:\s*\.?)$/i.test(s)) return null;
-	if (/^Before -ě:\s*\.?$/i.test(s)) return null;
-
-	return s;
+export interface NoteSlot {
+	case: Case;
+	number: Number_;
 }
 
 /**
- * Trim "Watch out / Before -ě / fleeting e" clauses from a paradigm note when
- * they don't apply to the specific word being drilled. Always keeps the first
- * sentence (the main rule).
+ * The form the learner is shown for this cell, as a one-item list (empty if
+ * the cell has no form). Notes explain only this form: an accepted variant
+ * (domu beside domě, svetře beside svetre) would otherwise drag in an ending
+ * or alternation the shown form doesn't have.
  */
-export function filterParadigmNote(
-	note: string,
-	word: WordEntry,
-	_case: Case,
-	_number: Number_
-): string {
-	const sentences = splitSentences(note);
-	if (sentences.length <= 1) return note;
-
-	const stem = lemmaStem(word.lemma.toLowerCase());
-	const lastCh = stem.slice(-1);
-	const lastTwo = stem.slice(-2);
-	const traits: LemmaTraits = {
-		endsK: lastCh === 'k',
-		endsR: lastCh === 'r',
-		endsH: lastCh === 'h' && lastTwo !== 'ch',
-		endsCh: lastTwo === 'ch',
-		fleeting: hasFleetingE(word)
-	};
-
-	const kept: string[] = [sentences[0]];
-	for (let i = 1; i < sentences.length; i++) {
-		const s = sentences[i];
-
-		// Fleeting-e clause
-		if (/fleeting e|-ek\/-ec/i.test(s)) {
-			if (traits.fleeting) kept.push(s);
-			continue;
-		}
-
-		// Sentences referencing consonant alternation or h/ch -u choice:
-		// prune sub-clauses individually rather than dropping wholesale.
-		if (
-			/Before -ě:/i.test(s) ||
-			/Watch out.*consonants change/i.test(s) ||
-			/h\/ch take -u/i.test(s) ||
-			/After these soft consonants/i.test(s)
-		) {
-			const pruned = pruneSentence(s, traits);
-			if (pruned) kept.push(pruned);
-			continue;
-		}
-
-		kept.push(s);
-	}
-
-	return kept.join(' ');
+function shownForms(word: WordEntry, slot: NoteSlot): string[] {
+	const primary = word.forms[slot.number][CASE_INDEX[slot.case]];
+	return primary ? [primary.toLowerCase()] : [];
 }
 
+function lemmaStem(lemma: string): string {
+	if (/[aoeě]$/i.test(lemma)) return lemma.slice(0, -1);
+	return lemma;
+}
+
+/** The lemma with its fleeting e removed (dárek → dárk), or null if it has none. */
+function fleetingStem(word: WordEntry): string | null {
+	const lemma = word.lemma.toLowerCase();
+	if (!/[bcčdďfghjklmnňprřsštťvzž]e[bcčdďfghjklmnňprřsštťvzž]$/.test(lemma)) return null;
+	const stripped = lemma.slice(0, -2) + lemma.slice(-1);
+	const genSg = (word.forms.sg[CASE_INDEX.gen] ?? '').toLowerCase();
+	const datSg = (word.forms.sg[CASE_INDEX.dat] ?? '').toLowerCase();
+	return genSg.startsWith(stripped) || datSg.startsWith(stripped) ? stripped : null;
+}
+
+interface WordFacts {
+	lemma: string;
+	/** Primary form for the drilled case — used as the example in kept gotchas. */
+	form: string;
+	stem: string;
+	forms: string[];
+	fleeting: string | null;
+	/** declensionNote with spaces removed, to spot alternations it already explains. */
+	ownNote: string;
+}
+
+/** `ch→š` comes before `h→z` so the h inside ch is never read as a plain h. */
+const ALTERNATIONS: Array<{ token: string; from: string; to: string }> = [
+	{ token: 'ch→š', from: 'ch', to: 'š' },
+	{ token: 'k→c', from: 'k', to: 'c' },
+	{ token: 'r→ř', from: 'r', to: 'ř' },
+	{ token: 'h→z', from: 'h', to: 'z' }
+];
+
+function alternationIn(item: string): (typeof ALTERNATIONS)[number] | null {
+	return ALTERNATIONS.find((alt) => item.includes(alt.token)) ?? null;
+}
+
+/** The alternation shows in this word's form (rok → roce), and the word's own
+ * note doesn't already explain it. */
+function alternationShows(alt: (typeof ALTERNATIONS)[number], f: WordFacts): boolean {
+	if (f.ownNote.includes(alt.token)) return false;
+	if (!f.stem.endsWith(alt.from)) return false;
+	if (alt.from === 'h' && f.stem.endsWith('ch')) return false;
+	const changed = f.stem.slice(0, -alt.from.length) + alt.to;
+	return f.forms.some((form) => form.startsWith(changed));
+}
+
+/** Split on commas outside parentheses: "k→c (rok → roce), r→ř" → two items. */
+function splitTopLevel(text: string): string[] {
+	const items: string[] = [];
+	let depth = 0;
+	let current = '';
+	for (const ch of text) {
+		if (ch === '(') depth++;
+		else if (ch === ')') depth = Math.max(0, depth - 1);
+		if (ch === ',' && depth === 0) {
+			items.push(current.trim());
+			current = '';
+		} else {
+			current += ch;
+		}
+	}
+	items.push(current.trim());
+	return items.filter(Boolean);
+}
+
+/** "After h/ch: -u (…)" — stems ending in the listed consonants take that ending. */
+const AFTER_CONSONANTS = /^After ([a-zčďňřšťž]{1,2}(?:\/[a-zčďňřšťž]{1,2})*):\s*-(\S+)/;
+/** "Spelling: -e after c/z/ř (…)" */
+const SPELLING = /^Spelling: -(\S+) after ([a-zčďňřšťž](?:\/[a-zčďňřšťž])*)/;
+
+/** Swap a gotcha's stock example ("(ruka → ruce)") for the drilled word's own
+ * ("(kočka → kočce)"), so the learner sees the rule on the word in front of them. */
+function withOwnExample(text: string, f: WordFacts): string {
+	const own = `(${f.lemma} → ${f.form})`;
+	const trailing = /\s*\([^)]*\)\s*$/;
+	return trailing.test(text) ? text.replace(trailing, ` ${own}`) : `${text} ${own}`;
+}
+
+/** Returns the gotcha line as it should be shown for this word, or null to drop it. */
+function pruneLine(line: string, f: WordFacts): string | null {
+	if (/^Fleeting e\b/i.test(line)) {
+		const stem = f.fleeting;
+		if (!stem || !f.forms.some((form) => form.startsWith(stem))) return null;
+		return `${line.slice(0, line.indexOf(':'))}: ${f.lemma} → ${f.form}`;
+	}
+
+	const after = AFTER_CONSONANTS.exec(line);
+	if (after) {
+		const consonants = after[1].split('/');
+		const ending = after[2];
+		return consonants.some((c) => f.stem.endsWith(c)) &&
+			f.forms.some((form) => form.endsWith(ending))
+			? withOwnExample(line, f)
+			: null;
+	}
+
+	const spelling = SPELLING.exec(line);
+	if (spelling) {
+		const ending = spelling[1];
+		const letters = spelling[2].split('/');
+		return f.forms.some((form) => letters.some((l) => form.endsWith(l + ending)))
+			? withOwnExample(line, f)
+			: null;
+	}
+
+	if (/\bno ending\b/i.test(line) && /^Watch:/.test(line)) {
+		return f.forms.some((form) => form === f.stem) ? withOwnExample(line, f) : null;
+	}
+
+	const colon = line.indexOf(':');
+	if (colon === -1 || !ALTERNATIONS.some((alt) => line.includes(alt.token))) return line;
+
+	// An alternation list: keep the alternations this word's form shows, plus
+	// any item naming none. A list left with no alternation says nothing.
+	const label = line.slice(0, colon);
+	const items = splitTopLevel(line.slice(colon + 1));
+	let keptAlternation = false;
+	const kept: string[] = [];
+	for (const item of items) {
+		const alt = alternationIn(item);
+		if (!alt) {
+			kept.push(item);
+		} else if (alternationShows(alt, f)) {
+			kept.push(withOwnExample(item, f));
+			keptAlternation = true;
+		}
+	}
+	if (!keptAlternation) return null;
+	return `${label}: ${kept.join(', ')}`;
+}
+
+/** "ending -ě or -u", "no ending", "no ending or -í". */
+function describeEndings(endings: string[]): string {
+	const parts = endings.map((e) => (e === '' ? 'no ending' : `-${e}`));
+	const text = parts.join(' or ');
+	return parts[0].startsWith('-') ? `ending ${text}` : text;
+}
+
+/**
+ * Rewrite the paradigm's rule line around the drilled word:
+ *   "hrad-type · locative sg → -ě or -u (na hradě, ve vlaku)"
+ *   → "park → parku: ending -u"
+ * "Same as <case>" rules keep that wording ("pán → pána: same as genitive").
+ * Returns null when the word's form can't be described, so the original stays.
+ */
+function wordRuleLine(ruleLine: string, word: WordEntry, slot: NoteSlot): string | null {
+	const primary = word.forms[slot.number][CASE_INDEX[slot.case]];
+	if (!primary || !isParadigm(word.paradigm)) return null;
+
+	const sameAs =
+		/→ same as (nominative|genitive|dative|accusative|vocative|locative|instrumental)\b/.exec(
+			ruleLine
+		);
+	let what: string;
+	if (sameAs) {
+		what = `same as ${sameAs[1]}`;
+	} else {
+		// Describe only the form we show; accepted variants (domu beside domě)
+		// would add an ending the learner can't see.
+		const endings = matchedEndings(word.paradigm, slot.case, slot.number, [primary]);
+		// The paradigm's endings don't describe this form (lidé, chlapče): say so
+		// rather than quoting a rule the word breaks.
+		if (endings.length === 0) {
+			return primary === word.lemma ? null : `${word.lemma} → ${primary}: irregular form`;
+		}
+		what = describeEndings(endings);
+	}
+
+	return primary === word.lemma ? `${word.lemma}: ${what}` : `${word.lemma} → ${primary}: ${what}`;
+}
+
+/**
+ * Tailor one paradigm note to the drilled word: rewrite the rule line around
+ * the word's own form, and keep only the gotchas its form for this case
+ * actually shows.
+ */
+export function filterParadigmNote(note: string, word: WordEntry, slot: NoteSlot): string {
+	const lines = note.split('\n');
+	const facts: WordFacts = {
+		lemma: word.lemma,
+		form: word.forms[slot.number][CASE_INDEX[slot.case]] || word.lemma,
+		stem: lemmaStem(word.lemma.toLowerCase()),
+		forms: shownForms(word, slot),
+		fleeting: fleetingStem(word),
+		ownNote: (word.declensionNote ?? '').replace(/\s+/g, '')
+	};
+
+	const kept: string[] = [wordRuleLine(lines[0], word, slot) ?? lines[0]];
+	const own = ` (${facts.lemma} → ${facts.form})`;
+	let ownShown = false;
+	for (const line of lines.slice(1)) {
+		let pruned = pruneLine(line, facts);
+		if (!pruned) continue;
+		// Show the word's own example once; a second gotcha on the same form
+		// would only repeat it.
+		if (pruned.endsWith(own)) {
+			if (ownShown) pruned = pruned.slice(0, -own.length);
+			ownShown = true;
+		}
+		kept.push(pruned);
+	}
+	return kept.join('\n');
+}
+
+const CASE_KEY = /^(nom|gen|dat|acc|voc|loc|ins)_(sg|pl)$/;
+
+function parseSlot(key: string): NoteSlot | null {
+	const match = CASE_KEY.exec(key);
+	if (!match) return null;
+	const c = match[1];
+	const n = match[2];
+	const cases: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
+	const found = cases.find((x) => x === c);
+	if (!found) return null;
+	return { case: found, number: n === 'pl' ? 'pl' : 'sg' };
+}
+
+/** Tailor every case note of a paradigm to `word`. */
 export function filterParadigmNotes(
 	notes: Record<string, string>,
 	word: WordEntry
 ): Record<string, string> {
 	const out: Record<string, string> = {};
 	for (const [key, val] of Object.entries(notes)) {
-		const m = key.match(/^(nom|gen|dat|acc|voc|loc|ins)_(sg|pl)$/);
-		if (!m) {
-			out[key] = val;
-			continue;
-		}
-		out[key] = filterParadigmNote(val, word, m[1] as Case, m[2] as Number_);
+		const slot = parseSlot(key);
+		out[key] = slot ? filterParadigmNote(val, word, slot) : val;
 	}
 	return out;
 }
