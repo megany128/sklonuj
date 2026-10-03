@@ -348,7 +348,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
 		name: 'Tvrdý i Měkký',
 		description: 'Practice both hard and soft paradigm adjectives',
 		icon: '\u{1F9CA}',
-		condition: 'Drill both hard (-y) and soft (-i) adjectives',
+		condition: 'Drill both hard (-ý) and soft (-í) adjectives',
 		check: () => hasHardAndSoftAdjectiveAttempts()
 	}
 ];

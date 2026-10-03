@@ -43,23 +43,9 @@
 	}));
 
 	const SOFT_CONSONANTS = new Set(['ž', 'š', 'č', 'ř', 'ď', 'ť', 'ň', 'j', 'c']);
-	const HARD_CONSONANTS = new Set([
-		'h',
-		'k',
-		'g',
-		'd',
-		't',
-		'n',
-		'r',
-		'b',
-		'p',
-		'v',
-		'f',
-		'm',
-		'l',
-		's',
-		'z'
-	]);
+	// Czech hard consonants. b, p, v, f, m, l, s, z are "obojetné" (neither hard nor soft)
+	// and fall through to the gender-based explanation.
+	const HARD_CONSONANTS = new Set(['h', 'k', 'g', 'd', 't', 'n', 'r']);
 
 	function getParadigmExplanation(lemma: string, paradigm: ParadigmEntry): string {
 		const lastChar = lemma.slice(-1).toLowerCase();

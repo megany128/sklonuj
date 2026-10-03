@@ -78,10 +78,10 @@
 
 	const possessiveHeaders = ['Case', 'Masc', 'Fem', 'Neut', 'Pl'];
 	const possessiveRows = [
-		['Nom', 'můj', 'moje/má', 'moje/mé', 'moji/mí (anim), moje/mé'],
+		['Nom', 'můj', 'moje/má', 'moje/mé', 'moji/mí (m. anim.), moje/mé (m. inan., f), moje/má (n)'],
 		['Gen', 'mého', 'mojí/mé', 'mého', 'mých'],
 		['Dat', 'mému', 'mojí/mé', 'mému', 'mým'],
-		['Acc', 'mého/můj', 'moji/mou', 'moje/mé', 'moje/mé'],
+		['Acc', 'mého/můj', 'moji/mou', 'moje/mé', 'moje/mé (m, f), moje/má (n)'],
 		['Loc', 'mém', 'mojí/mé', 'mém', 'mých'],
 		['Ins', 'mým', 'mojí/mou', 'mým', 'mými']
 	];

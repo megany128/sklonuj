@@ -101,6 +101,7 @@
 	} from '$lib/engine/cell-pools';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
+	import { capitalizeSentence } from '$lib/utils/sentence-case';
 	import { recordPractice } from '$lib/engine/streak';
 	import {
 		loadPronounBank,
@@ -121,7 +122,8 @@
 		getAdjectiveGenderKey,
 		getAdjectiveForm,
 		getAllAdjectiveAcceptedForms,
-		adjectiveMatchesNoun
+		adjectiveMatchesNoun,
+		adjectiveAllowedInNumber
 	} from '$lib/engine/adjective-drill';
 	import {
 		speak,
@@ -2753,7 +2755,7 @@
 			// "krátký alkohol" that the prior person/object binary missed.
 			const validAdjs = adjCandidates.filter((a) => {
 				if (getAdjectiveForm(a, genderKey, case_, number_) === null) return false;
-				return adjectiveMatchesNoun(a, word);
+				return adjectiveAllowedInNumber(a, number_) && adjectiveMatchesNoun(a, word);
 			});
 			if (validAdjs.length === 0) return null;
 			const adj = pickAdjective(validAdjs, prog, case_, number_, word);
@@ -3177,10 +3179,13 @@
 									'animals'
 								];
 								const isPersonNoun = word.categories.some((c) => PERSON_CATEGORIES.includes(c));
-								const compatAdjs = adjCands.filter((a) =>
-									a.categories.some(
-										(c) => c === 'universal' || (isPersonNoun ? c === 'person' : c === 'object')
-									)
+								const compatAdjs = adjCands.filter(
+									(a) =>
+										a.categories.some(
+											(c) => c === 'universal' || (isPersonNoun ? c === 'person' : c === 'object')
+										) &&
+										adjectiveAllowedInNumber(a, template.number) &&
+										adjectiveMatchesNoun(a, word)
 								);
 								if (compatAdjs.length > 0) {
 									const adj = pickAdjective(
@@ -3890,16 +3895,21 @@
 				q.template.id !== '_pronoun_form_production' &&
 				q.template.id !== '_adj_form_production'
 			) {
-				const form = q.word.forms[q.number][CASE_INDEX[q.case]];
+				// Adjective and pronoun drills fill the blank with the adjective / pronoun
+				// form; q.word is the agreeing noun or an empty placeholder there.
+				const form =
+					q.wordCategory === 'adjective' || q.wordCategory === 'pronoun'
+						? q.correctAnswer
+						: q.word.forms[q.number][CASE_INDEX[q.case]];
 				const voiced = applyPrepositionVoicing(q.template.template, form);
 				if (q.drillType === 'case_identification') {
-					sentence = voiced.replace('___', `[${form}]`);
+					sentence = capitalizeSentence(voiced.replace('___', `[${form}]`));
 					prompt = `Identify the case: ${sentence}`;
 				} else if (q.drillType === 'sentence_fill_in') {
-					sentence = voiced.replace('___', form);
+					sentence = capitalizeSentence(voiced.replace('___', form));
 					prompt = `Fill in [${lemma}]: ${voiced}`;
 				} else {
-					sentence = voiced.replace('___', form);
+					sentence = capitalizeSentence(voiced.replace('___', form));
 				}
 			}
 			if (!prompt) {
@@ -4039,7 +4049,7 @@
 			if (result.question.template) {
 				const form = result.question.correctForm;
 				const voiced = applyPrepositionVoicing(result.question.template.template, form);
-				msSentence = voiced.replace('___', `[${form}]`);
+				msSentence = capitalizeSentence(voiced.replace('___', `[${form}]`));
 				msPrompt = `Full analysis [${result.question.word.lemma}]: ${voiced}`;
 			}
 			const msMistake: AssignmentMistake = {
@@ -4248,7 +4258,7 @@
 	<title>Czech Declension Practice & Noun Case Trainer — Skloňuj</title>
 	<meta
 		name="description"
-		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 12 paradigms & adjective-noun agreement."
+		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 14 paradigms & adjective-noun agreement."
 	/>
 	<meta
 		name="keywords"
@@ -4260,7 +4270,7 @@
 	<meta property="og:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		property="og:description"
-		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 12 paradigms & adjective-noun agreement."
+		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 14 paradigms & adjective-noun agreement."
 	/>
 	<meta property="og:url" content="https://sklonuj.com" />
 	<meta property="og:type" content="website" />
@@ -4273,7 +4283,7 @@
 	<meta name="twitter:title" content="Skloňuj — Czech Declension Practice & Noun Case Trainer" />
 	<meta
 		name="twitter:description"
-		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 12 paradigms & adjective-noun agreement."
+		content="Interactive Czech declension drills synced to Krok za krokem & trusted by Ivy League professors. Master 7 cases, 14 paradigms & adjective-noun agreement."
 	/>
 	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
 	<script type="application/ld+json">
@@ -4282,7 +4292,7 @@
 			"@type": "WebApplication",
 			"name": "Skloňuj",
 			"url": "https://sklonuj.com",
-			"description": "Interactive Czech declension drills synced to Krok za krokem and trusted by Ivy League professors. Master all 7 cases, 12 paradigms, and adjective-noun agreement with adaptive exercises.",
+			"description": "Interactive Czech declension drills synced to Krok za krokem and trusted by Ivy League professors. Master all 7 cases, 14 paradigms, and adjective-noun agreement with adaptive exercises.",
 			"applicationCategory": "EducationalApplication",
 			"operatingSystem": "Any",
 			"offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },

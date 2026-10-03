@@ -334,6 +334,9 @@ function matchingWords(
 			unlockedDifficulties.includes(word.difficulty) &&
 			// Skip pluralia tantum nouns for singular templates
 			!(template.number === 'sg' && word.pluralOnly === true) &&
+			// Mass/collective nouns (mléko, nábytek, hmyz) have dictionary plurals
+			// but no natural plural use, so plural sentence slots skip them
+			!(template.number === 'pl' && word.categories.includes('mass')) &&
 			!isBlockedTemplateNounPair(template.id, word.lemma) &&
 			hasValidForm(word, template.requiredCase, template.number)
 	);

@@ -116,7 +116,7 @@
 				<p class="mt-3 text-sm leading-relaxed text-text-subtitle">
 					So <span class="font-medium text-emphasis">Skloňuj</span> is the tool I wished existed!
 					Vocab that is actually at your level, adaptive drills that adjust to where you're weak,
-					all 7 cases and 12 paradigms with proper morphological data, plus pronouns and
+					all 7 cases and 14 paradigms with proper morphological data, plus pronouns and
 					adjective-noun agreement practice. From conversations with professors, I've realized that
 					Czech is really under-resourced, and so
 					<span class="font-medium text-emphasis">Skloňuj</span> is and always will be free.

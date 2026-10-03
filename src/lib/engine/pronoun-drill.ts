@@ -283,9 +283,9 @@ export function generatePronounFormProduction(
 
 	const bareForms = splitForms(form.bare);
 
-	// Skip standalone form-production when no bare form exists (e.g. locative, and
-	// instrumental for personal pronouns). The prep-only forms (mně, tobě, něm, ní,
-	// mnou, ...) are ungrammatical without a preposition; presenting them as a
+	// Skip standalone form-production when no bare form exists (e.g. the locative,
+	// which only occurs after a preposition). The prep-only forms (mně, tobě, něm,
+	// ní, ...) are ungrammatical without a preposition; presenting them as a
 	// standalone answer would teach learners to use n-forms / long forms in
 	// contexts where they cannot occur.
 	if (bareForms.length === 0) return null;

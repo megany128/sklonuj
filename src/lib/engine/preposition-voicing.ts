@@ -1,92 +1,71 @@
 /**
  * Czech preposition voicing rules.
- * Certain prepositions gain an extra vowel before specific consonant clusters:
- *   k -> ke, s -> se, v -> ve, z -> ze
+ * The non-syllabic prepositions k, s, v, z gain an extra vowel (ke, se, ve, ze)
+ * before certain consonants and consonant clusters. Rules follow the ÚJČ
+ * Internetová jazyková příručka ("Vokalizace předložek"):
+ *   - always before the same consonant (ke kořenům, se sestrou, ve vejci, ze země)
+ *   - before a similar consonant: k + g, s + z/ž/š, z + s/š/ž, v + f
+ *   - before the groups tř, dř, sl, zr, zl (ve třech, ze dřeva, ke slibu, se zlodějem),
+ *     but "k dřevěné" stays unvocalized
+ *   - common usage before s/z/š/ž + consonant (ke stolu, ve sněhu, ke zdi)
+ *   - lexicalized cases (ke mně, se mnou, ve dne, ve dvou, se psem, se lvem,
+ *     ve čtvrtek, ve jménu, ve městě, ze vsi)
  *
  * Pure module — no dependencies. Imported by both the drill engine (runtime
  * rendering) and the template-review module (offline / admin audit) so that
  * reviewers see the same surface form learners see.
  */
+const VOWELS = new Set('aeiouyáéíóúůýě');
+const SIBILANTS = 'szšž';
+
+// Groups that trigger vocalization for every non-syllabic preposition.
+const SHARED_CLUSTERS = ['tř', 'sl', 'zr', 'zl', 'mn', 'dv', 'dn', 'ct', 'čt', 'vz', 'vš'];
+
+const EXTRA_CLUSTERS: Record<'k' | 's' | 'v' | 'z', string[]> = {
+	k: ['ps', 'lv', 'vs'],
+	s: ['dř', 'ps', 'lv', 'vs'],
+	v: ['dř', 'jm'],
+	z: ['dř', 'lv', 'vs']
+};
+
+function needsVowel(prep: 'k' | 's' | 'v' | 'z', filledForm: string): boolean {
+	const lower = filledForm.toLowerCase();
+	const first = lower[0];
+	const second = lower[1] ?? '';
+	const firstTwo = lower.slice(0, 2);
+	const isCluster = second !== '' && !VOWELS.has(first) && !VOWELS.has(second);
+
+	switch (prep) {
+		case 'k':
+			if (first === 'k' || first === 'g') return true;
+			break;
+		case 's':
+		case 'z':
+			if (SIBILANTS.includes(first)) return true;
+			break;
+		case 'v':
+			if (first === 'v' || first === 'f') return true;
+			// "ve městě" is lexicalized; other mě- words stay unvocalized (v měsíci).
+			if (lower.startsWith('měst')) return true;
+			break;
+	}
+
+	if (!isCluster) return false;
+	// k/v before s, z, š, ž + consonant (s/z already covered above).
+	if (SIBILANTS.includes(first)) return true;
+	return SHARED_CLUSTERS.includes(firstTwo) || EXTRA_CLUSTERS[prep].includes(firstTwo);
+}
+
+// The preposition must be a standalone word (not the tail of a word like "lev ___"),
+// so require start-of-string or a non-letter before it. Capitalized prepositions at
+// the start of a sentence ("S ___ kamarádem") keep their capital.
+const PREPOSITION_BEFORE_BLANK = /(?<!\p{L})([kKsSvVzZ]) ___/gu;
+
 export function applyPrepositionVoicing(template: string, filledForm: string): string {
 	if (filledForm.length === 0) return template;
-
-	const lower = filledForm.toLowerCase();
-	const firstChar = lower[0];
-	const firstTwo = lower.slice(0, 2);
-
-	// Detect consonant cluster: first two chars are both consonants (not vowels)
-	const vowels = new Set('aeiouyáéíóúůý');
-	const isCluster = lower.length >= 2 && !vowels.has(lower[0]) && !vowels.has(lower[1]);
-
-	// k -> ke: before k, g, or consonant clusters starting with k/g/mn/vz/vš/dv
-	function needsKe(): boolean {
-		if (firstChar === 'k' || firstChar === 'g') return true;
-		if (isCluster) {
-			if (
-				['mn', 'vz', 'vš', 'dv', 'dn', 'sp', 'sk', 'st', 'sv', 'šk', 'šp', 'št'].some(
-					(cl) => firstTwo === cl
-				)
-			)
-				return true;
-		}
-		return false;
-	}
-
-	// s -> se: before s, z, š, ž, or consonant clusters starting with those + mn/vz/dv
-	function needsSe(): boolean {
-		if ('szšž'.includes(firstChar)) return true;
-		if (isCluster) {
-			if (['mn', 'vz', 'vš', 'dv', 'ct', 'čt'].some((cl) => firstTwo === cl)) return true;
-		}
-		return false;
-	}
-
-	// v -> ve: before v, f, or consonant clusters starting with those + sp/st/sk/šk/zd/zn/mn/jm
-	// Also covers lexicalized cases: "ve městě" (mě-), "ve všech" (vš-), "ve vzduchu" (vz-).
-	function needsVe(): boolean {
-		if (firstChar === 'v' || firstChar === 'f') return true;
-		if (isCluster) {
-			if (
-				[
-					'sp',
-					'st',
-					'sk',
-					'šk',
-					'zd',
-					'zn',
-					'dn',
-					'dv',
-					'sv',
-					'šp',
-					'št',
-					'ct',
-					'čt',
-					'mn',
-					'jm',
-					'mě',
-					'vš',
-					'vz'
-				].some((cl) => firstTwo === cl)
-			)
-				return true;
-		}
-		return false;
-	}
-
-	// z -> ze: before s, z, š, ž, or consonant clusters
-	function needsZe(): boolean {
-		if ('szšž'.includes(firstChar)) return true;
-		if (isCluster) {
-			if (['dv', 'dn', 'vz', 'vš', 'mn', 'ct', 'čt'].some((cl) => firstTwo === cl)) return true;
-		}
-		return false;
-	}
-
-	// Replace the preposition immediately before the blank (___) in the template.
-	// Pattern: word boundary + preposition + space + ___
-	return template
-		.replace(/\bk ___/g, needsKe() ? 'ke ___' : 'k ___')
-		.replace(/\bs ___/g, needsSe() ? 'se ___' : 's ___')
-		.replace(/\bv ___/g, needsVe() ? 've ___' : 'v ___')
-		.replace(/\bz ___/g, needsZe() ? 'ze ___' : 'z ___');
+	return template.replace(PREPOSITION_BEFORE_BLANK, (match, prep: string) => {
+		const key = prep.toLowerCase();
+		if (key !== 'k' && key !== 's' && key !== 'v' && key !== 'z') return match;
+		return needsVowel(key, filledForm) ? `${prep}e ___` : match;
+	});
 }

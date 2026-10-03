@@ -9,7 +9,7 @@ A web-based drill app for mastering Czech noun declensions — all seven cases, 
 - **Three drill modes** — form production (type the correct form), case identification (name the case), and sentence fill-in-the-blank with contextual Czech sentences
 - **121 curated practice words** across masculine animate, masculine inanimate, feminine, and neuter genders, organized by CEFR difficulty level (A1, A2, B1)
 - **18,000+ noun lookup dictionary** — search any Czech noun and see its full declension table with English translation, powered by MorphoDiTa morphological data
-- **12 paradigm patterns** with a browsable paradigm list in the lookup view showing model declensions (hrad, muž, růže, město, etc.)
+- **14 paradigm patterns** with a browsable paradigm list in the lookup view showing model declensions (hrad, muž, růže, město, etc.)
 - **Adaptive weighting** — the drill engine prioritizes cases and paradigms you struggle with, weighting question selection by inverse accuracy
 - **CEFR-aligned word difficulty** — A1/A2/B1 levels control which practice words appear based on their difficulty tag; all seven cases are always available for drilling
 - **Progress tracking** — per-case and per-paradigm accuracy scores stored in localStorage, with optional Supabase sync for logged-in users

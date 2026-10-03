@@ -41,7 +41,7 @@
 			question: 'Koho? Čeho? (Of whom? Of what?)',
 			mnemonic: 'Possession, absence, origin — think "of" or "from".',
 			description:
-				'Expresses belonging, origin, and absence. Also used for quantities and after negated verbs.',
+				'Expresses belonging, origin, and absence. Also used for quantities and after many prepositions.',
 			example: 'Jdu do města.',
 			exampleTranslation: "I'm going to the city."
 		},
@@ -71,7 +71,7 @@
 			question: 'Addressing someone directly',
 			mnemonic: 'Calling out — "Hey, ...!"',
 			description:
-				'Used when directly addressing someone. Often in greetings, commands, or getting attention. The only case not governed by prepositions.',
+				'Used when directly addressing someone. Often in greetings, commands, or getting attention. Unlike most cases, it is not used with prepositions.',
 			example: 'Petře, pojď sem!',
 			exampleTranslation: 'Petr, come here!'
 		},

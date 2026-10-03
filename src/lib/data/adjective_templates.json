@@ -443,7 +443,7 @@
 	},
 	{
 		"id": "adj_a1_acc_sg_n_001",
-		"template": "Mám ___ auto.",
+		"template": "Kupuji ___ auto.",
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
@@ -820,7 +820,7 @@
 	},
 	{
 		"id": "adj_a2_dat_pl_n_001",
-		"template": "Jdu k ___ městům.",
+		"template": "Jedeme k ___ městům na jihu.",
 		"requiredCase": "dat",
 		"number": "pl",
 		"trigger": "k",
@@ -885,7 +885,7 @@
 	},
 	{
 		"id": "adj_a2_loc_pl_f_001",
-		"template": "Bydlím v ___ ulicích.",
+		"template": "Procházím se v ___ ulicích.",
 		"requiredCase": "loc",
 		"number": "pl",
 		"trigger": "v",
@@ -1054,13 +1054,13 @@
 	},
 	{
 		"id": "adj_b1_loc_pl_f_001",
-		"template": "Žiji v ___ zemích.",
+		"template": "Cestuji po ___ zemích.",
 		"requiredCase": "loc",
 		"number": "pl",
-		"trigger": "v",
+		"trigger": "po",
 		"requiredGender": "f",
 		"requiredAnimate": false,
-		"why": "'V' (in) takes locative. The adjective agrees with 'zemích' (feminine plural) in locative.",
+		"why": "'Po' (around/through) takes locative. The adjective agrees with 'zemích' (feminine plural) in locative.",
 		"difficulty": "B1",
 		"adjectiveCategories": ["universal", "size"],
 		"nounLemma": "země"

@@ -57,7 +57,8 @@ def main() -> None:
         if LEVEL_ORDER.index(current) > LEVEL_ORDER.index(cap):
             changed.append((word["lemma"], current, cap))
             word["difficulty"] = cap
-        new_difficulty[word["lemma"]] = word["difficulty"]
+        # Keyed lowercase: the meta CSV keeps proper nouns lowercase (Vánoce → vánoce).
+        new_difficulty[word["lemma"].lower()] = word["difficulty"]
 
     with open(WORD_BANK, "w", encoding="utf-8") as f:
         json.dump(word_bank, f, ensure_ascii=False, indent="\t")
@@ -70,7 +71,7 @@ def main() -> None:
         rows = list(reader)
     csv_changed = 0
     for row in rows:
-        target = new_difficulty.get(row["lemma"])
+        target = new_difficulty.get(row["lemma"].lower())
         if target is not None and row["difficulty"] != target:
             row["difficulty"] = target
             csv_changed += 1
