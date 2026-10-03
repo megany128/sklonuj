@@ -18,6 +18,10 @@
 	import ReportMenu from '$lib/components/ReportMenu.svelte';
 
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
+	import FeedbackVerdict from '$lib/components/ui/FeedbackVerdict.svelte';
+	import SubmittedAnswer from '$lib/components/ui/SubmittedAnswer.svelte';
+	import AnswerDiff from '$lib/components/ui/AnswerDiff.svelte';
+	import CaseChip from '$lib/components/ui/CaseChip.svelte';
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
@@ -603,12 +607,12 @@
 							<div class="flex w-full max-w-sm flex-col gap-2">
 								{#each filteredParadigms as p (p.id)}
 									<div
-										class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold {selectedParadigm ===
-										p.id
-											? paradigmCorrect
-												? 'border-positive-stroke bg-positive-background text-positive-stroke'
-												: 'border-negative-stroke bg-negative-background text-negative-stroke'
-											: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
+										class="w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold {p.id ===
+										question.correctParadigm
+											? 'border-positive-stroke bg-positive-background text-positive-stroke'
+											: selectedParadigm === p.id
+												? 'border-negative-stroke bg-negative-background text-negative-stroke'
+												: 'border-card-stroke bg-card-bg text-text-subtitle opacity-40'}"
 									>
 										{p.exampleLemma}
 										<span class="font-normal">{shortParadigmName(p.name)}</span>
@@ -617,32 +621,22 @@
 							</div>
 
 							<!-- Paradigm feedback -->
-							<div
-								class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {paradigmCorrect
-									? 'border-positive-stroke bg-positive-background'
-									: 'border-negative-stroke bg-negative-background'}"
-							>
+							<div class="w-full max-w-sm">
 								{#if paradigmCorrect}
-									<p class="text-sm font-semibold text-positive-stroke">Correct!</p>
-									<p class="mt-1 text-xs text-text-subtitle">
-										{paradigmExplanation ??
-											`${question.word.lemma} follows the ${correctParadigmEntry?.exampleLemma} paradigm (${correctParadigmEntry?.name})`}
-									</p>
+									<FeedbackVerdict tone="correct" title="Correct!">
+										<span class="text-text-subtitle">
+											{paradigmExplanation ??
+												`${question.word.lemma} follows the ${correctParadigmEntry?.exampleLemma} paradigm (${correctParadigmEntry?.name})`}
+										</span>
+									</FeedbackVerdict>
 								{:else}
-									<p class="text-sm font-semibold text-negative-stroke">
-										Not quite — it's the <span class="font-bold"
-											>{correctParadigmEntry?.exampleLemma}</span
-										> paradigm
-									</p>
-									{#if paradigmExplanation}
-										<p class="mt-1 text-xs text-text-subtitle">
-											{paradigmExplanation}
-										</p>
-									{:else}
-										<p class="mt-1 text-xs text-text-subtitle">
-											{correctParadigmEntry?.name}
-										</p>
-									{/if}
+									<FeedbackVerdict tone="wrong" title="Not quite">
+										It's the <span class="font-semibold">{correctParadigmEntry?.exampleLemma}</span>
+										paradigm{paradigmExplanation ? '.' : ` (${correctParadigmEntry?.name}).`}
+										{#if paradigmExplanation}
+											<span class="mt-1 block text-text-subtitle">{paradigmExplanation}</span>
+										{/if}
+									</FeedbackVerdict>
 								{/if}
 							</div>
 
@@ -693,22 +687,21 @@
 						</div>
 
 						{#if caseSubmitted}
-							<div
-								class="w-full max-w-sm rounded-[24px] border-2 p-4 text-center {caseCorrect
-									? 'border-positive-stroke bg-positive-background'
-									: 'border-negative-stroke bg-negative-background'}"
-							>
+							<div class="w-full max-w-sm">
 								{#if caseCorrect}
-									<p class="text-sm font-semibold text-positive-stroke">Correct!</p>
+									<FeedbackVerdict tone="correct" title="Correct!">
+										{#if question.template.why}
+											<span class="text-text-subtitle">{question.template.why}</span>
+										{/if}
+									</FeedbackVerdict>
 								{:else}
-									<p class="text-sm font-semibold text-negative-stroke">
-										The correct case is <span class="font-bold"
-											>{CASE_LABELS[question.correctCase]}</span
-										>
-									</p>
-								{/if}
-								{#if question.template.why}
-									<p class="mt-1 text-xs text-text-subtitle">{question.template.why}</p>
+									<FeedbackVerdict tone="wrong" title="Not quite">
+										{#if selectedCase}You picked <CaseChip case_={selectedCase} />.{/if}
+										This sentence needs the <CaseChip case_={question.correctCase} />.
+										{#if question.template.why}
+											<span class="mt-1 block text-text-subtitle">{question.template.why}</span>
+										{/if}
+									</FeedbackVerdict>
 								{/if}
 							</div>
 
@@ -743,13 +736,18 @@
 
 						<!-- Sentence with blank -->
 						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{sentenceParts.before}<span
-								class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-								title={question.word.lemma}
-								><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
-									>({question.word.lemma})</span
-								></span
-							>{sentenceParts.after}{#if onSpeak}<button
+							{sentenceParts.before}{#if formSubmitted}<span
+									class="mx-0.5 inline-block border-b-2 border-positive-stroke px-1 font-semibold text-emphasis"
+									>{formCorrect
+										? (formMatchedForm ?? question.correctForm)
+										: question.correctForm}</span
+								>{:else}<span
+									class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+									title={question.word.lemma}
+									><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
+										>({question.word.lemma})</span
+									></span
+								>{/if}{sentenceParts.after}{#if onSpeak}<button
 									type="button"
 									onclick={() =>
 										onSpeak?.(formSubmitted ? question.correctForm : question.word.lemma)}
@@ -765,21 +763,26 @@
 						<!-- Text input -->
 						<div class="flex w-full max-w-md flex-col gap-3">
 							<div class="flex items-stretch gap-2">
-								<input
-									bind:this={formInputEl}
-									bind:value={formInput}
-									onkeydown={handleFormKeydown}
-									disabled={formSubmitted}
-									type="text"
-									autocomplete="off"
-									autocapitalize="none"
-									spellcheck="false"
-									placeholder="Type the correct form..."
-									class="min-w-0 flex-1 rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {formSubmitted &&
-									!formCorrect
-										? 'border-negative-stroke bg-negative-background text-negative-stroke'
-										: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
-								/>
+								{#if formSubmitted}
+									<SubmittedAnswer
+										answer={formInput.trim()}
+										reference={formMatchedForm ?? question.correctForm}
+										tone={formCorrect ? 'correct' : formNearMiss ? 'almost' : 'wrong'}
+										class="rounded-[24px] px-4 py-3 text-lg font-semibold"
+									/>
+								{:else}
+									<input
+										bind:this={formInputEl}
+										bind:value={formInput}
+										onkeydown={handleFormKeydown}
+										type="text"
+										autocomplete="off"
+										autocapitalize="none"
+										spellcheck="false"
+										placeholder="Type the correct form..."
+										class="min-w-0 flex-1 rounded-[24px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-lg font-semibold text-text-default transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none"
+									/>
+								{/if}
 								{#if !formSubmitted}
 									<button
 										type="button"
@@ -802,40 +805,41 @@
 						{:else}
 							<!-- Form feedback -->
 							{#if formCorrect}
-								<div
-									class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
-								>
-									<p class="text-sm font-semibold text-positive-stroke">
-										{#if formNearMiss}
-											Correct (watch the diacritics): <span class="font-semibold"
-												>{formMatchedForm ?? question.correctForm}</span
-											>
-										{:else if formMatchedForm && formMatchedForm !== question.correctForm}
-											Correct! <span class="font-semibold">{formMatchedForm}</span> is an accepted
-											variant. Standard form:
-											<span class="font-semibold">{question.correctForm}</span>.
-										{:else}
-											Correct!
-										{/if}
-									</p>
-									{#if formNearMiss && formMatchedForm && formMatchedForm !== question.correctForm}
-										<p class="mt-1 text-xs text-positive-stroke">
-											<span class="font-semibold">{formMatchedForm}</span> is an accepted variant.
-											Standard form:
-											<span class="font-semibold">{question.correctForm}</span>.
-										</p>
+								<FeedbackVerdict tone="correct" title="Correct!">
+									{#if formNearMiss}
+										<span class="text-warning-text">Watch the accents:</span>
+										<span class="font-semibold"
+											><AnswerDiff
+												text={formMatchedForm ?? question.correctForm}
+												reference={formInput.trim()}
+												tone="almost"
+											/></span
+										>
 									{/if}
-								</div>
+									{#if formMatchedForm && formMatchedForm !== question.correctForm}
+										<span class="block text-text-subtitle"
+											><span class="font-semibold">{formMatchedForm}</span> is an accepted variant.
+											Standard form:
+											<span class="font-semibold">{question.correctForm}</span>.</span
+										>
+									{/if}
+								</FeedbackVerdict>
 							{:else}
-								<div class="flex w-full max-w-md flex-col gap-3">
+								<div class="flex w-full max-w-md flex-col gap-4">
+									{#if formNearMiss}
+										<FeedbackVerdict tone="almost" title="Almost — check the accents">
+											The letters are right, but accents change the word and count at this level.
+										</FeedbackVerdict>
+									{:else}
+										<FeedbackVerdict tone="wrong" title="Not quite" />
+									{/if}
 									<CorrectAnswerPanel
 										correctAnswer={question.correctForm}
+										userAnswer={formInput.trim()}
 										nominative={question.word.lemma}
 										targetForm={question.correctForm}
 										case_={question.correctCase}
 										drillType="sentence_fill_in"
-										nearMiss={formNearMiss}
-										questionNumber={question.number}
 										number_={question.number}
 										{templateWhy}
 										{whyNote}
@@ -930,21 +934,26 @@
 						<!-- Text input -->
 						<div class="flex w-full max-w-md flex-col gap-3">
 							<div class="flex items-stretch gap-2">
-								<input
-									bind:this={adjFormInputEl}
-									bind:value={adjFormInput}
-									onkeydown={handleAdjFormKeydown}
-									disabled={adjFormSubmitted}
-									type="text"
-									autocomplete="off"
-									autocapitalize="none"
-									spellcheck="false"
-									placeholder="Type the adjective form..."
-									class="min-w-0 flex-1 rounded-[24px] border-2 px-4 py-3 text-center text-lg font-semibold transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none {adjFormSubmitted &&
-									!adjFormCorrect
-										? 'border-negative-stroke bg-negative-background text-negative-stroke'
-										: 'border-card-stroke bg-card-bg text-text-default disabled:opacity-60'}"
-								/>
+								{#if adjFormSubmitted}
+									<SubmittedAnswer
+										answer={adjFormInput.trim()}
+										reference={question.correctAdjectiveForm}
+										tone={adjFormCorrect ? 'correct' : 'wrong'}
+										class="rounded-[24px] px-4 py-3 text-lg font-semibold"
+									/>
+								{:else}
+									<input
+										bind:this={adjFormInputEl}
+										bind:value={adjFormInput}
+										onkeydown={handleAdjFormKeydown}
+										type="text"
+										autocomplete="off"
+										autocapitalize="none"
+										spellcheck="false"
+										placeholder="Type the adjective form..."
+										class="min-w-0 flex-1 rounded-[24px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-lg font-semibold text-text-default transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none"
+									/>
+								{/if}
 								{#if !adjFormSubmitted}
 									<button
 										type="button"
@@ -967,39 +976,28 @@
 						{:else}
 							<!-- Adjective form feedback -->
 							{#if adjFormCorrect}
-								<div
-									class="w-full max-w-md rounded-[24px] border-2 border-positive-stroke bg-positive-background p-4 text-center"
-								>
-									<p class="text-sm font-semibold text-positive-stroke">
-										{#if adjFormNearMiss}
-											Correct (watch the diacritics): <span class="font-semibold"
-												>{question.correctAdjectiveForm}</span
-											>
-										{:else}
-											Correct!
-										{/if}
-									</p>
-								</div>
+								<FeedbackVerdict tone="correct" title="Correct!">
+									{#if adjFormNearMiss}
+										<span class="text-warning-text">Watch the accents:</span>
+										<span class="font-semibold"
+											><AnswerDiff
+												text={question.correctAdjectiveForm}
+												reference={adjFormInput.trim()}
+												tone="almost"
+											/></span
+										>
+									{/if}
+								</FeedbackVerdict>
 							{:else}
-								<div class="flex w-full max-w-md flex-col gap-3">
-									<div
-										class="rounded-[24px] border-2 border-negative-stroke bg-negative-background p-4 text-center"
-									>
-										<p class="text-sm font-semibold text-negative-stroke">
-											{#if adjFormNearMiss}
-												Close! Watch the diacritics.
-											{:else}
-												Not quite.
-											{/if}
-											The correct form is
-											<span class="font-bold">{question.correctAdjectiveForm}</span>
-										</p>
-										{#if adjFormInput.trim()}
-											<p class="mt-1 text-xs text-negative-stroke">
-												You wrote: <span class="font-semibold">{adjFormInput.trim()}</span>
-											</p>
-										{/if}
-									</div>
+								<div class="flex w-full max-w-md flex-col gap-4">
+									<FeedbackVerdict tone="wrong" title="Not quite" />
+									<CorrectAnswerPanel
+										correctAnswer={question.correctAdjectiveForm}
+										userAnswer={adjFormInput.trim()}
+										case_={question.correctCase}
+										drillType="sentence_fill_in"
+										onSpeak={onSpeak ?? undefined}
+									/>
 								</div>
 							{/if}
 
@@ -1109,7 +1107,11 @@
 									</p>
 									{#if !formCorrect && formInput}
 										<p class="text-xs text-negative-stroke">
-											You typed: {formInput}
+											You typed: <AnswerDiff
+												text={formInput.trim()}
+												reference={question.correctForm}
+												tone="wrong"
+											/>
 										</p>
 									{/if}
 								</div>
@@ -1135,7 +1137,11 @@
 										</p>
 										{#if !adjFormCorrect && adjFormInput}
 											<p class="text-xs text-negative-stroke">
-												You typed: {adjFormInput}
+												You typed: <AnswerDiff
+													text={adjFormInput.trim()}
+													reference={question.correctAdjectiveForm}
+													tone="wrong"
+												/>
 											</p>
 										{/if}
 									</div>

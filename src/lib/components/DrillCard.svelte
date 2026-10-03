@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import type { DrillQuestion, DrillResult, DrillType, Case } from '$lib/types';
 	import {
@@ -20,7 +19,10 @@
 
 	import DottedUnderline from '$lib/components/ui/DottedUnderline.svelte';
 	import ReportMenu from '$lib/components/ReportMenu.svelte';
-	import WrongAnswerDisplay from '$lib/components/ui/WrongAnswerDisplay.svelte';
+	import FeedbackVerdict from '$lib/components/ui/FeedbackVerdict.svelte';
+	import SubmittedAnswer from '$lib/components/ui/SubmittedAnswer.svelte';
+	import AnswerDiff from '$lib/components/ui/AnswerDiff.svelte';
+	import CaseChip from '$lib/components/ui/CaseChip.svelte';
 	import CorrectAnswerPanel from '$lib/components/ui/CorrectAnswerPanel.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import FeedbackPronounDeclensionChart from '$lib/components/ui/FeedbackPronounDeclensionChart.svelte';
@@ -234,6 +236,24 @@
 		trackTimeout(() => {
 			showCheers = false;
 		}, 1000);
+	}
+
+	let userTyped = $derived(result?.userAnswer.trim() ?? '');
+	let wasSkipped = $derived(
+		result !== null &&
+			!result.correct &&
+			question?.drillType !== 'case_identification' &&
+			(result.skipped === true || userTyped === '')
+	);
+	/** The accepted form the answer was graded against: the variant it matched, else the primary. */
+	let gradedForm = $derived(result?.matchedForm ?? question?.correctAnswer ?? '');
+	let fieldTone = $derived<'correct' | 'wrong' | 'almost' | 'skipped'>(
+		wasSkipped ? 'skipped' : result?.correct ? 'correct' : result?.nearMiss ? 'almost' : 'wrong'
+	);
+
+	/** "plural" only where it disambiguates — not for plural-only pronouns like "vy". */
+	function showPlural(q: DrillQuestion, n: DrillQuestion['number']): boolean {
+		return n === 'pl' && !(q.wordCategory === 'pronoun' && q.pronoun?.forms.sg === null);
 	}
 
 	let showDiacriticsBar = $derived(
@@ -630,10 +650,13 @@
 						{/if}
 						{@const parts = sentenceWithBlankAndLemma(question)}
 						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{parts.before}<span
-								class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
-								>&nbsp;&nbsp;&nbsp;&nbsp;</span
-							>{parts.after}{#if onSpeak}<button
+							{parts.before}{#if submitted && result}<span
+									class="mx-0.5 inline-block border-b-2 border-positive-stroke px-1 font-semibold text-emphasis"
+									>{result.correct ? gradedForm : question.correctAnswer}</span
+								>{:else}<span
+									class="mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
+									>&nbsp;&nbsp;&nbsp;&nbsp;</span
+								>{/if}{parts.after}{#if onSpeak}<button
 									type="button"
 									onclick={() => onSpeak(speakTargetText(question!))}
 									class="ml-3 inline-flex size-8 items-center justify-center rounded-full bg-shaded-background align-middle text-text-subtitle transition-colors hover:bg-darker-shaded-background hover:text-text-default"
@@ -690,26 +713,30 @@
 									Type the correct form of {labelLemma} to fill in the blank
 								{/if}
 							</label>
-							<input
-								id="drill-answer"
-								bind:this={inputEl}
-								bind:value={userInput}
-								onkeydown={handleKeydown}
-								disabled={submitted}
-								type="text"
-								autocomplete="off"
-								autocorrect="off"
-								autocapitalize="off"
-								spellcheck="false"
-								enterkeyhint="go"
-								placeholder="Type your answer..."
-								class="min-w-0 flex-1 rounded-[16px] border-2 px-4 py-3 text-center text-base font-normal caret-emphasis outline-none transition-all duration-200 sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg
-								{submitted && result?.correct
-									? 'border-positive-stroke bg-positive-background text-positive-stroke'
-									: submitted && result && !result.correct
-										? 'border-negative-stroke bg-negative-background text-negative-stroke'
-										: 'border-card-stroke bg-card-bg text-emphasis placeholder:text-text-subtitle focus:border-emphasis'}"
-							/>
+							{#if submitted && result}
+								<SubmittedAnswer
+									answer={userTyped}
+									reference={gradedForm}
+									tone={fieldTone}
+									class="rounded-[16px] px-4 py-3 text-base font-semibold sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg"
+								/>
+							{:else}
+								<input
+									id="drill-answer"
+									bind:this={inputEl}
+									bind:value={userInput}
+									onkeydown={handleKeydown}
+									disabled={submitted}
+									type="text"
+									autocomplete="off"
+									autocorrect="off"
+									autocapitalize="off"
+									spellcheck="false"
+									enterkeyhint="go"
+									placeholder="Type your answer..."
+									class="min-w-0 flex-1 rounded-[16px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-base font-normal text-emphasis caret-emphasis outline-none transition-all duration-200 placeholder:text-text-subtitle focus:border-emphasis sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg"
+								/>
+							{/if}
 							{#if !submitted}
 								<button
 									type="submit"
@@ -741,16 +768,39 @@
 				{#if submitted && result && showFeedback}
 					<div class="drill-fade-enter space-y-4" aria-live="polite">
 						{#if result.correct}
-							<div class="flex items-center justify-center gap-2">
-								<CircleCheck class="h-5 w-5 text-positive-stroke" aria-hidden="true" />
-								<p class="text-lg font-semibold text-positive-stroke">
-									{#if streak >= 3}
-										Correct! {streak} in a row!
-									{:else}
-										Correct!
+							{@const nomForm =
+								question.wordCategory === 'adjective'
+									? (question.adjective?.lemma ?? question.word.lemma)
+									: question.wordCategory === 'pronoun'
+										? (question.pronoun?.lemma ?? '')
+										: question.word.forms[question.number][0]}
+							{@const targetForm =
+								question.wordCategory === 'adjective'
+									? question.correctAnswer
+									: question.wordCategory === 'pronoun'
+										? getPronounForm(question)
+										: question.word.forms[question.number][CASE_INDEX[question.case]]}
+							<FeedbackVerdict
+								tone="correct"
+								title={streak >= 3 ? `Correct! ${streak} in a row!` : 'Correct!'}
+							>
+								{#if result.nearMiss}
+									<span class="text-warning-text">Watch the accents:</span>
+									<span class="font-semibold"
+										><AnswerDiff text={gradedForm} reference={userTyped} tone="almost" /></span
+									>
+									{#if gradedForm.toLowerCase() !== question.correctAnswer.trim().toLowerCase()}
+										<span class="text-text-subtitle"
+											>— accepted variant of <span class="font-semibold"
+												>{question.correctAnswer}</span
+											></span
+										>
 									{/if}
-								</p>
-							</div>
+								{:else if nomForm !== targetForm}
+									<span class="text-text-subtitle">{nomForm} &rarr;</span>
+									<span class="font-semibold">{targetForm}</span>
+								{/if}
+							</FeedbackVerdict>
 							{#if streak >= 5}
 								<div
 									class="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px] sm:rounded-[40px]"
@@ -765,38 +815,6 @@
 										</span>
 									{/each}
 								</div>
-							{/if}
-							{@const nomForm =
-								question.wordCategory === 'adjective'
-									? (question.adjective?.lemma ?? question.word.lemma)
-									: question.wordCategory === 'pronoun'
-										? (question.pronoun?.lemma ?? '')
-										: question.word.forms[question.number][0]}
-							{@const targetForm =
-								question.wordCategory === 'adjective'
-									? question.correctAnswer
-									: question.wordCategory === 'pronoun'
-										? getPronounForm(question)
-										: question.word.forms[question.number][CASE_INDEX[question.case]]}
-							{#if result.nearMiss}
-								{@const matched = result.matchedForm ?? question.correctAnswer}
-								{@const isVariant =
-									matched.trim().toLowerCase() !== question.correctAnswer.trim().toLowerCase()}
-								<p class="text-center text-sm text-warning-text">
-									Almost! Check your diacritics: <span class="font-semibold">{matched}</span>
-									{#if isVariant}
-										<span class="text-text-subtitle"
-											>— accepted variant of <span class="font-semibold"
-												>{question.correctAnswer}</span
-											></span
-										>
-									{/if}
-								</p>
-							{:else if nomForm !== targetForm}
-								<p class="text-center text-sm text-text-subtitle">
-									{nomForm} &rarr;
-									<span class="font-semibold {CASE_COLORS[question.case].text}">{targetForm}</span>
-								</p>
 							{/if}
 							{@const isAltPronounForm =
 								question.wordCategory === 'pronoun' &&
@@ -888,9 +906,44 @@
 								</div>
 							{/if}
 						{:else}
-							<!-- Wrong answer display: only show for skipped answers since the input already shows wrong answers in red -->
-							{#if question.drillType !== 'case_identification' && result.userAnswer === ''}
-								<WrongAnswerDisplay userAnswer="skipped" />
+							{@const pickedCase =
+								question.drillType === 'case_identification' && isCase(result.userAnswer)
+									? result.userAnswer
+									: null}
+							{#if wasSkipped}
+								<FeedbackVerdict tone="skipped" title="Skipped">
+									No problem — here's the answer.
+								</FeedbackVerdict>
+							{:else if pickedCase}
+								<FeedbackVerdict tone="wrong" title="Not quite">
+									You picked <CaseChip case_={pickedCase} />. This sentence needs the
+									<CaseChip case_={question.case} />.
+								</FeedbackVerdict>
+							{:else if result.nearMiss}
+								<FeedbackVerdict tone="almost" title="Almost — check the accents">
+									The letters are right, but accents change the word and count at this level.
+								</FeedbackVerdict>
+							{:else if result.accidentalCase}
+								{@const typedAs = result.accidentalCase}
+								{#if typedAs.case === question.case}
+									<FeedbackVerdict tone="wrong" title="Right case, wrong number">
+										<span class="font-semibold">{userTyped}</span> is the
+										{typedAs.number === 'pl' ? 'plural' : 'singular'} — this one needs the
+										{question.number === 'pl' ? 'plural' : 'singular'}.
+									</FeedbackVerdict>
+								{:else}
+									<FeedbackVerdict tone="wrong" title="Wrong case">
+										<span class="font-semibold">{userTyped}</span> is the
+										<CaseChip case_={typedAs.case} plural={showPlural(question, typedAs.number)} /> —
+										this one needs the
+										<CaseChip
+											case_={question.case}
+											plural={showPlural(question, question.number)}
+										/>.
+									</FeedbackVerdict>
+								{/if}
+							{:else}
+								<FeedbackVerdict tone="wrong" title="Not quite" />
 							{/if}
 
 							<!-- Correct answer panel with explanation -->
@@ -919,6 +972,9 @@
 								isCase(question.correctAnswer)
 									? CASE_LABELS[question.correctAnswer]
 									: result.question.correctAnswer}
+								userAnswer={wasSkipped || question.drillType === 'case_identification'
+									? undefined
+									: userTyped}
 								nominative={question.wordCategory === 'adjective'
 									? (question.adjective?.lemma ?? question.word.lemma)
 									: question.wordCategory === 'pronoun'
@@ -945,9 +1001,6 @@
 										: question.word.lemma}
 								case_={question.case}
 								drillType={question.drillType}
-								nearMiss={result.nearMiss}
-								accidentalCase={result.accidentalCase}
-								questionNumber={question.number}
 								number_={question.number}
 								{templateWhy}
 								{whyNote}

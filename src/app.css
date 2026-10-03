@@ -158,9 +158,26 @@ select {
 
 	.streak-float,
 	.streak-glow,
+	.feedback-shake,
 	.toast-slide-in,
 	.correct-flash {
 		animation: none !important;
+	}
+}
+
+/* Wrong-answer nudge on the graded answer field */
+.feedback-shake {
+	animation: feedbackShake 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes feedbackShake {
+	20%,
+	60% {
+		transform: translateX(-4px);
+	}
+	40%,
+	80% {
+		transform: translateX(4px);
 	}
 }
 
