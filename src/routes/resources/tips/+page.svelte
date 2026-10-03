@@ -37,7 +37,7 @@
 		{
 			question: 'How do I tell masculine animate from inanimate nouns in Czech?',
 			answer:
-				'Masculine animate nouns refer to living beings — people and animals (student, pes, otec). Masculine inanimate nouns refer to things and abstract concepts (hrad, stůl, problém). The key grammatical difference is in the accusative singular: animate nouns use the genitive form (Vidím studenta), while inanimate nouns keep the nominative form (Vidím hrad). In the plural, animate nouns have a special nominative ending: -i/-ové (studenti, pánové) vs. inanimate -y (hrady, stroje). When in doubt, ask yourself: "Is this a living creature?" If yes, it is animate.'
+				'Masculine animate nouns refer to living beings — people and animals (student, pes, otec). Masculine inanimate nouns refer to things and abstract concepts (hrad, stůl, problém). The key grammatical difference is in the accusative singular: animate nouns use the genitive form (Vidím studenta), while inanimate nouns keep the nominative form (Vidím hrad). In the plural, animate nouns have a special nominative ending: -i/-ové (studenti, pánové) vs. inanimate -y/-e (hrady, stroje). When in doubt, ask yourself: "Is this a living creature?" If yes, it is animate.'
 		},
 		{
 			question: 'What is the best way to practice Czech declension daily?',
@@ -47,7 +47,7 @@
 		{
 			question: 'Are there any tricks for remembering Czech case endings?',
 			answer:
-				'Yes — look for patterns that repeat across paradigms. For example, dative and locative singular endings are often identical (ženě/ženě, studentovi/studentovi). Instrumental singular almost always ends in a long vowel or -em/-ou. In the plural, dative always ends in -ům/-ám/-ím, locative in -ech/-ách/-ích, and instrumental in -y/-ami/-emi/-mi. Another trick: the "soft" paradigms (muž, růže, moře, píseň, stroj) consistently use -i/-í where "hard" paradigms use -y/-ů/-ech. Grouping paradigms by hard vs. soft stem makes the system much more predictable. Finally, songs and rhymes in Czech naturally reinforce case patterns — try listening to Czech music and noticing the endings.'
+				'Yes — look for patterns that repeat across paradigms. For example, dative and locative singular endings are often identical (ženě/ženě, studentovi/studentovi). Instrumental singular almost always ends in a long vowel or -em/-ou. In the plural, dative ends in -ům/-ám/-ím/-em, locative in -ech/-ách/-ích, and instrumental in -y/-i/-ami/-emi/-mi/-ími. Another trick: the "soft" paradigms (muž, růže, moře, píseň, stroj) consistently use -i/-í where "hard" paradigms use -y/-ech. Grouping paradigms by hard vs. soft stem makes the system much more predictable. Finally, songs and rhymes in Czech naturally reinforce case patterns — try listening to Czech music and noticing the endings.'
 		}
 	];
 </script>

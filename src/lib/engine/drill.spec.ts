@@ -295,6 +295,49 @@ describe('applyPrepositionVoicing', () => {
 		const result = applyPrepositionVoicing('Bydlím v ___.', 'Praze');
 		expect(result).toBe('Bydlím v ___.');
 	});
+
+	it('voices a capitalized sentence-initial preposition and keeps the capital', () => {
+		expect(applyPrepositionVoicing('S ___ kamarádem jsme šli do kina.', 'starým')).toBe(
+			'Se ___ kamarádem jsme šli do kina.'
+		);
+		expect(applyPrepositionVoicing('S ___ kamarádem jsme šli do kina.', 'dobrým')).toBe(
+			'S ___ kamarádem jsme šli do kina.'
+		);
+	});
+
+	it('voices before tř, dř, sl, zr, zl groups (ÚJČ)', () => {
+		expect(applyPrepositionVoicing('Sedíme v ___.', 'třídě')).toBe('Sedíme ve ___.');
+		expect(applyPrepositionVoicing('Je to z ___.', 'dřeva')).toBe('Je to ze ___.');
+		expect(applyPrepositionVoicing('Jdu k ___.', 'slečně')).toBe('Jdu ke ___.');
+		expect(applyPrepositionVoicing('Jdu k ___.', 'zrcadlu')).toBe('Jdu ke ___.');
+		expect(applyPrepositionVoicing('Jdu k ___.', 'zlodějům')).toBe('Jdu ke ___.');
+		expect(applyPrepositionVoicing('Ležím v ___.', 'slunci')).toBe('Ležím ve ___.');
+	});
+
+	it('keeps k unvocalized before dř and r/l groups', () => {
+		expect(applyPrepositionVoicing('Jdu k ___.', 'dřevěné')).toBe('Jdu k ___.');
+		expect(applyPrepositionVoicing('Jdu k ___.', 'bratrovi')).toBe('Jdu k ___.');
+		expect(applyPrepositionVoicing('Bydlím v ___.', 'Brně')).toBe('Bydlím v ___.');
+		expect(applyPrepositionVoicing('Jdu s ___.', 'trenérem')).toBe('Jdu s ___.');
+	});
+
+	it('voices before s/z/š/ž + consonant after k and v', () => {
+		expect(applyPrepositionVoicing('Jdu k ___.', 'zdi')).toBe('Jdu ke ___.');
+		expect(applyPrepositionVoicing('Stojím v ___.', 'sněhu')).toBe('Stojím ve ___.');
+		expect(applyPrepositionVoicing('Jdu k ___.', 'zvířeti')).toBe('Jdu ke ___.');
+	});
+
+	it('handles lexicalized forms', () => {
+		expect(applyPrepositionVoicing('Jdu tam s ___.', 'psem')).toBe('Jdu tam se ___.');
+		expect(applyPrepositionVoicing('Jdu tam s ___.', 'lvem')).toBe('Jdu tam se ___.');
+		expect(applyPrepositionVoicing('Jsem z ___.', 'vsi')).toBe('Jsem ze ___.');
+		expect(applyPrepositionVoicing('Bydlím v ___.', 'městě')).toBe('Bydlím ve ___.');
+		expect(applyPrepositionVoicing('Přijdu v ___.', 'měsíci')).toBe('Přijdu v ___.');
+	});
+
+	it('does not touch a k/s/v/z that ends a longer word', () => {
+		expect(applyPrepositionVoicing('Petrův ___ je tady.', 'vůz')).toBe('Petrův ___ je tady.');
+	});
 });
 
 describe('weightedRandom', () => {
@@ -543,6 +586,36 @@ describe('pickWeightedTemplate', () => {
 		];
 		for (const r of [0, 0.25, 0.5, 0.99]) {
 			expect(pickWeightedTemplate(mixed, bySize, [], () => r)?.id).toBe('full');
+		}
+	});
+});
+
+describe('sentence template pools', () => {
+	const progressB2: Progress = {
+		level: 'B2',
+		caseScores: {},
+		paradigmScores: {},
+		lemmaScores: {},
+		cellSchedule: {},
+		lastSession: '',
+		longestStreak: 0
+	};
+
+	it('every template can drill at least one noun at B2', () => {
+		for (const template of loadTemplates()) {
+			expect(getCandidates(template, progressB2).length, template.id).toBeGreaterThan(0);
+		}
+	});
+
+	it('no template drills a noun tagged no_templates', () => {
+		for (const template of loadTemplates()) {
+			const leaked = getCandidates(template, progressB2).filter((w) =>
+				w.categories.includes('no_templates')
+			);
+			expect(
+				leaked.map((w) => w.lemma),
+				template.id
+			).toEqual([]);
 		}
 	});
 });

@@ -13,7 +13,7 @@
 				"acc": { "prep": "mě/mne", "bare": "mě/mne" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "mně", "bare": "" },
-				"ins": { "prep": "mnou", "bare": "" }
+				"ins": { "prep": "mnou", "bare": "mnou" }
 			},
 			"pl": null
 		},
@@ -22,7 +22,7 @@
 			"dat_sg": "'Mi' is the enclitic used without prepositions. 'Mně' is used after prepositions (e.g. 'ke mně') and for emphasis.",
 			"acc_sg": "'Mě' is the most common form, used both after prepositions (e.g. 'pro mě', 'na mě') and as an enclitic. 'Mne' is the stressed/emphatic variant (e.g. 'na mne'). Note: 'mně' is dative/locative — using it in the accusative is a common mistake.",
 			"loc_sg": "Only 'mně' exists; always used after prepositions (e.g. 'o mně', 'po mně'). There is no enclitic form.",
-			"ins_sg": "Only 'mnou' exists (e.g. 'se mnou', 'přede mnou'). There is no enclitic form."
+			"ins_sg": "Only 'mnou' exists. It is used both after prepositions (e.g. 'se mnou', 'přede mnou') and without one (e.g. 'pohrdá mnou'). There is no enclitic form."
 		}
 	},
 	{
@@ -39,7 +39,7 @@
 				"acc": { "prep": "tebe", "bare": "tě/tebe" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "tobě", "bare": "" },
-				"ins": { "prep": "tebou", "bare": "" }
+				"ins": { "prep": "tebou", "bare": "tebou" }
 			},
 			"pl": null
 		},
@@ -48,7 +48,7 @@
 			"dat_sg": "'Ti' is the enclitic used without prepositions. 'Tobě' is used after prepositions (e.g. 'k tobě') and for emphasis.",
 			"acc_sg": "'Tě' is the enclitic used without prepositions. 'Tebe' is used after prepositions (e.g. 'na tebe', 'pro tebe') and for emphasis.",
 			"loc_sg": "Only 'tobě' exists; always used after prepositions (e.g. 'o tobě', 'po tobě'). There is no enclitic form.",
-			"ins_sg": "Only 'tebou' exists (e.g. 's tebou', 'před tebou'). There is no enclitic form."
+			"ins_sg": "Only 'tebou' exists. It is used both after prepositions (e.g. 's tebou', 'před tebou') and without one (e.g. 'pohrdá tebou'). There is no enclitic form."
 		}
 	},
 	{
@@ -62,19 +62,19 @@
 				"nom": { "prep": "", "bare": "on" },
 				"gen": { "prep": "něho/něj", "bare": "ho/jeho" },
 				"dat": { "prep": "němu", "bare": "mu/jemu" },
-				"acc": { "prep": "něho/něj", "bare": "ho" },
+				"acc": { "prep": "něho/něj", "bare": "ho/jeho/jej" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "něm", "bare": "" },
-				"ins": { "prep": "ním", "bare": "" }
+				"ins": { "prep": "ním", "bare": "jím" }
 			},
 			"pl": null
 		},
 		"notes": {
 			"gen_sg": "After prepositions, use n-forms: 'od něho', 'bez něj'. Without prepositions: 'ho' (enclitic) or 'jeho' (emphatic). Never use n-forms without a preposition or j-forms after a preposition.",
 			"dat_sg": "After prepositions, use 'němu' (e.g. 'k němu'). Without prepositions: 'mu' (enclitic) or 'jemu' (emphatic).",
-			"acc_sg": "After prepositions, use n-forms: 'na něho', 'pro něj'. Without prepositions: 'ho' (enclitic). The form 'jeho' in accusative is archaic.",
+			"acc_sg": "After prepositions, use n-forms: 'na něho', 'pro něj'. Without prepositions: 'ho' (enclitic), 'jeho' (stressed, e.g. 'Viděl jsem jeho, ne ji') or the bookish 'jej'.",
 			"loc_sg": "Only 'něm' exists; always used after prepositions (e.g. 'o něm', 'po něm').",
-			"ins_sg": "Only 'ním' exists; always used after prepositions (e.g. 's ním', 'před ním')."
+			"ins_sg": "After prepositions, use 'ním' (e.g. 's ním', 'před ním'). Without a preposition, use 'jím' (e.g. 'byl jím nadšený')."
 		}
 	},
 	{
@@ -91,7 +91,7 @@
 				"acc": { "prep": "ni", "bare": "ji" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "ní", "bare": "" },
-				"ins": { "prep": "ní", "bare": "" }
+				"ins": { "prep": "ní", "bare": "jí" }
 			},
 			"pl": null
 		},
@@ -100,7 +100,7 @@
 			"dat_sg": "'Ní' is used after prepositions (e.g. 'k ní'). 'Jí' is the enclitic used without prepositions.",
 			"acc_sg": "'Ni' is used after prepositions (e.g. 'na ni', 'pro ni'). 'Ji' is the enclitic used without prepositions. Note the vowel difference: gen/dat 'ní/jí' vs acc 'ni/ji'.",
 			"loc_sg": "Only 'ní' exists; always used after prepositions (e.g. 'o ní', 'po ní'). There is no enclitic form.",
-			"ins_sg": "Only 'ní' exists; always used after prepositions (e.g. 's ní', 'před ní'). There is no enclitic form."
+			"ins_sg": "After prepositions, use 'ní' (e.g. 's ní', 'před ní'). Without a preposition, use 'jí' (e.g. 'byl jí nadšený'). There is no enclitic form."
 		}
 	},
 	{
@@ -117,7 +117,7 @@
 				"acc": { "prep": "ně/něj", "bare": "je" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "něm", "bare": "" },
-				"ins": { "prep": "ním", "bare": "" }
+				"ins": { "prep": "ním", "bare": "jím" }
 			},
 			"pl": null
 		},
@@ -126,7 +126,7 @@
 			"dat_sg": "After prepositions, use 'němu' (e.g. 'k němu'). Without prepositions: 'mu' (enclitic) or 'jemu' (emphatic).",
 			"acc_sg": "After prepositions, use n-forms: 'na ně', 'pro něj'. Without prepositions, the standard neuter form is 'je'. Note: neuter 'ně'/'je' differs from masculine 'něho'/'ho'.",
 			"loc_sg": "Only 'něm' exists; always used after prepositions (e.g. 'o něm').",
-			"ins_sg": "Only 'ním' exists; always used after prepositions (e.g. 's ním')."
+			"ins_sg": "After prepositions, use 'ním' (e.g. 's ním'). Without a preposition, use 'jím'."
 		}
 	},
 	{
@@ -170,7 +170,7 @@
 			}
 		},
 		"notes": {
-			"general": "'Vy' has no distinct enclitic forms. The same forms are used in all positions, including after prepositions (e.g. 'od vás', 'k vám', 's vámi'). When used as a polite form of address, it is capitalized: Vy, Vás, Vám, etc."
+			"general": "'Vy' has no distinct enclitic forms. The same forms are used in all positions, including after prepositions (e.g. 'od vás', 'k vám', 's vámi'). In letters and messages to a single person, the polite forms are often capitalized as a sign of respect (Vy, Vás, Vám) — this is optional."
 		}
 	},
 	{
@@ -188,7 +188,7 @@
 				"acc": { "prep": "ně", "bare": "je" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "nich", "bare": "" },
-				"ins": { "prep": "nimi", "bare": "" }
+				"ins": { "prep": "nimi", "bare": "jimi" }
 			}
 		},
 		"notes": {
@@ -197,7 +197,7 @@
 			"dat_pl": "After prepositions, use n-form 'nim' (e.g. 'k nim'). Without prepositions, use 'jim' (both enclitic and emphatic).",
 			"acc_pl": "After prepositions, use n-form 'ně' (e.g. 'na ně', 'pro ně'). Without prepositions, use 'je' (both enclitic and emphatic).",
 			"loc_pl": "Only 'nich' exists; always used after prepositions (e.g. 'o nich').",
-			"ins_pl": "Only 'nimi' exists; always used after prepositions (e.g. 's nimi')."
+			"ins_pl": "After prepositions, use 'nimi' (e.g. 's nimi'). Without a preposition, use 'jimi' (e.g. 'byl jimi nadšený')."
 		}
 	},
 	{
@@ -209,21 +209,22 @@
 		"forms": {
 			"sg": {
 				"nom": { "prep": "", "bare": "" },
-				"gen": { "prep": "sebe", "bare": "" },
+				"gen": { "prep": "sebe", "bare": "sebe" },
 				"dat": { "prep": "sobě", "bare": "si/sobě" },
 				"acc": { "prep": "sebe", "bare": "se/sebe" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "sobě", "bare": "" },
-				"ins": { "prep": "sebou", "bare": "" }
+				"ins": { "prep": "sebou", "bare": "sebou" }
 			},
 			"pl": null
 		},
 		"notes": {
 			"general": "The reflexive pronoun has no nominative form and no plural. It refers back to the subject regardless of person, number, or gender.",
+			"gen_sg": "'Sebe' is used both after prepositions (e.g. 'od sebe', 'bez sebe') and without one (e.g. 'bojí se sebe'). There is no enclitic form.",
 			"dat_sg": "'Si' is the enclitic used without prepositions (e.g. 'koupil si knihu'). 'Sobě' is used after prepositions (e.g. 'k sobě') and for emphasis.",
 			"acc_sg": "'Se' is the enclitic used without prepositions (e.g. 'mýt se'). 'Sebe' is used after prepositions (e.g. 'na sebe', 'pro sebe') and for emphasis.",
 			"loc_sg": "Only 'sobě' exists; always used after prepositions (e.g. 'o sobě', 'v sobě'). There is no enclitic form.",
-			"ins_sg": "Only 'sebou' exists; always used after prepositions (e.g. 'se sebou', 'před sebou'). There is no enclitic form."
+			"ins_sg": "Only 'sebou' exists. It is used after prepositions (e.g. 'se sebou', 'před sebou') and without one (e.g. 'trhl sebou'). There is no enclitic form."
 		}
 	}
 ]

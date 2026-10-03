@@ -83,12 +83,12 @@ describe('lemma blocks · sentence (noun) drill', () => {
 		_resetLemmaBlockCacheForTests();
 		_resetCandidateCacheForTests();
 		const blocked = getCandidates(template, PROGRESS_B2);
-		const hrad = loadWordBank().find((w) => w.lemma === 'hrad');
+		const byt = loadWordBank().find((w) => w.lemma === 'byt');
 		const lemmaCats = Array.isArray(template.lemmaCategory)
 			? template.lemmaCategory
 			: [template.lemmaCategory];
-		if (hrad && hrad.categories.some((c) => lemmaCats.includes(c))) {
-			expect(blocked.some((w) => w.lemma === 'hrad')).toBe(true);
+		if (byt && byt.categories.some((c) => lemmaCats.includes(c))) {
+			expect(blocked.some((w) => w.lemma === 'byt')).toBe(true);
 		}
 	});
 

@@ -80,7 +80,7 @@
 			color: 'var(--color-case-gen)',
 			usage: [
 				'Expressing possession: "kniha studenta" (the student\'s book)',
-				'After quantities and negation: "pět studentů", "nemám času"',
+				'After quantities: "pět studentů", "hodně času"',
 				'After certain prepositions indicating origin, absence, or proximity'
 			],
 			prepositions: 'z/ze, do, od/ode, bez, u, kolem, vedle, během',
@@ -157,7 +157,7 @@
 				'Direction or motion toward a place',
 				'Duration of time or expressing price'
 			],
-			prepositions: 'na, za, pro, přes, o, v (with motion)',
+			prepositions: 'na, za, pro, přes, o, v (days and fixed phrases: ve středu, věřit v)',
 			examples: [
 				{ sentence: 'Čtu knihu.', highlight: 'knihu', translation: "I'm reading a book." },
 				{

@@ -158,7 +158,7 @@
 			plural: ['páni / pánové', 'pánů', 'pánům', 'pány', 'páni / pánové!', 'pánech', 'pány'],
 			howToIdentify:
 				'Masculine animate nouns ending in a hard consonant (d, h, k, n, r, t…). The nominative singular has a zero ending (bare stem).',
-			examples: ['student', 'bratr', 'chlapec', 'soused'],
+			examples: ['student', 'bratr', 'kluk', 'soused'],
 			notes:
 				'Vocative singular takes -e, with r softening to ř (bratr→bratře). After velars k, g, h, ch, the ending is -u instead (žák→žáku, kluk→kluku, biolog→biologu) — člověk→člověče is the main exception. Accusative singular always matches genitive for animate nouns.'
 		},
@@ -304,7 +304,7 @@
 			plural: ['písně', 'písní', 'písním', 'písně', 'písně!', 'písních', 'písněmi'],
 			howToIdentify:
 				'Feminine nouns ending in a soft consonant (-ň, -ď, -ť, -ř, -j) — typically with -eň, -áň, -seň.',
-			examples: ['daň', 'dlaň', 'báseň', 'zeď'],
+			examples: ['daň', 'dlaň', 'báseň', 'skříň'],
 			notes:
 				'Accusative singular equals nominative (unlike žena-type). The -ň/-ď/-ť may lose its háček before -e: píseň→písně.'
 		},
@@ -317,7 +317,7 @@
 			singular: ['kost', 'kosti', 'kosti', 'kost', 'kosti!', 'kosti', 'kostí'],
 			plural: ['kosti', 'kostí', 'kostem', 'kosti', 'kosti!', 'kostech', 'kostmi'],
 			howToIdentify:
-				'Feminine nouns ending in -st, -c (after a vowel), or other hard consonants. A smaller paradigm.',
+				'Feminine nouns ending in -st and some other consonants (e.g. -c in věc, noc). The final consonant alone does not separate kost from píseň, so check the genitive (kosti vs. písně). A smaller paradigm.',
 			examples: ['místnost', 'věc', 'radost', 'noc'],
 			notes:
 				'Genitive, dative, vocative, and locative singular are all -i — very uniform. Instrumental plural is the distinctive -mi ending.'
@@ -581,7 +581,9 @@
 					<span
 						>Determine the <strong class="text-text-default">gender</strong>. Quick rules: consonant
 						ending → masculine, <strong class="text-text-default">-a</strong> → feminine,
-						<strong class="text-text-default">-o/-í/-e</strong> → neuter. Exceptions exist (e.g.
+						<strong class="text-text-default">-o/-í</strong> → neuter,
+						<strong class="text-text-default">-e</strong> → feminine or neuter. Exceptions exist
+						(e.g.
 						<em>táta</em> is masculine), so check a dictionary if unsure.</span
 					>
 				</li>

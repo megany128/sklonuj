@@ -195,6 +195,9 @@ def load_form_overrides(path: Path) -> dict[str, dict[str, object]]:
       - "gender" ("m" | "f" | "n") / "animate" (bool): override MorphoDiTa's
         analysis when it picked the wrong homonym (e.g. "sekáč" the shop, not
         the mower; "panorama" neuter, not feminine).
+      - "capitalize" (bool): emit the lemma and all forms capitalized, for
+        proper nouns such as holidays and nationality nouns (Vánoce,
+        Američanka). Everything else keeps using the lowercase lemma as key.
       - "variants_sg" / "variants_pl": object mapping case index (as a string,
         "0"=nom.."6"=ins) to a list of extra accepted forms. Applied after
         "sg"/"pl" and the remove_* keys, so it is the way to demote a former
@@ -519,6 +522,21 @@ CROSS_REF_PATTERN = re.compile(
 )
 
 
+def _capitalize_entry(entry: dict) -> None:
+    """Capitalize the lemma and every form of a proper noun in place
+    (``"capitalize": true`` in form_overrides.json)."""
+
+    def cap(form: str) -> str:
+        return form[:1].upper() + form[1:]
+
+    entry["lemma"] = cap(entry["lemma"])
+    for number in ("sg", "pl"):
+        entry["forms"][number] = [cap(f) for f in entry["forms"][number]]
+    for by_case in entry.get("variantForms", {}).values():
+        for idx, forms in by_case.items():
+            by_case[idx] = [cap(f) for f in forms]
+
+
 def _load_previous_json(path: Path) -> list[dict]:
     """Load the previous word_bank.json for diffing, or return empty list."""
     if not path.exists():
@@ -621,7 +639,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"Loaded {len(lemmas)} lemmas from {LEMMAS_PATH.name}", file=sys.stderr)
 
     previous_json_words = _load_previous_json(OUTPUT_JSON_PATH)
-    previous_by_lemma = {w["lemma"]: w for w in previous_json_words}
+    # Keyed lowercase: the pipeline (lemma list, meta CSV, overrides, --only)
+    # works on lowercase lemmas, while a ``capitalize`` override can make the
+    # emitted lemma a capitalized proper noun (Vánoce, Američanka).
+    previous_by_lemma = {w["lemma"].lower(): w for w in previous_json_words}
 
     only = {l.strip().lower() for l in args.only.split(",") if l.strip()}
     drop = {l.strip().lower() for l in args.drop.split(",") if l.strip()}
@@ -632,8 +653,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         missing_drop = sorted(drop - set(previous_by_lemma))
         if missing_drop:
             print(f"WARNING: --drop lemma(s) not in bank: {', '.join(missing_drop)}", file=sys.stderr)
-        previous_json_words = [w for w in previous_json_words if w["lemma"] not in drop]
-        previous_by_lemma = {w["lemma"]: w for w in previous_json_words}
+        previous_json_words = [w for w in previous_json_words if w["lemma"].lower() not in drop]
+        previous_by_lemma = {w["lemma"].lower(): w for w in previous_json_words}
         print(f"Dropping {len(drop - set(missing_drop))} entr(y/ies): {', '.join(sorted(drop))}", file=sys.stderr)
     if only and not args.merge:
         # Without --merge the output would contain *only* the listed lemmas.
@@ -938,6 +959,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         if w["_note"]:
             entry["declensionNote"] = w["_note"]
 
+        if form_overrides.get(w["lemma"], {}).get("capitalize"):
+            _capitalize_entry(entry)
+
         json_words.append(entry)
 
     if args.merge:
@@ -947,7 +971,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         # to, changed on, or removed from established words without
         # re-deriving their forms. Entries without a meta CSV row are left
         # alone entirely.
-        rebuilt = {e["lemma"]: e for e in json_words}
+        rebuilt = {e["lemma"].lower(): e for e in json_words}
         merged = []
         synced_notes = 0
         has_note_column = any("note" in row for row in meta.values())
@@ -958,18 +982,19 @@ def main(argv: Optional[list[str]] = None) -> int:
                 file=sys.stderr,
             )
         for old in previous_json_words:
-            if old["lemma"] in rebuilt:
-                merged.append(rebuilt.pop(old["lemma"]))
+            key = old["lemma"].lower()
+            if key in rebuilt:
+                merged.append(rebuilt.pop(key))
                 continue
-            if has_note_column and old["lemma"] in meta:
-                note = (meta[old["lemma"]].get("note") or "").strip()
+            if has_note_column and key in meta:
+                note = (meta[key].get("note") or "").strip()
                 if (old.get("declensionNote") or "") != note:
                     old = {k: v for k, v in old.items() if k != "declensionNote"}
                     if note:
                         old["declensionNote"] = note
                     synced_notes += 1
             merged.append(old)
-        merged.extend(e for e in json_words if e["lemma"] in rebuilt)
+        merged.extend(e for e in json_words if e["lemma"].lower() in rebuilt)
         json_words = merged
         if synced_notes:
             print(f"  Synced declensionNote on {synced_notes} existing entries", file=sys.stderr)

@@ -43,7 +43,9 @@ def main(argv: list[str]) -> int:
     with open(SHEET_PATH, encoding="utf-8") as f:
         sheet = json.load(f)
     with open(WORD_BANK_PATH, encoding="utf-8") as f:
-        bank_lemmas = {w["lemma"] for w in json.load(f)}
+        # Lower-cased sheet/extra lemmas map to the bank's spelling, which is
+        # capitalized for proper nouns (Vánoce, Američanka).
+        bank_spelling = {w["lemma"].lower(): w["lemma"] for w in json.load(f)}
     with open(CHAPTERS_PATH, encoding="utf-8") as f:
         config = json.load(f)
     with open(EXTRA_PATH, encoding="utf-8") as f:
@@ -59,8 +61,8 @@ def main(argv: list[str]) -> int:
             green.add(lemma)
             continue
         drilled.add(lemma)
-        if lemma in bank_lemmas:
-            per_lesson[entry["lesson"]].add(lemma)
+        if lemma in bank_spelling:
+            per_lesson[entry["lesson"]].add(bank_spelling[lemma])
         else:
             missing[lemma].add(entry["lesson"])
     # A lemma that is green in one lesson but drilled in another is not
@@ -69,7 +71,7 @@ def main(argv: list[str]) -> int:
 
     chapters = config["kzk1"]["chapters"]
     unknown_extra = sorted(
-        l for ls in extras.values() for l in ls if l not in bank_lemmas
+        l for ls in extras.values() for l in ls if l.lower() not in bank_spelling
     )
     if unknown_extra:
         print(
@@ -81,7 +83,8 @@ def main(argv: list[str]) -> int:
     changed = 0
     for chapter in chapters:
         lesson = int(chapter["id"].rsplit("_", 1)[1])
-        new_core = sorted(per_lesson.get(lesson, set()) | set(extras.get(chapter["id"], [])))
+        extra = {bank_spelling[l.lower()] for l in extras.get(chapter["id"], [])}
+        new_core = sorted(per_lesson.get(lesson, set()) | extra)
         if chapter["coreLemmas"] != new_core:
             changed += 1
             if not check_only:

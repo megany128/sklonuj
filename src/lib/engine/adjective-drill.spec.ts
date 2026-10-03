@@ -415,7 +415,10 @@ describe('adjective template pools stay diverse', () => {
 		const templates = loadAdjectiveTemplates();
 		for (const t of templates) {
 			const pool = filterAdjectivesByTemplate(bank, t);
-			expect(pool.length, `${t.id} (${t.nounLemma}) pool`).toBeGreaterThanOrEqual(5);
+			// Address adjectives are a closed set: "___ dítě, pojď sem" only takes
+			// malé/drahé from the current bank.
+			const min = t.requiredCase === 'voc' ? 2 : 5;
+			expect(pool.length, `${t.id} (${t.nounLemma}) pool`).toBeGreaterThanOrEqual(min);
 		}
 	});
 });
@@ -487,5 +490,19 @@ describe('weightedRandomAdjective', () => {
 		expect(() => weightedRandomAdjective([], progress, 'acc', 'pl', noun)).toThrow(
 			'weightedRandomAdjective called with empty candidates array'
 		);
+	});
+});
+
+describe('wealth adjectives and people', () => {
+	it('never pairs drahý/levný with a person noun, even one also tagged misc', () => {
+		const bank = loadAdjectiveBank();
+		const levny = bank.find((a) => a.lemma === 'levný');
+		expect(levny).toBeDefined();
+		if (!levny) return;
+		expect(adjectiveMatchesNoun(levny, { lemma: 'student', categories: ['misc', 'people'] })).toBe(
+			false
+		);
+		expect(adjectiveMatchesNoun(levny, { lemma: 'auto', categories: ['objects'] })).toBe(true);
+		expect(adjectiveMatchesNoun(levny, { lemma: 'pes', categories: ['animals'] })).toBe(true);
 	});
 });

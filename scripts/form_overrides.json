@@ -8,13 +8,36 @@
 			"sekretáři",
 			"sekretářích",
 			"sekretáři"
-		]
+		],
+		"sg": [
+			"sekretář",
+			"sekretáře",
+			"sekretáři",
+			"sekretáře",
+			"sekretáři",
+			"sekretáři",
+			"sekretářem"
+		],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["sekretářovi"],
+			"5": ["sekretářovi"]
+		}
 	},
 	"manžel": {
-		"sg": ["manžel", "manžela", "manželovi", "manžela", "manželi", "manželovi", "manželem"]
+		"sg": ["manžel", "manžela", "manželovi", "manžela", "manželi", "manželovi", "manželem"],
+		"variants_sg": {
+			"2": ["manželu"],
+			"5": ["manželu"]
+		}
 	},
 	"kořen": {
-		"sg": ["kořen", "kořene", "kořenu", "kořen", "kořeni", "kořeni", "kořenem"]
+		"sg": ["kořen", "kořene", "kořenu", "kořen", "kořeni", "kořeni", "kořenem"],
+		"variants_sg": {
+			"2": ["kořeni"],
+			"5": ["kořenu"]
+		}
 	},
 	"dítě": {
 		"pl": ["děti", "dětí", "dětem", "děti", "děti", "dětech", "dětmi"]
@@ -648,5 +671,384 @@
 			"6": ["skálami"]
 		},
 		"remove_variants_sg": [6]
+	},
+	"metr": {
+		"variants_sg": {
+			"4": ["metře"]
+		}
+	},
+	"kilometr": {
+		"variants_sg": {
+			"4": ["kilometře"]
+		}
+	},
+	"centimetr": {
+		"variants_sg": {
+			"4": ["centimetře"]
+		}
+	},
+	"litr": {
+		"variants_sg": {
+			"4": ["litře"]
+		}
+	},
+	"cukr": {
+		"variants_sg": {
+			"4": ["cukře"]
+		}
+	},
+	"kufr": {
+		"variants_sg": {
+			"4": ["kufře"]
+		}
+	},
+	"parametr": {
+		"variants_sg": {
+			"4": ["parametře"]
+		}
+	},
+	"orchestr": {
+		"variants_sg": {
+			"4": ["orchestře"]
+		}
+	},
+	"silvestr": {
+		"variants_sg": {
+			"4": ["silvestře"]
+		}
+	},
+	"žánr": {
+		"variants_sg": {
+			"4": ["žánře"]
+		}
+	},
+	"svetr": {
+		"variants_sg": {
+			"4": ["svetře"]
+		}
+	},
+	"citron": {
+		"variants_sg": {
+			"5": ["citronu"]
+		}
+	},
+	"plurál": {
+		"variants_sg": {
+			"5": ["plurálu"]
+		}
+	},
+	"basketbal": {
+		"variants_sg": {
+			"5": ["basketbalu"]
+		}
+	},
+	"volejbal": {
+		"variants_sg": {
+			"5": ["volejbalu"]
+		}
+	},
+	"sud": {
+		"variants_sg": {
+			"5": ["sudu"]
+		}
+	},
+	"doktorát": {
+		"variants_sg": {
+			"5": ["doktorátu"]
+		}
+	},
+	"inkoust": {
+		"variants_sg": {
+			"5": ["inkoustu"]
+		}
+	},
+	"špenát": {
+		"variants_sg": {
+			"5": ["špenátu"]
+		}
+	},
+	"kurz": {
+		"variants_sg": {
+			"5": ["kurzu"]
+		}
+	},
+	"mobil": {
+		"sg": ["mobil", "mobilu", "mobilu", "mobil", "mobile", "mobilu", "mobilem"]
+	},
+	"areál": {
+		"sg": ["areál", "areálu", "areálu", "areál", "areále", "areálu", "areálem"]
+	},
+	"gól": {
+		"sg": ["gól", "gólu", "gólu", "gól", "góle", "gólu", "gólem"],
+		"variants_sg": {
+			"1": ["góla"],
+			"3": ["góla"]
+		}
+	},
+	"trapas": {
+		"sg": ["trapas", "trapasu", "trapasu", "trapas", "trapase", "trapasu", "trapasem"]
+	},
+	"plakát": {
+		"sg": ["plakát", "plakátu", "plakátu", "plakát", "plakáte", "plakátu", "plakátem"]
+	},
+	"saponát": {
+		"sg": ["saponát", "saponátu", "saponátu", "saponát", "saponáte", "saponátu", "saponátem"]
+	},
+	"automat": {
+		"sg": ["automat", "automatu", "automatu", "automat", "automate", "automatu", "automatem"]
+	},
+	"volno": {
+		"sg": ["volno", "volna", "volnu", "volno", "volno", "volnu", "volnem"]
+	},
+	"přílet": {
+		"sg": ["přílet", "příletu", "příletu", "přílet", "přílete", "příletu", "příletem"]
+	},
+	"úterý": {
+		"pl": ["úterý", "úterý", "úterým", "úterý", "úterý", "úterých", "úterými"]
+	},
+	"intuice": {
+		"variants_pl": {
+			"1": ["intuicí"]
+		}
+	},
+	"nezávislost": {
+		"remove_variants_sg": [0, 1, 2, 3, 4, 5, 6],
+		"remove_variants_pl": [0, 1, 2, 3, 4, 5, 6]
+	},
+	"neohroženost": {
+		"remove_variants_sg": [0, 1, 2, 3, 4, 5, 6],
+		"remove_variants_pl": [0, 1, 2, 3, 4, 5, 6]
+	},
+	"nedbalost": {
+		"remove_variants_sg": [0, 1, 2, 3, 4, 5, 6],
+		"remove_variants_pl": [0, 1, 2, 3, 4, 5, 6]
+	},
+	"nemoc": {
+		"remove_variants_sg": [0, 1, 2, 3, 4, 5, 6],
+		"remove_variants_pl": [0, 1, 2, 3, 4, 5, 6],
+		"variants_pl": {
+			"2": ["nemocem"],
+			"5": ["nemocech"]
+		}
+	},
+	"odpůrce": {
+		"remove_variants_sg": [0]
+	},
+	"míra": {
+		"sg": ["míra", "míry", "míře", "míru", "míro", "míře", "mírou"],
+		"variants_sg": {
+			"6": ["měrou"]
+		}
+	},
+	"syn": {
+		"sg": ["syn", "syna", "synovi", "syna", "synu", "synovi", "synem"],
+		"variants_sg": {
+			"2": ["synu"],
+			"5": ["synu"]
+		}
+	},
+	"velikonoce": {
+		"pl": [
+			"velikonoce",
+			"velikonoc",
+			"velikonocům",
+			"velikonoce",
+			"velikonoce",
+			"velikonocích",
+			"velikonocemi"
+		],
+		"variants_pl": {
+			"6": ["velikonoci"]
+		},
+		"capitalize": true
+	},
+	"rande": {
+		"sg": ["rande", "rande", "rande", "rande", "rande", "rande", "rande"],
+		"pl": ["rande", "rande", "rande", "rande", "rande", "rande", "rande"]
+	},
+	"kuchyně": {
+		"sg": ["kuchyně", "kuchyně", "kuchyni", "kuchyni", "kuchyně", "kuchyni", "kuchyní"]
+	},
+	"odpoledne": {
+		"remove_variants_pl": [5]
+	},
+	"poledne": {
+		"remove_variants_pl": [5]
+	},
+	"vánoce": {
+		"capitalize": true
+	},
+	"američanka": {
+		"capitalize": true,
+		"sg": [
+			"američanka",
+			"američanky",
+			"američance",
+			"američanku",
+			"američanko",
+			"američance",
+			"američankou"
+		],
+		"pl": [
+			"američanky",
+			"američanek",
+			"američankám",
+			"američanky",
+			"američanky",
+			"američankách",
+			"američankami"
+		],
+		"gender": "f",
+		"animate": true
+	},
+	"angličanka": {
+		"capitalize": true,
+		"sg": [
+			"angličanka",
+			"angličanky",
+			"angličance",
+			"angličanku",
+			"angličanko",
+			"angličance",
+			"angličankou"
+		],
+		"pl": [
+			"angličanky",
+			"angličanek",
+			"angličankám",
+			"angličanky",
+			"angličanky",
+			"angličankách",
+			"angličankami"
+		],
+		"gender": "f",
+		"animate": true
+	},
+	"had": {
+		"pl": ["hadi", "hadů", "hadům", "hady", "hadi", "hadech", "hady"],
+		"variants_pl": {
+			"0": ["hadové"],
+			"4": ["hadové"]
+		}
+	},
+	"medvěd": {
+		"pl": ["medvědi", "medvědů", "medvědům", "medvědy", "medvědi", "medvědech", "medvědy"],
+		"variants_pl": {
+			"0": ["medvědové"],
+			"4": ["medvědové"]
+		}
+	},
+	"velbloud": {
+		"pl": [
+			"velbloudi",
+			"velbloudů",
+			"velbloudům",
+			"velbloudy",
+			"velbloudi",
+			"velbloudech",
+			"velbloudy"
+		],
+		"variants_pl": {
+			"0": ["velbloudové"],
+			"4": ["velbloudové"]
+		}
+	},
+	"motýl": {
+		"pl": ["motýli", "motýlů", "motýlům", "motýly", "motýli", "motýlech", "motýly"],
+		"variants_pl": {
+			"0": ["motýlové"],
+			"4": ["motýlové"]
+		}
+	},
+	"pudl": {
+		"pl": ["pudli", "pudlů", "pudlům", "pudly", "pudli", "pudlech", "pudly"],
+		"variants_pl": {
+			"0": ["pudlové"],
+			"4": ["pudlové"]
+		}
+	},
+	"jestřáb": {
+		"pl": ["jestřábi", "jestřábů", "jestřábům", "jestřáby", "jestřábi", "jestřábech", "jestřáby"],
+		"variants_pl": {
+			"0": ["jestřábové"],
+			"4": ["jestřábové"]
+		}
+	},
+	"krokodýl": {
+		"pl": [
+			"krokodýli",
+			"krokodýlů",
+			"krokodýlům",
+			"krokodýly",
+			"krokodýli",
+			"krokodýlech",
+			"krokodýly"
+		],
+		"variants_pl": {
+			"0": ["krokodýlové"],
+			"4": ["krokodýlové"]
+		}
+	},
+	"gaviál": {
+		"pl": ["gaviáli", "gaviálů", "gaviálům", "gaviály", "gaviáli", "gaviálech", "gaviály"],
+		"variants_pl": {
+			"0": ["gaviálové"],
+			"4": ["gaviálové"]
+		}
+	},
+	"kozel": {
+		"pl": ["kozli", "kozlů", "kozlům", "kozly", "kozli", "kozlech", "kozly"],
+		"variants_pl": {
+			"0": ["kozlové"],
+			"4": ["kozlové"]
+		}
+	},
+	"losos": {
+		"pl": ["lososi", "lososů", "lososům", "lososy", "lososi", "lososech", "lososy"],
+		"variants_pl": {
+			"0": ["lososové"],
+			"4": ["lososové"]
+		}
+	},
+	"kamarád": {
+		"pl": ["kamarádi", "kamarádů", "kamarádům", "kamarády", "kamarádi", "kamarádech", "kamarády"],
+		"variants_pl": {
+			"0": ["kamarádové"],
+			"4": ["kamarádové"]
+		}
+	},
+	"zloděj": {
+		"pl": ["zloději", "zlodějů", "zlodějům", "zloděje", "zloději", "zlodějích", "zloději"],
+		"variants_pl": {
+			"0": ["zlodějové"],
+			"4": ["zlodějové"]
+		}
+	},
+	"večer": {
+		"sg": ["večer", "večera", "večeru", "večer", "večere", "večeru", "večerem"]
+	},
+	"ústav": {
+		"sg": ["ústav", "ústavu", "ústavu", "ústav", "ústave", "ústavu", "ústavem"],
+		"variants_sg": {
+			"5": ["ústavě"]
+		}
+	},
+	"košile": {
+		"pl": ["košile", "košil", "košilím", "košile", "košile", "košilích", "košilemi"],
+		"variants_pl": {
+			"1": ["košilí"]
+		}
+	},
+	"jezero": {
+		"sg": ["jezero", "jezera", "jezeru", "jezero", "jezero", "jezeře", "jezerem"],
+		"variants_sg": {
+			"5": ["jezeru"]
+		}
+	},
+	"patro": {
+		"sg": ["patro", "patra", "patru", "patro", "patro", "patře", "patrem"],
+		"variants_sg": {
+			"5": ["patru"]
+		}
 	}
 }

@@ -223,7 +223,8 @@ export -f upload_one
 # names shouldn't contain any, but defense in depth is cheap).
 xargs -0 -n1 -P"$CONCURRENCY" -I{} bash -c 'upload_one "$@"' _ {} <"$list_file"
 
-final="$(<"$counter_file")"
+# The counter file holds one "." per uploaded file, so its byte count is the total.
+final="$(wc -c <"$counter_file" | tr -d ' ')"
 echo "done: ${final}/${total} files uploaded to r2://${BUCKET}/${PREFIX}"
 
 if [[ "$final" -ne "$total" ]]; then

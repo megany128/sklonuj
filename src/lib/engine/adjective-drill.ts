@@ -584,13 +584,10 @@ const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = 
 	nationality: null,
 	ordinal: null,
 	aesthetic: null,
-	// Wealth (drahý/levný) — price/value, applies broadly except to body parts.
+	// Wealth (drahý/levný) — price/value, applies broadly except to body parts and
+	// people (with a person, drahý reads as "dear" and levný as an insult).
 	wealth: [
 		'misc',
-		'people',
-		'family',
-		'profession',
-		'nationality',
 		'animals',
 		'objects',
 		'clothing',
@@ -801,6 +798,172 @@ const PROFILE_NOUN_COMPAT: Record<AdjectiveProfile, readonly string[] | null> = 
 	aggregate: ['time', 'duration', 'era']
 };
 
+// Strength (silný/slabý): people, animals, drinks (silný čaj), weather, feelings,
+// texts and clothing (silná kniha, silný svetr = thick); not places or dishes.
+const STRENGTH_NOUN_CATEGORIES: readonly string[] = [
+	'people',
+	'family',
+	'profession',
+	'nationality',
+	'animals',
+	'drink',
+	'weather',
+	'feeling',
+	'abstract',
+	'body',
+	'transportation',
+	'vehicle',
+	'clothing',
+	'readable',
+	'institution'
+];
+
+// Per-adjective noun categories that replace the profile's list. The broad
+// `quality`, `domain` and `utility` profiles group adjectives that only describe
+// some kinds of nouns: "hlavní město" but not "hlavní žena", "silný čaj" but not
+// "silná ulice", "politická strana" but not "politický kluk".
+const LEMMA_NOUN_COMPAT: Readonly<Record<string, readonly string[]>> = {
+	silný: STRENGTH_NOUN_CATEGORIES,
+	slabý: STRENGTH_NOUN_CATEGORIES,
+	důležitý: [
+		'abstract',
+		'event',
+		'gathering',
+		'quiet_event',
+		'people',
+		'family',
+		'profession',
+		'readable',
+		'places',
+		'v_place',
+		'na_place',
+		'time',
+		'institution',
+		'travel'
+	],
+	moderní: [
+		'objects',
+		'places',
+		'v_place',
+		'na_place',
+		'transportation',
+		'vehicle',
+		'clothing',
+		'abstract',
+		'readable',
+		'event',
+		'people',
+		'profession',
+		'institution'
+	],
+	hlavní: [
+		'places',
+		'v_place',
+		'na_place',
+		'abstract',
+		'event',
+		'gathering',
+		'readable',
+		'profession',
+		'institution',
+		'meal'
+	],
+	základní: ['abstract', 'readable', 'places', 'v_place', 'na_place', 'event', 'institution'],
+	současný: [
+		'abstract',
+		'event',
+		'gathering',
+		'readable',
+		'era',
+		'profession',
+		'institution',
+		'places',
+		'v_place',
+		'na_place'
+	],
+	tradiční: [
+		'abstract',
+		'event',
+		'gathering',
+		'food',
+		'meal',
+		'readable',
+		'clothing',
+		'institution',
+		'places',
+		'v_place',
+		'na_place'
+	],
+	obvyklý: ['abstract', 'event', 'gathering', 'time', 'meal', 'readable'],
+	nezbytný: ['abstract', 'readable', 'event'],
+	původní: [
+		'abstract',
+		'objects',
+		'places',
+		'v_place',
+		'na_place',
+		'readable',
+		'profession',
+		'event',
+		'clothing',
+		'transportation',
+		'vehicle',
+		'institution'
+	],
+	praktický: [
+		'objects',
+		'clothing',
+		'transportation',
+		'vehicle',
+		'readable',
+		'abstract',
+		'profession'
+	],
+	historický: [
+		'abstract',
+		'event',
+		'era',
+		'places',
+		'v_place',
+		'na_place',
+		'readable',
+		'objects',
+		'transportation',
+		'vehicle',
+		'clothing'
+	],
+	politický: ['abstract', 'event', 'gathering', 'readable', 'institution', 'profession'],
+	vědecký: ['abstract', 'event', 'gathering', 'readable', 'institution', 'profession'],
+	společenský: ['abstract', 'event', 'gathering', 'readable', 'institution', 'profession']
+};
+
+// "Různý" means "various" only in the plural (různé knihy); "různý dům" reads as
+// "a differing house".
+const PLURAL_ONLY_ADJECTIVES: ReadonlySet<string> = new Set(['různý']);
+
+/** Whether an adjective reads naturally in the given number. */
+export function adjectiveAllowedInNumber(adj: AdjectiveEntry, number_: Number_): boolean {
+	return !(number_ === 'sg' && PLURAL_ONLY_ADJECTIVES.has(adj.lemma));
+}
+
+// Adjectives used in direct address ("Drahý pane", "Mladá paní", "Drazí
+// přátelé"). The rest ("Politický pane", "Nebezpečné dítě") never open an
+// address. "Noví/Čeští přátelé" only works for a group.
+const VOCATIVE_ADJECTIVES: Readonly<Record<Number_, ReadonlySet<string>>> = {
+	sg: new Set(['drahý', 'dobrý', 'starý', 'mladý', 'malý']),
+	pl: new Set(['drahý', 'dobrý', 'starý', 'mladý', 'malý', 'nový', 'český'])
+};
+
+const WEALTH_EXCLUDED_PERSON_CATEGORIES: readonly string[] = [
+	'people',
+	'family',
+	'profession',
+	'nationality'
+];
+
+// Natural coat/feather colours; "modrá kočka" and "zelený pes" are not.
+const ANIMAL_COLORS: ReadonlySet<string> = new Set(['černý', 'bílý']);
+
 // Natural color+season pairings. All others are blocked.
 const COLOR_SEASON_ALLOW = new Set<string>(['bílý|zima', 'zelený|jaro', 'červený|podzim']);
 
@@ -882,7 +1045,32 @@ export function adjectiveMatchesNoun(
 	// Block nezbytný/hlavní on animals: "nezbytný ježek", "hlavní krokodýl".
 	if (adj.lemma === 'nezbytný' && word.categories.includes('animals')) return false;
 	if (adj.lemma === 'hlavní' && word.categories.includes('animals')) return false;
-	const allowed = PROFILE_NOUN_COMPAT[adj.profile];
+	// Price adjectives never describe a person: drahý reads as "dear" and levný
+	// as an insult. Checked by category because many person nouns also carry
+	// `misc`, which the wealth list allows. Animals keep it ("drahý pes").
+	if (
+		adj.profile === 'wealth' &&
+		word.categories.some((c) => WEALTH_EXCLUDED_PERSON_CATEGORIES.includes(c))
+	)
+		return false;
+	// Only natural colours on animals.
+	if (
+		adj.profile === 'color' &&
+		word.categories.includes('animals') &&
+		!ANIMAL_COLORS.has(adj.lemma)
+	)
+		return false;
+	// Temperature on books and small hand-held items ("teplá kniha", "studené
+	// pero") doesn't carry; clothing and food keep it ("teplý svetr").
+	if (
+		adj.profile === 'temperature' &&
+		(word.categories.includes('readable') ||
+			(word.categories.includes('portable') &&
+				!word.categories.includes('clothing') &&
+				!word.categories.includes('food')))
+	)
+		return false;
+	const allowed = LEMMA_NOUN_COMPAT[adj.lemma] ?? PROFILE_NOUN_COMPAT[adj.profile];
 	if (allowed === null) return true; // broad profile
 	const nounCats = word.categories;
 	for (const c of nounCats) {
@@ -915,12 +1103,24 @@ export function filterAdjectivesByTemplate(
 		allowed && allowed.length > 0
 			? candidates.filter((adj) => adj.categories.some((c) => allowed.includes(c)))
 			: candidates;
-	// Semantic profile gate: drop adjectives that don't make sense with the
-	// template's baked noun (e.g. "sladký vlak", "vědecká lžíce"). The category
-	// gate above is coarse; `adjectiveMatchesNoun` applies the curated
-	// profile-vs-noun rules. Fall back to the category-filtered set if the gate
-	// would empty the pool, so a template never becomes ungeneratable.
-	if (template.nounLemma) {
+	filtered = filtered.filter((adj) => adjectiveAllowedInNumber(adj, template.number));
+	if (template.requiredCase === 'voc') {
+		// Address adjectives are a closed set and carry their address sense
+		// ("Drahý pane" = dear, not expensive), so they bypass the profile gate;
+		// explicit ban-list pairs ("stará paní") still apply.
+		const addressAdjectives = VOCATIVE_ADJECTIVES[template.number];
+		const nounLemma = template.nounLemma;
+		filtered = filtered.filter(
+			(adj) =>
+				addressAdjectives.has(adj.lemma) &&
+				!(nounLemma && isBlockedAdjNounPair(adj.lemma, nounLemma))
+		);
+	} else if (template.nounLemma) {
+		// Semantic profile gate: drop adjectives that don't make sense with the
+		// template's baked noun (e.g. "sladký vlak", "vědecká lžíce"). The category
+		// gate above is coarse; `adjectiveMatchesNoun` applies the curated
+		// profile-vs-noun rules. Fall back to the category-filtered set if the gate
+		// would empty the pool, so a template never becomes ungeneratable.
 		const noun = getNounCategories(template.nounLemma);
 		if (noun) {
 			const semantic = filtered.filter((adj) => adjectiveMatchesNoun(adj, noun));
