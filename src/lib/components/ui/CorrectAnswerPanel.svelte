@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import type { AdjectiveGenderKey, Case, DrillType, Number_ } from '$lib/types';
@@ -27,7 +28,8 @@
 		onWordClick,
 		adjectiveLemma = undefined,
 		adjectiveGenderKey = undefined,
-		pronounLemma = undefined
+		pronounLemma = undefined,
+		practice = undefined
 	}: {
 		correctAnswer: string;
 		/** What the learner typed; marks where the correct form differs from it. */
@@ -46,6 +48,8 @@
 		adjectiveLemma?: string;
 		adjectiveGenderKey?: AdjectiveGenderKey;
 		pronounLemma?: string;
+		/** Rendered right under the answer card (the retype box). */
+		practice?: Snippet;
 	} = $props();
 
 	let showDiff = $derived(!!userAnswer?.trim());
@@ -127,6 +131,10 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if practice}
+		{@render practice()}
+	{/if}
 
 	<WhyNote {templateWhy} {whyNote} />
 

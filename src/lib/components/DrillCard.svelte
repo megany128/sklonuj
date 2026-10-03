@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import type { DrillQuestion, DrillResult, DrillType, Case } from '$lib/types';
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import type { DrillQuestion, DrillResult, DrillType, Case, Paradigm } from '$lib/types';
 	import {
 		ALL_CASES,
 		CASE_LABELS,
@@ -10,7 +12,7 @@
 		CASE_NUMBER,
 		isCase
 	} from '$lib/types';
-	import { applyPrepositionVoicing } from '$lib/engine/drill';
+	import { applyPrepositionVoicing, loadWordBank } from '$lib/engine/drill';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
 	import { playClinkSound } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
@@ -28,7 +30,10 @@
 	import FeedbackPronounDeclensionChart from '$lib/components/ui/FeedbackPronounDeclensionChart.svelte';
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import NextButton from '$lib/components/ui/NextButton.svelte';
+	import RetypePractice from '$lib/components/ui/RetypePractice.svelte';
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
+	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
+	import { explainWrongEnding } from '$lib/utils/wrong-ending';
 
 	let {
 		question,
@@ -41,7 +46,8 @@
 		onWordClick = null,
 		streak = 0,
 		soundEnabled = true,
-		skeletonDrillType = null
+		skeletonDrillType = null,
+		retry = false
 	}: {
 		question: DrillQuestion | null;
 		loading?: boolean;
@@ -49,13 +55,16 @@
 		 * type); lets the loading skeleton match that card's layout. */
 		skeletonDrillType?: DrillType | null;
 		result: DrillResult | null;
-		onSubmit: (answer: string) => void;
+		/** `hinted` is set when the learner opened a hint before answering. */
+		onSubmit: (answer: string, meta?: { hinted: boolean }) => void;
 		onSpeak: ((text: string) => void) | null;
 		selectedCases: Case[];
 		paradigmNotes?: Record<string, string> | null;
 		onWordClick?: ((lemma: string) => void) | null;
 		streak?: number;
 		soundEnabled?: boolean;
+		/** This question is a re-ask of one missed earlier in the session. */
+		retry?: boolean;
 	} = $props();
 
 	let userInput = $state('');
@@ -64,6 +73,24 @@
 	let submitted = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 	let showFeedback = $state(false);
+
+	/** Hints opened so far for this question; any at all marks the answer hinted. */
+	let hintsShown = $state(0);
+	function modelWord(paradigm: Paradigm) {
+		return loadWordBank().find((w) => w.lemma === paradigm);
+	}
+	let hints = $derived(question ? drillHints(question, modelWord) : []);
+	let openHints = $derived(hints.slice(0, hintsShown));
+	/** Highlight the cue word in the sentence once it's been hinted or answered. */
+	let showTrigger = $derived(
+		submitted || openHints.some((h) => h.kind === 'clue' || h.kind === 'case')
+	);
+
+	function showHint(): void {
+		if (submitted || hintsShown >= hints.length) return;
+		hintsShown++;
+		inputEl?.focus();
+	}
 
 	const MAX_CASE_OPTIONS = 3;
 
@@ -267,6 +294,7 @@
 			userInput = '';
 			submitted = false;
 			showFeedback = false;
+			hintsShown = 0;
 			showCheers = false;
 			canAdvance = false;
 			requestAnimationFrame(() => {
@@ -284,20 +312,29 @@
 	function submitAnswer(fromKeyboard: boolean) {
 		if (submitted || !question || question.drillType === 'case_identification') return;
 		if (userInput.trim() === '') {
-			// Empty input: treat as skip
-			submitted = true;
-			showFeedback = true;
-			onSubmit('__skip__');
-			enableAdvance(fromKeyboard);
+			// Empty input means "I'm stuck": open the next hint, and skip only
+			// once there are none left.
+			if (hintsShown < hints.length) showHint();
+			else skip(fromKeyboard);
 		} else {
 			handleSubmit(fromKeyboard);
 		}
+	}
+
+	function skip(fromKeyboard = false) {
+		if (submitted || !question) return;
+		submitted = true;
+		showFeedback = true;
+		onSubmit('__skip__');
+		enableAdvance(fromKeyboard);
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
 			// Handle it here so the form's implicit submission doesn't run it twice.
 			e.preventDefault();
+			// A held Enter must not run through every hint and then skip.
+			if (e.repeat) return;
 			submitAnswer(true);
 		}
 	}
@@ -314,13 +351,27 @@
 		const target = e.target instanceof HTMLElement ? e.target : null;
 		if (target?.closest('[data-modal]')) return;
 
-		// Don't intercept if user is typing in the text input (Enter is handled by handleKeydown)
-		if (e.target === inputEl) return;
+		// Don't intercept typing in any text field: the answer input handles its
+		// own Enter, and the retype box and lookup search need Space and Enter.
+		if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
 
 		// Advance on Enter or Space after submission (only on fresh keypresses, not repeats)
 		if (submitted && canAdvance && !e.repeat && (e.key === 'Enter' || e.key === ' ')) {
 			e.preventDefault();
 			onSubmit('__advance__');
+			return;
+		}
+
+		// Case identification has no text box, so Enter before answering is the
+		// same "I'm stuck" signal as an empty box in typed drills.
+		if (
+			!submitted &&
+			!e.repeat &&
+			e.key === 'Enter' &&
+			question.drillType === 'case_identification'
+		) {
+			e.preventDefault();
+			showHint();
 			return;
 		}
 
@@ -361,7 +412,7 @@
 		if (!question || submitted || userInput.trim() === '') return;
 		submitted = true;
 		showFeedback = true;
-		onSubmit(userInput);
+		onSubmit(userInput, { hinted: hintsShown > 0 });
 		enableAdvance(fromKeyboard);
 	}
 
@@ -369,8 +420,17 @@
 		if (!question || submitted) return;
 		submitted = true;
 		showFeedback = true;
-		onSubmit(caseKey);
+		onSubmit(caseKey, { hinted: hintsShown > 0 });
 		enableAdvance(fromKeyboard);
+	}
+
+	/** Forms the retype box accepts: the answer shown, plus any accepted variant. */
+	function retypeForms(q: DrillQuestion): string[] {
+		const forms = [q.correctAnswer.split('/')[0], ...(q.acceptedAnswers ?? [])];
+		if (q.wordCategory !== 'adjective' && q.wordCategory !== 'pronoun') {
+			forms.push(...(q.word.variantForms?.[q.number]?.[CASE_INDEX[q.case]] ?? []));
+		}
+		return forms;
 	}
 
 	function getPronounForm(q: DrillQuestion): string {
@@ -440,6 +500,31 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
+{#snippet hintButton()}
+	{#if hintsShown < hints.length}
+		<button
+			type="button"
+			onclick={showHint}
+			class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-darker-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+		>
+			<Lightbulb class="size-3.5" aria-hidden="true" />
+			{hintsShown === 0 ? 'Hint' : 'Another hint'}
+		</button>
+	{/if}
+{/snippet}
+
+<!-- Sentence text with the template's cue word (do, na, s …) underlined. Before
+     the answer it's neutral so it doesn't give the case away. -->
+{#snippet cueText(text: string, trigger: string, case_: Case)}{@const at = showTrigger
+		? findTrigger(text, trigger)
+		: null}{#if at}{text.slice(0, at.start)}<span
+			class="font-semibold underline decoration-2 underline-offset-4 {submitted
+				? CASE_COLORS[case_].text
+				: 'decoration-emphasis'}"
+			style={submitted ? `text-decoration-color: ${CASE_HEX[case_]}` : undefined}
+			>{text.slice(at.start, at.end)}</span
+		>{text.slice(at.end)}{:else}{text}{/if}{/snippet}
+
 <div class="w-full">
 	{#if question}
 		{#key question}
@@ -458,6 +543,14 @@
 				</div>
 				<!-- Prompt -->
 				<div class="text-center">
+					{#if retry}
+						<p
+							class="mb-3 inline-flex items-center gap-1.5 rounded-full bg-shaded-background px-2.5 py-1 text-xs font-semibold text-darker-subtitle"
+						>
+							<RotateCcw class="size-3.5" aria-hidden="true" />
+							Second try · you missed this earlier
+						</p>
+					{/if}
 					{#if question.drillType === 'form_production'}
 						{@const prompt = formatCasePrompt(question)}
 						{@const displayLemma =
@@ -558,7 +651,7 @@
 						<p class="text-sm text-text-subtitle">Which case?</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
 						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{parts.before}<span
+							{@render cueText(parts.before, question.template.trigger, question.case)}<span
 								class="mx-0.5 inline-block rounded bg-shaded-background px-2 py-0.5 font-semibold text-emphasis"
 								>{#if onWordClick}<button
 										type="button"
@@ -650,7 +743,11 @@
 						{/if}
 						{@const parts = sentenceWithBlankAndLemma(question)}
 						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{parts.before}{#if submitted && result}<span
+							{@render cueText(
+								parts.before,
+								question.template.trigger,
+								question.case
+							)}{#if submitted && result}<span
 									class="mx-0.5 inline-block border-b-2 border-positive-stroke px-1 font-semibold text-emphasis"
 									>{result.correct ? gradedForm : question.correctAnswer}</span
 								>{:else}<span
@@ -666,6 +763,32 @@
 						</p>
 					{/if}
 				</div>
+
+				{#if !submitted && openHints.length > 0}
+					<div
+						class="drill-fade-enter -mt-1 flex flex-col items-center gap-1 rounded-[16px] bg-shaded-background px-4 py-2.5 text-center text-sm text-text-default sm:-mt-2"
+						aria-live="polite"
+					>
+						{#each openHints as hint, i (i)}
+							<p>
+								{#if hint.kind === 'clue'}
+									<span class="font-semibold">Clue:</span> {hint.text}
+								{:else if hint.kind === 'case'}
+									<span class="font-semibold">Needs</span>
+									<CaseChip case_={hint.case} plural={hint.plural} />
+									{#if hint.clue}
+										<span class="text-text-subtitle">· {hint.clue}</span>
+									{/if}
+								{:else if hint.kind === 'like'}
+									<span class="font-semibold">Like</span>
+									{hint.model} &rarr; {hint.form}
+								{:else}
+									<span class="font-semibold">Starts with</span> {hint.prefix}&hellip;
+								{/if}
+							</p>
+						{/each}
+					</div>
+				{/if}
 
 				<!-- Input area: buttons for case_identification, text input for others -->
 				{#if question.drillType === 'case_identification'}
@@ -692,9 +815,14 @@
 						{/each}
 					</div>
 					{#if !submitted}
-						<p class="mt-3 text-center text-xs text-text-subtitle">
-							Press 1&ndash;7 to select by case number
-						</p>
+						<div class="mt-3 flex flex-col items-center gap-1">
+							{@render hintButton()}
+							<p class="hidden text-center text-xs text-text-subtitle sm:block">
+								Press 1&ndash;7 to select by case number{hintsShown < hints.length
+									? ' · enter for a hint'
+									: ''}
+							</p>
+						</div>
 					{/if}
 				{:else}
 					{@const labelLemma =
@@ -739,7 +867,8 @@
 							{/if}
 							{#if !submitted}
 								<button
-									type="submit"
+									type={isSkip ? 'button' : 'submit'}
+									onclick={isSkip ? () => skip() : undefined}
 									class="min-w-[5.5rem] shrink-0 rounded-[16px] border-2 px-5 text-base font-semibold transition-opacity hover:opacity-90 active:opacity-80 sm:min-w-[6rem] sm:rounded-[20px] sm:px-6 {isSkip
 										? 'border-card-stroke bg-card-bg text-text-subtitle'
 										: 'border-emphasis bg-emphasis text-text-inverted'}"
@@ -757,9 +886,16 @@
 						{/if}
 
 						{#if !submitted}
-							<p class="mt-2 hidden text-center text-xs text-text-subtitle sm:block">
-								{isSkip ? 'Press enter to skip' : 'Press enter to submit'}
-							</p>
+							<div class="mt-2 flex flex-col items-center gap-1">
+								{@render hintButton()}
+								<p class="hidden text-center text-xs text-text-subtitle sm:block">
+									{!isSkip
+										? 'Press enter to submit'
+										: hintsShown < hints.length
+											? 'Press enter for a hint'
+											: 'Press enter to skip'}
+								</p>
+							</div>
 						{/if}
 					</form>
 				{/if}
@@ -782,7 +918,13 @@
 										: question.word.forms[question.number][CASE_INDEX[question.case]]}
 							<FeedbackVerdict
 								tone="correct"
-								title={streak >= 3 ? `Correct! ${streak} in a row!` : 'Correct!'}
+								title={retry
+									? 'Got it this time!'
+									: result.hinted
+										? 'Correct, with a hint'
+										: streak >= 3
+											? `Correct! ${streak} in a row!`
+											: 'Correct!'}
 							>
 								{#if result.nearMiss}
 									<span class="text-warning-text">Watch the accents:</span>
@@ -889,6 +1031,19 @@
 								question.drillType === 'case_identification' && isCase(result.userAnswer)
 									? result.userAnswer
 									: null}
+							{@const endingLine =
+								question.wordCategory !== 'adjective' &&
+								question.wordCategory !== 'pronoun' &&
+								question.drillType !== 'case_identification' &&
+								!wasSkipped &&
+								!result.nearMiss
+									? explainWrongEnding(
+											question.word,
+											{ case: question.case, number: question.number },
+											userTyped,
+											{ accidentalCase: result.accidentalCase !== undefined }
+										)
+									: null}
 							{#if wasSkipped}
 								<FeedbackVerdict tone="skipped" title="Skipped">Here's the answer.</FeedbackVerdict>
 							{:else if pickedCase}
@@ -921,6 +1076,8 @@
 										/>
 									</FeedbackVerdict>
 								{/if}
+							{:else if endingLine}
+								<FeedbackVerdict tone="wrong" title="Not quite">{endingLine}</FeedbackVerdict>
 							{:else}
 								<FeedbackVerdict tone="wrong" title="Not quite" />
 							{/if}
@@ -939,7 +1096,15 @@
 													: 'neuter'
 										}`
 									: null}
-							{@const whyNote = adjGenderNote ?? paradigmNotes?.[noteKey] ?? null}
+							{@const baseWhyNote = adjGenderNote ?? paradigmNotes?.[noteKey] ?? null}
+							{@const whyNote =
+								// A plain miss shows the ending explanation in its verdict; after an
+								// other-case verdict it leads the Why? instead.
+								endingLine && result.accidentalCase
+									? baseWhyNote
+										? `${endingLine}\n\n${baseWhyNote}`
+										: endingLine
+									: baseWhyNote}
 							{@const templateWhy =
 								question.template.id !== '_form_production' &&
 								question.template.id !== '_pronoun_form_production' &&
@@ -1003,7 +1168,17 @@
 								pronounLemma={question.wordCategory === 'pronoun' && question.pronoun
 									? question.pronoun.lemma
 									: undefined}
-							/>
+							>
+								{#snippet practice()}
+									{#if question && question.drillType !== 'case_identification'}
+										<RetypePractice
+											accepted={retypeForms(question)}
+											{canAdvance}
+											onAdvance={() => onSubmit('__advance__')}
+										/>
+									{/if}
+								{/snippet}
+							</CorrectAnswerPanel>
 						{/if}
 
 						<!-- Next button -->

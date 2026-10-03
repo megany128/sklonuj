@@ -32,7 +32,7 @@
 		<p class="text-lg font-semibold {TONE[tone].text}">{title}</p>
 	</div>
 	{#if children}
-		<p class="max-w-md text-sm leading-relaxed text-text-default">
+		<p class="max-w-md text-balance text-sm leading-relaxed text-text-default">
 			{@render children()}
 		</p>
 	{/if}

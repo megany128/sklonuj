@@ -135,6 +135,7 @@
 		playStreakSound
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
+	import { enqueueRetry, takeDueRetry, type RetryItem } from '$lib/engine/retry-queue';
 	import { recordGuestSessionActivity, getTodayGuestSession } from '$lib/engine/guest-sessions';
 	import { getOrCreateGuestId } from '$lib/engine/guest-id';
 	import { generateAlias } from '$lib/engine/leaderboard-alias';
@@ -146,7 +147,7 @@
 
 	import CasePillBar from '$lib/components/CasePillBar.svelte';
 	import CasePillBarSkeleton from '$lib/components/CasePillBarSkeleton.svelte';
-	import ChapterSelector from '$lib/components/ChapterSelector.svelte';
+	import PracticeScopeSelector from '$lib/components/PracticeScopeSelector.svelte';
 	import DrillSettings_ from '$lib/components/DrillSettings.svelte';
 	import DrillCard from '$lib/components/DrillCard.svelte';
 	import MultiStepCard from '$lib/components/MultiStepCard.svelte';
@@ -541,7 +542,7 @@
 		},
 		{
 			target: 'mode-selector',
-			text: 'Follow Krok za krokem chapters or practice freely.'
+			text: 'Practice at your CEFR level, or follow the Krok za krokem textbook chapter by chapter.'
 		},
 		{
 			target: 'ref-sidebar',
@@ -1429,13 +1430,27 @@
 		return { currentLemmas, previousLemmas };
 	}
 
-	function handleModeChange(book: 'kzk1' | 'kzk2' | null): void {
-		if (book === null) {
-			handleChapterChange(null, null);
-		} else {
-			const firstChapter = kzkChapters[book].chapters[0];
-			handleChapterChange(book, firstChapter.id);
+	function handleBookSelect(book: 'kzk1' | 'kzk2'): void {
+		// Re-picking the open book keeps the learner's chapter.
+		if (book === chapterBook) return;
+		handleChapterChange(book, kzkChapters[book].chapters[0].id);
+	}
+
+	/** A level always means free practice at that level, leaving chapter mode if needed. */
+	function handleLevelSelect(level: Difficulty): void {
+		if (chapterBook === null) {
+			if (level !== currentLevel) handleLevelChange(level);
+			return;
 		}
+		// Chapter mode set its own level; apply the chosen one before leaving so
+		// only one question is generated.
+		if (level !== currentLevel) {
+			setLevel(level);
+			applyLevelSettings(level);
+			posthog.capture('level_changed', { ...drillAnalyticsProps(), from: currentLevel, to: level });
+			scheduleSyncToSupabase();
+		}
+		handleChapterChange(null, null);
 	}
 
 	function handleChapterChange(book: 'kzk1' | 'kzk2' | null, chapterId: string | null): void {
@@ -1602,6 +1617,11 @@
 	let chapterPickerOpen = $state(false);
 	let practicingMistakes = $state(false);
 	let lastMistakeIndex = $state(-1);
+	// Missed questions come back a few questions later in the same session
+	// (see retry-queue.ts). `currentRetry` is set while one is on screen, with
+	// `attempts` counting this re-ask.
+	let retryQueue = $state<RetryItem[]>([]);
+	let currentRetry = $state<RetryItem | null>(null);
 	const RECENT_TEMPLATE_LIMIT = 5;
 	const RECENT_LEMMA_LIMIT = 8;
 	let recentTemplateIds: string[] = [];
@@ -2883,6 +2903,36 @@
 		return null;
 	}
 
+	/** Whether a queued re-ask still fits what the learner is practising now. */
+	function retryEligible(q: DrillQuestion): boolean {
+		if (!effectiveEnabledCases.includes(q.case)) return false;
+		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
+		if (!drillSettings.selectedDrillTypes.includes(q.drillType)) return false;
+		if (q.wordCategory === 'adjective') return enabledContentTypes.adjectives;
+		if (q.wordCategory === 'pronoun') return enabledContentTypes.pronouns;
+		if (selectedParadigm && q.word.paradigm !== selectedParadigm) return false;
+		return enabledContentTypes.nouns;
+	}
+
+	function updateRetryQueue(result: DrillResult): void {
+		if (practicingMistakes || result.correct) return;
+		retryQueue = enqueueRetry(
+			retryQueue,
+			result.question,
+			sessionCount,
+			currentRetry?.attempts ?? 0
+		);
+	}
+
+	// A new level, chapter or assignment is a new context: earlier misses
+	// belong to the mistakes list there, not to re-asks here.
+	$effect(() => {
+		void currentLevel;
+		void chapterSelection;
+		void assignmentId;
+		retryQueue = [];
+	});
+
 	function generateNextQuestion(): void {
 		try {
 			generateNextQuestionInner();
@@ -2917,6 +2967,15 @@
 		// Clear both question types before generating to prevent stacking
 		question = null;
 		multiStepQuestion = null;
+		// A re-ask replaced before it was answered (a settings change) goes back
+		// to the front of the queue, still due, with its attempt unspent.
+		if (currentRetry && !submitted) {
+			retryQueue = [
+				{ ...currentRetry, attempts: currentRetry.attempts - 1, dueAt: sessionCount },
+				...retryQueue
+			];
+		}
+		currentRetry = null;
 
 		// Practice mistakes mode: only serve from mistakes list
 		if (practicingMistakes) {
@@ -2942,6 +3001,23 @@
 				autoPlayPrompt(question);
 				return;
 			}
+		}
+
+		const due = practicingMistakes ? null : takeDueRetry(retryQueue, sessionCount, retryEligible);
+		if (due) {
+			retryQueue = due.rest;
+			currentRetry = { ...due.item, attempts: due.item.attempts + 1 };
+			// Spread to create a new object so {#key question} resets DrillCard
+			question = { ...due.item.question };
+			lastResult = null;
+			paradigmNotes = null;
+			submitted = false;
+			if (advanceTimer !== null) {
+				clearTimeout(advanceTimer);
+				advanceTimer = null;
+			}
+			autoPlayPrompt(question);
+			return;
 		}
 
 		// Decide content type for this question
@@ -3783,7 +3859,7 @@
 		};
 	}
 
-	function handleSubmit(answer: string): void {
+	function handleSubmit(answer: string, meta?: { hinted: boolean }): void {
 		if (!hasInteracted) {
 			posthog.capture('practice_started', {
 				...drillAnalyticsProps(),
@@ -3801,9 +3877,11 @@
 				userAnswer: '',
 				correct: false,
 				nearMiss: false,
-				skipped: true
+				skipped: true,
+				retry: currentRetry !== null
 			};
 			lastResult = result;
+			updateRetryQueue(result);
 			recordResult(result);
 			recordPractice();
 			if (chapterSelection) recordChapterResult(chapterSelection, false);
@@ -3865,18 +3943,24 @@
 
 		submitted = true;
 		sessionCount++;
-		const result = checkAnswer(question, answer, currentLevel);
+		const graded = checkAnswer(question, answer, currentLevel);
 
 		// If checkAnswer returns null, the question had an empty correct answer (data issue).
 		// Skip it and generate the next question without recording anything.
-		if (result === null) {
+		if (graded === null) {
 			submitted = false;
 			sessionCount--;
 			generateNextQuestion();
 			return;
 		}
+		const result: DrillResult = {
+			...graded,
+			hinted: meta?.hinted === true,
+			retry: currentRetry !== null
+		};
 
 		lastResult = result;
+		updateRetryQueue(result);
 		recordResult(result);
 		recordPractice();
 		if (chapterSelection) recordChapterResult(chapterSelection, result.correct);
@@ -3943,7 +4027,10 @@
 			posthog.capture('three_questions_completed', drillAnalyticsProps());
 		}
 
-		if (result.correct) {
+		if (result.correct && result.hinted) {
+			// A hinted answer neither extends nor breaks the streak.
+			if (autoplayAudio) playCorrectSound();
+		} else if (result.correct) {
 			streak++;
 			if (streak > bestStreak) bestStreak = streak;
 			updateLongestStreak(streak);
@@ -4613,29 +4700,14 @@
 			</div>
 		{/if}
 
-		<!-- Mode selector + Level (level only in Free Practice) -->
+		<!-- What to practise from: a CEFR level (free practice) or a KzK book -->
 		<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3" data-tour="mode-selector">
-			<ChapterSelector selectedBook={chapterBook} onModeChange={handleModeChange} />
-			{#if chapterBook === null}
-				<div class="flex items-center gap-2">
-					<span class="text-xs font-semibold uppercase tracking-[0.15em] text-darker-subtitle"
-						>Level</span
-					>
-					<div class="inline-flex rounded-[16px] border border-card-stroke bg-card-bg p-1">
-						{#each ['A1', 'A2', 'B1', 'B2'] as const as lvl (lvl)}
-							<button
-								onclick={() => handleLevelChange(lvl)}
-								class="flex flex-col items-center justify-center rounded-[12px] px-3 py-2.5 transition-all
-										{currentLevel === lvl
-									? 'bg-shaded-background text-text-default'
-									: 'text-text-subtitle hover:text-text-default'}"
-							>
-								<span class="text-xs font-normal">{lvl}</span>
-							</button>
-						{/each}
-					</div>
-				</div>
-			{/if}
+			<PracticeScopeSelector
+				level={currentLevel}
+				book={chapterBook}
+				onLevelSelect={handleLevelSelect}
+				onBookSelect={handleBookSelect}
+			/>
 		</div>
 
 		{#if chapterBook === null}
@@ -5024,6 +5096,7 @@
 					onWordClick={handleWordClick}
 					{streak}
 					soundEnabled={autoplayAudio}
+					retry={currentRetry !== null}
 				/>
 			{/if}
 		</div>
