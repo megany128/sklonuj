@@ -492,3 +492,17 @@ describe('weightedRandomAdjective', () => {
 		);
 	});
 });
+
+describe('wealth adjectives and people', () => {
+	it('never pairs drahý/levný with a person noun, even one also tagged misc', () => {
+		const bank = loadAdjectiveBank();
+		const levny = bank.find((a) => a.lemma === 'levný');
+		expect(levny).toBeDefined();
+		if (!levny) return;
+		expect(adjectiveMatchesNoun(levny, { lemma: 'student', categories: ['misc', 'people'] })).toBe(
+			false
+		);
+		expect(adjectiveMatchesNoun(levny, { lemma: 'auto', categories: ['objects'] })).toBe(true);
+		expect(adjectiveMatchesNoun(levny, { lemma: 'pes', categories: ['animals'] })).toBe(true);
+	});
+});

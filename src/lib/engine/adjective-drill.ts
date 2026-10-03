@@ -954,6 +954,13 @@ const VOCATIVE_ADJECTIVES: Readonly<Record<Number_, ReadonlySet<string>>> = {
 	pl: new Set(['drahý', 'dobrý', 'starý', 'mladý', 'malý', 'nový', 'český'])
 };
 
+const WEALTH_EXCLUDED_PERSON_CATEGORIES: readonly string[] = [
+	'people',
+	'family',
+	'profession',
+	'nationality'
+];
+
 // Natural coat/feather colours; "modrá kočka" and "zelený pes" are not.
 const ANIMAL_COLORS: ReadonlySet<string> = new Set(['černý', 'bílý']);
 
@@ -1038,6 +1045,14 @@ export function adjectiveMatchesNoun(
 	// Block nezbytný/hlavní on animals: "nezbytný ježek", "hlavní krokodýl".
 	if (adj.lemma === 'nezbytný' && word.categories.includes('animals')) return false;
 	if (adj.lemma === 'hlavní' && word.categories.includes('animals')) return false;
+	// Price adjectives never describe a person: drahý reads as "dear" and levný
+	// as an insult. Checked by category because many person nouns also carry
+	// `misc`, which the wealth list allows. Animals keep it ("drahý pes").
+	if (
+		adj.profile === 'wealth' &&
+		word.categories.some((c) => WEALTH_EXCLUDED_PERSON_CATEGORIES.includes(c))
+	)
+		return false;
 	// Only natural colours on animals.
 	if (
 		adj.profile === 'color' &&
