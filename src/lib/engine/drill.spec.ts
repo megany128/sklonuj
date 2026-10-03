@@ -589,3 +589,33 @@ describe('pickWeightedTemplate', () => {
 		}
 	});
 });
+
+describe('sentence template pools', () => {
+	const progressB2: Progress = {
+		level: 'B2',
+		caseScores: {},
+		paradigmScores: {},
+		lemmaScores: {},
+		cellSchedule: {},
+		lastSession: '',
+		longestStreak: 0
+	};
+
+	it('every template can drill at least one noun at B2', () => {
+		for (const template of loadTemplates()) {
+			expect(getCandidates(template, progressB2).length, template.id).toBeGreaterThan(0);
+		}
+	});
+
+	it('no template drills a noun tagged no_templates', () => {
+		for (const template of loadTemplates()) {
+			const leaked = getCandidates(template, progressB2).filter((w) =>
+				w.categories.includes('no_templates')
+			);
+			expect(
+				leaked.map((w) => w.lemma),
+				template.id
+			).toEqual([]);
+		}
+	});
+});

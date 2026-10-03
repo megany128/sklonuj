@@ -251,8 +251,10 @@ function getSentenceCandidates(t: RawSentenceTemplate): RawWordEntry[] {
 	const num = t.number;
 	matches = matches.filter((w) => {
 		if (num === 'sg' && w.pluralOnly) return false;
-		// Drill engine: plural slots skip mass/collective nouns.
+		// Drill engine: plural slots skip mass/collective nouns, and no template
+		// takes a `no_templates` noun.
 		if (num === 'pl' && w.categories.includes('mass')) return false;
+		if (w.categories.includes('no_templates')) return false;
 		const form = w.forms[num]?.[caseIdx];
 		return typeof form === 'string' && form.trim().length > 0;
 	});

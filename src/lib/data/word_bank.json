@@ -3004,7 +3004,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["time", "season", "mass", "time_point"],
+		"categories": ["time", "season", "time_point"],
 		"forms": {
 			"sg": ["léto", "léta", "létu", "léto", "léto", "létě", "létem"],
 			"pl": ["léta", "lét", "létům", "léta", "léta", "létech", "léty"]
@@ -4762,7 +4762,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time", "season", "adversity", "mass", "time_point", "whole_span"],
+		"categories": ["time", "season", "adversity", "time_point", "whole_span"],
 		"forms": {
 			"sg": ["zima", "zimy", "zimě", "zimu", "zimo", "zimě", "zimou"],
 			"pl": ["zimy", "zim", "zimám", "zimy", "zimy", "zimách", "zimami"]
@@ -8102,7 +8102,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["time", "season", "mass", "time_point"],
+		"categories": ["time", "season", "time_point", "mass"],
 		"forms": {
 			"sg": ["jaro", "jara", "jaru", "jaro", "jaro", "jaru", "jarem"],
 			"pl": ["jara", "jar", "jarům", "jara", "jara", "jarech", "jary"]
@@ -9904,7 +9904,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time", "season", "mass", "time_point", "whole_span"],
+		"categories": ["time", "season", "time_point", "whole_span", "mass"],
 		"forms": {
 			"sg": ["podzim", "podzimu", "podzimu", "podzim", "podzime", "podzimu", "podzimem"],
 			"pl": ["podzimy", "podzimů", "podzimům", "podzimy", "podzimy", "podzimech", "podzimy"]

@@ -233,6 +233,13 @@ export function loadTemplates(): SentenceTemplate[] {
 		if (!isDifficulty(entry.difficulty)) {
 			throw new Error(`Invalid difficulty "${entry.difficulty}" in template "${entry.id}"`);
 		}
+		// Several categories must be a JSON array; a comma-joined string would be
+		// compared as one category and silently match no noun.
+		if (typeof entry.lemmaCategory === 'string' && entry.lemmaCategory.includes(',')) {
+			throw new Error(
+				`lemmaCategory "${entry.lemmaCategory}" in template "${entry.id}" must be an array, not a comma-separated string`
+			);
+		}
 		const mapped: SentenceTemplate = {
 			id: entry.id,
 			template: entry.template,
@@ -337,6 +344,9 @@ function matchingWords(
 			// Mass/collective nouns (mléko, nábytek, hmyz) have dictionary plurals
 			// but no natural plural use, so plural sentence slots skip them
 			!(template.number === 'pl' && word.categories.includes('mass')) &&
+			// Nouns kept for declension tables only (pan needs a name after it,
+			// šach is "check") — not even the `any` templates take them
+			!word.categories.includes('no_templates') &&
 			!isBlockedTemplateNounPair(template.id, word.lemma) &&
 			hasValidForm(word, template.requiredCase, template.number)
 	);

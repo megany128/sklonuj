@@ -610,7 +610,6 @@
 		"káva",
 		"křen",
 		"led",
-		"léto",
 		"majonéza",
 		"maso",
 		"med",
@@ -653,7 +652,6 @@
 		"vínečko",
 		"zelenina",
 		"zelí",
-		"zima",
 		"čaj",
 		"česnek",
 		"česnečka",
@@ -780,5 +778,6 @@
 		"rozhledna",
 		"stadión",
 		"trh"
-	]
+	],
+	"-mass": ["léto", "zima"]
 }
