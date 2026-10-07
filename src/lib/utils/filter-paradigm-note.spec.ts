@@ -32,9 +32,15 @@ function noteForWord(lemma: string, slot: NoteSlot): string {
 describe('filterParadigmNote — rule line', () => {
 	it('states the word’s own form and the ending it takes', () => {
 		// dům also accepts domu, but only the shown form’s ending is described.
-		expect(noteForWord('dům', LOC_SG).split('\n')[0]).toBe('dům → domě: ending -ě');
-		expect(noteForWord('papír', LOC_SG).split('\n')[0]).toBe('papír → papíře: ending -e');
-		expect(noteForWord('park', LOC_SG).split('\n')[0]).toBe('park → parku: ending -u');
+		expect(noteForWord('dům', LOC_SG).split('\n')[0]).toBe('dům → dom**ě**');
+		expect(noteForWord('papír', LOC_SG).split('\n')[0]).toBe('papír → papíř**e**');
+		expect(noteForWord('park', LOC_SG).split('\n')[0]).toBe('park → park**u**');
+	});
+
+	it('shows the ending even when the form matches the lemma', () => {
+		expect(noteForWord('recepce', { case: 'gen', number: 'sg' }).split('\n')[0]).toBe(
+			'recepce → recepc**e**'
+		);
 	});
 
 	it('flags forms the paradigm endings do not describe instead of quoting the rule', () => {
@@ -56,11 +62,11 @@ describe('filterParadigmNote — rule line', () => {
 	});
 
 	it('states the model word’s own ending too', () => {
-		expect(noteForWord('žena', DAT_SG).split('\n')[0]).toBe('žena → ženě: ending -ě');
+		expect(noteForWord('žena', DAT_SG).split('\n')[0]).toBe('žena → žen**ě**');
 	});
 
 	it('still gives the ending when the rule line also names a same-as case', () => {
-		expect(noteForWord('čaj', LOC_SG).split('\n')[0]).toBe('čaj → čaji: ending -i');
+		expect(noteForWord('čaj', LOC_SG).split('\n')[0]).toBe('čaj → čaj**i**');
 	});
 });
 
@@ -135,7 +141,7 @@ describe('filterParadigmNotes', () => {
 			{ loc_sg: noteFor('hrad', 'loc_sg'), extra: 'x\nFleeting e drops' },
 			word('park')
 		);
-		expect(out.loc_sg).toBe('park → parku: ending -u');
+		expect(out.loc_sg).toBe('park → park**u**');
 		expect(out.extra).toBe('x\nFleeting e drops');
 	});
 });

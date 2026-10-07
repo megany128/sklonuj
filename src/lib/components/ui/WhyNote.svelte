@@ -6,6 +6,7 @@
 	 * newlines; a blank line separates groups (word-specific note, paradigm
 	 * rule, pronoun general note). Each group's first line leads, and a leading
 	 * gotcha label ("Before -ě:", "Note:") is bolded so lines scan at a glance.
+	 * `**…**` marks an ending to bold inside a line ("park → park**u**").
 	 */
 	let {
 		templateWhy = null,
@@ -43,9 +44,18 @@
 			.filter((group) => group.length > 0);
 	}
 
+	/** Split on `**bold**` markers: odd-indexed pieces are bold. */
+	function pieces(body: string): string[] {
+		return body.split(/\*\*(.+?)\*\*/);
+	}
+
 	let ruleLines = $derived(templateWhy ? toLines(templateWhy) : []);
 	let noteGroups = $derived(toGroups(whyNote));
 </script>
+
+{#snippet body(text: string)}{#each pieces(text) as piece, i (i)}{#if i % 2 === 1}<strong
+				class="font-bold text-text-default">{piece}</strong
+			>{:else}{piece}{/if}{/each}{/snippet}
 
 {#if ruleLines.length > 0 || noteGroups.length > 0}
 	<div class="w-full border-t border-darker-subtitle/30 pt-4 text-center">
@@ -56,7 +66,7 @@
 		{#each ruleLines as line, i (i)}
 			<p class="text-sm font-medium leading-relaxed text-text-default">
 				{#if line.label}<span class="font-semibold">{line.label}:</span>{/if}
-				{line.body}
+				{@render body(line.body)}
 			</p>
 		{/each}
 		{#each noteGroups as group, g (g)}
@@ -69,7 +79,7 @@
 					>
 						{#if line.label}<span class="font-semibold text-darker-subtitle">{line.label}:</span
 							>{/if}
-						{line.body}
+						{@render body(line.body)}
 					</p>
 				{/each}
 			</div>

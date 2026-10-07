@@ -100,6 +100,7 @@
 		pronounCellsByCase
 	} from '$lib/engine/cell-pools';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
+	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { capitalizeSentence } from '$lib/utils/sentence-case';
 	import { recordPractice } from '$lib/engine/streak';
@@ -3647,13 +3648,15 @@
 		// Where the word's stored form doesn't carry the paradigm's ending
 		// (lesa, hřišť, ředitelé …) the rule would contradict the note, so the
 		// note stands alone for that case.
+		// The note is trimmed to the clauses about this case and number, so a
+		// genitive question doesn't also list the dative and locative.
 		if (word.declensionNote) {
 			for (const { key, c, n } of ALL_CASE_SLOTS) {
+				const own = declensionNoteForSlot(word.declensionNote, { case: c, number: n });
+				if (!own) continue;
 				const rule = notes[key];
 				notes[key] =
-					rule && paradigmRuleApplies(word.paradigm, c, n, word)
-						? `${word.declensionNote}\n\n${rule}`
-						: word.declensionNote;
+					rule && paradigmRuleApplies(word.paradigm, c, n, word) ? `${own}\n\n${rule}` : own;
 			}
 		}
 
