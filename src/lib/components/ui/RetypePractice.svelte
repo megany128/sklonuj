@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Check from '@lucide/svelte/icons/check';
 	import DiacriticsBar from '../DiacriticsBar.svelte';
+	import { stripDiacritics } from '$lib/utils/diacritics';
 
 	/**
 	 * Optional "type it once" box under a missed answer. Producing the form
@@ -12,7 +13,8 @@
 		canAdvance,
 		onAdvance
 	}: {
-		/** Forms that count, exact letters and accents (case-insensitive). */
+		/** Forms that count (case-insensitive). Missing accents also count, as
+		 * in the main answer box, with a reminder to mind them. */
 		accepted: string[];
 		/** False until the key that submitted the answer is released. */
 		canAdvance: boolean;
@@ -21,6 +23,8 @@
 
 	let value = $state('');
 	let done = $state(false);
+	/** Accepted with the right letters but some accents missing or wrong. */
+	let accentsOff = $state(false);
 	let shaking = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 
@@ -29,6 +33,7 @@
 	}
 
 	let targets = $derived(new Set(accepted.map(normalize)));
+	let bareTargets = $derived(new Set(accepted.map((a) => stripDiacritics(normalize(a)))));
 
 	$effect(() => {
 		const el = inputEl;
@@ -44,6 +49,11 @@
 		}
 		if (targets.has(normalize(value))) {
 			done = true;
+			return;
+		}
+		if (bareTargets.has(stripDiacritics(normalize(value)))) {
+			done = true;
+			accentsOff = true;
 			return;
 		}
 		// Restart the shake even if the last one is still running.
@@ -66,7 +76,11 @@
 
 <form onsubmit={handleSubmit} novalidate class="flex w-full flex-col items-center gap-2">
 	<label for="retype-answer" class="text-xs font-semibold text-darker-subtitle">
-		{done ? "That's right" : 'Practice: type the correct form'}
+		{done
+			? accentsOff
+				? `Right letters — mind the accents: ${accepted[0]}`
+				: "That's right"
+			: 'Practice: type the correct form'}
 	</label>
 	<div class="flex w-full max-w-xs items-stretch gap-2">
 		<input

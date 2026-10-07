@@ -22,6 +22,7 @@
 	import AnswerDiff from '$lib/components/ui/AnswerDiff.svelte';
 	import CaseChip from '$lib/components/ui/CaseChip.svelte';
 	import WhyNote from '$lib/components/ui/WhyNote.svelte';
+	import CopyFormChip from '$lib/components/ui/CopyFormChip.svelte';
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
@@ -761,17 +762,29 @@
 										class="rounded-[24px] px-4 py-3 text-lg font-semibold"
 									/>
 								{:else}
-									<input
-										bind:this={formInputEl}
-										bind:value={formInput}
-										onkeydown={handleFormKeydown}
-										type="text"
-										autocomplete="off"
-										autocapitalize="none"
-										spellcheck="false"
-										placeholder="Type the correct form..."
-										class="min-w-0 flex-1 rounded-[24px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-lg font-semibold text-text-default transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none"
-									/>
+									<div class="relative flex min-w-0 flex-1">
+										<input
+											bind:this={formInputEl}
+											bind:value={formInput}
+											onkeydown={handleFormKeydown}
+											type="text"
+											autocomplete="off"
+											autocapitalize="none"
+											spellcheck="false"
+											placeholder="Type the correct form..."
+											class="min-w-0 flex-1 rounded-[24px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-lg font-semibold text-text-default transition-colors focus:border-emphasis focus:outline-none {formInput ===
+											''
+												? 'placeholder:text-transparent'
+												: 'placeholder:text-text-subtitle/50'}"
+										/>
+										<!-- The placeholder hides behind the chip: this box is too narrow for both. -->
+										<CopyFormChip
+											form={question.word.lemma}
+											inputEl={formInputEl}
+											value={formInput}
+											onFill={(f) => (formInput = f)}
+										/>
+									</div>
 								{/if}
 								{#if !formSubmitted}
 									<button
@@ -917,17 +930,28 @@
 										class="rounded-[24px] px-4 py-3 text-lg font-semibold"
 									/>
 								{:else}
-									<input
-										bind:this={adjFormInputEl}
-										bind:value={adjFormInput}
-										onkeydown={handleAdjFormKeydown}
-										type="text"
-										autocomplete="off"
-										autocapitalize="none"
-										spellcheck="false"
-										placeholder="Type the adjective form..."
-										class="min-w-0 flex-1 rounded-[24px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-lg font-semibold text-text-default transition-colors placeholder:text-text-subtitle/50 focus:border-emphasis focus:outline-none"
-									/>
+									<div class="relative flex min-w-0 flex-1">
+										<input
+											bind:this={adjFormInputEl}
+											bind:value={adjFormInput}
+											onkeydown={handleAdjFormKeydown}
+											type="text"
+											autocomplete="off"
+											autocapitalize="none"
+											spellcheck="false"
+											placeholder="Type the adjective form..."
+											class="min-w-0 flex-1 rounded-[24px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-lg font-semibold text-text-default transition-colors focus:border-emphasis focus:outline-none {adjFormInput ===
+											''
+												? 'placeholder:text-transparent'
+												: 'placeholder:text-text-subtitle/50'}"
+										/>
+										<CopyFormChip
+											form={question.adjective?.lemma ?? null}
+											inputEl={adjFormInputEl}
+											value={adjFormInput}
+											onFill={(f) => (adjFormInput = f)}
+										/>
+									</div>
 								{/if}
 								{#if !adjFormSubmitted}
 									<button

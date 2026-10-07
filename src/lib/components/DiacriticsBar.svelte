@@ -20,14 +20,36 @@
 	let { inputEl, inputValue = '' }: { inputEl: HTMLInputElement | undefined; inputValue?: string } =
 		$props();
 
-	let highlightedBases = $derived.by(() => {
-		const lastChar = inputValue.slice(-1).toLowerCase();
-		if (!lastChar) return null;
-		const hasMatch = CZECH_DIACRITICS.some((d) => d.base === lastChar);
-		return hasMatch ? lastChar : null;
+	const BASE_LOOKUP = new Map(CZECH_DIACRITICS.map((d) => [d.char, d.base]));
+
+	/** Caret position in the input; null means "end of the value". */
+	let caret: number | null = $state(null);
+
+	// Follow the caret, so moving back to a letter (arrow keys, a click) offers
+	// that letter's accents. Inputs don't fire selectionchange everywhere, so
+	// watch the document's and read the input's caret while it has focus.
+	$effect(() => {
+		const el = inputEl;
+		if (!el) return;
+		const update = () => {
+			if (document.activeElement === el) caret = el.selectionStart;
+		};
+		document.addEventListener('selectionchange', update);
+		el.addEventListener('input', update);
+		return () => {
+			document.removeEventListener('selectionchange', update);
+			el.removeEventListener('input', update);
+		};
 	});
 
-	const BASE_LOOKUP = new Map(CZECH_DIACRITICS.map((d) => [d.char, d.base]));
+	/** The letter before the caret, or its base if it already has an accent (č → c). */
+	let highlightedBases = $derived.by(() => {
+		const end = caret === null ? inputValue.length : Math.min(caret, inputValue.length);
+		const prev = inputValue.slice(end - 1, end).toLowerCase();
+		if (!prev) return null;
+		const base = BASE_LOOKUP.get(prev) ?? prev;
+		return CZECH_DIACRITICS.some((d) => d.base === base) ? base : null;
+	});
 
 	function insertChar(char: string) {
 		if (!inputEl) return;

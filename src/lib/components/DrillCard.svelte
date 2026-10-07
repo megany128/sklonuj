@@ -31,6 +31,7 @@
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import NextButton from '$lib/components/ui/NextButton.svelte';
 	import RetypePractice from '$lib/components/ui/RetypePractice.svelte';
+	import CopyFormChip from '$lib/components/ui/CopyFormChip.svelte';
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
@@ -285,6 +286,18 @@
 	function showPlural(q: DrillQuestion, n: DrillQuestion['number']): boolean {
 		return n === 'pl' && !(q.wordCategory === 'pronoun' && q.pronoun?.forms.sg === null);
 	}
+
+	/**
+	 * The dictionary form CopyFormChip drops into the empty box. Pronoun forms
+	 * share little with their lemma (já → mě), so they don't get one.
+	 */
+	let copyForm = $derived.by(() => {
+		if (!question || question.drillType === 'case_identification') return null;
+		if (question.wordCategory === 'pronoun') return null;
+		if (question.wordCategory === 'adjective') return question.adjective?.lemma ?? null;
+		return question.word.lemma;
+	});
+	let showCopyChip = $derived(copyForm !== null && !submitted && userInput === '');
 
 	let showDiacriticsBar = $derived(
 		question !== null &&
@@ -853,21 +866,31 @@
 									class="rounded-[16px] px-4 py-3 text-base font-semibold sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg"
 								/>
 							{:else}
-								<input
-									id="drill-answer"
-									bind:this={inputEl}
-									bind:value={userInput}
-									onkeydown={handleKeydown}
-									disabled={submitted}
-									type="text"
-									autocomplete="off"
-									autocorrect="off"
-									autocapitalize="off"
-									spellcheck="false"
-									enterkeyhint="go"
-									placeholder="Type your answer..."
-									class="min-w-0 flex-1 rounded-[16px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-base font-normal text-emphasis caret-emphasis outline-none transition-all duration-200 placeholder:text-text-subtitle focus:border-emphasis sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg"
-								/>
+								<div class="relative flex min-w-0 flex-1">
+									<input
+										id="drill-answer"
+										bind:this={inputEl}
+										bind:value={userInput}
+										onkeydown={handleKeydown}
+										disabled={submitted}
+										type="text"
+										autocomplete="off"
+										autocorrect="off"
+										autocapitalize="off"
+										spellcheck="false"
+										enterkeyhint="go"
+										placeholder="Type your answer..."
+										class="min-w-0 flex-1 rounded-[16px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-base font-normal text-emphasis caret-emphasis outline-none transition-all duration-200 placeholder:text-text-subtitle focus:border-emphasis sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg {showCopyChip
+											? 'max-sm:placeholder:text-transparent'
+											: ''}"
+									/>
+									<CopyFormChip
+										form={copyForm}
+										{inputEl}
+										value={userInput}
+										onFill={(f) => (userInput = f)}
+									/>
+								</div>
 							{/if}
 							{#if !submitted}
 								<button
