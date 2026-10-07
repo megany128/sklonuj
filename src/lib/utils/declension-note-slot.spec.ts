@@ -50,13 +50,15 @@ describe('declensionNoteForSlot', () => {
 		expect(declensionNoteForSlot(note, { case: 'dat', number: 'sg' })).toBeNull();
 	});
 
-	it('drops unlabelled examples that only quote singular forms on plural questions', () => {
+	it('swaps singular-only examples for the plural form on plural questions', () => {
 		const leden = {
 			sg: ['leden', 'ledna', 'lednu', 'leden', 'ledne', 'lednu', 'lednem'],
 			pl: ['ledny', 'lednů', 'lednům', 'ledny', 'ledny', 'lednech', 'ledny']
 		};
 		const note = 'Fleeting e: leden → ledna, v lednu, lednem\nGenitive sg: -a (ledna)';
-		expect(declensionNoteForSlot(note, { case: 'loc', number: 'pl' }, leden)).toBeNull();
+		expect(declensionNoteForSlot(note, { case: 'loc', number: 'pl' }, leden)).toBe(
+			'Fleeting e: leden → lednech'
+		);
 		expect(declensionNoteForSlot(note, { case: 'loc', number: 'sg' }, leden)).toBe(
 			'Fleeting e: leden → ledna, v lednu, lednem'
 		);
@@ -70,6 +72,9 @@ describe('declensionNoteForSlot', () => {
 		// Names the case but no number, and quotes only the singular dne.
 		const dneNote = `${denNote}\nGenitive dne in phrases like během dne`;
 		expect(declensionNoteForSlot(dneNote, { case: 'gen', number: 'pl' }, den)).toBe(denNote);
+		expect(declensionNoteForSlot(dneNote, { case: 'gen', number: 'pl' }, den)).not.toContain(
+			'během'
+		);
 		expect(declensionNoteForSlot(dneNote, { case: 'gen', number: 'sg' }, den)).toBe(dneNote);
 
 		const kocicka = {
@@ -95,6 +100,19 @@ describe('declensionNoteForSlot', () => {
 				{ case: 'dat', number: 'pl' },
 				tricko
 			)
-		).toBeNull();
+		).toBe('Declines like město: tričko → tričkům');
+
+		// A rule stated in words keeps its wording; only the examples change.
+		const centrum = {
+			sg: ['centrum', 'centra', 'centru', 'centrum', 'centrum', 'centru', 'centrem'],
+			pl: ['centra', 'center', 'centrům', 'centra', 'centra', 'centrech', 'centry']
+		};
+		expect(
+			declensionNoteForSlot(
+				'Latin neuter: -um drops before endings (centra, centru, centrem)',
+				{ case: 'loc', number: 'pl' },
+				centrum
+			)
+		).toBe('Latin neuter: -um drops before endings (centrum → centrech)');
 	});
 });

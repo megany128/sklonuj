@@ -1,4 +1,5 @@
 import type { Case, Number_ } from '$lib/types';
+import { CASE_INDEX } from '$lib/types';
 import type { NoteSlot } from './filter-paradigm-note';
 
 /**
@@ -146,48 +147,101 @@ function wordsOf(text: string): string[] {
 		.filter(Boolean);
 }
 
-/**
- * An unlabelled stretch of a note ("Fleeting e: leden → ledna, v lednu,
- * lednem", "Declines like město: trička, tričku") is about the singular when
- * the only forms of the word it quotes are singular ones. One that also quotes
- * a plural-only form ("den → dne, dnu (pl dny, dnů)") covers both.
- */
-function quotesOnlySingular(text: string, forms: NoteForms): boolean {
+interface FormSets {
+	/** Forms only the singular has, minus the lemma (which names the word). */
+	singular: Set<string>;
+	/** Forms only the plural has (trička is both gen sg and nom pl, so neither). */
+	plural: Set<string>;
+	vocative: string;
+}
+
+function formSets(forms: NoteForms): FormSets {
 	const sg = new Set(forms.sg.map((f) => f.toLowerCase()).filter(Boolean));
 	const pl = new Set(forms.pl.map((f) => f.toLowerCase()).filter(Boolean));
-	// Forms both numbers share (trička: gen sg and nom pl) prove nothing either way.
-	const plural = new Set([...pl].filter((f) => !sg.has(f)));
-	const singular = new Set([...sg].filter((f) => !pl.has(f) && f !== forms.sg[0].toLowerCase()));
+	const lemma = (forms.sg[0] ?? '').toLowerCase();
+	return {
+		singular: new Set([...sg].filter((f) => !pl.has(f) && f !== lemma)),
+		plural: new Set([...pl].filter((f) => !sg.has(f))),
+		vocative: (forms.sg[CASE_INDEX.voc] ?? '').toLowerCase()
+	};
+}
+
+const PARENS = /\s*\([^)]*\)/g;
+
+/**
+ * Rewrite one unlabelled stretch for a plural question. A general rule shown
+ * with singular examples ("Fleeting e: leden → ledna, v lednu", "Latin neuter:
+ * -um drops before endings (centra, centru)") still explains the plural, so
+ * the rule stays and its examples become this word's own plural form
+ * ("Fleeting e: leden → lednech"). A stretch whose singular forms are only
+ * the vocative ("endearment: kočičko") says nothing about the plural and is
+ * dropped. Returns the text unchanged when it isn't singular-only.
+ */
+function forPlural(text: string, sets: FormSets, lemma: string, form: string): string | null {
 	const words = wordsOf(text);
-	return words.some((w) => singular.has(w)) && !words.some((w) => plural.has(w));
+	const quotedSingular = words.filter((w) => sets.singular.has(w));
+	if (quotedSingular.length === 0 || words.some((w) => sets.plural.has(w))) return text;
+	if (quotedSingular.every((w) => w === sets.vocative)) return null;
+	if (!form) return null;
+	const own = `${lemma} → ${form}`;
+	const quotesForm = (part: string) =>
+		/→/.test(part) || wordsOf(part).some((w) => sets.singular.has(w) || w === lemma);
+	const colon = text.indexOf(':');
+	if (colon !== -1) {
+		const label = text.slice(0, colon).trim();
+		const rest = text
+			.slice(colon + 1)
+			.replace(PARENS, '')
+			.trim();
+		// "Fleeting e: leden → ledna, …" lists examples; "Latin neuter: -um
+		// drops before endings (…)" states a rule and keeps it.
+		return quotesForm(rest) || rest === '' ? `${label}: ${own}` : `${label}: ${rest} (${own})`;
+	}
+	const rule = text.replace(PARENS, '').trim();
+	// "Hard chmelu, chmelem" is all examples with no rule to keep.
+	return quotesForm(rule) ? null : `${rule} (${own})`;
 }
 
 interface KeptClause extends Clause {
 	/** The clause names a number, its own or one it inherits in its line. */
 	labelled: boolean;
+	/** It was the first clause of its line, so it already starts the sentence. */
+	leads: boolean;
 }
 
-/** Drop the ";"-separated stretches that name no number and only quote
- * singular forms ("Genitive dne in phrases like během dne"). */
-function dropSingularOnly(clauses: KeptClause[], forms: NoteForms): KeptClause[] {
+/** Give the ";"-separated stretches that name no number and only quote
+ * singular forms their plural reading (see `forPlural`). */
+function pluralizeExamples(clauses: KeptClause[], forms: NoteForms, slot: NoteSlot): KeptClause[] {
+	const sets = formSets(forms);
+	const lemma = forms.sg[0] || forms.pl[0] || '';
+	const form = forms.pl[CASE_INDEX[slot.case]] ?? '';
 	const segments: KeptClause[][] = [];
 	for (const clause of clauses) {
 		if (segments.length === 0 || clause.sep === ';') segments.push([clause]);
 		else segments[segments.length - 1].push(clause);
 	}
-	return segments
-		.filter(
-			(seg) =>
-				seg.some((c) => c.labelled) || !quotesOnlySingular(seg.map((c) => c.text).join(' '), forms)
-		)
-		.flat();
+	const out: KeptClause[] = [];
+	for (const seg of segments) {
+		if (seg.some((c) => c.labelled)) {
+			out.push(...seg);
+			continue;
+		}
+		const text = seg.map((c, i) => (i === 0 ? c.text : `${c.sep} ${c.text}`)).join('');
+		const rewritten = forPlural(text, sets, lemma, form);
+		if (rewritten === text) out.push(...seg);
+		else if (rewritten !== null) {
+			out.push({ text: rewritten, sep: seg[0].sep, labelled: false, leads: seg[0].leads });
+		}
+	}
+	return out;
 }
 
 /**
  * A case label without a number ("Dative hřbitovu, locative na hřbitově")
  * means the number the note last named ("Genitive sg: -a" the line before),
  * so a plural question doesn't get singular forms. With the word's `forms`,
- * a plural question also drops unlabelled examples that are all singular.
+ * a plural question also swaps unlabelled singular-only examples for the
+ * word's own plural form (see `forPlural`).
  */
 export function declensionNoteForSlot(
 	note: string,
@@ -202,7 +256,7 @@ export function declensionNoteForSlot(
 		let lineScope: Scope | null = null;
 		const clauses = splitClauses(line);
 		let keptClauses: KeptClause[] = [];
-		for (const clause of clauses) {
+		for (const [i, clause] of clauses.entries()) {
 			let own = scopeOf(clause.text);
 			if (own?.numbers) lastNumbers = own.numbers;
 			else if (own?.cases && lastNumbers) {
@@ -213,18 +267,15 @@ export function declensionNoteForSlot(
 				lineScope = lineScope ? union(lineScope, own) : own;
 			}
 			if (matches(scope, slot)) {
-				keptClauses.push({ ...clause, labelled: scope.numbers !== null });
+				keptClauses.push({ ...clause, labelled: scope.numbers !== null, leads: i === 0 });
 			}
 		}
 		prevLineScope = lineScope ?? scope;
-		if (forms && slot.number === 'pl') keptClauses = dropSingularOnly(keptClauses, forms);
+		if (forms && slot.number === 'pl') keptClauses = pluralizeExamples(keptClauses, forms, slot);
 		if (keptClauses.length === 0) continue;
-		const first = keptClauses[0];
 		let text = keptClauses.map((c, i) => (i === 0 ? c.text : `${c.sep} ${c.text}`)).join('');
 		// A clause that now starts the line was mid-sentence ("locative v lese").
-		if (first.text !== clauses[0].text || first.sep !== clauses[0].sep) {
-			text = text.charAt(0).toUpperCase() + text.slice(1);
-		}
+		if (!keptClauses[0].leads) text = text.charAt(0).toUpperCase() + text.slice(1);
 		kept.push(text);
 	}
 	return kept.length > 0 ? kept.join('\n') : null;
