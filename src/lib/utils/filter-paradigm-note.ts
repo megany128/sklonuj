@@ -12,7 +12,7 @@ import { matchedEndings } from './paradigm-endings';
  *
  * Learners shouldn't have to work out which paradigm their word is or which of
  * several endings it took, so the first line is rewritten around the drilled
- * word ("park → parku: ending -u"). Every later line is a
+ * word ("park → park**u**", ending in bold). Every later line is a
  * gotcha, kept only when this word's form for this case actually shows it.
  */
 
@@ -175,7 +175,7 @@ function describeEndings(endings: string[]): string {
 /**
  * Rewrite the paradigm's rule line around the drilled word:
  *   "hrad-type · locative sg → -ě or -u (na hradě, ve vlaku)"
- *   → "park → parku: ending -u"
+ *   → "park → park**u**" (the ending is marked bold for WhyNote)
  * "Same as <case>" rules keep that wording ("pán → pána: same as genitive").
  * Returns null when the word's form can't be described, so the original stays.
  */
@@ -198,6 +198,15 @@ function wordRuleLine(ruleLine: string, word: WordEntry, slot: NoteSlot): string
 		// rather than quoting a rule the word breaks.
 		if (endings.length === 0) {
 			return primary === word.lemma ? null : `${word.lemma} → ${primary}: irregular form`;
+		}
+		// Show the ending on the form itself, bolded ("park → park**u**"),
+		// even when the form looks like the lemma (recepce → recepc**e**).
+		const ending = endings
+			.filter((e) => e !== '' && primary.toLowerCase().endsWith(e))
+			.sort((a, b) => b.length - a.length)[0];
+		if (ending) {
+			const cut = primary.length - ending.length;
+			return `${word.lemma} → ${primary.slice(0, cut)}**${primary.slice(cut)}**`;
 		}
 		what = describeEndings(endings);
 	}

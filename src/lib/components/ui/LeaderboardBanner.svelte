@@ -5,6 +5,7 @@
 	import Flame from '@lucide/svelte/icons/flame';
 	import PartyPopper from '@lucide/svelte/icons/party-popper';
 	import { slide } from 'svelte/transition';
+	import { aliasGloss } from '$lib/engine/leaderboard-alias';
 
 	interface LeaderboardEntry {
 		rank: number;
@@ -51,6 +52,14 @@
 		loading = false,
 		unavailable = false
 	}: Props = $props();
+
+	/** Hover text for a generated weekly-board name: its English and story.
+	 * Class boards show real names, which get none. */
+	function nameGloss(name: string): string | undefined {
+		if (mode !== 'global') return undefined;
+		const gloss = aliasGloss(name);
+		return gloss ? `${gloss.english}\n${gloss.note}` : undefined;
+	}
 
 	// Name widths for the expanded-state skeleton rows (Tailwind needs literal class names).
 	const SKELETON_ROW_WIDTHS = ['w-28', 'w-20', 'w-32', 'w-24'];
@@ -315,7 +324,13 @@
 				</span>
 				{#if pointsBehind > 0 && nextRankEntry}
 					<span class="hidden text-xs text-text-subtitle sm:inline">
-						{formatScore(pointsBehind)} pts behind {nextRankEntry.firstName}
+						{formatScore(pointsBehind)} pts behind
+						<span
+							class={nameGloss(nextRankEntry.firstName)
+								? 'cursor-help underline decoration-dotted underline-offset-2'
+								: ''}
+							title={nameGloss(nextRankEntry.firstName)}>{nextRankEntry.firstName}</span
+						>
 					</span>
 				{/if}
 			</div>
@@ -422,7 +437,7 @@
 											? 'font-semibold text-brand-700'
 											: 'text-text-default'}"
 									>
-										{entry.firstName}
+										<span title={nameGloss(entry.firstName)}>{entry.firstName}</span>
 										{#if isMe}
 											<span class="text-xs font-normal text-brand-500">(you)</span>
 										{/if}

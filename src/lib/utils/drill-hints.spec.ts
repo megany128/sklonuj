@@ -51,6 +51,16 @@ describe('drillHints', () => {
 		});
 	});
 
+	it('skips the case hint when the learner picked that case, leading with the paradigm', () => {
+		const q = generateSentenceDrill(template('Mluvíme o ___.'), word('stůl'));
+		if (!q) throw new Error('no question');
+		expect(drillHints(q, models, true)[0]).toEqual({
+			kind: 'like',
+			model: 'hrad',
+			form: q.number === 'pl' ? 'hradech' : 'hradě'
+		});
+	});
+
 	it('case identification gets only the cue, never the case', () => {
 		const q = generateCaseIdentification(template('Mluvíme o ___.'), word('stůl'));
 		expect(drillHints(q, models)).toEqual([{ kind: 'clue', text: 'o (about) + topic' }]);

@@ -31,6 +31,7 @@
 	import FeedbackDeclensionChart from '$lib/components/ui/FeedbackDeclensionChart.svelte';
 	import NextButton from '$lib/components/ui/NextButton.svelte';
 	import RetypePractice from '$lib/components/ui/RetypePractice.svelte';
+	import CopyFormChip from '$lib/components/ui/CopyFormChip.svelte';
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
@@ -47,7 +48,8 @@
 		streak = 0,
 		soundEnabled = true,
 		skeletonDrillType = null,
-		retry = false
+		retry = false,
+		caseKnown = false
 	}: {
 		question: DrillQuestion | null;
 		loading?: boolean;
@@ -65,6 +67,8 @@
 		soundEnabled?: boolean;
 		/** This question is a re-ask of one missed earlier in the session. */
 		retry?: boolean;
+		/** Only one case is in play, so hints skip naming it. */
+		caseKnown?: boolean;
 	} = $props();
 
 	let userInput = $state('');
@@ -79,7 +83,7 @@
 	function modelWord(paradigm: Paradigm) {
 		return loadWordBank().find((w) => w.lemma === paradigm);
 	}
-	let hints = $derived(question ? drillHints(question, modelWord) : []);
+	let hints = $derived(question ? drillHints(question, modelWord, caseKnown) : []);
 	let openHints = $derived(hints.slice(0, hintsShown));
 	/** Highlight the cue word in the sentence once it's been hinted or answered. */
 	let showTrigger = $derived(
@@ -282,6 +286,18 @@
 	function showPlural(q: DrillQuestion, n: DrillQuestion['number']): boolean {
 		return n === 'pl' && !(q.wordCategory === 'pronoun' && q.pronoun?.forms.sg === null);
 	}
+
+	/**
+	 * The dictionary form CopyFormChip drops into the empty box. Pronoun forms
+	 * share little with their lemma (já → mě), so they don't get one.
+	 */
+	let copyForm = $derived.by(() => {
+		if (!question || question.drillType === 'case_identification') return null;
+		if (question.wordCategory === 'pronoun') return null;
+		if (question.wordCategory === 'adjective') return question.adjective?.lemma ?? null;
+		return question.word.lemma;
+	});
+	let showCopyChip = $derived(copyForm !== null && !submitted && userInput === '');
 
 	let showDiacriticsBar = $derived(
 		question !== null &&
@@ -514,14 +530,15 @@
 {/snippet}
 
 <!-- Sentence text with the template's cue word (do, na, s …) underlined. Before
-     the answer it's neutral so it doesn't give the case away. -->
+     the answer it's neutral so it doesn't give the case away. A bottom border
+     (not text-decoration) so it lines up with the answer slot's border. -->
 {#snippet cueText(text: string, trigger: string, case_: Case)}{@const at = showTrigger
 		? findTrigger(text, trigger)
 		: null}{#if at}{text.slice(0, at.start)}<span
-			class="font-semibold underline decoration-2 underline-offset-4 {submitted
+			class="inline-block border-b-2 font-semibold {submitted
 				? CASE_COLORS[case_].text
-				: 'decoration-emphasis'}"
-			style={submitted ? `text-decoration-color: ${CASE_HEX[case_]}` : undefined}
+				: 'border-emphasis'}"
+			style={submitted ? `border-bottom-color: ${CASE_HEX[case_]}` : undefined}
 			>{text.slice(at.start, at.end)}</span
 		>{text.slice(at.end)}{:else}{text}{/if}{/snippet}
 
@@ -780,7 +797,7 @@
 										<span class="text-text-subtitle">· {hint.clue}</span>
 									{/if}
 								{:else if hint.kind === 'like'}
-									<span class="font-semibold">Like</span>
+									<span class="font-semibold">Declines like</span>
 									{hint.model} &rarr; {hint.form}
 								{:else}
 									<span class="font-semibold">Starts with</span> {hint.prefix}&hellip;
@@ -849,21 +866,31 @@
 									class="rounded-[16px] px-4 py-3 text-base font-semibold sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg"
 								/>
 							{:else}
-								<input
-									id="drill-answer"
-									bind:this={inputEl}
-									bind:value={userInput}
-									onkeydown={handleKeydown}
-									disabled={submitted}
-									type="text"
-									autocomplete="off"
-									autocorrect="off"
-									autocapitalize="off"
-									spellcheck="false"
-									enterkeyhint="go"
-									placeholder="Type your answer..."
-									class="min-w-0 flex-1 rounded-[16px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-base font-normal text-emphasis caret-emphasis outline-none transition-all duration-200 placeholder:text-text-subtitle focus:border-emphasis sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg"
-								/>
+								<div class="relative flex min-w-0 flex-1">
+									<input
+										id="drill-answer"
+										bind:this={inputEl}
+										bind:value={userInput}
+										onkeydown={handleKeydown}
+										disabled={submitted}
+										type="text"
+										autocomplete="off"
+										autocorrect="off"
+										autocapitalize="off"
+										spellcheck="false"
+										enterkeyhint="go"
+										placeholder="Type your answer..."
+										class="min-w-0 flex-1 rounded-[16px] border-2 border-card-stroke bg-card-bg px-4 py-3 text-center text-base font-normal text-emphasis caret-emphasis outline-none transition-all duration-200 placeholder:text-text-subtitle focus:border-emphasis sm:rounded-[20px] sm:px-5 sm:py-3.5 sm:text-lg {showCopyChip
+											? 'max-sm:placeholder:text-transparent'
+											: ''}"
+									/>
+									<CopyFormChip
+										form={copyForm}
+										{inputEl}
+										value={userInput}
+										onFill={(f) => (userInput = f)}
+									/>
+								</div>
 							{/if}
 							{#if !submitted}
 								<button

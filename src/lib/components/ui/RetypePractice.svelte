@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Check from '@lucide/svelte/icons/check';
 	import DiacriticsBar from '../DiacriticsBar.svelte';
+	import { stripDiacritics } from '$lib/utils/diacritics';
 
 	/**
 	 * Optional "type it once" box under a missed answer. Producing the form
@@ -12,7 +13,8 @@
 		canAdvance,
 		onAdvance
 	}: {
-		/** Forms that count, exact letters and accents (case-insensitive). */
+		/** Forms that count (case-insensitive). Missing accents also count, as
+		 * in the main answer box, with a reminder to mind them. */
 		accepted: string[];
 		/** False until the key that submitted the answer is released. */
 		canAdvance: boolean;
@@ -21,6 +23,9 @@
 
 	let value = $state('');
 	let done = $state(false);
+	/** The accepted form the learner's letters matched when their accents were
+	 * off (missing or wrong), shown as the reminder; null for an exact match. */
+	let accentsFix: string | null = $state(null);
 	let shaking = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 
@@ -46,6 +51,16 @@
 			done = true;
 			return;
 		}
+		// Same letters as one accepted form, accents aside: show that form, not
+		// the first one, so the reminder never swaps the ending (příteli vs
+		// přítelovi).
+		const bare = stripDiacritics(normalize(value));
+		const matched = accepted.find((a) => stripDiacritics(normalize(a)) === bare);
+		if (matched !== undefined) {
+			done = true;
+			accentsFix = matched.trim();
+			return;
+		}
 		// Restart the shake even if the last one is still running.
 		shaking = false;
 		requestAnimationFrame(() => (shaking = true));
@@ -66,7 +81,11 @@
 
 <form onsubmit={handleSubmit} novalidate class="flex w-full flex-col items-center gap-2">
 	<label for="retype-answer" class="text-xs font-semibold text-darker-subtitle">
-		{done ? "That's right" : 'Practice: type the correct form'}
+		{done
+			? accentsFix !== null
+				? `Right letters — mind the accents: ${accentsFix}`
+				: "That's right"
+			: 'Practice: type the correct form'}
 	</label>
 	<div class="flex w-full max-w-xs items-stretch gap-2">
 		<input
