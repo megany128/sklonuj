@@ -14,6 +14,13 @@ describe('declensionNoteForSlot', () => {
 		expect(declensionNoteForSlot(HRBITOV, { case: 'ins', number: 'sg' })).toBeNull();
 	});
 
+	it('carries the number the note last named onto unlabelled cases', () => {
+		expect(declensionNoteForSlot(HRBITOV, { case: 'loc', number: 'pl' })).toBeNull();
+		expect(declensionNoteForSlot(HRBITOV, { case: 'gen', number: 'pl' })).toBeNull();
+		const lod = 'Mixes píseň and kost: gen sg lodě or lodi, dat/loc lodi\nPlural: lodě, lodí';
+		expect(declensionNoteForSlot(lod, { case: 'loc', number: 'pl' })).toBe('Plural: lodě, lodí');
+	});
+
 	it('filters by number and keeps unlabelled lines everywhere', () => {
 		const note = 'Fleeting e: den → dne, dnu, dnem (pl dny, dnů, dnech)\nGenitive pl: dat';
 		expect(declensionNoteForSlot(note, { case: 'loc', number: 'sg' })).toBe(
@@ -22,10 +29,11 @@ describe('declensionNoteForSlot', () => {
 		expect(declensionNoteForSlot(note, { case: 'gen', number: 'pl' })).toBe(note);
 	});
 
-	it('reads "outside" as every other case and keeps the line as written', () => {
+	it('reads "outside" as every other case in that number and keeps the line as written', () => {
 		const note = 'ů → o outside nom/acc sg (domu, v domě)';
 		expect(declensionNoteForSlot(note, { case: 'acc', number: 'sg' })).toBeNull();
 		expect(declensionNoteForSlot(note, { case: 'loc', number: 'sg' })).toBe(note);
+		expect(declensionNoteForSlot(note, { case: 'loc', number: 'pl' })).toBeNull();
 	});
 
 	it('takes the label after a colon when the one before names no case', () => {

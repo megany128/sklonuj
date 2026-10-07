@@ -133,16 +133,26 @@ function matches(scope: Scope, slot: NoteSlot): boolean {
 /** "Also accepted in both: …" and "Not kost-style …" cover every case the line above did. */
 const CONTINUATION = /^(also|not)\b/i;
 
+/**
+ * A case label without a number ("Dative hřbitovu, locative na hřbitově")
+ * means the number the note last named ("Genitive sg: -a" the line before),
+ * so a plural question doesn't get singular forms.
+ */
 export function declensionNoteForSlot(note: string, slot: NoteSlot): string | null {
 	const kept: string[] = [];
 	let prevLineScope: Scope = ANY;
+	let lastNumbers: Number_[] | null = null;
 	for (const line of note.split('\n')) {
 		let scope: Scope = CONTINUATION.test(line) ? prevLineScope : ANY;
 		let lineScope: Scope | null = null;
 		const clauses = splitClauses(line);
 		const keptClauses: Clause[] = [];
 		for (const clause of clauses) {
-			const own = scopeOf(clause.text);
+			let own = scopeOf(clause.text);
+			if (own?.numbers) lastNumbers = own.numbers;
+			else if (own?.cases && lastNumbers) {
+				own = { cases: own.cases, numbers: lastNumbers };
+			}
 			if (own) {
 				scope = own;
 				lineScope = lineScope ? union(lineScope, own) : own;

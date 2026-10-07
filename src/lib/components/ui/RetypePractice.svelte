@@ -23,8 +23,9 @@
 
 	let value = $state('');
 	let done = $state(false);
-	/** Accepted with the right letters but some accents missing or wrong. */
-	let accentsOff = $state(false);
+	/** The accepted form the learner's letters matched when their accents were
+	 * off (missing or wrong), shown as the reminder; null for an exact match. */
+	let accentsFix: string | null = $state(null);
 	let shaking = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 
@@ -33,7 +34,6 @@
 	}
 
 	let targets = $derived(new Set(accepted.map(normalize)));
-	let bareTargets = $derived(new Set(accepted.map((a) => stripDiacritics(normalize(a)))));
 
 	$effect(() => {
 		const el = inputEl;
@@ -51,9 +51,14 @@
 			done = true;
 			return;
 		}
-		if (bareTargets.has(stripDiacritics(normalize(value)))) {
+		// Same letters as one accepted form, accents aside: show that form, not
+		// the first one, so the reminder never swaps the ending (příteli vs
+		// přítelovi).
+		const bare = stripDiacritics(normalize(value));
+		const matched = accepted.find((a) => stripDiacritics(normalize(a)) === bare);
+		if (matched !== undefined) {
 			done = true;
-			accentsOff = true;
+			accentsFix = matched.trim();
 			return;
 		}
 		// Restart the shake even if the last one is still running.
@@ -77,8 +82,8 @@
 <form onsubmit={handleSubmit} novalidate class="flex w-full flex-col items-center gap-2">
 	<label for="retype-answer" class="text-xs font-semibold text-darker-subtitle">
 		{done
-			? accentsOff
-				? `Right letters — mind the accents: ${accepted[0]}`
+			? accentsFix !== null
+				? `Right letters — mind the accents: ${accentsFix}`
 				: "That's right"
 			: 'Practice: type the correct form'}
 	</label>

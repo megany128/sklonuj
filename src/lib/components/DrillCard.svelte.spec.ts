@@ -163,3 +163,54 @@ describe('DrillCard retype after a miss', () => {
 		expect(onSubmit.mock.calls.at(-1)).toEqual(['__advance__']);
 	});
 });
+
+// The chip in the empty box drops in the dictionary form so learners only
+// change the ending; Tab does the same while the box is empty.
+describe('DrillCard copy-the-word chip', () => {
+	beforeEach(() => cleanup());
+
+	it('Tab in the empty box fills the dictionary form with the caret at the end', async () => {
+		mount();
+		const input = page.getByRole('textbox');
+		await input.click();
+		await userEvent.keyboard('{Tab}');
+		await expect.element(input).toHaveValue('muzeum');
+		const el = input.element();
+		if (!(el instanceof HTMLInputElement)) throw new Error('not an input');
+		expect(document.activeElement).toBe(el);
+		expect(el.selectionStart).toBe('muzeum'.length);
+		expect(el.selectionEnd).toBe('muzeum'.length);
+		await expect
+			.element(page.getByRole('button', { name: 'Fill in muzeum' }))
+			.not.toBeInTheDocument();
+	});
+
+	it('tapping the chip fills the box, and the answer is not marked hinted', async () => {
+		const onSubmit = mount();
+		await page.getByRole('button', { name: 'Fill in muzeum' }).click();
+		const input = page.getByRole('textbox');
+		await expect.element(input).toHaveValue('muzeum');
+		await userEvent.keyboard('{Backspace}{Backspace}u');
+		await expect.element(input).toHaveValue('muzeu');
+		await userEvent.keyboard('{Enter}');
+		expect(onSubmit).toHaveBeenCalledWith('muzeu', { hinted: false });
+	});
+
+	it('Tab moves focus as usual once the box has text', async () => {
+		mount();
+		const input = page.getByRole('textbox');
+		await input.fill('muz');
+		await userEvent.keyboard('{Tab}');
+		await expect.element(input).toHaveValue('muz');
+		expect(document.activeElement).not.toBe(input.element());
+	});
+
+	it('is gone once the answer is submitted', async () => {
+		mount({ question, userAnswer: 'muzeu', correct: true, nearMiss: false });
+		await page.getByRole('textbox').fill('muzeu');
+		await userEvent.keyboard('{Enter}');
+		await expect
+			.element(page.getByRole('button', { name: 'Fill in muzeum' }))
+			.not.toBeInTheDocument();
+	});
+});
