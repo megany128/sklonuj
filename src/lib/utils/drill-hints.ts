@@ -6,8 +6,9 @@ import { CASE_INDEX } from '$lib/types';
  * away a little more, and the last still leaves the ending to them:
  *
  *   clue   — what in the sentence decides the case ("o (about) + topic")
- *   case   — the case the blank needs (fill-in only; form drills name it)
- *   like   — the paradigm's model word in that slot ("like hrad → hradě")
+ *   case   — the case the blank needs (fill-in only; form drills name it,
+ *            and it's skipped when the learner already picked a single case)
+ *   like   — the paradigm's model word in that slot ("declines like hrad → hradě")
  *   start  — the first letters of the answer ("hrad…")
  */
 export type DrillHint =
@@ -52,7 +53,9 @@ function startPrefix(answer: string, lemma: string): string | null {
 
 export function drillHints(
 	q: DrillQuestion,
-	modelWord: (paradigm: Paradigm) => WordEntry | undefined
+	modelWord: (paradigm: Paradigm) => WordEntry | undefined,
+	/** The learner is drilling one case, so naming it gives nothing away. */
+	caseKnown = false
 ): DrillHint[] {
 	const clue = whyClue(q);
 	if (q.drillType === 'case_identification') {
@@ -60,7 +63,7 @@ export function drillHints(
 	}
 
 	const hints: DrillHint[] = [];
-	if (q.drillType === 'sentence_fill_in') {
+	if (q.drillType === 'sentence_fill_in' && !caseKnown) {
 		const plural =
 			q.number === 'pl' && !(q.wordCategory === 'pronoun' && q.pronoun?.forms.sg === null);
 		hints.push({ kind: 'case', case: q.case, plural, clue });

@@ -4707,7 +4707,8 @@
 			</div>
 		{/if}
 
-		<!-- What to practise from: a CEFR level (free practice) or a KzK book -->
+		<!-- What to practise from: a CEFR level (free practice) or a KzK book, plus
+		     the audio and settings toggles -->
 		<div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3" data-tour="mode-selector">
 			<PracticeScopeSelector
 				level={currentLevel}
@@ -4715,6 +4716,38 @@
 				onLevelSelect={handleLevelSelect}
 				onBookSelect={handleBookSelect}
 			/>
+			<div class="ml-auto flex items-center gap-1">
+				{#if ttsAvailable}
+					<button
+						type="button"
+						onclick={toggleAutoplay}
+						class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+						aria-label="Toggle audio autoplay"
+					>
+						{#if autoplayAudio}
+							<Volume2 class="size-4" aria-hidden="true" />
+						{:else}
+							<VolumeX class="size-4" aria-hidden="true" />
+						{/if}
+					</button>
+				{/if}
+				<button
+					type="button"
+					onclick={() => {
+						if (assignmentInfo) {
+							showExitAssignmentConfirm = true;
+							return;
+						}
+						settingsExpanded = !settingsExpanded;
+						if (settingsExpanded) caseFilterExpanded = false;
+					}}
+					class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
+					aria-label="Exercise settings"
+					data-tour="settings"
+				>
+					<Settings class="size-4" aria-hidden="true" />
+				</button>
+			</div>
 		</div>
 
 		{#if chapterBook === null}
@@ -4756,226 +4789,199 @@
 			/>
 		</div>
 
-		<!-- Toolbar: filter cases / chapter stepper (KzK) + mistakes + mute + settings.
-		     Stacks on mobile (stepper row, then icons row) so a long chapter title
-		     has room to truncate instead of crowding the icons; a 3-col grid on sm+. -->
-		<div
-			class="relative z-30 mb-2 flex min-h-[44px] flex-col items-stretch gap-2 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3"
-		>
-			<div class="hidden sm:block"></div>
-			<div class="flex min-w-0 justify-center">
-				{#if chapterBook !== null}
-					{@const kzkChapter = getSelectedKzkChapter()}
-					{#if kzkChapter}
-						{@const chScore = chapterScores[kzkChapter.id]}
-						{@const chapterAccPct =
-							chScore && chScore.attempts > 0
-								? Math.round((chScore.correct / chScore.attempts) * 100)
-								: null}
-						{@const chapterAccColor =
-							chScore && chScore.attempts > 0
-								? chapterAccuracyColor(chScore.correct / chScore.attempts)
-								: null}
-						<div class="flex min-w-0 items-center gap-2.5">
-							<button
-								onclick={() => handleChapterStep('prev')}
-								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-								aria-label="Previous chapter"
-							>
-								<ChevronLeft class="h-4 w-4" aria-hidden="true" />
-							</button>
-							<div class="relative flex min-w-0 flex-col items-center gap-0.5">
+		<!-- Toolbar: filter cases / chapter stepper (KzK) + review mistakes.
+		     Stacks on mobile (stepper row, then mistakes row) so a long chapter
+		     title has room to truncate; a 3-col grid on sm+. Omitted when it would
+		     be empty (a single case picked and no mistakes to review). -->
+		{#if chapterBook !== null || selectedCase === 'all' || relevantMistakeCount > 0}
+			<div
+				class="relative z-30 mb-2 flex min-h-[44px] flex-col items-stretch gap-2 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3"
+			>
+				<div class="hidden sm:block"></div>
+				<div class="flex min-w-0 justify-center">
+					{#if chapterBook !== null}
+						{@const kzkChapter = getSelectedKzkChapter()}
+						{#if kzkChapter}
+							{@const chScore = chapterScores[kzkChapter.id]}
+							{@const chapterAccPct =
+								chScore && chScore.attempts > 0
+									? Math.round((chScore.correct / chScore.attempts) * 100)
+									: null}
+							{@const chapterAccColor =
+								chScore && chScore.attempts > 0
+									? chapterAccuracyColor(chScore.correct / chScore.attempts)
+									: null}
+							<div class="flex min-w-0 items-center gap-2.5">
 								<button
-									type="button"
-									onclick={() => (chapterPickerOpen = !chapterPickerOpen)}
-									class="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
-									aria-expanded={chapterPickerOpen}
-									aria-haspopup="listbox"
+									onclick={() => handleChapterStep('prev')}
+									class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+									aria-label="Previous chapter"
 								>
-									<span
-										class="min-w-0 truncate text-base font-semibold leading-tight text-text-default"
-									>
-										{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
-									</span>
-									{#if chapterAccPct !== null && chapterAccColor}
-										<span class="text-xs font-bold" style="color: {chapterAccColor}"
-											>{chapterAccPct}%</span
-										>
-									{/if}
-									<ChevronDown
-										class="h-3.5 w-3.5 shrink-0 text-text-subtitle transition-transform duration-200 {chapterPickerOpen
-											? 'rotate-180'
-											: ''}"
-										aria-hidden="true"
-									/>
+									<ChevronLeft class="h-4 w-4" aria-hidden="true" />
 								</button>
-								{#if chapterPickerOpen}
-									<div
-										class="fixed left-2 right-2 z-50 max-h-72 overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-1.5 shadow-lg sm:absolute sm:left-1/2 sm:right-auto sm:top-full sm:mt-1 sm:w-80 sm:-translate-x-1/2"
-										role="listbox"
-										tabindex="-1"
-										aria-label="Select chapter"
-										onkeydown={(e) => {
-											if (e.key === 'Escape') chapterPickerOpen = false;
-										}}
+								<div class="relative flex min-w-0 flex-col items-center gap-0.5">
+									<button
+										type="button"
+										onclick={() => (chapterPickerOpen = !chapterPickerOpen)}
+										class="flex min-w-0 max-w-full items-center justify-center gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-icon-hover"
+										aria-expanded={chapterPickerOpen}
+										aria-haspopup="listbox"
 									>
-										{#each kzkChapters[chapterBook].chapters as ch (ch.id)}
-											{@const chSc = chapterScores[ch.id]}
-											{@const accPct =
-												chSc && chSc.attempts > 0
-													? Math.round((chSc.correct / chSc.attempts) * 100)
-													: null}
-											{@const accClr =
-												chSc && chSc.attempts > 0
-													? chapterAccuracyColor(chSc.correct / chSc.attempts)
-													: null}
-											<button
-												type="button"
-												role="option"
-												aria-selected={ch.id === chapterSelection}
-												onclick={() => {
-													handleChapterChange(chapterBook, ch.id);
-													chapterPickerOpen = false;
-												}}
-												class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors {ch.id ===
-												chapterSelection
-													? 'font-semibold text-text-default'
-													: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
-												style={accClr
-													? `background-color: ${accClr}${ch.id === chapterSelection ? '20' : '10'}`
-													: ch.id === chapterSelection
-														? 'background-color: var(--color-shaded-background)'
-														: ''}
+										<span
+											class="min-w-0 truncate text-base font-semibold leading-tight text-text-default"
+										>
+											{kzkChapter.label}{kzkChapter.subtitle ? ` — ${kzkChapter.subtitle}` : ''}
+										</span>
+										{#if chapterAccPct !== null && chapterAccColor}
+											<span class="text-xs font-bold" style="color: {chapterAccColor}"
+												>{chapterAccPct}%</span
 											>
-												<span class="shrink-0 font-semibold">{ch.label}</span>
-												{#if ch.subtitle}
-													<span class="truncate text-xs text-text-subtitle">{ch.subtitle}</span>
-												{/if}
-												{#if accPct !== null && accClr}
-													<span class="ml-auto shrink-0 text-xs font-bold" style="color: {accClr}"
-														>{accPct}%</span
-													>
-												{/if}
-											</button>
-										{/each}
-									</div>
-								{/if}
-								<div class="flex flex-wrap items-center justify-center gap-1">
-									{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
+										{/if}
+										<ChevronDown
+											class="h-3.5 w-3.5 shrink-0 text-text-subtitle transition-transform duration-200 {chapterPickerOpen
+												? 'rotate-180'
+												: ''}"
+											aria-hidden="true"
+										/>
+									</button>
+									{#if chapterPickerOpen}
+										<div
+											class="fixed left-2 right-2 z-50 max-h-72 overflow-y-auto rounded-2xl border border-card-stroke bg-card-bg p-1.5 shadow-lg sm:absolute sm:left-1/2 sm:right-auto sm:top-full sm:mt-1 sm:w-80 sm:-translate-x-1/2"
+											role="listbox"
+											tabindex="-1"
+											aria-label="Select chapter"
+											onkeydown={(e) => {
+												if (e.key === 'Escape') chapterPickerOpen = false;
+											}}
+										>
+											{#each kzkChapters[chapterBook].chapters as ch (ch.id)}
+												{@const chSc = chapterScores[ch.id]}
+												{@const accPct =
+													chSc && chSc.attempts > 0
+														? Math.round((chSc.correct / chSc.attempts) * 100)
+														: null}
+												{@const accClr =
+													chSc && chSc.attempts > 0
+														? chapterAccuracyColor(chSc.correct / chSc.attempts)
+														: null}
+												<button
+													type="button"
+													role="option"
+													aria-selected={ch.id === chapterSelection}
+													onclick={() => {
+														handleChapterChange(chapterBook, ch.id);
+														chapterPickerOpen = false;
+													}}
+													class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors {ch.id ===
+													chapterSelection
+														? 'font-semibold text-text-default'
+														: 'text-text-subtitle hover:bg-shaded-background hover:text-text-default'}"
+													style={accClr
+														? `background-color: ${accClr}${ch.id === chapterSelection ? '20' : '10'}`
+														: ch.id === chapterSelection
+															? 'background-color: var(--color-shaded-background)'
+															: ''}
+												>
+													<span class="shrink-0 font-semibold">{ch.label}</span>
+													{#if ch.subtitle}
+														<span class="truncate text-xs text-text-subtitle">{ch.subtitle}</span>
+													{/if}
+													{#if accPct !== null && accClr}
+														<span class="ml-auto shrink-0 text-xs font-bold" style="color: {accClr}"
+															>{accPct}%</span
+														>
+													{/if}
+												</button>
+											{/each}
+										</div>
+									{/if}
+									<div class="flex flex-wrap items-center justify-center gap-1">
+										{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
+											<span
+												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
+											>
+												All cases
+											</span>
+										{:else}
+											{#each kzkChapter.unlockedCases as c (c)}
+												<span
+													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+													style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
+												>
+													{CASE_SHORT_LABELS[c]}
+												</span>
+											{/each}
+										{/if}
 										<span
 											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 										>
-											All cases
+											{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
 										</span>
-									{:else}
-										{#each kzkChapter.unlockedCases as c (c)}
-											<span
-												class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
-												style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
-											>
-												{CASE_SHORT_LABELS[c]}
-											</span>
-										{/each}
-									{/if}
-									<span
-										class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
-									>
-										{kzkChapter.pluralUnlocked ? 'Sg + Pl' : 'Sg only'}
-									</span>
+									</div>
 								</div>
-							</div>
 
-							<button
-								onclick={() => handleChapterStep('next')}
-								class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
-								aria-label="Next chapter"
-							>
-								<ChevronRight class="size-4" aria-hidden="true" />
-							</button>
-						</div>
+								<button
+									onclick={() => handleChapterStep('next')}
+									class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-card-stroke bg-card-bg text-text-subtitle transition-colors hover:bg-shaded-background hover:text-text-default"
+									aria-label="Next chapter"
+								>
+									<ChevronRight class="size-4" aria-hidden="true" />
+								</button>
+							</div>
+						{/if}
 					{/if}
-				{/if}
-				{#if chapterBook === null && selectedCase === 'all'}
-					<button
-						onclick={() => {
-							if (assignmentInfo) {
-								showExitAssignmentConfirm = true;
-								return;
-							}
-							caseFilterExpanded = !caseFilterExpanded;
-							if (caseFilterExpanded) settingsExpanded = false;
-						}}
-						class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-darker-subtitle transition-colors hover:text-text-default"
-					>
-						Filter cases
-						{#if availableEnabledCount < availableCases.length}
-							<span class="text-emphasis">({availableEnabledCount}/{availableCases.length})</span>
-						{/if}
-						<ChevronDown
-							class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
-								? 'rotate-180'
-								: ''}"
-							aria-hidden="true"
-						/>
-					</button>
-				{/if}
-			</div>
-			<div class="flex items-center justify-center gap-2 sm:justify-end">
-				{#if relevantMistakeCount > 0}
-					<button
-						type="button"
-						onclick={() => {
-							practicingMistakes = !practicingMistakes;
-							lastMistakeIndex = -1;
-							generateNextQuestion();
-						}}
-						class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors
+					{#if chapterBook === null && selectedCase === 'all'}
+						<button
+							onclick={() => {
+								if (assignmentInfo) {
+									showExitAssignmentConfirm = true;
+									return;
+								}
+								caseFilterExpanded = !caseFilterExpanded;
+								if (caseFilterExpanded) settingsExpanded = false;
+							}}
+							class="inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-medium text-darker-subtitle transition-colors hover:text-text-default"
+						>
+							Filter cases
+							{#if availableEnabledCount < availableCases.length}
+								<span class="text-emphasis">({availableEnabledCount}/{availableCases.length})</span>
+							{/if}
+							<ChevronDown
+								class="h-3 w-3 transition-transform duration-200 {caseFilterExpanded
+									? 'rotate-180'
+									: ''}"
+								aria-hidden="true"
+							/>
+						</button>
+					{/if}
+				</div>
+				<div class="flex items-center justify-center gap-2 sm:justify-end">
+					{#if relevantMistakeCount > 0}
+						<button
+							type="button"
+							onclick={() => {
+								practicingMistakes = !practicingMistakes;
+								lastMistakeIndex = -1;
+								generateNextQuestion();
+							}}
+							class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors
 							{practicingMistakes
-							? 'border-negative-stroke bg-negative-background text-negative-stroke'
-							: 'border-negative-stroke/30 bg-card-bg text-negative-stroke hover:border-negative-stroke hover:bg-negative-background'}"
-					>
-						<RefreshCcw class="size-3.5" aria-hidden="true" />
-						{#if practicingMistakes}
-							Reviewing {relevantMistakeCount}
-							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
-						{:else}
-							Review {relevantMistakeCount}
-							{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
-						{/if}
-					</button>
-				{/if}
-				{#if ttsAvailable}
-					<button
-						type="button"
-						onclick={toggleAutoplay}
-						class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-						aria-label="Toggle audio autoplay"
-					>
-						{#if autoplayAudio}
-							<Volume2 class="size-4" aria-hidden="true" />
-						{:else}
-							<VolumeX class="size-4" aria-hidden="true" />
-						{/if}
-					</button>
-				{/if}
-				<button
-					type="button"
-					onclick={() => {
-						if (assignmentInfo) {
-							showExitAssignmentConfirm = true;
-							return;
-						}
-						settingsExpanded = !settingsExpanded;
-						if (settingsExpanded) caseFilterExpanded = false;
-					}}
-					class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-					aria-label="Exercise settings"
-					data-tour="settings"
-				>
-					<Settings class="size-4" aria-hidden="true" />
-				</button>
+								? 'border-negative-stroke bg-negative-background text-negative-stroke'
+								: 'border-negative-stroke/30 bg-card-bg text-negative-stroke hover:border-negative-stroke hover:bg-negative-background'}"
+						>
+							<RefreshCcw class="size-3.5" aria-hidden="true" />
+							{#if practicingMistakes}
+								Reviewing {relevantMistakeCount}
+								{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+							{:else}
+								Review {relevantMistakeCount}
+								{relevantMistakeCount === 1 ? 'mistake' : 'mistakes'}
+							{/if}
+						</button>
+					{/if}
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		<!-- Expandable case filter (inline, pushes content down) -->
 		{#if chapterBook === null && caseFilterExpanded && !assignmentInfo}
@@ -5104,6 +5110,7 @@
 					{streak}
 					soundEnabled={autoplayAudio}
 					retry={currentRetry !== null}
+					caseKnown={(selectedCase === 'all' ? effectiveEnabledCases : [selectedCase]).length === 1}
 				/>
 			{/if}
 		</div>

@@ -34,12 +34,12 @@
 
 <div class="flex items-center gap-2">
 	<span
-		id="practice-scope-label"
-		class="text-xs font-semibold uppercase tracking-[0.15em] text-darker-subtitle">Practice</span
+		id="level-scope-label"
+		class="text-xs font-semibold uppercase tracking-[0.15em] text-darker-subtitle">Level</span
 	>
 	<div
 		role="group"
-		aria-labelledby="practice-scope-label"
+		aria-labelledby="level-scope-label"
 		class="inline-flex items-center rounded-[16px] border border-card-stroke bg-card-bg p-1"
 	>
 		{#each LEVELS as lvl (lvl)}

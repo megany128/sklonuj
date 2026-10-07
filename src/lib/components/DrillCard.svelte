@@ -47,7 +47,8 @@
 		streak = 0,
 		soundEnabled = true,
 		skeletonDrillType = null,
-		retry = false
+		retry = false,
+		caseKnown = false
 	}: {
 		question: DrillQuestion | null;
 		loading?: boolean;
@@ -65,6 +66,8 @@
 		soundEnabled?: boolean;
 		/** This question is a re-ask of one missed earlier in the session. */
 		retry?: boolean;
+		/** Only one case is in play, so hints skip naming it. */
+		caseKnown?: boolean;
 	} = $props();
 
 	let userInput = $state('');
@@ -79,7 +82,7 @@
 	function modelWord(paradigm: Paradigm) {
 		return loadWordBank().find((w) => w.lemma === paradigm);
 	}
-	let hints = $derived(question ? drillHints(question, modelWord) : []);
+	let hints = $derived(question ? drillHints(question, modelWord, caseKnown) : []);
 	let openHints = $derived(hints.slice(0, hintsShown));
 	/** Highlight the cue word in the sentence once it's been hinted or answered. */
 	let showTrigger = $derived(
@@ -514,14 +517,15 @@
 {/snippet}
 
 <!-- Sentence text with the template's cue word (do, na, s …) underlined. Before
-     the answer it's neutral so it doesn't give the case away. -->
+     the answer it's neutral so it doesn't give the case away. A bottom border
+     (not text-decoration) so it lines up with the answer slot's border. -->
 {#snippet cueText(text: string, trigger: string, case_: Case)}{@const at = showTrigger
 		? findTrigger(text, trigger)
 		: null}{#if at}{text.slice(0, at.start)}<span
-			class="font-semibold underline decoration-2 underline-offset-4 {submitted
+			class="inline-block border-b-2 font-semibold {submitted
 				? CASE_COLORS[case_].text
-				: 'decoration-emphasis'}"
-			style={submitted ? `text-decoration-color: ${CASE_HEX[case_]}` : undefined}
+				: 'border-emphasis'}"
+			style={submitted ? `border-bottom-color: ${CASE_HEX[case_]}` : undefined}
 			>{text.slice(at.start, at.end)}</span
 		>{text.slice(at.end)}{:else}{text}{/if}{/snippet}
 
@@ -780,7 +784,7 @@
 										<span class="text-text-subtitle">· {hint.clue}</span>
 									{/if}
 								{:else if hint.kind === 'like'}
-									<span class="font-semibold">Like</span>
+									<span class="font-semibold">Declines like</span>
 									{hint.model} &rarr; {hint.form}
 								{:else}
 									<span class="font-semibold">Starts with</span> {hint.prefix}&hellip;
