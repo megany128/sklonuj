@@ -133,12 +133,67 @@ function matches(scope: Scope, slot: NoteSlot): boolean {
 /** "Also accepted in both: …" and "Not kost-style …" cover every case the line above did. */
 const CONTINUATION = /^(also|not)\b/i;
 
+/** The word's forms, so unlabelled examples can be told apart by number. */
+export interface NoteForms {
+	sg: readonly string[];
+	pl: readonly string[];
+}
+
+function wordsOf(text: string): string[] {
+	return text
+		.toLowerCase()
+		.split(/[^\p{L}]+/u)
+		.filter(Boolean);
+}
+
+/**
+ * An unlabelled stretch of a note ("Fleeting e: leden → ledna, v lednu,
+ * lednem", "Declines like město: trička, tričku") is about the singular when
+ * the only forms of the word it quotes are singular ones. One that also quotes
+ * a plural-only form ("den → dne, dnu (pl dny, dnů)") covers both.
+ */
+function quotesOnlySingular(text: string, forms: NoteForms): boolean {
+	const sg = new Set(forms.sg.map((f) => f.toLowerCase()).filter(Boolean));
+	const pl = new Set(forms.pl.map((f) => f.toLowerCase()).filter(Boolean));
+	// Forms both numbers share (trička: gen sg and nom pl) prove nothing either way.
+	const plural = new Set([...pl].filter((f) => !sg.has(f)));
+	const singular = new Set([...sg].filter((f) => !pl.has(f) && f !== forms.sg[0].toLowerCase()));
+	const words = wordsOf(text);
+	return words.some((w) => singular.has(w)) && !words.some((w) => plural.has(w));
+}
+
+interface KeptClause extends Clause {
+	/** The clause names a number, its own or one it inherits in its line. */
+	labelled: boolean;
+}
+
+/** Drop the ";"-separated stretches that name no number and only quote
+ * singular forms ("Genitive dne in phrases like během dne"). */
+function dropSingularOnly(clauses: KeptClause[], forms: NoteForms): KeptClause[] {
+	const segments: KeptClause[][] = [];
+	for (const clause of clauses) {
+		if (segments.length === 0 || clause.sep === ';') segments.push([clause]);
+		else segments[segments.length - 1].push(clause);
+	}
+	return segments
+		.filter(
+			(seg) =>
+				seg.some((c) => c.labelled) || !quotesOnlySingular(seg.map((c) => c.text).join(' '), forms)
+		)
+		.flat();
+}
+
 /**
  * A case label without a number ("Dative hřbitovu, locative na hřbitově")
  * means the number the note last named ("Genitive sg: -a" the line before),
- * so a plural question doesn't get singular forms.
+ * so a plural question doesn't get singular forms. With the word's `forms`,
+ * a plural question also drops unlabelled examples that are all singular.
  */
-export function declensionNoteForSlot(note: string, slot: NoteSlot): string | null {
+export function declensionNoteForSlot(
+	note: string,
+	slot: NoteSlot,
+	forms?: NoteForms
+): string | null {
 	const kept: string[] = [];
 	let prevLineScope: Scope = ANY;
 	let lastNumbers: Number_[] | null = null;
@@ -146,7 +201,7 @@ export function declensionNoteForSlot(note: string, slot: NoteSlot): string | nu
 		let scope: Scope = CONTINUATION.test(line) ? prevLineScope : ANY;
 		let lineScope: Scope | null = null;
 		const clauses = splitClauses(line);
-		const keptClauses: Clause[] = [];
+		let keptClauses: KeptClause[] = [];
 		for (const clause of clauses) {
 			let own = scopeOf(clause.text);
 			if (own?.numbers) lastNumbers = own.numbers;
@@ -157,13 +212,19 @@ export function declensionNoteForSlot(note: string, slot: NoteSlot): string | nu
 				scope = own;
 				lineScope = lineScope ? union(lineScope, own) : own;
 			}
-			if (matches(scope, slot)) keptClauses.push(clause);
+			if (matches(scope, slot)) {
+				keptClauses.push({ ...clause, labelled: scope.numbers !== null });
+			}
 		}
 		prevLineScope = lineScope ?? scope;
+		if (forms && slot.number === 'pl') keptClauses = dropSingularOnly(keptClauses, forms);
 		if (keptClauses.length === 0) continue;
+		const first = keptClauses[0];
 		let text = keptClauses.map((c, i) => (i === 0 ? c.text : `${c.sep} ${c.text}`)).join('');
 		// A clause that now starts the line was mid-sentence ("locative v lese").
-		if (keptClauses[0] !== clauses[0]) text = text.charAt(0).toUpperCase() + text.slice(1);
+		if (first.text !== clauses[0].text || first.sep !== clauses[0].sep) {
+			text = text.charAt(0).toUpperCase() + text.slice(1);
+		}
 		kept.push(text);
 	}
 	return kept.length > 0 ? kept.join('\n') : null;

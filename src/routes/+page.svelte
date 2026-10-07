@@ -3652,7 +3652,7 @@
 		// genitive question doesn't also list the dative and locative.
 		if (word.declensionNote) {
 			for (const { key, c, n } of ALL_CASE_SLOTS) {
-				const own = declensionNoteForSlot(word.declensionNote, { case: c, number: n });
+				const own = declensionNoteForSlot(word.declensionNote, { case: c, number: n }, word.forms);
 				if (!own) continue;
 				const rule = notes[key];
 				notes[key] =

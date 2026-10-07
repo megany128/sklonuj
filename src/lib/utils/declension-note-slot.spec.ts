@@ -49,4 +49,52 @@ describe('declensionNoteForSlot', () => {
 		);
 		expect(declensionNoteForSlot(note, { case: 'dat', number: 'sg' })).toBeNull();
 	});
+
+	it('drops unlabelled examples that only quote singular forms on plural questions', () => {
+		const leden = {
+			sg: ['leden', 'ledna', 'lednu', 'leden', 'ledne', 'lednu', 'lednem'],
+			pl: ['ledny', 'lednů', 'lednům', 'ledny', 'ledny', 'lednech', 'ledny']
+		};
+		const note = 'Fleeting e: leden → ledna, v lednu, lednem\nGenitive sg: -a (ledna)';
+		expect(declensionNoteForSlot(note, { case: 'loc', number: 'pl' }, leden)).toBeNull();
+		expect(declensionNoteForSlot(note, { case: 'loc', number: 'sg' }, leden)).toBe(
+			'Fleeting e: leden → ledna, v lednu, lednem'
+		);
+
+		const den = {
+			sg: ['den', 'dne', 'dnu', 'den', 'dni', 'dni', 'dnem'],
+			pl: ['dny', 'dnů', 'dnům', 'dny', 'dny', 'dnech', 'dny']
+		};
+		const denNote = 'Fleeting e: den → dne, dnu, dnem (pl dny, dnů, dnech)';
+		expect(declensionNoteForSlot(denNote, { case: 'loc', number: 'pl' }, den)).toBe(denNote);
+		// Names the case but no number, and quotes only the singular dne.
+		const dneNote = `${denNote}\nGenitive dne in phrases like během dne`;
+		expect(declensionNoteForSlot(dneNote, { case: 'gen', number: 'pl' }, den)).toBe(denNote);
+		expect(declensionNoteForSlot(dneNote, { case: 'gen', number: 'sg' }, den)).toBe(dneNote);
+
+		const kocicka = {
+			sg: ['kočička', 'kočičky', 'kočičce', 'kočičku', 'kočičko', 'kočičce', 'kočičkou'],
+			pl: ['kočičky', 'kočiček', 'kočičkám', 'kočičky', 'kočičky', 'kočičkách', 'kočičkami']
+		};
+		expect(
+			declensionNoteForSlot(
+				'Diminutive of kočka; endearment: kočičko',
+				{ case: 'dat', number: 'pl' },
+				kocicka
+			)
+		).toBe('Diminutive of kočka');
+
+		// trička is gen sg and nom pl alike, so it doesn't make the line plural.
+		const tricko = {
+			sg: ['tričko', 'trička', 'tričku', 'tričko', 'tričko', 'tričku', 'tričkem'],
+			pl: ['trička', 'triček', 'tričkům', 'trička', 'trička', 'tričkách', 'tričky']
+		};
+		expect(
+			declensionNoteForSlot(
+				'Declines like město: trička, tričku',
+				{ case: 'dat', number: 'pl' },
+				tricko
+			)
+		).toBeNull();
+	});
 });
