@@ -1,6 +1,6 @@
-import type { Case, Number_, WordEntry } from '$lib/types';
+import type { Case, Number_, Paradigm, WordEntry } from '$lib/types';
 import { CASE_INDEX, isParadigm } from '$lib/types';
-import { matchedEndings } from './paradigm-endings';
+import { matchedEndings, paradigmEndings } from './paradigm-endings';
 
 /**
  * Paradigm `whyNotes` are terse rule lines separated by "\n":
@@ -172,6 +172,13 @@ function describeEndings(endings: string[]): string {
 	return parts[0].startsWith('-') ? `ending ${text}` : text;
 }
 
+/** How the drilled word's form relates to its paradigm, for the pattern line. */
+type FormKind =
+	| { kind: 'ending'; ending: string }
+	| { kind: 'none' }
+	| { kind: 'same'; as: string }
+	| { kind: 'other' };
+
 /**
  * Rewrite the paradigm's rule line around the drilled word:
  *   "hrad-type · locative sg → -ě or -u (na hradě, ve vlaku)"
@@ -179,7 +186,11 @@ function describeEndings(endings: string[]): string {
  * "Same as <case>" rules keep that wording ("pán → pána: same as genitive").
  * Returns null when the word's form can't be described, so the original stays.
  */
-function wordRuleLine(ruleLine: string, word: WordEntry, slot: NoteSlot): string | null {
+function wordRuleLine(
+	ruleLine: string,
+	word: WordEntry,
+	slot: NoteSlot
+): { line: string; form: FormKind } | null {
 	const primary = word.forms[slot.number][CASE_INDEX[slot.case]];
 	if (!primary || !isParadigm(word.paradigm)) return null;
 
@@ -187,39 +198,120 @@ function wordRuleLine(ruleLine: string, word: WordEntry, slot: NoteSlot): string
 		/→ same as (nominative|genitive|dative|accusative|vocative|locative|instrumental)\b/.exec(
 			ruleLine
 		);
-	let what: string;
+	const arrow = primary === word.lemma ? `${word.lemma}:` : `${word.lemma} → ${primary}:`;
 	if (sameAs) {
-		what = `same as ${sameAs[1]}`;
-	} else {
-		// Describe only the form we show; accepted variants (domu beside domě)
-		// would add an ending the learner can't see.
-		const endings = matchedEndings(word.paradigm, slot.case, slot.number, [primary]);
-		// The paradigm's endings don't describe this form (lidé, chlapče): say so
-		// rather than quoting a rule the word breaks.
-		if (endings.length === 0) {
-			return primary === word.lemma ? null : `${word.lemma} → ${primary}: irregular form`;
-		}
-		// Show the ending on the form itself, bolded ("park → park**u**"),
-		// even when the form looks like the lemma (recepce → recepc**e**).
-		const ending = endings
-			.filter((e) => e !== '' && primary.toLowerCase().endsWith(e))
-			.sort((a, b) => b.length - a.length)[0];
-		if (ending) {
-			const cut = primary.length - ending.length;
-			return `${word.lemma} → ${primary.slice(0, cut)}**${primary.slice(cut)}**`;
-		}
-		what = describeEndings(endings);
+		return { line: `${arrow} same as ${sameAs[1]}`, form: { kind: 'same', as: sameAs[1] } };
 	}
+	// Describe only the form we show; accepted variants (domu beside domě)
+	// would add an ending the learner can't see.
+	const endings = matchedEndings(word.paradigm, slot.case, slot.number, [primary]);
+	// The paradigm's endings don't describe this form (lidé, chlapče): say so
+	// rather than quoting a rule the word breaks.
+	if (endings.length === 0) {
+		return primary === word.lemma
+			? null
+			: { line: `${word.lemma} → ${primary}: irregular form`, form: { kind: 'other' } };
+	}
+	// Show the ending on the form itself, bolded ("park → park**u**"),
+	// even when the form looks like the lemma (recepce → recepc**e**).
+	const ending = endings
+		.filter((e) => e !== '' && primary.toLowerCase().endsWith(e))
+		.sort((a, b) => b.length - a.length)[0];
+	if (ending) {
+		const cut = primary.length - ending.length;
+		return {
+			line: `${word.lemma} → ${primary.slice(0, cut)}**${primary.slice(cut)}**`,
+			form: { kind: 'ending', ending }
+		};
+	}
+	const form: FormKind = endings.includes('') ? { kind: 'none' } : { kind: 'other' };
+	return { line: `${arrow.slice(0, -1)}: ${describeEndings(endings)}`, form };
+}
 
-	return primary === word.lemma ? `${word.lemma}: ${what}` : `${word.lemma} → ${primary}: ${what}`;
+/** Plain-English gender/type of each paradigm, for the pattern line. */
+const PARADIGM_KIND: Record<Paradigm, string> = {
+	hrad: 'hard masculine inanimate',
+	stroj: 'soft masculine inanimate',
+	pán: 'hard masculine animate',
+	muž: 'soft masculine animate',
+	předseda: 'masculine animate in -a',
+	soudce: 'masculine animate in -ce',
+	žena: 'feminine in -a',
+	růže: 'feminine in -e',
+	píseň: 'feminine ending in a soft consonant',
+	kost: 'feminine ending in a consonant',
+	město: 'neuter in -o',
+	moře: 'neuter in -e',
+	kuře: 'neuter in -e, stem grows -et-',
+	stavení: 'neuter in -í'
+};
+
+const CASE_NAME: Record<Case, string> = {
+	nom: 'nominative',
+	gen: 'genitive',
+	dat: 'dative',
+	acc: 'accusative',
+	voc: 'vocative',
+	loc: 'locative',
+	ins: 'instrumental'
+};
+
+/** "ends in -u, -ě or -e", "has no ending or ends in -í": every option the
+ * paradigm allows for a slot, the zero ending included. */
+function describeOptions(endings: readonly string[]): string {
+	const real = endings.filter((e) => e !== '').map((e) => `-${e}`);
+	const list =
+		real.length <= 2 ? real.join(' or ') : `${real.slice(0, -1).join(', ')} or ${real.at(-1)}`;
+	if (!endings.includes('')) return `ends in ${list}`;
+	return real.length > 0 ? `has no ending or ends in ${list}` : 'has no ending';
+}
+
+/**
+ * Name the pattern behind the form, so the learner can apply it elsewhere:
+ *   "Pattern: stroj (soft masculine inanimate). Genitive singular ends in -e:
+ *    stroj → stroje."
+ * The model word's own form is quoted only when it shows the same ending; a
+ * paradigm with several endings for the slot lists them and says which one
+ * this word takes ("…ends in -u, -ě or -e; park takes -u.").
+ */
+function patternLine(
+	word: WordEntry,
+	slot: NoteSlot,
+	form: FormKind,
+	model: WordEntry | undefined
+): string | null {
+	if (!isParadigm(word.paradigm) || form.kind === 'other') return null;
+	const p = word.paradigm;
+	const slotName = `${CASE_NAME[slot.case]} ${slot.number === 'sg' ? 'singular' : 'plural'}`;
+	const head = `Pattern: ${p} (${PARADIGM_KIND[p]}). ${slotName.charAt(0).toUpperCase()}${slotName.slice(1)}`;
+	const modelForm =
+		model && model.lemma !== word.lemma ? model.forms[slot.number][CASE_INDEX[slot.case]] : '';
+	const example = (fits: boolean) => (modelForm && fits ? `: ${p} → ${modelForm}` : '');
+
+	if (form.kind === 'same') {
+		return `${head} is the same as the ${form.as}${example(true)}.`;
+	}
+	const all = paradigmEndings(p, slot.case, slot.number);
+	if (all.length > 1) {
+		const taken = form.kind === 'none' ? 'has none' : `takes -${form.ending}`;
+		return `${head} ${describeOptions(all)}; ${word.lemma} ${taken}.`;
+	}
+	if (form.kind === 'none') return `${head} has no ending${example(true)}.`;
+	return `${head} ends in -${form.ending}${example(modelForm.toLowerCase().endsWith(form.ending))}.`;
 }
 
 /**
  * Tailor one paradigm note to the drilled word: rewrite the rule line around
- * the word's own form, and keep only the gotchas its form for this case
- * actually shows.
+ * the word's own form, name the pattern behind it, and keep only the gotchas
+ * its form for this case actually shows. `model` is the paradigm's model word
+ * (stroj for formulář), quoted in the pattern line when it shows the ending.
  */
-export function filterParadigmNote(note: string, word: WordEntry, slot: NoteSlot): string {
+export function filterParadigmNote(
+	note: string,
+	word: WordEntry,
+	slot: NoteSlot,
+	model?: WordEntry
+): string {
 	const lines = note.split('\n');
 	const facts: WordFacts = {
 		lemma: word.lemma,
@@ -230,7 +322,10 @@ export function filterParadigmNote(note: string, word: WordEntry, slot: NoteSlot
 		ownNote: (word.declensionNote ?? '').replace(/\s+/g, '')
 	};
 
-	const kept: string[] = [wordRuleLine(lines[0], word, slot) ?? lines[0]];
+	const rule = wordRuleLine(lines[0], word, slot);
+	const kept: string[] = [rule?.line ?? lines[0]];
+	const pattern = rule ? patternLine(word, slot, rule.form, model) : null;
+	if (pattern) kept.push(pattern);
 	const own = ` (${facts.lemma} → ${facts.form})`;
 	let ownShown = false;
 	for (const line of lines.slice(1)) {
@@ -260,15 +355,17 @@ function parseSlot(key: string): NoteSlot | null {
 	return { case: found, number: n === 'pl' ? 'pl' : 'sg' };
 }
 
-/** Tailor every case note of a paradigm to `word`. */
+/** Tailor every case note of a paradigm to `word`; `model` is the paradigm's
+ * model word, quoted in each pattern line. */
 export function filterParadigmNotes(
 	notes: Record<string, string>,
-	word: WordEntry
+	word: WordEntry,
+	model?: WordEntry
 ): Record<string, string> {
 	const out: Record<string, string> = {};
 	for (const [key, val] of Object.entries(notes)) {
 		const slot = parseSlot(key);
-		out[key] = slot ? filterParadigmNote(val, word, slot) : val;
+		out[key] = slot ? filterParadigmNote(val, word, slot, model) : val;
 	}
 	return out;
 }

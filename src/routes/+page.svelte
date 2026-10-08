@@ -3640,7 +3640,11 @@
 		// Trim the paradigm's gotcha lines to this word before anything else is
 		// joined in, so the lemma note and plural-only note are never filtered.
 		const notes: Record<string, string> = entry?.whyNotes
-			? filterParadigmNotes({ ...entry.whyNotes }, word)
+			? filterParadigmNotes(
+					{ ...entry.whyNotes },
+					word,
+					loadWordBank().find((w) => w.lemma === entry.exampleLemma)
+				)
 			: {};
 
 		// Lemma-specific remark (diminutive fleeting vowel, -um stems, …) leads
