@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { AliasGloss } from '$lib/engine/leaderboard-alias';
+	import posthog from '$lib/posthog';
 
 	/**
 	 * A weekly-board name with its English and background in a tooltip. Hover
@@ -8,7 +9,19 @@
 	 * truncated leaderboard rows can't clip it, and clicks on the name don't
 	 * reach the banner (which would expand or collapse it).
 	 */
-	let { name, gloss }: { name: string; gloss: AliasGloss } = $props();
+	let {
+		name,
+		gloss,
+		placement,
+		own = false
+	}: {
+		name: string;
+		gloss: AliasGloss;
+		/** Where the name sits, for analytics: the collapsed banner or the open list. */
+		placement: 'banner' | 'list';
+		/** The viewer's own name. */
+		own?: boolean;
+	} = $props();
 
 	let open = $state(false);
 	let trigger: HTMLButtonElement | undefined = $state(undefined);
@@ -36,16 +49,40 @@
 		pos = { left: center, top: above ? r.top - 8 : r.bottom + 8, above };
 	}
 
-	function show(): void {
+	/** A view only counts once the tooltip has stayed open this long, so a
+	 * pointer sweeping across the board doesn't log one per name. */
+	const VIEW_DWELL_MS = 500;
+	let viewTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function show(via: 'hover' | 'focus' | 'tap'): void {
 		open = true;
 		place();
 		// Measure again once the tooltip has rendered at its real size.
 		requestAnimationFrame(place);
+		if (viewTimer !== null) clearTimeout(viewTimer);
+		viewTimer = setTimeout(() => {
+			viewTimer = null;
+			posthog.capture('leaderboard_name_tooltip_viewed', {
+				alias: name,
+				english: gloss.english,
+				via,
+				placement,
+				own
+			});
+		}, VIEW_DWELL_MS);
 	}
 
 	function hide(): void {
 		open = false;
+		if (viewTimer !== null) {
+			clearTimeout(viewTimer);
+			viewTimer = null;
+		}
 	}
+
+	$effect(() => () => {
+		if (viewTimer !== null) clearTimeout(viewTimer);
+	});
 
 	$effect(() => {
 		if (!open) return;
@@ -71,13 +108,13 @@
 	aria-describedby={open ? id : undefined}
 	onpointerdown={(e) => (touch = e.pointerType === 'touch')}
 	onpointerenter={(e) => {
-		if (e.pointerType !== 'touch') show();
+		if (e.pointerType !== 'touch') show('hover');
 	}}
 	onpointerleave={(e) => {
 		if (e.pointerType !== 'touch') hide();
 	}}
 	onfocus={() => {
-		if (!touch) show();
+		if (!touch) show('focus');
 	}}
 	onblur={() => {
 		touch = false;
@@ -87,7 +124,7 @@
 		e.stopPropagation();
 		if (touch) {
 			if (open) hide();
-			else show();
+			else show('tap');
 		}
 	}}
 	onkeydown={(e) => {
