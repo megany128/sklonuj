@@ -264,9 +264,12 @@
 	}
 </script>
 
-{#snippet aliasOrName(name: string)}{@const gloss = nameGloss(name)}{#if gloss}<AliasName
+{#snippet aliasOrName(name: string, placement: 'banner' | 'list', own: boolean)}{@const gloss =
+		nameGloss(name)}{#if gloss}<AliasName
 			{name}
 			{gloss}
+			{placement}
+			{own}
 		/>{:else}{name}{/if}{/snippet}
 
 <svelte:window onkeydown={handleWindowKeydown} />
@@ -329,7 +332,7 @@
 				{#if pointsBehind > 0 && nextRankEntry}
 					<span class="hidden text-xs text-text-subtitle sm:inline">
 						{formatScore(pointsBehind)} pts behind
-						{@render aliasOrName(nextRankEntry.firstName)}
+						{@render aliasOrName(nextRankEntry.firstName, 'banner', false)}
 					</span>
 				{/if}
 			</div>
@@ -436,7 +439,7 @@
 											? 'font-semibold text-brand-700'
 											: 'text-text-default'}"
 									>
-										{@render aliasOrName(entry.firstName)}
+										{@render aliasOrName(entry.firstName, 'list', isMe)}
 										{#if isMe}
 											<span class="text-xs font-normal text-brand-500">(you)</span>
 										{/if}

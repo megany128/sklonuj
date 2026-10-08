@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { AliasGloss } from '$lib/engine/leaderboard-alias';
+	import posthog from '$lib/posthog';
 
 	/**
 	 * A weekly-board name with its English and background in a tooltip. Hover
@@ -8,7 +9,19 @@
 	 * truncated leaderboard rows can't clip it, and clicks on the name don't
 	 * reach the banner (which would expand or collapse it).
 	 */
-	let { name, gloss }: { name: string; gloss: AliasGloss } = $props();
+	let {
+		name,
+		gloss,
+		placement,
+		own = false
+	}: {
+		name: string;
+		gloss: AliasGloss;
+		/** Where the name sits, for analytics: the collapsed banner or the open list. */
+		placement: 'banner' | 'list';
+		/** The viewer's own name. */
+		own?: boolean;
+	} = $props();
 
 	let open = $state(false);
 	let trigger: HTMLButtonElement | undefined = $state(undefined);
@@ -36,16 +49,61 @@
 		pos = { left: center, top: above ? r.top - 8 : r.bottom + 8, above };
 	}
 
-	function show(): void {
-		open = true;
+	/** A view only counts once the tooltip has stayed open this long, so a
+	 * pointer sweeping across the board doesn't log one per name. */
+	const VIEW_DWELL_MS = 500;
+	let viewTimer: ReturnType<typeof setTimeout> | null = null;
+	/** How the current opening started, kept for a dwell restarted mid-opening. */
+	let openedVia: 'hover' | 'focus' | 'tap' = 'hover';
+
+	function stopDwell(): void {
+		if (viewTimer === null) return;
+		clearTimeout(viewTimer);
+		viewTimer = null;
+	}
+
+	/** Log a view if this name's tooltip is still open after the dwell. The
+	 * name is read now, so the event names what was actually on screen. */
+	function startDwell(): void {
+		stopDwell();
+		const viewed = { alias: name, english: gloss.english };
+		const via = openedVia;
+		viewTimer = setTimeout(() => {
+			viewTimer = null;
+			posthog.capture('leaderboard_name_tooltip_viewed', { ...viewed, via, placement, own });
+		}, VIEW_DWELL_MS);
+	}
+
+	function show(via: 'hover' | 'focus' | 'tap'): void {
 		place();
 		// Measure again once the tooltip has rendered at its real size.
 		requestAnimationFrame(place);
+		// Already open (focused, then hovered): same opening, one view.
+		if (open) return;
+		open = true;
+		openedVia = via;
+		startDwell();
 	}
 
 	function hide(): void {
 		open = false;
+		stopDwell();
 	}
+
+	// A leaderboard refresh can swap the name under an open tooltip: that's a
+	// new name on screen, so its dwell starts over.
+	let shownName: string | null = null;
+	$effect(() => {
+		const current = name;
+		if (shownName === null || current === shownName) {
+			shownName = current;
+			return;
+		}
+		shownName = current;
+		if (open) startDwell();
+	});
+
+	$effect(() => stopDwell);
 
 	$effect(() => {
 		if (!open) return;
@@ -71,13 +129,13 @@
 	aria-describedby={open ? id : undefined}
 	onpointerdown={(e) => (touch = e.pointerType === 'touch')}
 	onpointerenter={(e) => {
-		if (e.pointerType !== 'touch') show();
+		if (e.pointerType !== 'touch') show('hover');
 	}}
 	onpointerleave={(e) => {
 		if (e.pointerType !== 'touch') hide();
 	}}
 	onfocus={() => {
-		if (!touch) show();
+		if (!touch) show('focus');
 	}}
 	onblur={() => {
 		touch = false;
@@ -87,7 +145,7 @@
 		e.stopPropagation();
 		if (touch) {
 			if (open) hide();
-			else show();
+			else show('tap');
 		}
 	}}
 	onkeydown={(e) => {
