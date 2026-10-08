@@ -160,9 +160,15 @@ describe('filterParadigmNote — pattern line', () => {
 	it('says when a form has no ending, and skips irregular forms', () => {
 		const genPl: NoteSlot = { case: 'gen', number: 'pl' };
 		expect(noteForWord('ulice', genPl).split('\n')[1]).toBe(
-			'Pattern: růže (feminine in -e). Genitive plural has no ending or -í; ulice has none.'
+			'Pattern: růže (feminine in -e). Genitive plural has no ending or ends in -í; ulice has none.'
 		);
 		expect(noteForWord('člověk', { case: 'nom', number: 'pl' })).not.toContain('Pattern:');
+	});
+
+	it('keeps "no ending" among the options when the word takes a real ending', () => {
+		expect(noteForWord('práce', { case: 'gen', number: 'pl' }).split('\n')[1]).toBe(
+			'Pattern: růže (feminine in -e). Genitive plural has no ending or ends in -í; práce takes -í.'
+		);
 	});
 });
 

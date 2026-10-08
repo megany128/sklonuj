@@ -256,6 +256,16 @@ const CASE_NAME: Record<Case, string> = {
 	ins: 'instrumental'
 };
 
+/** "ends in -u, -ě or -e", "has no ending or ends in -í": every option the
+ * paradigm allows for a slot, the zero ending included. */
+function describeOptions(endings: readonly string[]): string {
+	const real = endings.filter((e) => e !== '').map((e) => `-${e}`);
+	const list =
+		real.length <= 2 ? real.join(' or ') : `${real.slice(0, -1).join(', ')} or ${real.at(-1)}`;
+	if (!endings.includes('')) return `ends in ${list}`;
+	return real.length > 0 ? `has no ending or ends in ${list}` : 'has no ending';
+}
+
 /**
  * Name the pattern behind the form, so the learner can apply it elsewhere:
  *   "Pattern: stroj (soft masculine inanimate). Genitive singular ends in -e:
@@ -282,22 +292,11 @@ function patternLine(
 		return `${head} is the same as the ${form.as}${example(true)}.`;
 	}
 	const all = paradigmEndings(p, slot.case, slot.number);
-	if (form.kind === 'none') {
-		return all.length > 1
-			? `${head} has no ending or ${all
-					.filter((e) => e !== '')
-					.map((e) => `-${e}`)
-					.join(' or ')}; ${word.lemma} has none.`
-			: `${head} has no ending${example(true)}.`;
-	}
-	const listed = all.filter((e) => e !== '').map((e) => `-${e}`);
 	if (all.length > 1) {
-		const others =
-			all.length === 2
-				? listed.join(' or ')
-				: `${listed.slice(0, -1).join(', ')} or ${listed.at(-1)}`;
-		return `${head} ends in ${others}; ${word.lemma} takes -${form.ending}.`;
+		const taken = form.kind === 'none' ? 'has none' : `takes -${form.ending}`;
+		return `${head} ${describeOptions(all)}; ${word.lemma} ${taken}.`;
 	}
+	if (form.kind === 'none') return `${head} has no ending${example(true)}.`;
 	return `${head} ends in -${form.ending}${example(modelForm.toLowerCase().endsWith(form.ending))}.`;
 }
 
