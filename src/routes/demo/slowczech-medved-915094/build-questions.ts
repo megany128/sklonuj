@@ -105,7 +105,8 @@ function paradigmNotesFor(word: WordEntry, item: DemoItem): Record<string, strin
 	if (word.irregular) return {};
 	const entry = paradigmsData.find((p) => p.id === word.paradigm);
 	if (!entry?.whyNotes) return {};
-	const filtered = filterParadigmNotes({ ...entry.whyNotes }, word);
+	const model = loadWordBank().find((w) => w.lemma === entry.exampleLemma);
+	const filtered = filterParadigmNotes({ ...entry.whyNotes }, word, model);
 	return filtered[key] ? { [key]: filtered[key] } : {};
 }
 

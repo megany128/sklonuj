@@ -118,7 +118,7 @@ describe('filterParadigmNote — gotchas only where the form shows them', () => 
 	});
 
 	it('illustrates kept gotchas with the drilled word, not the stock example', () => {
-		expect(noteForWord('kočka', DAT_SG).split('\n').slice(1)).toEqual([
+		expect(noteForWord('kočka', DAT_SG).split('\n').slice(2)).toEqual([
 			'Before -ě: k→c (kočka → kočce)',
 			'Spelling: -e after c/z/ř/š/l/s'
 		]);
@@ -135,13 +135,46 @@ describe('filterParadigmNote — gotchas only where the form shows them', () => 
 	});
 });
 
+describe('filterParadigmNote — pattern line', () => {
+	const model = (p: string) => word(p);
+
+	it('names the paradigm and quotes the model word when it shows the same ending', () => {
+		const w = word('formulář');
+		const note = filterParadigmNote(
+			noteFor('stroj', 'gen_sg'),
+			w,
+			{ case: 'gen', number: 'sg' },
+			model('stroj')
+		);
+		expect(note.split('\n')[1]).toBe(
+			'Pattern: stroj (soft masculine inanimate). Genitive singular ends in -e: stroj → stroje.'
+		);
+	});
+
+	it('lists every ending, without a model example, when the paradigm allows several', () => {
+		expect(noteForWord('park', LOC_SG).split('\n')[1]).toBe(
+			'Pattern: hrad (hard masculine inanimate). Locative singular ends in -u, -ě or -e; park takes -u.'
+		);
+	});
+
+	it('says when a form has no ending, and skips irregular forms', () => {
+		const genPl: NoteSlot = { case: 'gen', number: 'pl' };
+		expect(noteForWord('ulice', genPl).split('\n')[1]).toBe(
+			'Pattern: růže (feminine in -e). Genitive plural has no ending or -í; ulice has none.'
+		);
+		expect(noteForWord('člověk', { case: 'nom', number: 'pl' })).not.toContain('Pattern:');
+	});
+});
+
 describe('filterParadigmNotes', () => {
 	it('tailors case keys and passes other keys through', () => {
 		const out = filterParadigmNotes(
 			{ loc_sg: noteFor('hrad', 'loc_sg'), extra: 'x\nFleeting e drops' },
 			word('park')
 		);
-		expect(out.loc_sg).toBe('park → park**u**');
+		expect(out.loc_sg).toBe(
+			'park → park**u**\nPattern: hrad (hard masculine inanimate). Locative singular ends in -u, -ě or -e; park takes -u.'
+		);
 		expect(out.extra).toBe('x\nFleeting e drops');
 	});
 });
