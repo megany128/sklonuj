@@ -25,6 +25,12 @@
 			"5": ["sekretářovi"]
 		}
 	},
+	"táta": {
+		"sg": ["táta", "táty", "tátovi", "tátu", "tati", "tátovi", "tátou"],
+		"variants_sg": {
+			"4": ["táto"]
+		}
+	},
 	"manžel": {
 		"sg": ["manžel", "manžela", "manželovi", "manžela", "manželi", "manželovi", "manželem"],
 		"variants_sg": {

@@ -4161,8 +4161,13 @@
 		"difficulty": "A1",
 		"categories": ["family", "address_informal", "unique_relation"],
 		"forms": {
-			"sg": ["táta", "táty", "tátovi", "tátu", "táto", "tátovi", "tátou"],
+			"sg": ["táta", "táty", "tátovi", "tátu", "tati", "tátovi", "tátou"],
 			"pl": ["tátové", "tátů", "tátům", "táty", "tátové", "tátech", "táty"]
+		},
+		"variantForms": {
+			"sg": {
+				"4": ["táto"]
+			}
 		}
 	},
 	{

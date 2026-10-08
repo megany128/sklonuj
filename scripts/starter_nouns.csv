@@ -247,7 +247,7 @@ význam,importance,m,false,hrad,B1,"misc,abstract",význam,významu,významu,vý
 věk,age,m,false,hrad,A1,"time,era,adversity",věk,věku,věku,věk,věku,věku,věkem,věky,věků,věkům,věky,věky,věcích,věky
 počátek,beginning,m,false,hrad,B1,"time,era",počátek,počátku,počátku,počátek,počátku,počátku,počátkem,počátky,počátků,počátkům,počátky,počátky,počátcích,počátky
 organizace,organization,f,false,růže,A1,"misc,abstract",organizace,organizace,organizaci,organizaci,organizace,organizaci,organizací,organizace,organizací,organizacím,organizace,organizace,organizacích,organizacemi
-táta,dad,m,true,předseda,A1,"family,address_informal,unique_relation",táta,táty,tátovi,tátu,táto,tátovi,tátou,tátové,tátů,tátům,táty,tátové,tátech,táty
+táta,dad,m,true,předseda,A1,"family,address_informal,unique_relation",táta,táty,tátovi,tátu,tati,tátovi,tátou,tátové,tátů,tátům,táty,tátové,tátech,táty
 kus,piece,m,false,hrad,A1,"misc,abstract",kus,kusu,kusu,kus,kuse,kuse,kusem,kusy,kusů,kusům,kusy,kusy,kusech,kusy
 barva,colour,f,false,žena,A1,"misc,abstract",barva,barvy,barvě,barvu,barvo,barvě,barvou,barvy,barev,barvám,barvy,barvy,barvách,barvami
 příklad,example,m,false,hrad,A2,"misc,abstract",příklad,příkladu,příkladu,příklad,příklade,příkladě,příkladem,příklady,příkladů,příkladům,příklady,příklady,příkladech,příklady
