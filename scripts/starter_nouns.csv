@@ -1414,7 +1414,6 @@ tričko,T-shirt,n,false,město,A2,"objects,clothing,portable",tričko,trička,tr
 chod,course,m,false,hrad,A2,"misc,abstract",chod,chodu,chodu,chod,chode,chodu,chodem,chody,chodů,chodům,chody,chody,chodech,chody
 album,album,n,false,město,A2,"misc,abstract",album,alba,albu,album,album,albu,albem,alba,alb,albům,alba,alba,albech,alby
 krabička,box,f,false,žena,A2,"objects,portable",krabička,krabičky,krabičce,krabičku,krabičko,krabičce,krabičkou,krabičky,krabiček,krabičkám,krabičky,krabičky,krabičkách,krabičkami
-sebevražda,suicide,f,false,žena,A2,"misc,abstract",sebevražda,sebevraždy,sebevraždě,sebevraždu,sebevraždo,sebevraždě,sebevraždou,sebevraždy,sebevražd,sebevraždám,sebevraždy,sebevraždy,sebevraždách,sebevraždami
 minimum,minimum,n,false,město,B1,"misc,abstract",minimum,minima,minimu,minimum,minimum,minimu,minimem,minima,minim,minimům,minima,minima,minimech,minimy
 zastávka,stop,f,false,žena,A1,"misc,abstract",zastávka,zastávky,zastávce,zastávku,zastávko,zastávce,zastávkou,zastávky,zastávek,zastávkám,zastávky,zastávky,zastávkách,zastávkami
 parametr,parameter,m,false,hrad,B2,"misc,abstract",parametr,parametru,parametru,parametr,parametře,parametru,parametrem,parametry,parametrů,parametrům,parametry,parametry,parametrech,parametry
@@ -1607,7 +1606,6 @@ priorita,priority,f,false,žena,B1,"misc,abstract",priorita,priority,prioritě,p
 odpůrce,opponent,m,true,soudce,A2,"misc,abstract",odpůrce,odpůrce,odpůrci,odpůrce,odpůrce,odpůrci,odpůrcem,odpůrci,odpůrců,odpůrcům,odpůrce,odpůrci,odpůrcích,odpůrci
 tuk,fat,m,false,hrad,A2,"misc,abstract",tuk,tuku,tuku,tuk,tuku,tuku,tukem,tuky,tuků,tukům,tuky,tuky,tucích,tuky
 zklamání,disappointment,n,false,stavení,A2,"misc,abstract,feeling",zklamání,zklamání,zklamání,zklamání,zklamání,zklamání,zklamáním,zklamání,zklamání,zklamáním,zklamání,zklamání,zklamáních,zklamáními
-milenec,lover,m,true,muž,A2,"misc,people",milenec,milence,milenci,milence,milenče,milenci,milencem,milenci,milenců,milencům,milence,milenci,milencích,milenci
 nádobí,dishes,n,false,stavení,A1,"misc,abstract",nádobí,nádobí,nádobí,nádobí,nádobí,nádobí,nádobím,nádobí,nádobí,nádobím,nádobí,nádobí,nádobích,nádobími
 laboratoř,laboratory,f,false,píseň,A2,"places,v_place,lockable",laboratoř,laboratoře,laboratoři,laboratoř,laboratoři,laboratoři,laboratoří,laboratoře,laboratoří,laboratořím,laboratoře,laboratoře,laboratořích,laboratořemi
 bezpečí,safety,n,false,stavení,A2,"misc,abstract",bezpečí,bezpečí,bezpečí,bezpečí,bezpečí,bezpečí,bezpečím,bezpečí,bezpečí,bezpečím,bezpečí,bezpečí,bezpečích,bezpečími
@@ -1639,7 +1637,7 @@ stížnost,complaint,f,false,kost,A2,"misc,abstract",stížnost,stížnosti,stí
 inteligence,intelligence,f,false,růže,A2,"misc,abstract",inteligence,inteligence,inteligenci,inteligenci,inteligence,inteligenci,inteligencí,inteligence,inteligencí,inteligencím,inteligence,inteligence,inteligencích,inteligencemi
 motivace,motivation,f,false,růže,A2,"misc,abstract",motivace,motivace,motivaci,motivaci,motivace,motivaci,motivací,motivace,motivací,motivacím,motivace,motivace,motivacích,motivacemi
 pořadatel,organizer,m,true,muž,A2,"misc,abstract",pořadatel,pořadatele,pořadateli,pořadatele,pořadateli,pořadateli,pořadatelem,pořadatelé,pořadatelů,pořadatelům,pořadatele,pořadatelé,pořadatelích,pořadateli
-pohlaví,sex,n,false,stavení,A2,"misc,abstract",pohlaví,pohlaví,pohlaví,pohlaví,pohlaví,pohlaví,pohlavím,pohlaví,pohlaví,pohlavím,pohlaví,pohlaví,pohlavích,pohlavími
+pohlaví,"gender, sex",n,false,stavení,A2,"misc,abstract",pohlaví,pohlaví,pohlaví,pohlaví,pohlaví,pohlaví,pohlavím,pohlaví,pohlaví,pohlavím,pohlaví,pohlaví,pohlavích,pohlavími
 skvrna,stain,f,false,žena,A2,"misc,abstract",skvrna,skvrny,skvrně,skvrnu,skvrno,skvrně,skvrnou,skvrny,skvrn,skvrnám,skvrny,skvrny,skvrnách,skvrnami
 námaha,effort,f,false,žena,A2,"misc,abstract",námaha,námahy,námaze,námahu,námaho,námaze,námahou,námahy,námah,námahám,námahy,námahy,námahách,námahami
 opozice,opposition,f,false,růže,B1,"misc,abstract",opozice,opozice,opozici,opozici,opozice,opozici,opozicí,opozice,opozic,opozicím,opozice,opozice,opozicích,opozicemi
@@ -1831,7 +1829,6 @@ rukavice,glove,f,false,růže,A2,"objects,clothing,portable",rukavice,rukavice,r
 čistota,cleanliness,f,false,žena,A2,"misc,abstract",čistota,čistoty,čistotě,čistotu,čistoto,čistotě,čistotou,čistoty,čistot,čistotám,čistoty,čistoty,čistotách,čistotami
 pouť,funfair,f,false,píseň,B1,"misc,abstract",pouť,poutě,pouti,pouť,pouti,pouti,poutí,poutě,poutí,poutím,poutě,poutě,poutích,poutěmi
 sportovec,sportsman,m,true,muž,A1,"misc,people",sportovec,sportovce,sportovci,sportovce,sportovče,sportovci,sportovcem,sportovci,sportovců,sportovcům,sportovce,sportovci,sportovcích,sportovci
-trojice,threesome,f,false,růže,A2,"misc,abstract",trojice,trojice,trojici,trojici,trojice,trojici,trojicí,trojice,trojic,trojicím,trojice,trojice,trojicích,trojicemi
 kalendář,calendar,m,false,stroj,A1,objects,kalendář,kalendáře,kalendáři,kalendář,kalendáři,kalendáři,kalendářem,kalendáře,kalendářů,kalendářům,kalendáře,kalendáře,kalendářích,kalendáři
 poklad,treasure,m,false,hrad,A1,"misc,abstract",poklad,pokladu,pokladu,poklad,poklade,pokladu,pokladem,poklady,pokladů,pokladům,poklady,poklady,pokladech,poklady
 šíření,spread,n,false,stavení,B1,"misc,abstract",šíření,šíření,šíření,šíření,šíření,šíření,šířením,šíření,šíření,šířením,šíření,šíření,šířeních,šířeními
@@ -2057,7 +2054,7 @@ libra,pound,f,false,žena,A2,"misc,abstract",libra,libry,libře,libru,libro,lib�
 lebka,skull,f,false,žena,A2,body,lebka,lebky,lebce,lebku,lebko,lebce,lebkou,lebky,lebek,lebkám,lebky,lebky,lebkách,lebkami
 živočich,animal,m,true,pán,B1,animals,živočich,živočicha,živočichovi,živočicha,živočichu,živočichovi,živočichem,živočichové,živočichů,živočichům,živočichy,živočichové,živočiších,živočichy
 nahrávka,record,f,false,žena,A2,"misc,abstract",nahrávka,nahrávky,nahrávce,nahrávku,nahrávko,nahrávce,nahrávkou,nahrávky,nahrávek,nahrávkám,nahrávky,nahrávky,nahrávkách,nahrávkami
-milovník,lover,m,true,pán,A2,"misc,people",milovník,milovníka,milovníkovi,milovníka,milovníku,milovníkovi,milovníkem,milovníci,milovníků,milovníkům,milovníky,milovníci,milovnících,milovníky
+milovník,"enthusiast, lover (of something)",m,true,pán,A2,"misc,people",milovník,milovníka,milovníkovi,milovníka,milovníku,milovníkovi,milovníkem,milovníci,milovníků,milovníkům,milovníky,milovníci,milovnících,milovníky
 porozumění,understanding,n,false,stavení,B1,"misc,abstract",porozumění,porozumění,porozumění,porozumění,porozumění,porozumění,porozuměním,porozumění,porozumění,porozuměním,porozumění,porozumění,porozuměních,porozuměními
 trubka,trumpet,f,false,žena,A2,objects,trubka,trubky,trubce,trubku,trubko,trubce,trubkou,trubky,trubek,trubkám,trubky,trubky,trubkách,trubkami
 filozof,philosopher,m,true,pán,A2,"misc,abstract",filozof,filozofa,filozofovi,filozofa,filozofe,filozofovi,filozofem,filozofové,filozofů,filozofům,filozofy,filozofové,filozofech,filozofy
@@ -2746,7 +2743,6 @@ nůžky,scissors,f,false,žena,A2,objects,,,,,,,,nůžky,nůžek,nůžkám,nůž
 narozeniny,birthday,f,false,žena,A1,"misc,abstract",,,,,,,,narozeniny,narozenin,narozeninám,narozeniny,narozeniny,narozeninách,narozeninami
 špagety,spaghetti,f,false,žena,A1,food,,,,,,,,špagety,špaget,špagetám,špagety,špagety,špagetách,špagetami
 vražda,murder,f,false,žena,A2,misc,vražda,vraždy,vraždě,vraždu,vraždo,vraždě,vraždou,vraždy,vražd,vraždám,vraždy,vraždy,vraždách,vraždami
-sex,sex,m,false,hrad,A2,misc,sex,sexu,sexu,sex,sexe,sexu,sexem,sexy,sexů,sexům,sexy,sexy,sexech,sexy
 infocentrum,information center,n,false,město,A1,"misc,places,v_place",infocentrum,infocentra,infocentru,infocentrum,infocentrum,infocentru,infocentrem,infocentra,infocenter,infocentrům,infocentra,infocentra,infocentrech,infocentry
 pan,Mr,m,true,pán,A1,no_templates,pan,pana,panu,pana,pane,panu,panem,páni,pánů,pánům,pány,páni,pánech,pány
 číšník,waiter,m,true,pán,A1,"misc,people,profession,title",číšník,číšníka,číšníkovi,číšníka,číšníku,číšníkovi,číšníkem,číšníci,číšníků,číšníkům,číšníky,číšníci,číšnících,číšníky
