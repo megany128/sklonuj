@@ -97,5 +97,34 @@ describe('AliasName tooltip', () => {
 			await new Promise((r) => setTimeout(r, 700));
 			expect(capture).not.toHaveBeenCalled();
 		});
+		it('counts one view when a focused name is then hovered', async () => {
+			render(AliasName, { name: 'Domácí Knedlík', gloss, placement: 'list' });
+			nameButton().focus();
+			await new Promise((r) => setTimeout(r, 700));
+			await page.getByRole('button', { name: 'Domácí Knedlík' }).hover();
+			await new Promise((r) => setTimeout(r, 700));
+			expect(capture).toHaveBeenCalledTimes(1);
+			expect(capture.mock.calls[0][1]).toMatchObject({ via: 'focus' });
+		});
+
+		it('restarts the dwell when a refresh swaps the name under an open tooltip', async () => {
+			const view = render(AliasName, { name: 'Domácí Knedlík', gloss, placement: 'banner' });
+			nameButton().focus();
+			await new Promise((r) => setTimeout(r, 300));
+			await view.rerender({
+				name: 'Ospalé Kuře',
+				gloss: { english: 'Sleepy Chicken', note: 'Sunday food.' },
+				placement: 'banner'
+			});
+			await new Promise((r) => setTimeout(r, 300));
+			// 600 ms open in total, but only 300 ms with the new name.
+			expect(capture).not.toHaveBeenCalled();
+			await new Promise((r) => setTimeout(r, 400));
+			expect(capture).toHaveBeenCalledTimes(1);
+			expect(capture.mock.calls[0][1]).toMatchObject({
+				alias: 'Ospalé Kuře',
+				english: 'Sleepy Chicken'
+			});
+		});
 	});
 });

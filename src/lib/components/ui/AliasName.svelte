@@ -53,36 +53,57 @@
 	 * pointer sweeping across the board doesn't log one per name. */
 	const VIEW_DWELL_MS = 500;
 	let viewTimer: ReturnType<typeof setTimeout> | null = null;
+	/** How the current opening started, kept for a dwell restarted mid-opening. */
+	let openedVia: 'hover' | 'focus' | 'tap' = 'hover';
+
+	function stopDwell(): void {
+		if (viewTimer === null) return;
+		clearTimeout(viewTimer);
+		viewTimer = null;
+	}
+
+	/** Log a view if this name's tooltip is still open after the dwell. The
+	 * name is read now, so the event names what was actually on screen. */
+	function startDwell(): void {
+		stopDwell();
+		const viewed = { alias: name, english: gloss.english };
+		const via = openedVia;
+		viewTimer = setTimeout(() => {
+			viewTimer = null;
+			posthog.capture('leaderboard_name_tooltip_viewed', { ...viewed, via, placement, own });
+		}, VIEW_DWELL_MS);
+	}
 
 	function show(via: 'hover' | 'focus' | 'tap'): void {
-		open = true;
 		place();
 		// Measure again once the tooltip has rendered at its real size.
 		requestAnimationFrame(place);
-		if (viewTimer !== null) clearTimeout(viewTimer);
-		viewTimer = setTimeout(() => {
-			viewTimer = null;
-			posthog.capture('leaderboard_name_tooltip_viewed', {
-				alias: name,
-				english: gloss.english,
-				via,
-				placement,
-				own
-			});
-		}, VIEW_DWELL_MS);
+		// Already open (focused, then hovered): same opening, one view.
+		if (open) return;
+		open = true;
+		openedVia = via;
+		startDwell();
 	}
 
 	function hide(): void {
 		open = false;
-		if (viewTimer !== null) {
-			clearTimeout(viewTimer);
-			viewTimer = null;
-		}
+		stopDwell();
 	}
 
-	$effect(() => () => {
-		if (viewTimer !== null) clearTimeout(viewTimer);
+	// A leaderboard refresh can swap the name under an open tooltip: that's a
+	// new name on screen, so its dwell starts over.
+	let shownName: string | null = null;
+	$effect(() => {
+		const current = name;
+		if (shownName === null || current === shownName) {
+			shownName = current;
+			return;
+		}
+		shownName = current;
+		if (open) startDwell();
 	});
+
+	$effect(() => stopDwell);
 
 	$effect(() => {
 		if (!open) return;
