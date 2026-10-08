@@ -14,7 +14,9 @@
 	let trigger: HTMLButtonElement | undefined = $state(undefined);
 	let tip: HTMLSpanElement | undefined = $state(undefined);
 	let pos = $state({ left: 0, top: 0, above: true });
-	/** The last pointer was a finger, so hover events are emulated and ignored. */
+	/** The press that focused the name was a finger: the tap toggles the
+	 * tooltip, so focus mustn't open it too. Cleared on blur, so focus from the
+	 * keyboard later always opens it. */
 	let touch = false;
 	const id = `alias-tip-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -77,7 +79,10 @@
 	onfocus={() => {
 		if (!touch) show();
 	}}
-	onblur={hide}
+	onblur={() => {
+		touch = false;
+		hide();
+	}}
 	onclick={(e) => {
 		e.stopPropagation();
 		if (touch) {
@@ -88,7 +93,11 @@
 	onkeydown={(e) => {
 		// Enter/Space on the name shouldn't toggle the banner around it.
 		if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
-		if (e.key === 'Escape') hide();
+		// Escape closes just the tooltip, not the leaderboard list around it.
+		if (e.key === 'Escape' && open) {
+			e.stopPropagation();
+			hide();
+		}
 	}}>{name}</button
 >
 {#if open}
