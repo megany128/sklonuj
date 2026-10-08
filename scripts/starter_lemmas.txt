@@ -1386,7 +1386,6 @@ doporučení
 obtíž
 zrušení
 plátno
-sex
 oddíl
 kufr
 financování
@@ -1449,7 +1448,6 @@ tričko
 chod
 album
 krabička
-sebevražda
 minimum
 zastávka
 parametr
@@ -1642,7 +1640,6 @@ priorita
 odpůrce
 tuk
 zklamání
-milenec
 nádobí
 laboratoř
 bezpečí
@@ -1867,7 +1864,6 @@ rukavice
 čistota
 pouť
 sportovec
-trojice
 kalendář
 poklad
 šíření

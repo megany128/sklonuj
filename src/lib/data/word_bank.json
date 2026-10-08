@@ -4161,8 +4161,13 @@
 		"difficulty": "A1",
 		"categories": ["family", "address_informal", "unique_relation"],
 		"forms": {
-			"sg": ["táta", "táty", "tátovi", "tátu", "táto", "tátovi", "tátou"],
+			"sg": ["táta", "táty", "tátovi", "tátu", "tati", "tátovi", "tátou"],
 			"pl": ["tátové", "tátů", "tátům", "táty", "tátové", "tátech", "táty"]
+		},
+		"variantForms": {
+			"sg": {
+				"4": ["táto"]
+			}
 		}
 	},
 	{
@@ -4703,8 +4708,13 @@
 		"difficulty": "A1",
 		"categories": ["family", "address_informal", "unique_relation"],
 		"forms": {
-			"sg": ["máma", "mámy", "mámě", "mámu", "mámo", "mámě", "mámou"],
+			"sg": ["máma", "mámy", "mámě", "mámu", "mami", "mámě", "mámou"],
 			"pl": ["mámy", "mám", "mámám", "mámy", "mámy", "mámách", "mámami"]
+		},
+		"variantForms": {
+			"sg": {
+				"4": ["mámo"]
+			}
 		}
 	},
 	{
@@ -25517,35 +25527,6 @@
 		}
 	},
 	{
-		"lemma": "sebevražda",
-		"translation": "suicide",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "žena",
-		"difficulty": "A2",
-		"categories": ["misc", "abstract"],
-		"forms": {
-			"sg": [
-				"sebevražda",
-				"sebevraždy",
-				"sebevraždě",
-				"sebevraždu",
-				"sebevraždo",
-				"sebevraždě",
-				"sebevraždou"
-			],
-			"pl": [
-				"sebevraždy",
-				"sebevražd",
-				"sebevraždám",
-				"sebevraždy",
-				"sebevraždy",
-				"sebevraždách",
-				"sebevraždami"
-			]
-		}
-	},
-	{
 		"lemma": "minimum",
 		"translation": "minimum",
 		"gender": "n",
@@ -29226,25 +29207,6 @@
 		}
 	},
 	{
-		"lemma": "milenec",
-		"translation": "lover",
-		"gender": "m",
-		"animate": true,
-		"paradigm": "muž",
-		"difficulty": "A2",
-		"categories": ["misc", "people"],
-		"forms": {
-			"sg": ["milenec", "milence", "milenci", "milence", "milenče", "milenci", "milencem"],
-			"pl": ["milenci", "milenců", "milencům", "milence", "milenci", "milencích", "milenci"]
-		},
-		"variantForms": {
-			"sg": {
-				"2": ["milencovi"],
-				"5": ["milencovi"]
-			}
-		}
-	},
-	{
 		"lemma": "nádobí",
 		"translation": "dishes",
 		"gender": "n",
@@ -29845,7 +29807,7 @@
 	},
 	{
 		"lemma": "pohlaví",
-		"translation": "sex",
+		"translation": "gender, sex",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -33645,24 +33607,6 @@
 			"sg": {
 				"2": ["sportovcovi"],
 				"5": ["sportovcovi"]
-			}
-		}
-	},
-	{
-		"lemma": "trojice",
-		"translation": "threesome",
-		"gender": "f",
-		"animate": false,
-		"paradigm": "růže",
-		"difficulty": "A2",
-		"categories": ["misc", "abstract"],
-		"forms": {
-			"sg": ["trojice", "trojice", "trojici", "trojici", "trojice", "trojici", "trojicí"],
-			"pl": ["trojice", "trojic", "trojicím", "trojice", "trojice", "trojicích", "trojicemi"]
-		},
-		"variantForms": {
-			"pl": {
-				"1": ["trojicí"]
 			}
 		}
 	},
@@ -37867,7 +37811,7 @@
 	},
 	{
 		"lemma": "milovník",
-		"translation": "lover",
+		"translation": "enthusiast, lover (of something)",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -51980,19 +51924,6 @@
 		"forms": {
 			"sg": ["vražda", "vraždy", "vraždě", "vraždu", "vraždo", "vraždě", "vraždou"],
 			"pl": ["vraždy", "vražd", "vraždám", "vraždy", "vraždy", "vraždách", "vraždami"]
-		}
-	},
-	{
-		"lemma": "sex",
-		"translation": "sex",
-		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
-		"difficulty": "A2",
-		"categories": ["misc"],
-		"forms": {
-			"sg": ["sex", "sexu", "sexu", "sex", "sexe", "sexu", "sexem"],
-			"pl": ["sexy", "sexů", "sexům", "sexy", "sexy", "sexech", "sexy"]
 		}
 	},
 	{
