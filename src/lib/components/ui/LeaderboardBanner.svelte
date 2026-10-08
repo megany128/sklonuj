@@ -5,7 +5,8 @@
 	import Flame from '@lucide/svelte/icons/flame';
 	import PartyPopper from '@lucide/svelte/icons/party-popper';
 	import { slide } from 'svelte/transition';
-	import { aliasGloss } from '$lib/engine/leaderboard-alias';
+	import { aliasGloss, type AliasGloss } from '$lib/engine/leaderboard-alias';
+	import AliasName from './AliasName.svelte';
 
 	interface LeaderboardEntry {
 		rank: number;
@@ -53,12 +54,10 @@
 		unavailable = false
 	}: Props = $props();
 
-	/** Hover text for a generated weekly-board name: its English and story.
-	 * Class boards show real names, which get none. */
-	function nameGloss(name: string): string | undefined {
-		if (mode !== 'global') return undefined;
-		const gloss = aliasGloss(name);
-		return gloss ? `${gloss.english}\n${gloss.note}` : undefined;
+	/** English and background for a generated weekly-board name. Class boards
+	 * show real names, which get none. */
+	function nameGloss(name: string): AliasGloss | null {
+		return mode === 'global' ? aliasGloss(name) : null;
 	}
 
 	// Name widths for the expanded-state skeleton rows (Tailwind needs literal class names).
@@ -265,6 +264,11 @@
 	}
 </script>
 
+{#snippet aliasOrName(name: string)}{@const gloss = nameGloss(name)}{#if gloss}<AliasName
+			{name}
+			{gloss}
+		/>{:else}{name}{/if}{/snippet}
+
 <svelte:window onkeydown={handleWindowKeydown} />
 
 {#if !loading && mode === 'global' && !showOnLeaderboard}
@@ -325,12 +329,7 @@
 				{#if pointsBehind > 0 && nextRankEntry}
 					<span class="hidden text-xs text-text-subtitle sm:inline">
 						{formatScore(pointsBehind)} pts behind
-						<span
-							class={nameGloss(nextRankEntry.firstName)
-								? 'cursor-help underline decoration-dotted underline-offset-2'
-								: ''}
-							title={nameGloss(nextRankEntry.firstName)}>{nextRankEntry.firstName}</span
-						>
+						{@render aliasOrName(nextRankEntry.firstName)}
 					</span>
 				{/if}
 			</div>
@@ -437,7 +436,7 @@
 											? 'font-semibold text-brand-700'
 											: 'text-text-default'}"
 									>
-										<span title={nameGloss(entry.firstName)}>{entry.firstName}</span>
+										{@render aliasOrName(entry.firstName)}
 										{#if isMe}
 											<span class="text-xs font-normal text-brand-500">(you)</span>
 										{/if}
