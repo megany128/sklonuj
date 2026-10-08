@@ -25,6 +25,12 @@
 			"5": ["sekretářovi"]
 		}
 	},
+	"máma": {
+		"sg": ["máma", "mámy", "mámě", "mámu", "mami", "mámě", "mámou"],
+		"variants_sg": {
+			"4": ["mámo"]
+		}
+	},
 	"táta": {
 		"sg": ["táta", "táty", "tátovi", "tátu", "tati", "tátovi", "tátou"],
 		"variants_sg": {

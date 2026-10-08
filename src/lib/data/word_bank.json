@@ -4708,8 +4708,13 @@
 		"difficulty": "A1",
 		"categories": ["family", "address_informal", "unique_relation"],
 		"forms": {
-			"sg": ["máma", "mámy", "mámě", "mámu", "mámo", "mámě", "mámou"],
+			"sg": ["máma", "mámy", "mámě", "mámu", "mami", "mámě", "mámou"],
 			"pl": ["mámy", "mám", "mámám", "mámy", "mámy", "mámách", "mámami"]
+		},
+		"variantForms": {
+			"sg": {
+				"4": ["mámo"]
+			}
 		}
 	},
 	{

@@ -281,7 +281,7 @@ schopnost,ability,f,false,kost,A2,"misc,abstract",schopnost,schopnosti,schopnost
 stovka,hundred,f,false,žena,A1,"misc,abstract",stovka,stovky,stovce,stovku,stovko,stovce,stovkou,stovky,stovek,stovkám,stovky,stovky,stovkách,stovkami
 kraj,region,m,false,stroj,A1,"places,v_place,region",kraj,kraje,kraji,kraj,kraji,kraji,krajem,kraje,krajů,krajům,kraje,kraje,krajích,kraji
 název,title,m,false,hrad,A1,"misc,abstract",název,názvu,názvu,název,názve,názvu,názvem,názvy,názvů,názvům,názvy,názvy,názvech,názvy
-máma,mum,f,false,žena,A1,"family,address_informal,unique_relation",máma,mámy,mámě,mámu,mámo,mámě,mámou,mámy,mám,mámám,mámy,mámy,mámách,mámami
+máma,mum,f,false,žena,A1,"family,address_informal,unique_relation",máma,mámy,mámě,mámu,mami,mámě,mámou,mámy,mám,mámám,mámy,mámy,mámách,mámami
 šéf,boss,m,true,pán,A1,"misc,people,address_formal",šéf,šéfa,šéfovi,šéfa,šéfe,šéfovi,šéfem,šéfové,šéfů,šéfům,šéfy,šéfové,šéfech,šéfy
 pozornost,attention,f,false,kost,B1,"misc,abstract",pozornost,pozornosti,pozornosti,pozornost,pozornosti,pozornosti,pozorností,pozornosti,pozorností,pozornostem,pozornosti,pozornosti,pozornostech,pozornostmi
 zima,winter,f,false,žena,A1,"time,season,adversity,time_point,whole_span",zima,zimy,zimě,zimu,zimo,zimě,zimou,zimy,zim,zimám,zimy,zimy,zimách,zimami
