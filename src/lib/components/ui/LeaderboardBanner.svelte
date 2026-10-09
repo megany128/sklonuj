@@ -578,8 +578,7 @@
 					</button>
 				{:else}
 					<p class="mt-2 text-center text-[11px] leading-snug text-text-subtitle">
-						Scored by questions answered &amp; accuracy this week. Keep practicing — every answer
-						moves you up.
+						Scored by questions answered &amp; accuracy this week. Every answer moves you up!
 					</p>
 				{/if}
 			</div>
