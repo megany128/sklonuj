@@ -6,7 +6,8 @@ import {
 	getCandidates,
 	hasValidForm,
 	loadTemplates,
-	loadWordBank
+	loadWordBank,
+	templateTakesWord
 } from './drill.ts';
 import { adjectiveMatchesNoun, loadAdjectiveBank, nounTakesAdjectives } from './adjective-drill.ts';
 import { ALL_CASES, CASE_INDEX } from '../types.ts';
@@ -343,5 +344,30 @@ describe('nouns that decline like adjectives', () => {
 		}
 		expect(candidateLemmas('acc_tesim_244')).toContain('dovolená'); // Těším se na ___.
 		expect(candidateLemmas('gen_zucastnil_190')).not.toContain('dovolená');
+	});
+});
+
+describe('a sentence keeps its own filters for a word let past its level', () => {
+	// Chapter practice lets a chapter word past the CEFR gate; it must not let
+	// it past the block lists or the sentence's tags and gender.
+	it('blocked pairs stay blocked', () => {
+		expect(templateTakesWord(template('gen_do_011'), word('Praha'))).toBe(false); // Jdu do ___.
+		expect(templateTakesWord(template('acc_na_009'), word('Morava'))).toBe(false); // Jdu na ___.
+	});
+
+	it('a sentence that suits the word takes it', () => {
+		const lives = loadTemplates().find((t) => t.template === 'Bydlím v ___.');
+		if (!lives) throw new Error('missing sentence');
+		expect(templateTakesWord(lives, word('Praha'))).toBe(true);
+		expect(templateTakesWord(lives, word('Morava'))).toBe(false);
+	});
+
+	it('agrees with the candidate list at a level that has the word', () => {
+		for (const t of loadTemplates()) {
+			const candidates = new Set(getCandidates(t, B2).map((w) => w.lemma));
+			for (const lemma of ['Praha', 'Morava', 'Čech', 'dovolená']) {
+				expect(templateTakesWord(t, word(lemma)), `${t.id} ${lemma}`).toBe(candidates.has(lemma));
+			}
+		}
 	});
 });
