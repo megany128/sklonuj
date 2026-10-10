@@ -6,6 +6,7 @@
 	import { CASE_HEX, CASE_LABELS, type Difficulty } from '$lib/types';
 	import { progress } from '$lib/engine/progress';
 	import { loadTemplates } from '$lib/engine/drill';
+	import { determinerSentenceTemplates } from '$lib/engine/determiners';
 	import { deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from '$lib/engine/decks';
 	import { deckAccuracy, loadDeckProgress, type DeckProgress } from '$lib/engine/deck-progress';
 	import { PARADIGM_KIND } from '$lib/utils/filter-paradigm-note';
@@ -26,7 +27,9 @@
 		mounted = true;
 	});
 
-	let topics = $derived(grammarDecks(level, loadTemplates(), deckProgress));
+	// Every deck's sentences: tagged noun sentences plus the determiner deck's own.
+	const deckTemplates = [...loadTemplates(), ...determinerSentenceTemplates()];
+	let topics = $derived(grammarDecks(level, deckTemplates, deckProgress));
 	let patterns = $derived(paradigmDecks(paradigmScores));
 
 	function percent(correct: number, attempts: number): number {

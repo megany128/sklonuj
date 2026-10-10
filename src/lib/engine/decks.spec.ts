@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from './decks';
 import { loadTemplates } from './drill';
+import { determinerSentenceTemplates } from './determiners';
 import { ALL_PARADIGMS } from '../types';
 
-const templates = loadTemplates();
+// What the Decks page passes in: noun sentences plus the determiner deck's own.
+const templates = [...loadTemplates(), ...determinerSentenceTemplates()];
 
 describe('grammar decks', () => {
 	it('lists every deck with its sentences and cases for the level', () => {
 		const decks = grammarDecks('A2', templates, {});
-		expect(decks.map((d) => d.def.id)).toEqual(['direction', 'verbs', 'numbers']);
+		expect(decks.map((d) => d.def.id)).toEqual(['direction', 'verbs', 'numbers', 'determiners']);
 		for (const d of decks) {
 			expect(d.unlocked).toBe(true);
 			expect(d.sentences).toBeGreaterThan(5);

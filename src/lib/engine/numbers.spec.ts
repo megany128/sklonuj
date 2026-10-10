@@ -162,7 +162,10 @@ describe('Numbers deck', () => {
 		expect(def.unlockLevel).toBe('A2');
 		expect(def.bothNumbers).toBe(true);
 		// The other decks leave the number setting alone.
-		expect(FOCUS_DEFS.filter((d) => d.bothNumbers).map((d) => d.id)).toEqual(['numbers']);
+		expect(FOCUS_DEFS.filter((d) => !d.bothNumbers).map((d) => d.id)).toEqual([
+			'direction',
+			'verbs'
+		]);
 	});
 
 	it('a new A2 learner is held to singular-first outside the deck, not inside it', () => {

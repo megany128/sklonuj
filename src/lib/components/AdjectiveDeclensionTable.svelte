@@ -30,7 +30,9 @@
 
 	const PARADIGM_TYPE_LABELS: Record<string, string> = {
 		hard: 'Hard',
-		soft: 'Soft'
+		soft: 'Soft',
+		possessive: 'Possessive',
+		demonstrative: 'Demonstrative'
 	};
 
 	const GENDER_GROUPS: Array<{ label: string; key: AdjectiveGenderKey }> = [

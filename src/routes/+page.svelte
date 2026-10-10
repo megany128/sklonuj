@@ -102,6 +102,7 @@
 	} from '$lib/engine/cell-pools';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
+	import { determinerSentenceTemplates, pickDeterminerQuestion } from '$lib/engine/determiners';
 	import {
 		loadDeckReturnChapter,
 		recordDeckAnswer,
@@ -1631,7 +1632,9 @@
 	function deckCanAsk(deck: FocusTopic): boolean {
 		const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 		const difficulties = curriculum[get(progress).level].unlocked_difficulty;
-		return templatesForFocus(loadTemplates(), deck).some(
+		const source =
+			focusDef(deck).source === 'determiners' ? determinerSentenceTemplates() : loadTemplates();
+		return templatesForFocus(source, deck).some(
 			(t) =>
 				cases.includes(t.requiredCase) &&
 				matchesNumberMode(t.number) &&
@@ -2999,6 +3002,8 @@
 	 * not a helpful one.
 	 */
 	function generateFallbackQuestion(): DrillQuestion | null {
+		// A determiner deck asks its own sentences or nothing.
+		if (activeFocus !== null && focusDef(activeFocus).source === 'determiners') return null;
 		if (effectiveWordMode === 'adjectives') return generateFallbackAdjectiveQuestion();
 		if (effectiveContentMode === 'pronouns') return generateFallbackPronounQuestion();
 		const wordBank = loadWordBank();
@@ -3153,6 +3158,34 @@
 				advanceTimer = null;
 			}
 			autoPlayPrompt(question);
+			return;
+		}
+
+		// A determiner deck (můj, tvůj, ten) has its own sentences, with the
+		// blank on the determiner; nothing else is asked while it is on.
+		if (activeFocus !== null && focusDef(activeFocus).source === 'determiners') {
+			const prog = get(progress);
+			const levelConfig = curriculum[prog.level];
+			const determinerQ = pickDeterminerQuestion({
+				cases: effectiveEnabledCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
+				numbers: allowedNumbers(),
+				difficulties: levelConfig.unlocked_difficulty,
+				progress: prog,
+				recentTemplateIds
+			});
+			if (determinerQ) {
+				question = determinerQ;
+				multiStepQuestion = null;
+				lastResult = null;
+				paradigmNotes = null;
+				submitted = false;
+				pushRecent(recentTemplateIds, determinerQ.template.id, RECENT_TEMPLATE_LIMIT);
+				if (advanceTimer !== null) {
+					clearTimeout(advanceTimer);
+					advanceTimer = null;
+				}
+				autoPlayPrompt(determinerQ);
+			}
 			return;
 		}
 
