@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loadTemplates, loadWordBank, templateTakesWord } from './drill.ts';
+import { hasValidForm, loadTemplates, loadWordBank, templateTakesWord } from './drill.ts';
 import { adjectiveMatchesNoun, loadAdjectiveBank } from './adjective-drill.ts';
 import type { AdjectiveEntry, SentenceTemplate, WordEntry } from '../types.ts';
 
@@ -39,7 +39,6 @@ describe('re-filed nouns land in the frames that suit them', () => {
 		{ lemma: 'spolužák', takes: ['nom_to_176', 'voc_ahoj_035'], rejects: ['ins_byt_050'] },
 		// "v" places: do / v
 		{ lemma: 'přístav', takes: ['gen_do_011', 'loc_v_004'], rejects: ['acc_na_009', 'loc_na_002'] },
-		{ lemma: 'tábor', takes: ['gen_do_011', 'loc_v_160'], rejects: ['acc_na_009', 'loc_na_002'] },
 		{ lemma: 'cela', takes: ['loc_v_160'], rejects: ['gen_vedle_016', 'loc_na_002'] },
 		{ lemma: 'okres', takes: ['loc_v_004'], rejects: ['gen_do_011', 'gen_u_015'] },
 		// "na" places: na / na
@@ -126,5 +125,26 @@ describe('adjectives on re-filed nouns', () => {
 		['příjemný', 'vízum']
 	])('%s %s is not', (adj, noun) => {
 		expect(adjectiveMatchesNoun(adjective(adj), word(noun))).toBe(false);
+	});
+});
+
+describe('words with two readings stay out of the preposition sets', () => {
+	// do tábora / v táboře (a camp site) but na tábor / na táboře (a summer
+	// camp): neither set is safely "the" answer, so it is a place with no set.
+	it('tábor is a place with neither v nor na', () => {
+		const tabor = bank.find((w) => w.lemma === 'tábor');
+		expect(tabor?.categories).toContain('places');
+		expect(tabor?.categories).not.toContain('v_place');
+		expect(tabor?.categories).not.toContain('na_place');
+	});
+
+	// "Troubo!" is how you call someone a fool. The vocative is only asked of
+	// nouns that can be addressed, and an oven is not one.
+	it('the vocative of trouba is never asked', () => {
+		const trouba = bank.find((w) => w.lemma === 'trouba');
+		if (!trouba) throw new Error('missing trouba');
+		expect(hasValidForm(trouba, 'voc', 'sg')).toBe(false);
+		expect(hasValidForm(trouba, 'voc', 'pl')).toBe(false);
+		expect(hasValidForm(trouba, 'acc', 'sg')).toBe(true);
 	});
 });

@@ -773,7 +773,7 @@ styk,contact,,A1,misc,
 mozek,brain,,A1,body,
 svědek,witness,,A1,"misc,people",
 herec,actor,,A1,"misc,people,profession",
-tábor,camp,,A1,"misc,v_place,places","Genitive sg tábora (z tábora), locative v táboře
+tábor,camp,,A1,"misc,places","Genitive sg tábora (z tábora), locative v táboře
 Also accepted in both: táboru"
 úsilí,effort,,A1,"misc,abstract",
 výstavba,building,,A1,misc,

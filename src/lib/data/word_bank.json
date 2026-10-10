@@ -12650,7 +12650,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc", "v_place", "places"],
+		"categories": ["misc", "places"],
 		"forms": {
 			"sg": ["tábor", "tábora", "táboru", "tábor", "tábore", "táboře", "táborem"],
 			"pl": ["tábory", "táborů", "táborům", "tábory", "tábory", "táborech", "tábory"]
