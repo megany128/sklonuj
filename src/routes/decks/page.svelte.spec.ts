@@ -33,11 +33,13 @@ vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
 
 const { default: DecksPage } = await import('./+page.svelte');
 const { render, cleanup } = await import('vitest-browser-svelte');
+const { applyAccountDeckProgress, clearDeckProgress } = await import('$lib/engine/deck-progress');
 
 describe('Decks page', () => {
 	beforeEach(() => {
 		cleanup();
 		localStorage.clear();
+		clearDeckProgress();
 	});
 
 	it('lists the grammar decks, each linking to practice with that deck', async () => {
@@ -58,10 +60,7 @@ describe('Decks page', () => {
 	});
 
 	it('shows saved progress and offers to continue', async () => {
-		localStorage.setItem(
-			'sklonuj_deck_progress',
-			JSON.stringify({ direction: { attempts: 41, correct: 25, last: 1 } })
-		);
+		applyAccountDeckProgress({ direction: { attempts: 41, correct: 25, last: 1 } });
 		render(DecksPage);
 
 		const direction = page.getByTestId('deck-kam-kde-odkud');
@@ -78,5 +77,14 @@ describe('Decks page', () => {
 			.toHaveAttribute('href', '/?selectParadigm=hrad');
 		await expect.element(page.getByTestId('pattern-stavení')).toBeInTheDocument();
 		expect(document.querySelectorAll('[data-testid^="pattern-"]').length).toBe(14);
+	});
+
+	it('updates when a sync brings in progress from another device', async () => {
+		render(DecksPage);
+		const verbs = page.getByTestId('deck-verbs');
+		await expect.element(verbs).toHaveTextContent('Not started');
+
+		applyAccountDeckProgress({ verbs: { attempts: 10, correct: 7, last: 5 } });
+		await expect.element(verbs).toHaveTextContent('70% right · 10 answered');
 	});
 });

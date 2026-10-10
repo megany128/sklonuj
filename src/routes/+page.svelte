@@ -103,11 +103,8 @@
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
 	import { determinerSentenceTemplates, pickDeterminerQuestion } from '$lib/engine/determiners';
-	import {
-		loadDeckReturnChapter,
-		recordDeckAnswer,
-		saveDeckReturnChapter
-	} from '$lib/engine/deck-progress';
+	import { loadDeckProgress, recordDeckAnswer } from '$lib/engine/deck-progress';
+	import { loadDeckReturnChapter, saveDeckReturnChapter } from '$lib/engine/deck-return';
 	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { capitalizeSentence } from '$lib/utils/sentence-case';
@@ -208,7 +205,10 @@
 				cellSchedule: current.cellSchedule,
 				lastSession: current.lastSession,
 				longestStreak: current.longestStreak
-			}
+			},
+			// Deck totals ride along, so they share the debounce after each
+			// answer and the flush when the tab closes.
+			deckProgress: loadDeckProgress()
 		});
 		return {
 			method: 'POST',

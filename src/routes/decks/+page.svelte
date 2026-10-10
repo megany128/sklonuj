@@ -8,7 +8,11 @@
 	import { loadTemplates } from '$lib/engine/drill';
 	import { determinerSentenceTemplates } from '$lib/engine/determiners';
 	import { deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from '$lib/engine/decks';
-	import { deckAccuracy, loadDeckProgress, type DeckProgress } from '$lib/engine/deck-progress';
+	import {
+		deckAccuracy,
+		deckProgress as savedDeckProgress,
+		type DeckProgress
+	} from '$lib/engine/deck-progress';
 	import { PARADIGM_KIND } from '$lib/utils/filter-paradigm-note';
 
 	let user = $derived(page.data.user);
@@ -23,7 +27,8 @@
 	$effect(() => {
 		level = $progress.level;
 		paradigmScores = $progress.paradigmScores;
-		deckProgress = loadDeckProgress();
+		// The store, so a sync or another tab's answers show up while the page is open.
+		deckProgress = $savedDeckProgress;
 		mounted = true;
 	});
 
