@@ -178,3 +178,41 @@ describe('reconciling with the account after a sync', () => {
 		expect(isMissingFunctionError({})).toBe(false);
 	});
 });
+
+describe('two tabs signing in at once', () => {
+	const storage = new Map<string, string>();
+	const account = { verbs: { attempts: 40, correct: 30, last: 1000 } };
+
+	beforeEach(() => {
+		storage.clear();
+		vi.stubGlobal('localStorage', {
+			getItem: (key: string) => storage.get(key) ?? null,
+			setItem: (key: string, value: string) => {
+				storage.set(key, value);
+			},
+			removeItem: (key: string) => {
+				storage.delete(key);
+			}
+		});
+		clearDeckProgress();
+	});
+
+	afterEach(() => vi.unstubAllGlobals());
+
+	it('does not count the account totals twice', () => {
+		// What the lock in syncDeckProgress enforces: the second tab reads what
+		// it sends only after the first has applied its answer.
+		const firstSent = loadDeckProgress();
+		applyAccountDeckProgress(account, firstSent);
+		const secondSent = loadDeckProgress();
+		applyAccountDeckProgress(account, secondSent);
+		expect(loadDeckProgress()).toEqual(account);
+	});
+
+	it('still keeps an answer either tab gives during an exchange', () => {
+		const sent = loadDeckProgress();
+		recordDeckAnswer('verbs', true, 5000);
+		applyAccountDeckProgress(account, sent);
+		expect(loadDeckProgress()).toEqual({ verbs: { attempts: 41, correct: 31, last: 5000 } });
+	});
+});

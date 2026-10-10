@@ -151,7 +151,9 @@ export function isMissingFunctionError(error: { code?: string }): boolean {
  * What the account's totals come to on this device, given what was sent and
  * what the device holds now. Answers given while the request was in flight
  * are in `current` but in neither `sent` nor `remote`, so they are added on
- * top of the merge rather than lost when the account is ahead.
+ * top of the merge rather than lost when the account is ahead. This assumes
+ * nothing but answers changed the stored totals in between, which
+ * `syncDeckProgress` guarantees with a cross-tab lock.
  */
 export function reconcileDeckProgress(
 	sent: DeckProgress,
@@ -180,18 +182,36 @@ export function reconcileDeckProgress(
  * through `/api/sync`. Does nothing before migration 041 has been run (the
  * totals stay on the device) or before the account has a progress row, and
  * drops the answer if the learner signed out while it was on its way.
+ *
+ * Tabs share the stored totals, so the exchange runs under a lock held
+ * across tabs: while one tab is between sending and applying, another tab
+ * can add answers to storage but cannot write downloaded totals there.
+ * Without that, the second tab's download would look like new answers to
+ * the first and be counted twice.
  */
 export async function syncDeckProgress(supabase: SupabaseClient): Promise<void> {
-	const sent = loadDeckProgress();
-	const sentFor = owner;
-	const { data, error } = await supabase.rpc('merge_deck_progress', { p_incoming: sent });
-	if (error) {
-		if (!isMissingFunctionError(error)) console.error('Failed to sync deck progress:', error);
-		return;
+	const exchange = async (exclusive: boolean): Promise<void> => {
+		const sent = loadDeckProgress();
+		const sentFor = owner;
+		const { data, error } = await supabase.rpc('merge_deck_progress', { p_incoming: sent });
+		if (error) {
+			if (!isMissingFunctionError(error)) console.error('Failed to sync deck progress:', error);
+			return;
+		}
+		if (data === null || sentFor !== owner) return;
+		// Only with the lock is "what changed since I sent" certainly answers.
+		applyAccountDeckProgress(data, exclusive ? sent : loadDeckProgress());
+	};
+	if (typeof navigator !== 'undefined' && navigator.locks) {
+		await navigator.locks.request(SYNC_LOCK, () => exchange(true));
+	} else {
+		// No Web Locks (older Safari): take the plain merge, which can drop an
+		// answer given during the request but can never double-count.
+		await exchange(false);
 	}
-	if (data === null || sentFor !== owner) return;
-	applyAccountDeckProgress(data, sent);
 }
+
+const SYNC_LOCK = 'sklonuj_deck_progress_sync';
 
 /**
  * Take the account's totals (untrusted JSON from the RPC) into this device.
