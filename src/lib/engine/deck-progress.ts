@@ -102,9 +102,21 @@ export function recordDeckAnswer(deck: FocusTopic, correct: boolean, now = Date.
 	save(withDeckAnswer(loadDeckProgress(), deck, correct, now));
 }
 
+// Bumped whenever the device's totals stop belonging to whoever was signed
+// in, so a sync answer that arrives afterwards is not written back.
+let owner = 0;
+
 /** Forget this device's totals (sign-out, or another account's leftovers). */
 export function clearDeckProgress(): void {
+	owner++;
 	save({});
+}
+
+// Another tab's answers reach this one through storage; keep the store in step.
+if (typeof window !== 'undefined') {
+	window.addEventListener('storage', (event) => {
+		if (event.key === STORAGE_KEY || event.key === null) deckProgress.set(loadDeckProgress());
+	});
 }
 
 /**
@@ -130,31 +142,65 @@ export function mergeDeckProgress(a: DeckProgress, b: DeckProgress): DeckProgres
 /** PostgREST / Postgres codes for "this function does not exist". */
 const MISSING_FUNCTION_CODES: ReadonlySet<string> = new Set(['PGRST202', '42883']);
 
+/** True for the error a database gives before migration 041 has been run. */
+export function isMissingFunctionError(error: { code?: string }): boolean {
+	return error.code !== undefined && MISSING_FUNCTION_CODES.has(error.code);
+}
+
+/**
+ * What the account's totals come to on this device, given what was sent and
+ * what the device holds now. Answers given while the request was in flight
+ * are in `current` but in neither `sent` nor `remote`, so they are added on
+ * top of the merge rather than lost when the account is ahead.
+ */
+export function reconcileDeckProgress(
+	sent: DeckProgress,
+	remote: DeckProgress,
+	current: DeckProgress
+): DeckProgress {
+	const out = mergeDeckProgress(sent, remote);
+	for (const [key, now] of Object.entries(current)) {
+		if (!isFocusTopic(key) || !now) continue;
+		const before = sent[key] ?? { attempts: 0, correct: 0, last: 0 };
+		const attempts = now.attempts - before.attempts;
+		if (attempts <= 0) continue;
+		const base = out[key] ?? { attempts: 0, correct: 0, last: 0 };
+		out[key] = {
+			attempts: base.attempts + attempts,
+			correct: base.correct + Math.max(0, now.correct - before.correct),
+			last: Math.max(base.last, now.last)
+		};
+	}
+	return out;
+}
+
 /**
  * Merge this device's totals into the signed-in account and bring the
- * account's back. Safe to call often. Does nothing harmful before migration
- * 041 has been run (the totals stay on the device) or before the account has
- * a progress row.
+ * account's back; called on sign-in. Answers after that reach the account
+ * through `/api/sync`. Does nothing before migration 041 has been run (the
+ * totals stay on the device) or before the account has a progress row, and
+ * drops the answer if the learner signed out while it was on its way.
  */
 export async function syncDeckProgress(supabase: SupabaseClient): Promise<void> {
-	const { data, error } = await supabase.rpc('merge_deck_progress', {
-		p_incoming: loadDeckProgress()
-	});
+	const sent = loadDeckProgress();
+	const sentFor = owner;
+	const { data, error } = await supabase.rpc('merge_deck_progress', { p_incoming: sent });
 	if (error) {
-		if (!MISSING_FUNCTION_CODES.has(error.code)) {
-			console.error('Failed to sync deck progress:', error);
-		}
+		if (!isMissingFunctionError(error)) console.error('Failed to sync deck progress:', error);
 		return;
 	}
-	if (data === null) return;
-	applyAccountDeckProgress(data);
+	if (data === null || sentFor !== owner) return;
+	applyAccountDeckProgress(data, sent);
 }
 
 /**
  * Take the account's totals (untrusted JSON from the RPC) into this device.
- * Merged with the totals as they are now, not as they were sent: answers
- * given while the request was in flight are already in storage.
+ * `sent` is what the device held when it asked; anything counted since is
+ * kept on top (see `reconcileDeckProgress`).
  */
-export function applyAccountDeckProgress(remote: unknown): void {
-	save(mergeDeckProgress(loadDeckProgress(), sanitizeDeckProgress(remote)));
+export function applyAccountDeckProgress(
+	remote: unknown,
+	sent: DeckProgress = loadDeckProgress()
+): void {
+	save(reconcileDeckProgress(sent, sanitizeDeckProgress(remote), loadDeckProgress()));
 }

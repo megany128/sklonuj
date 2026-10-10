@@ -5,8 +5,10 @@ import {
 	clearDeckProgress,
 	deckAccuracy,
 	deckProgress,
+	isMissingFunctionError,
 	loadDeckProgress,
 	mergeDeckProgress,
+	reconcileDeckProgress,
 	recordDeckAnswer,
 	sanitizeDeckProgress,
 	withDeckAnswer
@@ -140,5 +142,39 @@ describe('deck progress on this device', () => {
 		clearDeckProgress();
 		expect(loadDeckProgress()).toEqual({});
 		expect(get(deckProgress)).toEqual({});
+	});
+});
+
+describe('reconciling with the account after a sync', () => {
+	const stat = (attempts: number, correct: number, last: number) => ({ attempts, correct, last });
+
+	it('keeps an answer given during the request when the account is ahead', () => {
+		// A new device sends nothing, the learner answers once, and the account
+		// comes back with 40: the result is 41, not 40.
+		const sent = {};
+		const remote = { verbs: stat(40, 30, 1000) };
+		const current = { verbs: stat(1, 1, 5000) };
+		expect(reconcileDeckProgress(sent, remote, current)).toEqual({ verbs: stat(41, 31, 5000) });
+	});
+
+	it('adds only what was counted since the request was sent', () => {
+		const sent = { numbers: stat(10, 6, 100) };
+		const remote = { numbers: stat(25, 20, 900) };
+		const current = { numbers: stat(12, 7, 950) };
+		// Two more answers, one right, on top of the account's 25.
+		expect(reconcileDeckProgress(sent, remote, current)).toEqual({ numbers: stat(27, 21, 950) });
+	});
+
+	it('is the plain merge when nothing was answered meanwhile', () => {
+		const sent = { direction: stat(3, 3, 10), verbs: stat(50, 40, 20) };
+		const remote = { direction: stat(9, 4, 5), verbs: stat(2, 2, 99) };
+		expect(reconcileDeckProgress(sent, remote, sent)).toEqual(mergeDeckProgress(sent, remote));
+	});
+
+	it('knows the error a database gives before the migration is run', () => {
+		expect(isMissingFunctionError({ code: 'PGRST202' })).toBe(true);
+		expect(isMissingFunctionError({ code: '42883' })).toBe(true);
+		expect(isMissingFunctionError({ code: '23505' })).toBe(false);
+		expect(isMissingFunctionError({})).toBe(false);
 	});
 });

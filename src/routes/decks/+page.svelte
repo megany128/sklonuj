@@ -27,7 +27,7 @@
 	$effect(() => {
 		level = $progress.level;
 		paradigmScores = $progress.paradigmScores;
-		// The store, so a sync that lands while the page is open shows up.
+		// The store, so a sync or another tab's answers show up while the page is open.
 		deckProgress = $savedDeckProgress;
 		mounted = true;
 	});

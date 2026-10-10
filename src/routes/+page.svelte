@@ -103,7 +103,7 @@
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
 	import { determinerSentenceTemplates, pickDeterminerQuestion } from '$lib/engine/determiners';
-	import { recordDeckAnswer, syncDeckProgress } from '$lib/engine/deck-progress';
+	import { loadDeckProgress, recordDeckAnswer } from '$lib/engine/deck-progress';
 	import { loadDeckReturnChapter, saveDeckReturnChapter } from '$lib/engine/deck-return';
 	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
@@ -205,7 +205,10 @@
 				cellSchedule: current.cellSchedule,
 				lastSession: current.lastSession,
 				longestStreak: current.longestStreak
-			}
+			},
+			// Deck totals ride along, so they share the debounce after each
+			// answer and the flush when the tab closes.
+			deckProgress: loadDeckProgress()
 		});
 		return {
 			method: 'POST',
@@ -224,18 +227,6 @@
 			// so the server doesn't see the connection get aborted mid-flight.
 			fetch('/api/sync', buildProgressSyncRequest(current)).catch(() => {});
 		}, 1000);
-	}
-
-	// Deck totals go to the account a few seconds after the last deck answer.
-	let deckSyncTimer: ReturnType<typeof setTimeout> | null = null;
-
-	function scheduleDeckSync(): void {
-		if (!user) return;
-		if (deckSyncTimer) clearTimeout(deckSyncTimer);
-		deckSyncTimer = setTimeout(() => {
-			deckSyncTimer = null;
-			void syncDeckProgress(getSupabaseBrowserClient());
-		}, 3000);
 	}
 
 	// Practice session tracking (per-day upsert)
@@ -3864,7 +3855,6 @@
 	function trackSessionStats(result: DrillResult): void {
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
 			recordDeckAnswer(activeFocus, result.correct);
-			scheduleDeckSync();
 		}
 		if (result.correct) {
 			sessionCorrect++;
@@ -4305,7 +4295,6 @@
 				activeFocus,
 				(result.caseCorrect === null || result.caseCorrect) && result.formCorrect
 			);
-			scheduleDeckSync();
 		}
 
 		if (allCorrect) {

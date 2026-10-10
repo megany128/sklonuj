@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { isRecord } from '$lib/utils/is-record';
 import type { RequestHandler } from './$types';
 import type { CellSchedule } from '$lib/types';
+import { isMissingFunctionError, sanitizeDeckProgress } from '$lib/engine/deck-progress';
 import {
 	MAX_CELL_CLOCK_SKEW_MS,
 	MAX_CELL_SCHEDULE_KEYS,
@@ -500,6 +501,19 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
 			if (mergeError) {
 				return json({ error: 'Failed to merge cell schedule' }, { status: 500 });
 			}
+		}
+	}
+
+	// Deck totals: merged per deck under a row lock (migration 041). They are
+	// a nicety, so nothing here fails the sync: a malformed payload is
+	// skipped, and so is a database where the function isn't installed yet.
+	const deckProgress = sanitizeDeckProgress(body['deckProgress']);
+	if (Object.keys(deckProgress).length > 0) {
+		const { error: deckError } = await supabase.rpc('merge_deck_progress', {
+			p_incoming: deckProgress
+		});
+		if (deckError && !isMissingFunctionError(deckError)) {
+			console.error('sync: failed to merge deck progress', deckError);
 		}
 	}
 
