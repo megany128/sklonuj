@@ -206,6 +206,9 @@
 	let whyNoteKey = $derived(question ? `${question.case}_${question.number}` : '');
 	let whyNote = $derived(paradigmNotes?.[whyNoteKey] ?? null);
 	let templateWhy = $derived(question?.template.why ?? null);
+	// The case step shows the rule alone (the first why line); the word's
+	// comparison line waits for the Why box at the end.
+	let caseRule = $derived(templateWhy?.split('\n')[0] ?? null);
 
 	// Step handlers
 	function handleParadigmSubmit() {
@@ -681,16 +684,16 @@
 							<div class="w-full max-w-sm">
 								{#if caseCorrect}
 									<FeedbackVerdict tone="correct" title="Correct!">
-										{#if question.template.why}
-											<span class="text-text-subtitle">{question.template.why}</span>
+										{#if caseRule}
+											<span class="text-text-subtitle">{caseRule}</span>
 										{/if}
 									</FeedbackVerdict>
 								{:else}
 									<FeedbackVerdict tone="wrong" title="Not quite">
 										{#if selectedCase}You picked <CaseChip case_={selectedCase} /> —{/if}
 										needed <CaseChip case_={question.correctCase} />
-										{#if question.template.why}
-											<span class="mt-1 block text-text-subtitle">{question.template.why}</span>
+										{#if caseRule}
+											<span class="mt-1 block text-text-subtitle">{caseRule}</span>
 										{/if}
 									</FeedbackVerdict>
 								{/if}

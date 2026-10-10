@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deckQuery, grammarDecks, paradigmDecks } from './decks';
+import { deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from './decks';
 import { loadTemplates } from './drill';
 import { ALL_PARADIGMS } from '../types';
 
@@ -25,6 +25,22 @@ describe('grammar decks', () => {
 			'gen',
 			'acc'
 		]);
+	});
+
+	it('says when a level reaches only part of a deck', () => {
+		const at = (level: 'A1' | 'B2', id: string) => {
+			const deck = grammarDecks(level, templates, {}).find((d) => d.def.id === id);
+			if (!deck) throw new Error(`no deck ${id}`);
+			return { deck, label: sentenceCountLabel(deck, level) };
+		};
+		const a1 = at('A1', 'direction');
+		expect(a1.deck.sentences).toBeLessThan(a1.deck.total);
+		expect(a1.label).toBe(`${a1.deck.sentences} of ${a1.deck.total} sentences at A1`);
+		const b2 = at('B2', 'direction');
+		expect(b2.label).toBe(`${b2.deck.total} sentences`);
+		// A locked deck shows its size, not "0 of 25".
+		const locked = at('A1', 'numbers');
+		expect(locked.label).toBe(`${locked.deck.total} sentences`);
 	});
 
 	it('counts only what the level can be asked: dative opens at A2', () => {

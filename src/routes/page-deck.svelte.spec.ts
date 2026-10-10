@@ -32,6 +32,7 @@ vi.mock('$app/paths', () => ({
 const { default: Page } = await import('./+page.svelte');
 const { render, cleanup } = await import('vitest-browser-svelte');
 const { page: appPage } = await import('$app/state');
+const { setLevel } = await import('$lib/engine/progress');
 const { CHAPTER_STORAGE_KEY, parseChapterSelection, serializeChapterSelection } =
 	await import('$lib/engine/chapter-selection');
 
@@ -41,6 +42,7 @@ describe('?deck= URL param', () => {
 	beforeEach(() => {
 		cleanup();
 		localStorage.clear();
+		setLevel('A1');
 		appPage.url.search = DECK_QUERY;
 	});
 
@@ -124,22 +126,42 @@ describe('?deck= URL param', () => {
 		expect(parseChapterSelection(localStorage.getItem(CHAPTER_STORAGE_KEY))).toBeNull();
 	});
 
-	it('the Numbers deck opens at A2 and not below', async () => {
-		const progress = (level: string) =>
-			JSON.stringify({
-				level,
-				caseScores: {},
-				paradigmScores: {},
-				lemmaScores: {},
-				cellSchedule: {},
-				lastSession: '',
-				longestStreak: 0
-			});
+	it('the Numbers deck stays locked below A2', async () => {
 		appPage.url.search = '?deck=numbers';
-
-		localStorage.setItem('sklonuj_progress', progress('A1'));
+		setLevel('A1');
 		render(Page);
 		await expect.element(page.getByRole('button', { name: /Nom/ }).first()).toBeInTheDocument();
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
+	});
+
+	it('the Numbers deck at A2 hides the Number setting and asks plurals to a new learner', async () => {
+		// A new A2 learner: no scores, and the level's default of singular only.
+		appPage.url.search = '?deck=numbers';
+		setLevel('A2');
+		// The welcome tour would cover the settings button.
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Kolik? Numbers');
+
+		await page.getByRole('button', { name: 'Exercise settings' }).click();
+		await expect.element(page.getByRole('group', { name: 'Exercise type' })).toBeInTheDocument();
+		await expect
+			.element(page.getByRole('group', { name: 'Grammatical number' }))
+			.not.toBeInTheDocument();
+
+		// Three of the deck's four kinds of sentence are plural; a fresh question
+		// per render finds one quickly.
+		const pluralCue =
+			/jsou|pracují|tři|čtyři|pět|šest|sedm|osm|deset|dvacet|několik|hodně|málo|mnoho|Kolik|dva|dvě/;
+		let sawPlural = false;
+		for (let i = 0; i < 25 && !sawPlural; i++) {
+			cleanup();
+			render(Page);
+			await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
+			// The banner's own description names numbers, so leave it out.
+			const banner = page.getByTestId('deck-banner').element().textContent ?? '';
+			sawPlural = pluralCue.test((document.body.textContent ?? '').replace(banner, ''));
+		}
+		expect(sawPlural).toBe(true);
 	});
 });
