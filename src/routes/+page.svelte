@@ -20,7 +20,7 @@
 	import { slide, fly, fade } from 'svelte/transition';
 	import { untrack } from 'svelte';
 	import { get } from 'svelte/store';
-	import { goto, replaceState } from '$app/navigation';
+	import { afterNavigate, goto, replaceState } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type {
@@ -102,7 +102,11 @@
 	} from '$lib/engine/cell-pools';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
-	import { recordDeckAnswer } from '$lib/engine/deck-progress';
+	import {
+		loadDeckReturnChapter,
+		recordDeckAnswer,
+		saveDeckReturnChapter
+	} from '$lib/engine/deck-progress';
 	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { capitalizeSentence } from '$lib/utils/sentence-case';
@@ -1263,7 +1267,12 @@
 	// drills to one grammar topic. A deck runs in free practice, so starting one
 	// from a KzK chapter remembers the chapter and returns to it on leaving.
 	let selectedDeck = $state<FocusTopic | null>(focusFromSlug(initialUrlParams.get('deck')));
-	let deckReturnChapter: { book: 'kzk1' | 'kzk2'; chapter: string } | null = null;
+	let deckReturnChapter: ChapterSelection | null = null;
+
+	function setDeckReturn(selection: ChapterSelection | null): void {
+		deckReturnChapter = selection;
+		saveDeckReturnChapter(selection);
+	}
 
 	function filterByParadigm<T extends { paradigm: string }>(words: T[]): T[] {
 		return selectedParadigm ? words.filter((w) => w.paradigm === selectedParadigm) : words;
@@ -1467,7 +1476,7 @@
 		// Opening a chapter leaves the deck: a chapter sets its own scope.
 		if (book !== null) {
 			selectedDeck = null;
-			deckReturnChapter = null;
+			setDeckReturn(null);
 		}
 		chapterBook = book;
 		chapterSelection = chapterId;
@@ -1588,10 +1597,57 @@
 	function leaveDeck(): void {
 		selectedDeck = null;
 		const back = deckReturnChapter;
-		deckReturnChapter = null;
+		setDeckReturn(null);
 		if (back) handleChapterChange(back.book, back.chapter);
 		else generateNextQuestion();
 	}
+
+	/**
+	 * Turn a deck on: step out of the chapter (kept for the way back) and drop
+	 * a single-case or single-paradigm filter. The caller asks the next question.
+	 */
+	function enterDeck(deck: FocusTopic): void {
+		selectedDeck = deck;
+		if (chapterBook && chapterSelection) {
+			setDeckReturn({ book: chapterBook, chapter: chapterSelection });
+			chapterBook = null;
+			chapterSelection = null;
+			saveChapterToStorage();
+		} else {
+			deckReturnChapter = loadDeckReturnChapter();
+		}
+		selectedCase = 'all';
+		selectedParadigm = null;
+	}
+
+	/** Whether the current case, number and level filters leave a deck any sentence to ask. */
+	function deckCanAsk(deck: FocusTopic): boolean {
+		const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+		const difficulties = curriculum[get(progress).level].unlocked_difficulty;
+		return templatesForFocus(loadTemplates(), deck).some(
+			(t) =>
+				cases.includes(t.requiredCase) &&
+				matchesNumberMode(t.number) &&
+				difficulties.includes(t.difficulty)
+		);
+	}
+
+	// The Practice link (or Back) changes ?deck= without rebuilding this page,
+	// so follow the URL. The page's own URL updates use replaceState, which
+	// does not come through here.
+	afterNavigate((nav) => {
+		if (!initialized || nav.type === 'enter' || nav.to === null) return;
+		const next = focusFromSlug(nav.to.url.searchParams.get('deck'));
+		if (next === selectedDeck) return;
+		if (next === null) {
+			leaveDeck();
+			return;
+		}
+		const inChapter = chapterBook !== null;
+		enterDeck(next);
+		if (inChapter) handleChapterChange(null, null);
+		else generateNextQuestion();
+	});
 
 	/** Sentence templates for noun drills, narrowed to the focus topic if one is on. */
 	function nounTemplates(): SentenceTemplate[] {
@@ -2099,17 +2155,20 @@
 		loadChapterFromStorage();
 		loadChapterScores();
 
-		// A deck link wins over whatever was open: step out of the chapter (kept
-		// for the way back), and drop a single-case or single-paradigm filter.
+		// A deck link wins over whatever was open. Arriving without one after a
+		// deck was left by navigating away goes back to the chapter it started from.
 		if (selectedDeck !== null) {
-			if (chapterBook && chapterSelection) {
-				deckReturnChapter = { book: chapterBook, chapter: chapterSelection };
-				chapterBook = null;
-				chapterSelection = null;
-				saveChapterToStorage();
+			enterDeck(selectedDeck);
+		} else {
+			const back = loadDeckReturnChapter();
+			if (back) {
+				saveDeckReturnChapter(null);
+				if (chapterBook === null) {
+					chapterBook = back.book;
+					chapterSelection = back.chapter;
+					saveChapterToStorage();
+				}
 			}
-			selectedCase = 'all';
-			selectedParadigm = null;
 		}
 
 		// If chapter mode is active, apply its constraints
@@ -2991,6 +3050,12 @@
 	}
 
 	function generateNextQuestion(): void {
+		// A deck lives in its sentences. If the filters exclude all of them,
+		// leave it rather than ask unrelated forms under its banner.
+		if (activeFocus !== null && !deckCanAsk(activeFocus)) {
+			selectedDeck = null;
+			setDeckReturn(null);
+		}
 		try {
 			generateNextQuestionInner();
 		} catch (err) {
@@ -4311,7 +4376,7 @@
 		// A deck runs across cases; picking one case leaves it.
 		if (selected !== 'all' && selectedDeck !== null) {
 			selectedDeck = null;
-			deckReturnChapter = null;
+			setDeckReturn(null);
 		}
 		generateNextQuestion();
 	}
