@@ -32851,20 +32851,32 @@
 	},
 	{
 		"lemma": "favorit",
-		"translation": "favourite",
+		"translation": "favourite (person or team tipped to win)",
 		"gender": "m",
-		"animate": false,
-		"paradigm": "hrad",
+		"animate": true,
+		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
-			"sg": ["favorit", "favoritu", "favoritu", "favorit", "favorite", "favoritu", "favoritem"],
-			"pl": ["favority", "favoritů", "favoritům", "favority", "favority", "favoritech", "favority"]
+			"sg": [
+				"favorit",
+				"favorita",
+				"favoritovi",
+				"favorita",
+				"favorite",
+				"favoritovi",
+				"favoritem"
+			],
+			"pl": ["favorité", "favoritů", "favoritům", "favority", "favorité", "favoritech", "favority"]
 		},
 		"variantForms": {
 			"sg": {
-				"1": ["favorita"],
-				"3": ["favorita"]
+				"2": ["favoritu"],
+				"5": ["favoritu"]
+			},
+			"pl": {
+				"0": ["favoriti"],
+				"4": ["favoriti"]
 			}
 		}
 	},

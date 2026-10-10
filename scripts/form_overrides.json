@@ -1833,5 +1833,13 @@
 		"pl": ["trouby", "trub", "troubám", "trouby", "trouby", "troubách", "troubami"],
 		"gender": "f",
 		"animate": false
+	},
+	"favorit": {
+		"sg": ["favorit", "favorita", "favoritovi", "favorita", "favorite", "favoritovi", "favoritem"],
+		"pl": ["favorité", "favoritů", "favoritům", "favority", "favorité", "favoritech", "favority"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": { "2": ["favoritu"], "5": ["favoritu"] },
+		"variants_pl": { "0": ["favoriti"], "4": ["favoriti"] }
 	}
 }
