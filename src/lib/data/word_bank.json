@@ -2107,7 +2107,7 @@
 	},
 	{
 		"lemma": "cesta",
-		"translation": "way",
+		"translation": "way, road, journey",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -2533,7 +2533,7 @@
 	},
 	{
 		"lemma": "stav",
-		"translation": "condition",
+		"translation": "state, condition",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -3030,7 +3030,7 @@
 	},
 	{
 		"lemma": "zpráva",
-		"translation": "news",
+		"translation": "message, report",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -3272,7 +3272,7 @@
 	},
 	{
 		"lemma": "role",
-		"translation": "role",
+		"translation": "role (part, function)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -3345,7 +3345,7 @@
 	},
 	{
 		"lemma": "krok",
-		"translation": "footstep",
+		"translation": "step",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -4058,7 +4058,7 @@
 	},
 	{
 		"lemma": "význam",
-		"translation": "importance",
+		"translation": "meaning, importance",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -4480,7 +4480,7 @@
 	},
 	{
 		"lemma": "výkon",
-		"translation": "performance",
+		"translation": "performance (output, achievement)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -4905,7 +4905,7 @@
 	},
 	{
 		"lemma": "zbytek",
-		"translation": "rest",
+		"translation": "rest (remainder)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -5079,7 +5079,7 @@
 	},
 	{
 		"lemma": "hledisko",
-		"translation": "position",
+		"translation": "point of view",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -5299,7 +5299,7 @@
 	},
 	{
 		"lemma": "pořádek",
-		"translation": "order",
+		"translation": "order (tidiness)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -5866,7 +5866,7 @@
 	},
 	{
 		"lemma": "záležitost",
-		"translation": "concern",
+		"translation": "matter, affair",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -5908,7 +5908,7 @@
 	},
 	{
 		"lemma": "kontrola",
-		"translation": "control",
+		"translation": "check, inspection",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -6058,7 +6058,7 @@
 	},
 	{
 		"lemma": "ohled",
-		"translation": "respect",
+		"translation": "regard, consideration",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -6201,7 +6201,7 @@
 	},
 	{
 		"lemma": "dopis",
-		"translation": "letter",
+		"translation": "letter (mail)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -7280,7 +7280,7 @@
 	},
 	{
 		"lemma": "obor",
-		"translation": "profession",
+		"translation": "field (of study or work)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -7293,7 +7293,7 @@
 	},
 	{
 		"lemma": "model",
-		"translation": "model",
+		"translation": "model (example, design)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -7639,7 +7639,7 @@
 	},
 	{
 		"lemma": "projev",
-		"translation": "expression",
+		"translation": "speech, display (of feeling)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -7778,7 +7778,7 @@
 	},
 	{
 		"lemma": "řád",
-		"translation": "order",
+		"translation": "order (rules), timetable",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -7809,7 +7809,7 @@
 	},
 	{
 		"lemma": "zákazník",
-		"translation": "client",
+		"translation": "customer",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -8120,7 +8120,7 @@
 	},
 	{
 		"lemma": "jaro",
-		"translation": "spring",
+		"translation": "spring (season)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -8733,7 +8733,7 @@
 	},
 	{
 		"lemma": "předpoklad",
-		"translation": "condition",
+		"translation": "assumption, prerequisite",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -8762,7 +8762,7 @@
 	},
 	{
 		"lemma": "vlastnost",
-		"translation": "quality",
+		"translation": "characteristic, trait",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -9464,7 +9464,7 @@
 	},
 	{
 		"lemma": "nárok",
-		"translation": "right",
+		"translation": "claim, entitlement",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -9576,7 +9576,7 @@
 	},
 	{
 		"lemma": "příjem",
-		"translation": "reception",
+		"translation": "income, reception",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -9829,7 +9829,7 @@
 	},
 	{
 		"lemma": "pád",
-		"translation": "drop",
+		"translation": "fall",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -9880,7 +9880,7 @@
 	},
 	{
 		"lemma": "jistota",
-		"translation": "confidence",
+		"translation": "certainty",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -9958,7 +9958,7 @@
 	},
 	{
 		"lemma": "postoj",
-		"translation": "posture",
+		"translation": "attitude, stance",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -10300,7 +10300,7 @@
 	},
 	{
 		"lemma": "částka",
-		"translation": "amount",
+		"translation": "amount (of money), sum",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -10550,7 +10550,7 @@
 	},
 	{
 		"lemma": "ročník",
-		"translation": "year",
+		"translation": "year (of school), vintage",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -10701,7 +10701,7 @@
 	},
 	{
 		"lemma": "letadlo",
-		"translation": "aircraft",
+		"translation": "plane, aircraft",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -10771,7 +10771,7 @@
 	},
 	{
 		"lemma": "východ",
-		"translation": "exit",
+		"translation": "exit, east",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -11059,7 +11059,7 @@
 	},
 	{
 		"lemma": "západ",
-		"translation": "west",
+		"translation": "west, sunset",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -11077,7 +11077,7 @@
 	},
 	{
 		"lemma": "zámek",
-		"translation": "lock",
+		"translation": "chateau, lock",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -11108,7 +11108,7 @@
 	},
 	{
 		"lemma": "vzpomínka",
-		"translation": "remembrance",
+		"translation": "memory (recollection)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -11169,7 +11169,7 @@
 	},
 	{
 		"lemma": "schod",
-		"translation": "step",
+		"translation": "step (stair)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -11439,7 +11439,7 @@
 	},
 	{
 		"lemma": "jízda",
-		"translation": "riding",
+		"translation": "ride, drive",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -11562,7 +11562,7 @@
 	},
 	{
 		"lemma": "odpor",
-		"translation": "aversion",
+		"translation": "resistance",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -11723,7 +11723,7 @@
 	},
 	{
 		"lemma": "břeh",
-		"translation": "bank",
+		"translation": "bank (of a river), shore",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -11898,7 +11898,7 @@
 	},
 	{
 		"lemma": "účet",
-		"translation": "account",
+		"translation": "bill, account",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -12088,7 +12088,7 @@
 	},
 	{
 		"lemma": "vrchol",
-		"translation": "top",
+		"translation": "peak, top",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -12330,7 +12330,7 @@
 	},
 	{
 		"lemma": "sklo",
-		"translation": "glass",
+		"translation": "glass (material)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -12366,7 +12366,7 @@
 	},
 	{
 		"lemma": "tabulka",
-		"translation": "chart",
+		"translation": "table (chart)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -12379,7 +12379,7 @@
 	},
 	{
 		"lemma": "poslanec",
-		"translation": "deputy",
+		"translation": "member of parliament",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
@@ -12923,7 +12923,7 @@
 	},
 	{
 		"lemma": "současnost",
-		"translation": "today",
+		"translation": "the present",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -12999,7 +12999,7 @@
 	},
 	{
 		"lemma": "zásah",
-		"translation": "hit",
+		"translation": "intervention, hit",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -13096,7 +13096,7 @@
 	},
 	{
 		"lemma": "objem",
-		"translation": "capacity",
+		"translation": "volume",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -13109,7 +13109,7 @@
 	},
 	{
 		"lemma": "patro",
-		"translation": "floor",
+		"translation": "floor (storey)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -13364,7 +13364,7 @@
 	},
 	{
 		"lemma": "okruh",
-		"translation": "radius",
+		"translation": "circuit, circle",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -13476,7 +13476,7 @@
 	},
 	{
 		"lemma": "vzor",
-		"translation": "example",
+		"translation": "pattern, model (example)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -13527,7 +13527,7 @@
 	},
 	{
 		"lemma": "motor",
-		"translation": "motor",
+		"translation": "engine, motor",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -13540,7 +13540,7 @@
 	},
 	{
 		"lemma": "hnutí",
-		"translation": "movement",
+		"translation": "movement (political, social)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -13605,7 +13605,7 @@
 	},
 	{
 		"lemma": "trenér",
-		"translation": "trainer",
+		"translation": "coach",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -14066,7 +14066,7 @@
 	},
 	{
 		"lemma": "známka",
-		"translation": "sign",
+		"translation": "stamp, grade (mark)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -14172,7 +14172,7 @@
 	},
 	{
 		"lemma": "premiér",
-		"translation": "premier",
+		"translation": "prime minister",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -14247,7 +14247,7 @@
 	},
 	{
 		"lemma": "rozum",
-		"translation": "reason",
+		"translation": "reason (intellect), sense",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -14260,7 +14260,7 @@
 	},
 	{
 		"lemma": "vteřina",
-		"translation": "second",
+		"translation": "second (of time)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -14273,7 +14273,7 @@
 	},
 	{
 		"lemma": "přehled",
-		"translation": "survey",
+		"translation": "overview",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -14611,7 +14611,7 @@
 	},
 	{
 		"lemma": "představení",
-		"translation": "performance",
+		"translation": "performance (show)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -14755,7 +14755,7 @@
 	},
 	{
 		"lemma": "pozemek",
-		"translation": "plot",
+		"translation": "plot (of land)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -15042,7 +15042,7 @@
 	},
 	{
 		"lemma": "břicho",
-		"translation": "stomach",
+		"translation": "belly",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -15079,7 +15079,7 @@
 	},
 	{
 		"lemma": "slečna",
-		"translation": "miss",
+		"translation": "young lady, Miss",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -15092,7 +15092,7 @@
 	},
 	{
 		"lemma": "památka",
-		"translation": "memory",
+		"translation": "monument (historic sight), memento",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -15105,7 +15105,7 @@
 	},
 	{
 		"lemma": "lék",
-		"translation": "drug",
+		"translation": "medicine, medication",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -15170,7 +15170,7 @@
 	},
 	{
 		"lemma": "režisér",
-		"translation": "director",
+		"translation": "director (film, theatre)",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -15303,7 +15303,7 @@
 	},
 	{
 		"lemma": "schůzka",
-		"translation": "date",
+		"translation": "meeting, date (appointment)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -15706,7 +15706,7 @@
 	},
 	{
 		"lemma": "hřiště",
-		"translation": "pitch",
+		"translation": "playground, sports field",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "moře",
@@ -15776,7 +15776,7 @@
 	},
 	{
 		"lemma": "jádro",
-		"translation": "kernel",
+		"translation": "core, nucleus",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -15854,7 +15854,7 @@
 	},
 	{
 		"lemma": "záznam",
-		"translation": "entry",
+		"translation": "record, recording",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -15969,7 +15969,7 @@
 	},
 	{
 		"lemma": "důl",
-		"translation": "mine",
+		"translation": "mine (pit)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -16276,7 +16276,7 @@
 	},
 	{
 		"lemma": "novinka",
-		"translation": "news",
+		"translation": "new thing, piece of news",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -16468,7 +16468,7 @@
 	},
 	{
 		"lemma": "výchova",
-		"translation": "education",
+		"translation": "upbringing",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -16499,7 +16499,7 @@
 	},
 	{
 		"lemma": "areál",
-		"translation": "premise",
+		"translation": "premises, grounds",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -16750,7 +16750,7 @@
 	},
 	{
 		"lemma": "pověst",
-		"translation": "legend",
+		"translation": "legend, reputation",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -16776,7 +16776,7 @@
 	},
 	{
 		"lemma": "náhoda",
-		"translation": "chance",
+		"translation": "coincidence, chance",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -16869,7 +16869,7 @@
 	},
 	{
 		"lemma": "poplatek",
-		"translation": "charge",
+		"translation": "fee",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -17013,7 +17013,7 @@
 	},
 	{
 		"lemma": "angličtina",
-		"translation": "English",
+		"translation": "English (language)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -17207,7 +17207,7 @@
 	},
 	{
 		"lemma": "kilo",
-		"translation": "kilo",
+		"translation": "kilo (kilogram)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -17228,7 +17228,7 @@
 	},
 	{
 		"lemma": "sbor",
-		"translation": "board",
+		"translation": "choir, corps",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -17280,7 +17280,7 @@
 	},
 	{
 		"lemma": "pokles",
-		"translation": "drop",
+		"translation": "decline, decrease",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -17421,7 +17421,7 @@
 	},
 	{
 		"lemma": "kolej",
-		"translation": "rail",
+		"translation": "dormitory, track (rail)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -17452,7 +17452,7 @@
 	},
 	{
 		"lemma": "větev",
-		"translation": "branch",
+		"translation": "branch (of a tree)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -17488,7 +17488,7 @@
 	},
 	{
 		"lemma": "argument",
-		"translation": "argument",
+		"translation": "argument (reason, point)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -17559,7 +17559,7 @@
 	},
 	{
 		"lemma": "církev",
-		"translation": "church",
+		"translation": "church (institution)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -17975,7 +17975,7 @@
 	},
 	{
 		"lemma": "vědec",
-		"translation": "scholar",
+		"translation": "scientist",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
@@ -18066,7 +18066,7 @@
 	},
 	{
 		"lemma": "sněmovna",
-		"translation": "chamber",
+		"translation": "chamber (of parliament)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -18120,7 +18120,7 @@
 	},
 	{
 		"lemma": "mládež",
-		"translation": "youth",
+		"translation": "youth (young people)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -18724,7 +18724,7 @@
 	},
 	{
 		"lemma": "učení",
-		"translation": "doctrine",
+		"translation": "learning, teaching (doctrine)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -18737,7 +18737,7 @@
 	},
 	{
 		"lemma": "důraz",
-		"translation": "stress",
+		"translation": "emphasis",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -18919,7 +18919,7 @@
 	},
 	{
 		"lemma": "kamarádka",
-		"translation": "friend",
+		"translation": "friend (female)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -18966,7 +18966,7 @@
 	},
 	{
 		"lemma": "mládí",
-		"translation": "youth",
+		"translation": "youth (time of life)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -19035,7 +19035,7 @@
 	},
 	{
 		"lemma": "nástup",
-		"translation": "entrance",
+		"translation": "boarding, start (of a job, term)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -19048,7 +19048,7 @@
 	},
 	{
 		"lemma": "příkaz",
-		"translation": "order",
+		"translation": "order, command",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -19274,7 +19274,7 @@
 	},
 	{
 		"lemma": "skladba",
-		"translation": "composition",
+		"translation": "piece of music, composition",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -19326,7 +19326,7 @@
 	},
 	{
 		"lemma": "pořadí",
-		"translation": "order",
+		"translation": "order (sequence), ranking",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -19486,7 +19486,7 @@
 	},
 	{
 		"lemma": "podnikání",
-		"translation": "enterprise",
+		"translation": "business, entrepreneurship",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -19534,7 +19534,7 @@
 	},
 	{
 		"lemma": "pytel",
-		"translation": "bag",
+		"translation": "sack",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -19663,7 +19663,7 @@
 	},
 	{
 		"lemma": "seriál",
-		"translation": "series",
+		"translation": "TV series",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -19814,7 +19814,7 @@
 	},
 	{
 		"lemma": "bar",
-		"translation": "bar",
+		"translation": "bar (pub)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -20044,7 +20044,7 @@
 	},
 	{
 		"lemma": "plus",
-		"translation": "pro",
+		"translation": "plus (advantage; plus sign)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -20057,7 +20057,7 @@
 	},
 	{
 		"lemma": "rod",
-		"translation": "genus",
+		"translation": "gender (in grammar), family line",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -20312,7 +20312,7 @@
 	},
 	{
 		"lemma": "dohled",
-		"translation": "sight",
+		"translation": "supervision",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -20401,7 +20401,7 @@
 	},
 	{
 		"lemma": "pás",
-		"translation": "strip",
+		"translation": "belt, strip",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -20537,7 +20537,7 @@
 	},
 	{
 		"lemma": "prádlo",
-		"translation": "underwear",
+		"translation": "laundry, underwear",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -20568,7 +20568,7 @@
 	},
 	{
 		"lemma": "čeština",
-		"translation": "Czech",
+		"translation": "Czech (language)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -20758,7 +20758,7 @@
 	},
 	{
 		"lemma": "tok",
-		"translation": "stream",
+		"translation": "flow",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -20776,7 +20776,7 @@
 	},
 	{
 		"lemma": "buňka",
-		"translation": "cell",
+		"translation": "cell (in biology)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -20855,7 +20855,7 @@
 	},
 	{
 		"lemma": "kmen",
-		"translation": "trunk",
+		"translation": "trunk (of a tree), tribe",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -20865,13 +20865,13 @@
 			"sg": ["kmen", "kmene", "kmenu", "kmen", "kmeni", "kmenu", "kmenem"],
 			"pl": ["kmeny", "kmenů", "kmenům", "kmeny", "kmeny", "kmenech", "kmeny"]
 		},
+		"irregular": true,
 		"variantForms": {
 			"sg": {
 				"2": ["kmeni"],
 				"5": ["kmeni"]
 			}
-		},
-		"irregular": true
+		}
 	},
 	{
 		"lemma": "složení",
@@ -20992,7 +20992,7 @@
 	},
 	{
 		"lemma": "zakázka",
-		"translation": "order",
+		"translation": "order (commission), contract",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -21005,7 +21005,7 @@
 	},
 	{
 		"lemma": "prohlídka",
-		"translation": "examination",
+		"translation": "tour, inspection (check-up)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -21120,7 +21120,7 @@
 	},
 	{
 		"lemma": "branka",
-		"translation": "gate",
+		"translation": "small gate, goal (in sports)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -21361,7 +21361,7 @@
 	},
 	{
 		"lemma": "sklon",
-		"translation": "disposition",
+		"translation": "slope, tendency",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -21475,7 +21475,7 @@
 	},
 	{
 		"lemma": "sklad",
-		"translation": "stock",
+		"translation": "warehouse, storeroom",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -21525,7 +21525,7 @@
 	},
 	{
 		"lemma": "gól",
-		"translation": "goal",
+		"translation": "goal (in sports)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -21544,7 +21544,7 @@
 	},
 	{
 		"lemma": "start",
-		"translation": "take-off",
+		"translation": "start, take-off",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -21786,7 +21786,7 @@
 	},
 	{
 		"lemma": "akcie",
-		"translation": "share",
+		"translation": "share (stock)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -22181,7 +22181,7 @@
 	},
 	{
 		"lemma": "volno",
-		"translation": "leisure",
+		"translation": "time off, free time",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -22440,7 +22440,7 @@
 	},
 	{
 		"lemma": "zásluha",
-		"translation": "credit",
+		"translation": "merit, credit",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -22487,7 +22487,7 @@
 	},
 	{
 		"lemma": "výstup",
-		"translation": "climb",
+		"translation": "output, ascent",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -22581,7 +22581,7 @@
 	},
 	{
 		"lemma": "sloup",
-		"translation": "pole",
+		"translation": "column, pole",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -22599,7 +22599,7 @@
 	},
 	{
 		"lemma": "etapa",
-		"translation": "period",
+		"translation": "stage, phase",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -22857,7 +22857,7 @@
 	},
 	{
 		"lemma": "písmeno",
-		"translation": "letter",
+		"translation": "letter (of the alphabet)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -23134,7 +23134,7 @@
 	},
 	{
 		"lemma": "stolek",
-		"translation": "table",
+		"translation": "small table",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -23273,7 +23273,7 @@
 	},
 	{
 		"lemma": "pobočka",
-		"translation": "branch",
+		"translation": "branch (office)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -23346,7 +23346,7 @@
 	},
 	{
 		"lemma": "bydlení",
-		"translation": "living",
+		"translation": "housing",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -23359,7 +23359,7 @@
 	},
 	{
 		"lemma": "sklenice",
-		"translation": "glass",
+		"translation": "glass (for drinking), jar",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -23408,7 +23408,7 @@
 	},
 	{
 		"lemma": "post",
-		"translation": "post",
+		"translation": "post (position, job)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -23543,7 +23543,7 @@
 	},
 	{
 		"lemma": "sklenička",
-		"translation": "glass",
+		"translation": "small glass",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -23593,7 +23593,7 @@
 	},
 	{
 		"lemma": "lavice",
-		"translation": "desk",
+		"translation": "bench, school desk",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -24055,7 +24055,7 @@
 	},
 	{
 		"lemma": "úder",
-		"translation": "hit",
+		"translation": "blow, strike",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -24139,7 +24139,7 @@
 	},
 	{
 		"lemma": "pohár",
-		"translation": "cup",
+		"translation": "cup (trophy), goblet",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -24173,7 +24173,7 @@
 	},
 	{
 		"lemma": "poptávka",
-		"translation": "demand",
+		"translation": "demand (in the market)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -24435,7 +24435,7 @@
 	},
 	{
 		"lemma": "záběr",
-		"translation": "stroke",
+		"translation": "shot (in a film)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -24991,7 +24991,7 @@
 	},
 	{
 		"lemma": "metropole",
-		"translation": "capital",
+		"translation": "metropolis, capital city",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -25441,7 +25441,7 @@
 	},
 	{
 		"lemma": "huba",
-		"translation": "mouth",
+		"translation": "mouth (vulgar), gob",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -25454,7 +25454,7 @@
 	},
 	{
 		"lemma": "tyč",
-		"translation": "post",
+		"translation": "rod, pole, bar",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -25494,7 +25494,7 @@
 	},
 	{
 		"lemma": "chod",
-		"translation": "course",
+		"translation": "running (of a machine), course (of a meal)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -25554,7 +25554,7 @@
 	},
 	{
 		"lemma": "zastávka",
-		"translation": "stop",
+		"translation": "stop (bus, tram)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -25726,7 +25726,7 @@
 	},
 	{
 		"lemma": "venkov",
-		"translation": "country",
+		"translation": "countryside",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -25872,7 +25872,7 @@
 	},
 	{
 		"lemma": "příloha",
-		"translation": "supplement",
+		"translation": "attachment, side dish, supplement",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -25914,7 +25914,7 @@
 	},
 	{
 		"lemma": "sestava",
-		"translation": "composition",
+		"translation": "line-up, set",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -26003,7 +26003,7 @@
 	},
 	{
 		"lemma": "děj",
-		"translation": "plot",
+		"translation": "plot (of a story)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -26437,7 +26437,7 @@
 	},
 	{
 		"lemma": "odkaz",
-		"translation": "reference",
+		"translation": "link, reference",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -26494,7 +26494,7 @@
 	},
 	{
 		"lemma": "doprovod",
-		"translation": "company",
+		"translation": "accompaniment, escort",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -26624,7 +26624,7 @@
 	},
 	{
 		"lemma": "kapitál",
-		"translation": "capital",
+		"translation": "capital (money)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -26637,7 +26637,7 @@
 	},
 	{
 		"lemma": "plnění",
-		"translation": "performance",
+		"translation": "fulfilment",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -26668,7 +26668,7 @@
 	},
 	{
 		"lemma": "odvolání",
-		"translation": "withdrawal",
+		"translation": "appeal, dismissal",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -27083,7 +27083,7 @@
 	},
 	{
 		"lemma": "přelom",
-		"translation": "turn",
+		"translation": "turn (of a century), turning point",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -27096,7 +27096,7 @@
 	},
 	{
 		"lemma": "výnos",
-		"translation": "decree",
+		"translation": "yield, revenue",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -28034,7 +28034,7 @@
 	},
 	{
 		"lemma": "surovina",
-		"translation": "ingredient",
+		"translation": "raw material, ingredient",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -28047,7 +28047,7 @@
 	},
 	{
 		"lemma": "uznání",
-		"translation": "praise",
+		"translation": "recognition, appreciation",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -28147,7 +28147,7 @@
 	},
 	{
 		"lemma": "stáří",
-		"translation": "age",
+		"translation": "old age",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -28235,7 +28235,7 @@
 	},
 	{
 		"lemma": "pult",
-		"translation": "bar",
+		"translation": "counter (in a shop or bar)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -28360,7 +28360,7 @@
 	},
 	{
 		"lemma": "odvětví",
-		"translation": "branch",
+		"translation": "sector, branch (of industry)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -28400,7 +28400,7 @@
 	},
 	{
 		"lemma": "lhůta",
-		"translation": "term",
+		"translation": "deadline, time limit",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -28571,7 +28571,7 @@
 	},
 	{
 		"lemma": "kvalifikace",
-		"translation": "competence",
+		"translation": "qualification",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -28729,7 +28729,7 @@
 	},
 	{
 		"lemma": "novela",
-		"translation": "amendment",
+		"translation": "amendment (to a law), novella",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -28824,7 +28824,7 @@
 	},
 	{
 		"lemma": "nasazení",
-		"translation": "drive",
+		"translation": "commitment, deployment",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -28994,7 +28994,7 @@
 	},
 	{
 		"lemma": "koupě",
-		"translation": "bargain",
+		"translation": "purchase",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -29062,7 +29062,7 @@
 	},
 	{
 		"lemma": "písmo",
-		"translation": "handwriting",
+		"translation": "script, handwriting",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -29080,7 +29080,7 @@
 	},
 	{
 		"lemma": "zápis",
-		"translation": "minutes",
+		"translation": "written record, minutes (of a meeting)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -29137,7 +29137,7 @@
 	},
 	{
 		"lemma": "opora",
-		"translation": "pillar",
+		"translation": "support, mainstay",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -29539,7 +29539,7 @@
 	},
 	{
 		"lemma": "kroužek",
-		"translation": "ring",
+		"translation": "small ring, hobby club",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -29611,7 +29611,7 @@
 	},
 	{
 		"lemma": "žaloba",
-		"translation": "(legal) action",
+		"translation": "lawsuit",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -29637,7 +29637,7 @@
 	},
 	{
 		"lemma": "nehet",
-		"translation": "nail",
+		"translation": "fingernail",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -29895,7 +29895,7 @@
 	},
 	{
 		"lemma": "klika",
-		"translation": "handle",
+		"translation": "door handle",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -29937,7 +29937,7 @@
 	},
 	{
 		"lemma": "schéma",
-		"translation": "scheme",
+		"translation": "diagram, scheme",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -30221,7 +30221,7 @@
 	},
 	{
 		"lemma": "kabinet",
-		"translation": "cabinet",
+		"translation": "cabinet (government), staff room",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -30239,7 +30239,7 @@
 	},
 	{
 		"lemma": "opak",
-		"translation": "reverse",
+		"translation": "opposite",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -30487,7 +30487,7 @@
 	},
 	{
 		"lemma": "průkaz",
-		"translation": "card",
+		"translation": "ID card, pass",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -30862,7 +30862,7 @@
 	},
 	{
 		"lemma": "schránka",
-		"translation": "box",
+		"translation": "mailbox, box",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -31087,7 +31087,7 @@
 	},
 	{
 		"lemma": "metro",
-		"translation": "tube",
+		"translation": "metro, subway",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -31150,7 +31150,7 @@
 	},
 	{
 		"lemma": "nádrž",
-		"translation": "tank",
+		"translation": "tank (for liquid), reservoir",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -31307,7 +31307,7 @@
 	},
 	{
 		"lemma": "jeviště",
-		"translation": "stage",
+		"translation": "stage (in a theatre)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "moře",
@@ -31401,7 +31401,7 @@
 	},
 	{
 		"lemma": "medicína",
-		"translation": "medicine",
+		"translation": "medicine (the field)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -31453,7 +31453,7 @@
 	},
 	{
 		"lemma": "vana",
-		"translation": "bath",
+		"translation": "bathtub",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -31787,7 +31787,7 @@
 	},
 	{
 		"lemma": "hlídka",
-		"translation": "watch",
+		"translation": "patrol, guard",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -31951,7 +31951,7 @@
 	},
 	{
 		"lemma": "odpočinek",
-		"translation": "rest",
+		"translation": "rest (relaxation)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -32016,7 +32016,7 @@
 	},
 	{
 		"lemma": "nositel",
-		"translation": "winner",
+		"translation": "holder, bearer (of a title, prize)",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
@@ -32093,7 +32093,7 @@
 	},
 	{
 		"lemma": "tabule",
-		"translation": "board",
+		"translation": "blackboard, board",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -32151,7 +32151,7 @@
 	},
 	{
 		"lemma": "mezera",
-		"translation": "space",
+		"translation": "gap, space",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -32319,7 +32319,7 @@
 	},
 	{
 		"lemma": "nouze",
-		"translation": "poverty",
+		"translation": "need, emergency",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -32332,7 +32332,7 @@
 	},
 	{
 		"lemma": "konkurs",
-		"translation": "competition",
+		"translation": "competition (for a job or role), bankruptcy",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -32478,7 +32478,7 @@
 	},
 	{
 		"lemma": "prkno",
-		"translation": "board",
+		"translation": "plank, board",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -32532,7 +32532,7 @@
 	},
 	{
 		"lemma": "záchvat",
-		"translation": "attack",
+		"translation": "fit, seizure",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -32616,7 +32616,7 @@
 	},
 	{
 		"lemma": "objednávka",
-		"translation": "order",
+		"translation": "order (for goods)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -33018,7 +33018,7 @@
 	},
 	{
 		"lemma": "východisko",
-		"translation": "basis",
+		"translation": "starting point, way out",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -33221,7 +33221,7 @@
 	},
 	{
 		"lemma": "němčina",
-		"translation": "German",
+		"translation": "German (language)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -33567,7 +33567,7 @@
 	},
 	{
 		"lemma": "pouť",
-		"translation": "funfair",
+		"translation": "funfair, pilgrimage",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -33768,7 +33768,7 @@
 	},
 	{
 		"lemma": "dodržování",
-		"translation": "observation",
+		"translation": "observance, compliance",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -33865,7 +33865,7 @@
 	},
 	{
 		"lemma": "kloub",
-		"translation": "joint",
+		"translation": "joint (in the body)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -34243,7 +34243,7 @@
 	},
 	{
 		"lemma": "žebříček",
-		"translation": "scale",
+		"translation": "ranking, chart",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -34365,7 +34365,7 @@
 	},
 	{
 		"lemma": "hřbet",
-		"translation": "back",
+		"translation": "back (of an animal or hand), ridge",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -34383,7 +34383,7 @@
 	},
 	{
 		"lemma": "mříž",
-		"translation": "grid",
+		"translation": "bars, grille",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -34461,7 +34461,7 @@
 	},
 	{
 		"lemma": "hit",
-		"translation": "hit",
+		"translation": "hit (song, success)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -34578,7 +34578,7 @@
 	},
 	{
 		"lemma": "moucha",
-		"translation": "fly",
+		"translation": "fly (insect)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -34996,7 +34996,7 @@
 	},
 	{
 		"lemma": "index",
-		"translation": "index",
+		"translation": "index (indicator, list)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -35148,7 +35148,7 @@
 	},
 	{
 		"lemma": "ruch",
-		"translation": "activity",
+		"translation": "bustle",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -35297,7 +35297,7 @@
 	},
 	{
 		"lemma": "výhrada",
-		"translation": "reservation",
+		"translation": "reservation (objection)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -35310,7 +35310,7 @@
 	},
 	{
 		"lemma": "stadium",
-		"translation": "stage",
+		"translation": "stage (phase)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -35323,7 +35323,7 @@
 	},
 	{
 		"lemma": "tržba",
-		"translation": "receipts",
+		"translation": "takings, sales revenue",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -35354,7 +35354,7 @@
 	},
 	{
 		"lemma": "pódium",
-		"translation": "stage",
+		"translation": "stage, platform",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -35367,7 +35367,7 @@
 	},
 	{
 		"lemma": "nadace",
-		"translation": "foundation",
+		"translation": "foundation (charity)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -35963,7 +35963,7 @@
 	},
 	{
 		"lemma": "kůra",
-		"translation": "rind",
+		"translation": "bark (of a tree), peel",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -36165,7 +36165,7 @@
 	},
 	{
 		"lemma": "sekunda",
-		"translation": "second",
+		"translation": "second (of time)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -36336,7 +36336,7 @@
 	},
 	{
 		"lemma": "těleso",
-		"translation": "body",
+		"translation": "body (physical object), solid",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -36566,7 +36566,7 @@
 	},
 	{
 		"lemma": "ropa",
-		"translation": "oil",
+		"translation": "crude oil",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -36579,7 +36579,7 @@
 	},
 	{
 		"lemma": "odstín",
-		"translation": "shade",
+		"translation": "shade (of colour)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -36824,7 +36824,7 @@
 	},
 	{
 		"lemma": "ostuda",
-		"translation": "scandal",
+		"translation": "disgrace, shame",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -36850,7 +36850,7 @@
 	},
 	{
 		"lemma": "server",
-		"translation": "server",
+		"translation": "server (computer, website)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -37181,7 +37181,7 @@
 	},
 	{
 		"lemma": "tušení",
-		"translation": "feeling",
+		"translation": "hunch, inkling",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -37207,7 +37207,7 @@
 	},
 	{
 		"lemma": "automat",
-		"translation": "machine",
+		"translation": "vending machine, machine",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -37530,7 +37530,7 @@
 	},
 	{
 		"lemma": "propast",
-		"translation": "gap",
+		"translation": "abyss, chasm",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -37686,7 +37686,7 @@
 	},
 	{
 		"lemma": "zeleň",
-		"translation": "verdure",
+		"translation": "greenery",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "píseň",
@@ -37712,7 +37712,7 @@
 	},
 	{
 		"lemma": "výplata",
-		"translation": "payment",
+		"translation": "pay, wages",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -37725,7 +37725,7 @@
 	},
 	{
 		"lemma": "zatáčka",
-		"translation": "turn",
+		"translation": "bend, curve",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -37803,7 +37803,7 @@
 	},
 	{
 		"lemma": "nahrávka",
-		"translation": "record",
+		"translation": "recording",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -38068,7 +38068,7 @@
 	},
 	{
 		"lemma": "salon",
-		"translation": "salon",
+		"translation": "salon (hair, beauty; showroom)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -38086,7 +38086,7 @@
 	},
 	{
 		"lemma": "působnost",
-		"translation": "activity",
+		"translation": "scope (sphere of authority)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -38144,7 +38144,7 @@
 	},
 	{
 		"lemma": "sako",
-		"translation": "jacket",
+		"translation": "suit jacket, blazer",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -38228,7 +38228,7 @@
 	},
 	{
 		"lemma": "skříňka",
-		"translation": "box",
+		"translation": "small cupboard, locker",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -38309,7 +38309,7 @@
 	},
 	{
 		"lemma": "vyrovnání",
-		"translation": "compensation",
+		"translation": "settlement, balancing",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -38455,7 +38455,7 @@
 	},
 	{
 		"lemma": "cela",
-		"translation": "cell",
+		"translation": "cell (in a prison)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -38468,7 +38468,7 @@
 	},
 	{
 		"lemma": "sjezd",
-		"translation": "meeting",
+		"translation": "congress (convention), downhill run",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -38587,7 +38587,7 @@
 	},
 	{
 		"lemma": "minus",
-		"translation": "minus",
+		"translation": "minus (drawback; minus sign)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -38600,7 +38600,7 @@
 	},
 	{
 		"lemma": "baterka",
-		"translation": "battery",
+		"translation": "flashlight, battery (colloquial)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -38927,7 +38927,7 @@
 	},
 	{
 		"lemma": "prodloužení",
-		"translation": "extra time",
+		"translation": "extension, extra time",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -39453,7 +39453,7 @@
 	},
 	{
 		"lemma": "pól",
-		"translation": "pole",
+		"translation": "pole (geographic, magnetic)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -39466,7 +39466,7 @@
 	},
 	{
 		"lemma": "squat",
-		"translation": "squat",
+		"translation": "squat (occupied building)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -39479,7 +39479,7 @@
 	},
 	{
 		"lemma": "terasa",
-		"translation": "deck",
+		"translation": "terrace, patio",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -39998,7 +39998,7 @@
 	},
 	{
 		"lemma": "modelka",
-		"translation": "model",
+		"translation": "model (fashion, woman)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -40431,7 +40431,7 @@
 	},
 	{
 		"lemma": "úřednice",
-		"translation": "bureaucrat",
+		"translation": "clerk, official (woman)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -40624,7 +40624,7 @@
 	},
 	{
 		"lemma": "krtek",
-		"translation": "mole",
+		"translation": "mole (animal)",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "pán",
@@ -40879,7 +40879,7 @@
 	},
 	{
 		"lemma": "pecka",
-		"translation": "pit",
+		"translation": "stone, pit (of a fruit)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -41074,7 +41074,7 @@
 	},
 	{
 		"lemma": "kytice",
-		"translation": "flower",
+		"translation": "bouquet",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -41331,7 +41331,7 @@
 	},
 	{
 		"lemma": "čistírna",
-		"translation": "dry-cleaner‘s",
+		"translation": "dry cleaner's",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -41394,7 +41394,7 @@
 	},
 	{
 		"lemma": "kadeřnictví",
-		"translation": "hair-stylist‘s",
+		"translation": "hairdresser's",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -41541,7 +41541,7 @@
 	},
 	{
 		"lemma": "kuželka",
-		"translation": "bowling",
+		"translation": "skittle, bowling pin",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -41713,7 +41713,7 @@
 	},
 	{
 		"lemma": "rýma",
-		"translation": "cold",
+		"translation": "cold (runny nose)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -41726,7 +41726,7 @@
 	},
 	{
 		"lemma": "vládce",
-		"translation": "ruler",
+		"translation": "ruler (sovereign)",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "soudce",
@@ -41784,7 +41784,7 @@
 	},
 	{
 		"lemma": "dějství",
-		"translation": "act",
+		"translation": "act (of a play)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -41825,17 +41825,17 @@
 	},
 	{
 		"lemma": "hodinky",
-		"translation": "watch",
+		"translation": "watch (wristwatch)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
 		"categories": ["objects", "portable"],
-		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
 			"pl": ["hodinky", "hodinek", "hodinkám", "hodinky", "hodinky", "hodinkách", "hodinkami"]
-		}
+		},
+		"pluralOnly": true
 	},
 	{
 		"lemma": "knihomol",
@@ -42598,7 +42598,7 @@
 	},
 	{
 		"lemma": "bankomat",
-		"translation": "bank machine",
+		"translation": "ATM, cash machine",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -43030,7 +43030,7 @@
 	},
 	{
 		"lemma": "sladkost",
-		"translation": "sweet",
+		"translation": "sweet (candy)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "kost",
@@ -43366,17 +43366,17 @@
 	},
 	{
 		"lemma": "šaty",
-		"translation": "clothes",
+		"translation": "dress, clothes",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
 		"categories": ["clothing"],
-		"pluralOnly": true,
 		"forms": {
 			"sg": ["", "", "", "", "", "", ""],
 			"pl": ["šaty", "šatů", "šatům", "šaty", "šaty", "šatech", "šaty"]
-		}
+		},
+		"pluralOnly": true
 	},
 	{
 		"lemma": "šortky",
@@ -43574,7 +43574,7 @@
 	},
 	{
 		"lemma": "okupace",
-		"translation": "occupation",
+		"translation": "occupation (military)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -44013,7 +44013,7 @@
 	},
 	{
 		"lemma": "underground",
-		"translation": "underground",
+		"translation": "underground (culture, movement)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -45496,7 +45496,7 @@
 	},
 	{
 		"lemma": "brko",
-		"translation": "straw (drinking)",
+		"translation": "quill; drinking straw (colloquial)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -46822,7 +46822,7 @@
 	},
 	{
 		"lemma": "minerálka",
-		"translation": "water (mineral water)",
+		"translation": "mineral water",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -47289,7 +47289,7 @@
 	},
 	{
 		"lemma": "partnerka",
-		"translation": "female equivalent of partner",
+		"translation": "female partner",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -47914,7 +47914,7 @@
 	},
 	{
 		"lemma": "volejbal",
-		"translation": "volleyball (sport or game)",
+		"translation": "volleyball",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -48095,7 +48095,7 @@
 	},
 	{
 		"lemma": "kola",
-		"translation": "cola",
+		"translation": "cola (soft drink)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48263,7 +48263,7 @@
 	},
 	{
 		"lemma": "šunka",
-		"translation": "ham (thigh of a hog cured for food)",
+		"translation": "ham",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48484,7 +48484,7 @@
 	},
 	{
 		"lemma": "ambasáda",
-		"translation": "embassy (organization)",
+		"translation": "embassy",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48497,7 +48497,7 @@
 	},
 	{
 		"lemma": "rande",
-		"translation": "date, appointment (meeting with a lover or potential lover)",
+		"translation": "date (romantic meeting)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "moře",
@@ -48612,7 +48612,7 @@
 	},
 	{
 		"lemma": "sanitka",
-		"translation": "ambulance (emergency vehicle)",
+		"translation": "ambulance",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48659,7 +48659,7 @@
 	},
 	{
 		"lemma": "fontána",
-		"translation": "fountain (artificial water feature)",
+		"translation": "fountain",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48691,7 +48691,7 @@
 	},
 	{
 		"lemma": "jízdenka",
-		"translation": "ticket (pass for transportation)",
+		"translation": "ticket (for transport)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48738,7 +48738,7 @@
 	},
 	{
 		"lemma": "poliklinika",
-		"translation": "health center providing ambulant care",
+		"translation": "outpatient clinic",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48867,7 +48867,7 @@
 	},
 	{
 		"lemma": "celebrita",
-		"translation": "celebrity (famous person)",
+		"translation": "celebrity",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -48951,7 +48951,7 @@
 	},
 	{
 		"lemma": "krém",
-		"translation": "cream",
+		"translation": "cream (cosmetic or dessert)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -49004,7 +49004,7 @@
 	},
 	{
 		"lemma": "lyžař",
-		"translation": "skier (someone who practices skiing)",
+		"translation": "skier",
 		"gender": "m",
 		"animate": true,
 		"paradigm": "muž",
@@ -49089,7 +49089,7 @@
 	},
 	{
 		"lemma": "med",
-		"translation": "honey (thick, viscous, sweet liquid made by bees)",
+		"translation": "honey",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -49176,7 +49176,7 @@
 	},
 	{
 		"lemma": "sova",
-		"translation": "owl (strigiform)",
+		"translation": "owl",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -49478,7 +49478,7 @@
 	},
 	{
 		"lemma": "odlet",
-		"translation": "departure (departure of a plane)",
+		"translation": "departure (by air)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -49510,7 +49510,7 @@
 	},
 	{
 		"lemma": "přestup",
-		"translation": "changing (from one train, bus etc to another)",
+		"translation": "change (of train or bus), transfer",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -49726,7 +49726,7 @@
 	},
 	{
 		"lemma": "ordinace",
-		"translation": "office, doctor's office",
+		"translation": "doctor's office",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "růže",
@@ -49814,7 +49814,7 @@
 	},
 	{
 		"lemma": "náledí",
-		"translation": "black ice (thin, dangeous slippery film of ice on a surface)",
+		"translation": "black ice",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -49877,7 +49877,7 @@
 	},
 	{
 		"lemma": "velryba",
-		"translation": "whale (large sea mammal)",
+		"translation": "whale",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -49972,7 +49972,7 @@
 	},
 	{
 		"lemma": "moderátorka",
-		"translation": "female host (US), presenter (UK)",
+		"translation": "female presenter, host",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -50001,7 +50001,7 @@
 	},
 	{
 		"lemma": "zavináč",
-		"translation": "rollmop",
+		"translation": "rollmop (pickled herring), at sign (@)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -50106,7 +50106,7 @@
 	},
 	{
 		"lemma": "svetr",
-		"translation": "sweater; pullover",
+		"translation": "sweater, pullover",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -50226,7 +50226,7 @@
 	},
 	{
 		"lemma": "hádka",
-		"translation": "quarrel (dispute)",
+		"translation": "quarrel, argument",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -50473,7 +50473,7 @@
 	},
 	{
 		"lemma": "šach",
-		"translation": "chess",
+		"translation": "chess, check (in chess)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -52299,7 +52299,7 @@
 	},
 	{
 		"lemma": "cola",
-		"translation": "cola",
+		"translation": "cola (soft drink)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -52536,7 +52536,7 @@
 	},
 	{
 		"lemma": "techno",
-		"translation": "techno",
+		"translation": "techno (music)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -52746,7 +52746,7 @@
 	},
 	{
 		"lemma": "poschodí",
-		"translation": "floor",
+		"translation": "floor (storey)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "stavení",
@@ -52843,7 +52843,7 @@
 	},
 	{
 		"lemma": "formulář",
-		"translation": "form",
+		"translation": "form (to fill in)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "stroj",
@@ -54271,7 +54271,7 @@
 	},
 	{
 		"lemma": "olovo",
-		"translation": "lead",
+		"translation": "lead (metal)",
 		"gender": "n",
 		"animate": false,
 		"paradigm": "město",
@@ -54484,7 +54484,7 @@
 	},
 	{
 		"lemma": "kuriozita",
-		"translation": "curiosity",
+		"translation": "curiosity (odd thing)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -54764,7 +54764,7 @@
 	},
 	{
 		"lemma": "tablet",
-		"translation": "tablet",
+		"translation": "tablet (computer)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -54798,7 +54798,7 @@
 	},
 	{
 		"lemma": "monitor",
-		"translation": "monitor",
+		"translation": "monitor (screen)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -54903,7 +54903,7 @@
 	},
 	{
 		"lemma": "reproduktor",
-		"translation": "speaker",
+		"translation": "loudspeaker",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -54932,7 +54932,7 @@
 	},
 	{
 		"lemma": "reprák",
-		"translation": "speaker",
+		"translation": "loudspeaker (colloquial)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -55088,7 +55088,7 @@
 	},
 	{
 		"lemma": "top",
-		"translation": "top",
+		"translation": "top (garment)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -56246,7 +56246,7 @@
 	},
 	{
 		"lemma": "ples",
-		"translation": "ball",
+		"translation": "ball (formal dance)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -56574,7 +56574,7 @@
 	},
 	{
 		"lemma": "paprika",
-		"translation": "pepper",
+		"translation": "pepper (vegetable), paprika",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -58102,7 +58102,7 @@
 	},
 	{
 		"lemma": "směna",
-		"translation": "shift",
+		"translation": "shift (at work)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
@@ -58154,7 +58154,7 @@
 	},
 	{
 		"lemma": "benefit",
-		"translation": "benefit",
+		"translation": "benefit (job perk)",
 		"gender": "m",
 		"animate": false,
 		"paradigm": "hrad",
@@ -59306,7 +59306,7 @@
 	},
 	{
 		"lemma": "ruština",
-		"translation": "Russian",
+		"translation": "Russian (language)",
 		"gender": "f",
 		"animate": false,
 		"paradigm": "žena",
