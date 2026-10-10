@@ -26,6 +26,12 @@ export interface FocusDef {
 	 * singular (the A2 singular-first rule).
 	 */
 	bothNumbers?: true;
+	/**
+	 * Where the topic's sentences come from. Most topics are tagged noun
+	 * sentences; `determiners` has its own bank and sentences
+	 * (`engine/determiners.ts`), with the blank on the determiner.
+	 */
+	source?: 'determiners';
 }
 
 export const FOCUS_DEFS: readonly FocusDef[] = [
@@ -50,6 +56,15 @@ export const FOCUS_DEFS: readonly FocusDef[] = [
 		blurb: 'What a number does to the noun: jeden dům, dva domy, pět domů',
 		unlockLevel: 'A2',
 		bothNumbers: true
+	},
+	{
+		id: 'determiners',
+		slug: 'muj-tvuj-ten',
+		label: 'Můj, tvůj, ten',
+		blurb: 'My, your, our, that: mého kamaráda, s naší kamarádkou, v tom domě',
+		unlockLevel: 'A2',
+		bothNumbers: true,
+		source: 'determiners'
 	}
 ];
 

@@ -2,7 +2,14 @@
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-	import type { DrillQuestion, DrillResult, DrillType, Case, Paradigm } from '$lib/types';
+	import type {
+		AdjectiveParadigmType,
+		DrillQuestion,
+		DrillResult,
+		DrillType,
+		Case,
+		Paradigm
+	} from '$lib/types';
 	import {
 		ALL_CASES,
 		CASE_LABELS,
@@ -35,6 +42,14 @@
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
+
+	/** How the Why box names the word's type on an adjective-shaped question. */
+	const ADJECTIVE_TYPE_NOTE: Record<AdjectiveParadigmType, string> = {
+		hard: 'hard adjective',
+		soft: 'soft adjective',
+		possessive: 'possessive',
+		demonstrative: 'demonstrative'
+	};
 
 	let {
 		question,
@@ -1115,7 +1130,7 @@
 							{@const noteKey = `${question.case}_${question.number}`}
 							{@const adjGenderNote =
 								question.wordCategory === 'adjective' && question.adjective
-									? `${question.adjective.paradigmType === 'hard' ? 'hard' : 'soft'} adjective · ${
+									? `${ADJECTIVE_TYPE_NOTE[question.adjective.paradigmType]} · ${
 											question.word.gender === 'm'
 												? question.word.animate
 													? 'masculine animate'

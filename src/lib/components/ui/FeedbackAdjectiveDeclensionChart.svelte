@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Table from '@lucide/svelte/icons/table';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
+	import { loadDeclinableBank } from '$lib/engine/determiners';
 	import type { AdjectiveGenderKey, Case, CaseForms, Number_ } from '$lib/types';
 	import {
 		CASE_LABELS,
@@ -26,7 +26,7 @@
 	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
 	function lookupForms(l: string, gk: AdjectiveGenderKey): { sg: CaseForms; pl: CaseForms } | null {
-		const bank = loadAdjectiveBank();
+		const bank = loadDeclinableBank();
 		const entry = bank.find((a) => a.lemma.toLowerCase() === l.toLowerCase());
 		if (!entry) return null;
 		const genderForms = entry.forms[gk];

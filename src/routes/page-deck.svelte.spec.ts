@@ -164,4 +164,25 @@ describe('?deck= URL param', () => {
 		}
 		expect(sawPlural).toBe(true);
 	});
+
+	it('the Můj, tvůj, ten deck asks for a determiner, not a noun', async () => {
+		appPage.url.search = '?deck=muj-tvuj-ten';
+		setLevel('A2');
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Můj, tvůj, ten');
+
+		// Every question in this deck is a sentence with a typed answer, and the
+		// word to decline is one of the five.
+		const input = page.getByRole('textbox').first();
+		await expect.element(input).toBeInTheDocument();
+		const banner = page.getByTestId('deck-banner').element().textContent ?? '';
+		const card = (document.body.textContent ?? '').replace(banner, '');
+		expect(card).toMatch(/(můj|tvůj|náš|váš|ten)/);
+		expect(card).toMatch(/Petr|Eva|Děti|Kde|To je/);
+
+		// Leaving the deck goes back to ordinary practice.
+		await page.getByRole('button', { name: 'Leave deck' }).click();
+		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
+	});
 });

@@ -5,7 +5,7 @@
 	import PronounTable from './PronounTable.svelte';
 	import CaseGuide from './CaseGuide.svelte';
 	import LookupSearch, { type LookupKind } from './LookupSearch.svelte';
-	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
+	import { loadDeclinableBank } from '$lib/engine/determiners';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 	import type { AdjectiveGenderKey, Case } from '$lib/types';
 
@@ -40,7 +40,7 @@
 	// Build an adjective-lemma lookup (exact + diacritic-stripped) once so we can classify a
 	// given lemma as noun-or-adjective without running a full bank search.
 	const adjectiveLemmaLookup: Record<string, true> = {};
-	for (const a of loadAdjectiveBank()) {
+	for (const a of loadDeclinableBank()) {
 		const lower = a.lemma.toLowerCase();
 		adjectiveLemmaLookup[lower] = true;
 		adjectiveLemmaLookup[stripDiacritics(lower)] = true;
