@@ -321,12 +321,42 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 }
 
 /**
- * Words a template can drill at a level, before any progress-dependent gating:
- * category join, difficulty, pluralia tantum, the three block lists, semantic
+ * Whether a sentence can be asked with a word, on everything but the word's
+ * level: category join, pluralia tantum, mass nouns, the block lists, semantic
  * tags, required gender, excluded categories, and a non-empty form in the
- * template's case/number. Everything here is static data, so the result is
- * memoized per template + level; `getCandidates` and the template weighting
- * both read it, and the weighting scans every eligible template per question.
+ * sentence's case and number. Chapter practice lets a chapter word past its
+ * CEFR level, never past these.
+ */
+export function templateTakesWord(template: SentenceTemplate, word: WordEntry): boolean {
+	if (!templateMatchesWordCategory(template, word)) return false;
+	// Skip pluralia tantum nouns for singular templates
+	if (template.number === 'sg' && word.pluralOnly === true) return false;
+	// Mass/collective nouns (mléko, nábytek, hmyz) have dictionary plurals
+	// but no natural plural use, so plural sentence slots skip them
+	if (template.number === 'pl' && word.categories.includes('mass')) return false;
+	// Nouns kept for declension tables only (pan needs a name after it,
+	// šach is "check") — not even the `any` templates take them
+	if (word.categories.includes('no_templates')) return false;
+	if (isBlockedTemplateNounPair(template.id, word.lemma)) return false;
+	if (!hasValidForm(word, template.requiredCase, template.number)) return false;
+	// A template with semantic tags takes only words that carry one of them.
+	const tags = template.semanticTags;
+	if (tags && tags.length > 0 && !tags.some((tag) => word.categories.includes(tag))) return false;
+	if (template.requiredGender && word.gender !== template.requiredGender) return false;
+	const excluded = template.excludesCategories;
+	if (excluded && excluded.length > 0 && word.categories.some((c) => excluded.includes(c))) {
+		return false;
+	}
+	// Lemmas a reviewer has flagged via the admin dashboard.
+	return !getBlockedLemmaSet('sentence', template.id).has(word.lemma);
+}
+
+/**
+ * Words a template can drill at a level, before any progress-dependent gating:
+ * `templateTakesWord` plus the level's difficulties. Everything here is static
+ * data, so the result is memoized per template + level; `getCandidates` and
+ * the template weighting both read it, and the weighting scans every eligible
+ * template per question.
  */
 const matchingWordsCache = new Map<string, WordEntry[]>();
 
@@ -344,48 +374,9 @@ function matchingWords(
 	const cached = matchingWordsCache.get(cacheKey);
 	if (cached) return cached;
 
-	const wordBank = loadWordBank();
-	const categoryMatches = wordBank.filter(
-		(word) =>
-			templateMatchesWordCategory(template, word) &&
-			unlockedDifficulties.includes(word.difficulty) &&
-			// Skip pluralia tantum nouns for singular templates
-			!(template.number === 'sg' && word.pluralOnly === true) &&
-			// Mass/collective nouns (mléko, nábytek, hmyz) have dictionary plurals
-			// but no natural plural use, so plural sentence slots skip them
-			!(template.number === 'pl' && word.categories.includes('mass')) &&
-			// Nouns kept for declension tables only (pan needs a name after it,
-			// šach is "check") — not even the `any` templates take them
-			!word.categories.includes('no_templates') &&
-			!isBlockedTemplateNounPair(template.id, word.lemma) &&
-			hasValidForm(word, template.requiredCase, template.number)
+	const filtered = loadWordBank().filter(
+		(word) => unlockedDifficulties.includes(word.difficulty) && templateTakesWord(template, word)
 	);
-
-	// If template has semantic tags, only return words that match at least one tag.
-	// Return empty if no words match — caller should skip this template.
-	const tags = template.semanticTags;
-	let filtered = categoryMatches;
-	if (tags && tags.length > 0) {
-		filtered = filtered.filter((word) => tags.some((tag) => word.categories.includes(tag)));
-	}
-
-	// If template requires a specific gender, filter by it.
-	if (template.requiredGender) {
-		filtered = filtered.filter((word) => word.gender === template.requiredGender);
-	}
-
-	// Exclude words whose categories overlap with the template's excludesCategories.
-	const excluded = template.excludesCategories;
-	if (excluded && excluded.length > 0) {
-		filtered = filtered.filter((word) => !word.categories.some((c) => excluded.includes(c)));
-	}
-
-	// Drop lemmas a reviewer has flagged via the admin dashboard. Empty list is
-	// the common case (set is shared sentinel) so this is effectively free.
-	const blocked = getBlockedLemmaSet('sentence', template.id);
-	if (blocked.size > 0) {
-		filtered = filtered.filter((word) => !blocked.has(word.lemma));
-	}
 
 	matchingWordsCache.set(cacheKey, filtered);
 	return filtered;

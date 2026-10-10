@@ -335,6 +335,17 @@ describe('applyPrepositionVoicing', () => {
 		expect(applyPrepositionVoicing('Přijdu v ___.', 'měsíci')).toBe('Přijdu v ___.');
 	});
 
+	it('voices before mn- only for já and mnoho', () => {
+		expect(applyPrepositionVoicing('Jdi k ___.', 'mně')).toBe('Jdi ke ___.');
+		expect(applyPrepositionVoicing('Pojď s ___.', 'mnou')).toBe('Pojď se ___.');
+		expect(applyPrepositionVoicing('V ___ zemích.', 'mnoha')).toBe('Ve ___ zemích.');
+		expect(applyPrepositionVoicing('Bydlím v ___.', 'Mnichově')).toBe('Bydlím v ___.');
+		expect(applyPrepositionVoicing('Jedu z ___.', 'Mnichova')).toBe('Jedu z ___.');
+		expect(applyPrepositionVoicing('Záleží na tom v ___.', 'množství')).toBe(
+			'Záleží na tom v ___.'
+		);
+	});
+
 	it('does not touch a k/s/v/z that ends a longer word', () => {
 		expect(applyPrepositionVoicing('Petrův ___ je tady.', 'vůz')).toBe('Petrův ___ je tady.');
 	});

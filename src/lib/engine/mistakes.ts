@@ -2,6 +2,12 @@ import { writable, get } from 'svelte/store';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Case, Number_, DrillType, Paradigm } from '../types';
 import { isCase, isNumber, ALL_PARADIGMS } from '../types';
+import { loadWordBank } from './drill';
+import { loadAdjectiveBank } from './adjective-drill';
+import { loadPronounBank } from './pronoun-drill';
+
+/** Which bank a mistake's lemma belongs to (mirrors `DrillQuestion.wordCategory`). */
+export type MistakeWordCategory = 'noun' | 'pronoun' | 'adjective';
 
 export interface MistakeRecord {
 	/** The lemma of the word (noun or pronoun) */
@@ -26,6 +32,18 @@ export interface MistakeRecord {
 	userParadigm?: Paradigm;
 	/** The correct paradigm (multi_step only) */
 	correctParadigm?: Paradigm;
+	/**
+	 * Which bank `lemma` comes from. Absent on records saved before this field
+	 * existed, where the bank can't be known (see `isMistakeLemmaInBank`).
+	 */
+	wordCategory?: MistakeWordCategory;
+}
+
+/** The lemmas currently in each bank, for dropping mistakes on removed words. */
+export interface BankLemmaSets {
+	noun: ReadonlySet<string>;
+	adjective: ReadonlySet<string>;
+	pronoun: ReadonlySet<string>;
 }
 
 const STORAGE_KEY = 'sklonuj_mistakes';
@@ -42,6 +60,12 @@ const VALID_DRILL_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 const VALID_PARADIGMS: ReadonlySet<string> = new Set(ALL_PARADIGMS);
+
+const VALID_WORD_CATEGORIES: ReadonlySet<string> = new Set(['noun', 'pronoun', 'adjective']);
+
+function isMistakeWordCategory(value: unknown): value is MistakeWordCategory {
+	return typeof value === 'string' && VALID_WORD_CATEGORIES.has(value);
+}
 
 function isValidParadigm(value: unknown): value is Paradigm {
 	return typeof value === 'string' && VALID_PARADIGMS.has(value);
@@ -71,8 +95,65 @@ function isValidMistakeRecord(value: unknown): value is MistakeRecord {
 	// Validate optional paradigm fields
 	if (value.userParadigm !== undefined && !isValidParadigm(value.userParadigm)) return false;
 	if (value.correctParadigm !== undefined && !isValidParadigm(value.correctParadigm)) return false;
+	if (value.wordCategory !== undefined && !isMistakeWordCategory(value.wordCategory)) return false;
 
 	return true;
+}
+
+let cachedBankLemmaSets: BankLemmaSets | null = null;
+
+/** Lemma sets of the three current banks, built once on first use. */
+function getBankLemmaSets(): BankLemmaSets {
+	cachedBankLemmaSets ??= {
+		noun: new Set(loadWordBank().map((w) => w.lemma)),
+		adjective: new Set(loadAdjectiveBank().map((a) => a.lemma)),
+		pronoun: new Set(loadPronounBank().map((p) => p.lemma))
+	};
+	return cachedBankLemmaSets;
+}
+
+/**
+ * True when the word a mistake was made on still exists. A mistake keeps a
+ * copy of the word, so without this a lemma removed from a bank would stay
+ * in "Recent mistakes" forever.
+ *
+ * Multi-step questions are always about a noun. Otherwise the record's
+ * `wordCategory` names the bank to check. Records saved before that field
+ * existed don't say whether the lemma was a noun, an adjective or a pronoun,
+ * so they are kept when any bank has the lemma: guessing "noun" would wipe
+ * every older adjective and pronoun mistake.
+ */
+export function isMistakeLemmaInBank(record: MistakeRecord, banks: BankLemmaSets): boolean {
+	if (record.drillType === 'multi_step') return banks.noun.has(record.lemma);
+	switch (record.wordCategory) {
+		case 'noun':
+			return banks.noun.has(record.lemma);
+		case 'adjective':
+			return banks.adjective.has(record.lemma);
+		case 'pronoun':
+			return banks.pronoun.has(record.lemma);
+		default:
+			return (
+				banks.noun.has(record.lemma) ||
+				banks.adjective.has(record.lemma) ||
+				banks.pronoun.has(record.lemma)
+			);
+	}
+}
+
+/**
+ * Turn untrusted stored data (localStorage JSON or the `user_mistakes.mistakes`
+ * column) into mistake records: malformed entries are rejected, and so are
+ * mistakes on words that are no longer in the banks. Every load path goes
+ * through here. `banks` is injectable for tests; the real sets are only built
+ * when there is at least one well-formed record to check.
+ */
+export function parseMistakeRecords(raw: unknown, banks?: BankLemmaSets): MistakeRecord[] {
+	if (!Array.isArray(raw)) return [];
+	const valid = raw.filter(isValidMistakeRecord);
+	if (valid.length === 0) return valid;
+	const lemmaSets = banks ?? getBankLemmaSets();
+	return valid.filter((m) => isMistakeLemmaInBank(m, lemmaSets));
 }
 
 function loadFromStorage(): MistakeRecord[] {
@@ -81,8 +162,10 @@ function loadFromStorage(): MistakeRecord[] {
 		const raw = localStorage.getItem(STORAGE_KEY);
 		if (raw === null) return [];
 		const parsed: unknown = JSON.parse(raw);
-		if (!Array.isArray(parsed)) return [];
-		return parsed.filter(isValidMistakeRecord);
+		const records = parseMistakeRecords(parsed);
+		// Write the cleaned list back so dropped entries don't linger in storage.
+		if (Array.isArray(parsed) && records.length !== parsed.length) saveToStorage(records);
+		return records;
 	} catch {
 		return [];
 	}
@@ -229,18 +312,13 @@ export async function loadMistakesFromSupabase(supabase: SupabaseClient): Promis
 		return;
 	}
 
-	const remoteMistakes: MistakeRecord[] = [];
-	if (data) {
-		const raw: unknown = data.mistakes;
-		if (Array.isArray(raw)) {
-			for (const entry of raw) {
-				if (isValidMistakeRecord(entry)) {
-					remoteMistakes.push(entry);
-				}
-			}
-		}
-	}
+	// Mistakes on removed words are dropped here, as they are when reading
+	// localStorage. The remote row itself is left alone.
+	const remoteRaw: unknown = data ? data.mistakes : null;
+	const remoteMistakes = parseMistakeRecords(remoteRaw);
 
+	// The local list was filtered when it was read from storage, and everything
+	// added since comes from a live question.
 	const localMistakes = get(mistakeRecords);
 
 	// Union local + remote, dedupe on (lemma, targetCase, targetNumber, timestamp).

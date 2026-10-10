@@ -13,9 +13,10 @@ Usage:
     python3 scripts/build_word_bank_morphodita.py --merge --only "a,b,c"
 
 Modes:
-    full    Rebuild every lemma in starter_lemmas.txt from MorphoDiTa. Entry
-            flags that only live in the JSON (``irregular``) are carried over
-            from the previous word_bank.json so a rebuild doesn't drop them.
+    full    Rebuild every lemma in starter_lemmas.txt from MorphoDiTa. The
+            ``irregular`` flag comes from form_overrides.json; older entries
+            that only carry it in the JSON keep it from the previous
+            word_bank.json so a rebuild doesn't drop them.
     --merge Keep the existing word_bank.json untouched and append only the
             lemmas from starter_lemmas.txt that aren't in it yet. Use this
             when adding vocabulary — the JSON has hand-audited categories and
@@ -204,6 +205,11 @@ def load_form_overrides(path: Path) -> dict[str, dict[str, object]]:
         primary to a variant (e.g. jelen: "pl": [... "jeleni" ...],
         "variants_pl": {"0": ["jelenové"]}). Forms equal to the primary are
         ignored.
+      - "irregular" (bool): mark the entry ``irregular`` — it fits none of the
+        14 noun paradigms (nouns that decline like adjectives: dovolená,
+        známý, vstupné), so the app shows its ``declensionNote`` instead of
+        the paradigm's rules. The ``paradigm`` column still needs the nearest
+        value. Entries flagged by hand in word_bank.json keep the flag too.
 
     Either key can be omitted to use MorphoDiTa forms for that number.
     """
@@ -892,8 +898,10 @@ def main(argv: Optional[list[str]] = None) -> int:
                 "_variant_sg": final_variant_sg,
                 "_variant_pl": final_variant_pl,
                 "_note": note,
-                # Only ever set by hand in the JSON; keep it across rebuilds.
-                "_irregular": bool(previous_entry.get("irregular")),
+                # Set by an ``irregular`` override, or by hand in the JSON
+                # (older entries); either way it survives rebuilds.
+                "_irregular": bool(overrides.get("irregular"))
+                or bool(previous_entry.get("irregular")),
                 **dict(zip(SG_COLS, sg)),
                 **dict(zip(PL_COLS, pl)),
             }

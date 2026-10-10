@@ -843,9 +843,11 @@
 					{/if}
 				{:else}
 					{@const labelLemma =
-						question.wordCategory === 'pronoun'
-							? (question.pronoun?.lemma ?? question.word.lemma)
-							: question.word.lemma}
+						question.wordCategory === 'adjective' && question.adjective
+							? question.adjective.lemma
+							: question.wordCategory === 'pronoun'
+								? (question.pronoun?.lemma ?? question.word.lemma)
+								: question.word.lemma}
 					<!-- A real form so the mobile keyboard's action key submits even when no
 					     Enter keydown is delivered; the button doubles as the visible affordance. -->
 					<form onsubmit={handleAnswerFormSubmit} novalidate>

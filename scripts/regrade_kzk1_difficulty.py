@@ -80,7 +80,7 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(rows)
 
-    missing = sorted(set(cap_by_lemma) - set(new_difficulty))
+    missing = sorted(l for l in cap_by_lemma if l.lower() not in new_difficulty)
     print(f"capped {len(changed)} KzK1 nouns in word_bank.json")
     for lemma, before, after in changed:
         print(f"  {lemma}: {before} -> {after}")
