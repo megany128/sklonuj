@@ -1155,7 +1155,7 @@
 	{
 		"id": "acc_chci_107",
 		"template": "Chci ___.",
-		"lemmaCategory": "misc",
+		"lemmaCategory": ["objects", "portable", "clothing", "animals", "vehicle", "large_object"],
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
