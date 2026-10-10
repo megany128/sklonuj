@@ -1,6 +1,7 @@
 import type { Case, Difficulty, FocusTopic, SentenceTemplate, WordEntry } from '../types';
 import { CASE_INDEX } from '../types';
 import { applyPrepositionVoicing } from './preposition-voicing';
+import { withCount } from './numbers';
 
 /**
  * Focus topics: the grammar decks on the Decks page. Starting one narrows
@@ -19,6 +20,12 @@ export interface FocusDef {
 	blurb: string;
 	/** Lowest level the topic is offered at. */
 	unlockLevel: Difficulty;
+	/**
+	 * The topic is about singular against plural, so its sentences are asked in
+	 * both whatever the number setting says, and without first proving the
+	 * singular (the A2 singular-first rule).
+	 */
+	bothNumbers?: true;
 }
 
 export const FOCUS_DEFS: readonly FocusDef[] = [
@@ -26,7 +33,7 @@ export const FOCUS_DEFS: readonly FocusDef[] = [
 		id: 'direction',
 		slug: 'kam-kde-odkud',
 		label: 'Kam? Kde? Odkud?',
-		blurb: 'Where to, where, where from: do / na / k · v / na / u · z / od',
+		blurb: 'Where to, where, where from: do školy, ve škole, ze školy',
 		unlockLevel: 'A1'
 	},
 	{
@@ -35,6 +42,14 @@ export const FOCUS_DEFS: readonly FocusDef[] = [
 		label: 'Verbs + case',
 		blurb: 'Verbs that decide the case: pomáhat + dative, bát se + genitive',
 		unlockLevel: 'A1'
+	},
+	{
+		id: 'numbers',
+		slug: 'numbers',
+		label: 'Kolik? Numbers',
+		blurb: 'What a number does to the noun: jeden dům, dva domy, pět domů',
+		unlockLevel: 'A2',
+		bothNumbers: true
 	}
 ];
 
@@ -181,4 +196,13 @@ export function withDirectionContrast(
 ): SentenceTemplate {
 	const contrast = directionContrast(template, word);
 	return contrast ? { ...template, why: `${template.why}\n${contrast}` } : template;
+}
+
+/**
+ * A sentence template made ready for the word it will be asked with: numerals
+ * filled in and the word's comparison line (direction or counting) appended
+ * to the `why`. Every question built from a sentence goes through here.
+ */
+export function templateForWord(template: SentenceTemplate, word: WordEntry): SentenceTemplate {
+	return withDirectionContrast(withCount(template, word), word);
 }
