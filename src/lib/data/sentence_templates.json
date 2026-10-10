@@ -1157,7 +1157,7 @@
 	{
 		"id": "acc_chci_107",
 		"template": "Chci ___.",
-		"lemmaCategory": "misc",
+		"lemmaCategory": ["objects", "portable", "clothing", "animals", "vehicle", "large_object"],
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
@@ -2798,7 +2798,8 @@
 		"trigger": "z",
 		"why": "z (from, out of) → genitive",
 		"difficulty": "A1",
-		"topics": ["direction"]
+		"topics": ["direction"],
+		"excludesCategories": ["place_name"]
 	},
 	{
 		"id": "gen_z_258",
@@ -2866,7 +2867,8 @@
 		"trigger": "na",
 		"why": "na (to) + direction → accusative",
 		"difficulty": "A1",
-		"topics": ["direction"]
+		"topics": ["direction"],
+		"excludesCategories": ["place_name"]
 	},
 	{
 		"id": "loc_na_264",

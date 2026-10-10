@@ -1,5 +1,6 @@
 import type { Case, Number_ } from '$lib/types';
 import { CASE_INDEX } from '$lib/types';
+import { casePrepositions } from '$lib/data/prepositions';
 import type { NoteSlot } from './filter-paradigm-note';
 
 /**
@@ -13,6 +14,9 @@ import type { NoteSlot } from './filter-paradigm-note';
  * name none (fleeting e, "Takes na", "Diminutive of …"), which apply to every
  * case. A clause with no label of its own inherits the one before it in its
  * line ("Nominative pl: -é (ředitelé), like other -tel agent nouns").
+ *
+ * A clause that only points back at the one before it ("Genitive sg -a:
+ * chleba; colloquially also nom/acc") is never shown without it.
  */
 
 const ALL_CASES: readonly Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
@@ -116,6 +120,25 @@ function scopeOf(clause: string): Scope | null {
 	};
 }
 
+/**
+ * True for a clause that ends in its own case/number label, with no form or
+ * rule after it: "colloquially also nom/acc". Such a clause says where else
+ * the form of the clause before it is used, so it means nothing by itself.
+ * A label with something after it ("locative na hřbitově", "Genitive pl:
+ * dat") introduces its own content and stands alone, and so does a bare label
+ * whose content is in parentheses ("locative sg (na hřbitově)").
+ */
+function pointsBack(clause: string): boolean {
+	const plain = clause.replace(/\([^)]*\)/g, ' ').toLowerCase();
+	if (plain.includes(':')) return false;
+	const tokens = plain.split(/[\s/]+/).filter(Boolean);
+	return (
+		tokens.length > 0 &&
+		isLabelToken(tokens[tokens.length - 1]) &&
+		tokens.some((t) => !isLabelToken(t))
+	);
+}
+
 /** Both scopes together; "any" absorbs the other. */
 function union(a: Scope, b: Scope): Scope {
 	return {
@@ -153,7 +176,14 @@ interface FormSets {
 	/** Forms only the plural has (trička is both gen sg and nom pl, so neither). */
 	plural: Set<string>;
 	vocative: string;
+	/** The lemma, when it is a singular form the plural doesn't share; else "". */
+	singularLemma: string;
 }
+
+/** Every Czech preposition the app teaches, one word each ("z / ze" is two). */
+const PREPOSITIONS: ReadonlySet<string> = new Set(
+	casePrepositions.flatMap((c) => c.prepositions.flatMap((p) => p.czech.split(/\s*\/\s*/)))
+);
 
 function formSets(forms: NoteForms): FormSets {
 	const sg = new Set(forms.sg.map((f) => f.toLowerCase()).filter(Boolean));
@@ -162,8 +192,18 @@ function formSets(forms: NoteForms): FormSets {
 	return {
 		singular: new Set([...sg].filter((f) => !pl.has(f) && f !== lemma)),
 		plural: new Set([...pl].filter((f) => !sg.has(f))),
-		vocative: (forms.sg[CASE_INDEX.voc] ?? '').toLowerCase()
+		vocative: (forms.sg[CASE_INDEX.voc] ?? '').toLowerCase(),
+		singularLemma: lemma && !pl.has(lemma) ? lemma : ''
 	};
+}
+
+/**
+ * True when the text is nothing but the word in its dictionary form, with or
+ * without a preposition: "ve čtvrtek". That is an example of the singular.
+ */
+function isBareSingularExample(words: string[], sets: FormSets): boolean {
+	if (!sets.singularLemma || words[words.length - 1] !== sets.singularLemma) return false;
+	return words.length === 1 || (words.length === 2 && PREPOSITIONS.has(words[0]));
 }
 
 const PARENS = /\s*\([^)]*\)/g;
@@ -175,10 +215,12 @@ const PARENS = /\s*\([^)]*\)/g;
  * the rule stays and its examples become this word's own plural form
  * ("Fleeting e: leden → lednech"). A stretch whose singular forms are only
  * the vocative ("endearment: kočičko") says nothing about the plural and is
- * dropped. Returns the text unchanged when it isn't singular-only.
+ * dropped, and so is one that is only the word itself after a preposition
+ * ("ve čtvrtek"). Returns the text unchanged when it isn't singular-only.
  */
 function forPlural(text: string, sets: FormSets, lemma: string, form: string): string | null {
 	const words = wordsOf(text);
+	if (isBareSingularExample(words, sets)) return null;
 	const quotedSingular = words.filter((w) => sets.singular.has(w));
 	if (quotedSingular.length === 0 || words.some((w) => sets.plural.has(w))) return text;
 	if (quotedSingular.every((w) => w === sets.vocative)) return null;
@@ -255,7 +297,7 @@ export function declensionNoteForSlot(
 		let scope: Scope = CONTINUATION.test(line) ? prevLineScope : ANY;
 		let lineScope: Scope | null = null;
 		const clauses = splitClauses(line);
-		let keptClauses: KeptClause[] = [];
+		const scoped: Array<KeptClause & { keep: boolean; ownLabel: boolean }> = [];
 		for (const [i, clause] of clauses.entries()) {
 			let own = scopeOf(clause.text);
 			if (own?.numbers) lastNumbers = own.numbers;
@@ -266,10 +308,25 @@ export function declensionNoteForSlot(
 				scope = own;
 				lineScope = lineScope ? union(lineScope, own) : own;
 			}
-			if (matches(scope, slot)) {
-				keptClauses.push({ ...clause, labelled: scope.numbers !== null, leads: i === 0 });
+			scoped.push({
+				...clause,
+				labelled: scope.numbers !== null,
+				leads: i === 0,
+				keep: matches(scope, slot),
+				ownLabel: own !== null
+			});
+		}
+		// A kept clause that only points back ("colloquially also nom/acc")
+		// brings the statement it is about: every clause before it, back to the
+		// one that carries that statement's label.
+		for (const [i, clause] of scoped.entries()) {
+			if (!clause.keep || !clause.ownLabel || !pointsBack(clause.text)) continue;
+			for (let j = i - 1; j >= 0 && !scoped[j].keep; j--) {
+				scoped[j].keep = true;
+				if (scoped[j].ownLabel) break;
 			}
 		}
+		let keptClauses: KeptClause[] = scoped.filter((c) => c.keep);
 		prevLineScope = lineScope ?? scope;
 		if (forms && slot.number === 'pl') keptClauses = pluralizeExamples(keptClauses, forms, slot);
 		if (keptClauses.length === 0) continue;

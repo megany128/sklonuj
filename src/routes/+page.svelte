@@ -75,7 +75,7 @@
 		hasValidForm,
 		canVocative,
 		applyPrepositionVoicing,
-		templateMatchesWordCategory,
+		templateTakesWord,
 		casesWithContent,
 		lockedCasesForLevel,
 		type CurriculumLevel
@@ -131,6 +131,7 @@
 		getAdjectiveForm,
 		getAllAdjectiveAcceptedForms,
 		adjectiveMatchesNoun,
+		nounTakesAdjectives,
 		adjectiveAllowedInNumber
 	} from '$lib/engine/adjective-drill';
 	import {
@@ -2637,8 +2638,8 @@
 			(w) =>
 				chapterLemmasLower.has(w.lemma.toLowerCase()) &&
 				!diffLemmas.has(w.lemma) &&
-				templateMatchesWordCategory(template, w) &&
-				hasValidForm(w, template.requiredCase, template.number)
+				// Past its CEFR level, but not past the sentence's own filters.
+				templateTakesWord(template, w)
 		);
 		return [...diffFiltered, ...chapterExtras];
 	}
@@ -2870,7 +2871,7 @@
 		// Get eligible nouns to pair with
 		const wordBank = loadWordBank();
 		const eligibleWords = filterByParadigm(
-			wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty))
+			wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty) && nounTakesAdjectives(w))
 		);
 		if (eligibleWords.length === 0) return null;
 
@@ -3357,7 +3358,13 @@
 			if (msEligibleTemplates.length > 0) {
 				// Multi-step skips irregular nouns: the paradigm step has no good answer for them.
 				const msPool = (t: SentenceTemplate): WordEntry[] =>
-					nounPoolForTemplate(t, prog).filter((w) => !w.irregular);
+					nounPoolForTemplate(t, prog).filter(
+						(w) =>
+							!w.irregular &&
+							// Adjective-only practice attaches an adjective step, and no
+							// adjective goes with a place name.
+							!(effectiveWordMode === 'adjectives' && !nounTakesAdjectives(w))
+					);
 				// Prefer templates in the spaced case pick that still have words.
 				const template = pickTemplate(msEligibleTemplates, (t) => msPool(t).length, case_, number_);
 				const candidates = msPool(template);
@@ -3854,7 +3861,8 @@
 				sentence:
 					result.question.drillType !== 'form_production'
 						? result.question.template?.template
-						: undefined
+						: undefined,
+				wordCategory: result.question.wordCategory ?? 'noun'
 			});
 		}
 	}
@@ -4286,7 +4294,8 @@
 					drillType: 'multi_step',
 					sentence: result.question.template?.template,
 					userParadigm: result.userParadigm,
-					correctParadigm: result.question.correctParadigm
+					correctParadigm: result.question.correctParadigm,
+					wordCategory: 'noun'
 				});
 			}
 		}
