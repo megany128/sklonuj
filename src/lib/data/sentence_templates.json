@@ -2796,7 +2796,8 @@
 		"trigger": "z",
 		"why": "z (from, out of) → genitive",
 		"difficulty": "A1",
-		"topics": ["direction"]
+		"topics": ["direction"],
+		"excludesCategories": ["place_name"]
 	},
 	{
 		"id": "gen_z_258",
@@ -2864,7 +2865,8 @@
 		"trigger": "na",
 		"why": "na (to) + direction → accusative",
 		"difficulty": "A1",
-		"topics": ["direction"]
+		"topics": ["direction"],
+		"excludesCategories": ["place_name"]
 	},
 	{
 		"id": "loc_na_264",
