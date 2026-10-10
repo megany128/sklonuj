@@ -310,5 +310,93 @@
 		"requiredCase": "ins",
 		"number": "pl",
 		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_sg_dum_040",
+		"template": "To je střecha ___ domu.",
+		"nounLemma": "dům",
+		"requiredCase": "gen",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_sg_dum_041",
+		"template": "Petr jde k ___ domu.",
+		"nounLemma": "dům",
+		"requiredCase": "dat",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_sg_klic_042",
+		"template": "Eva otevírá dveře ___ klíčem.",
+		"nounLemma": "klíč",
+		"requiredCase": "ins",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_dum_043",
+		"template": "To jsou střechy ___ domů.",
+		"nounLemma": "dům",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_pl_dum_044",
+		"template": "Petr jde k ___ domům.",
+		"nounLemma": "dům",
+		"requiredCase": "dat",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_pl_dum_045",
+		"template": "Petr mluví o ___ domech.",
+		"nounLemma": "dům",
+		"requiredCase": "loc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_pl_klic_046",
+		"template": "Eva otevírá dveře ___ klíči.",
+		"nounLemma": "klíč",
+		"requiredCase": "ins",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_auto_047",
+		"template": "To je barva ___ aut.",
+		"nounLemma": "auto",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_pl_auto_048",
+		"template": "Petr jde k ___ autům.",
+		"nounLemma": "auto",
+		"requiredCase": "dat",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_pl_auto_049",
+		"template": "Děti sedí v ___ autech.",
+		"nounLemma": "auto",
+		"requiredCase": "loc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_pl_auto_050",
+		"template": "Petr a Eva jedou ___ auty.",
+		"nounLemma": "auto",
+		"requiredCase": "ins",
+		"number": "pl",
+		"difficulty": "A2"
 	}
 ]

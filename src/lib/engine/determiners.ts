@@ -18,6 +18,7 @@ import { loadWordBank, pickWeightedTemplate } from './drill';
 import {
 	generateAdjectiveSentenceDrill,
 	getAdjectiveGenderKey,
+	loadAdjectiveBank,
 	weightedRandomAdjective
 } from './adjective-drill';
 
@@ -126,6 +127,18 @@ export function loadDeterminerBank(): AdjectiveEntry[] {
 		};
 	});
 	return cachedBank;
+}
+
+let cachedDeclinable: AdjectiveEntry[] | null = null;
+
+/**
+ * Adjectives and determiners together: every word with an adjective-shaped
+ * table. Declension charts and the word lookup read this, so a determiner
+ * question can show its table like any adjective.
+ */
+export function loadDeclinableBank(): AdjectiveEntry[] {
+	cachedDeclinable ??= [...loadAdjectiveBank(), ...loadDeterminerBank()];
+	return cachedDeclinable;
 }
 
 const GENDER_LABELS: Record<AdjectiveGenderKey, string> = {

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
 	determinerSentenceTemplates,
+	loadDeclinableBank,
 	loadDeterminerBank,
 	loadDeterminerTemplates,
 	pickDeterminerQuestion
@@ -157,9 +158,23 @@ describe('determiner sentences', () => {
 			}
 		}
 		expect(templates.some((t) => t.template.requiredCase === 'voc')).toBe(false);
-		expect(new Set(templates.map((t) => getAdjectiveGenderKey(t.noun)))).toEqual(
-			new Set(ALL_ADJECTIVE_GENDER_KEYS)
-		);
+		// The sentence fixes the noun, and so the gender: every gender needs its
+		// own sentence in every case and number, or those forms are never asked.
+		for (const gender of ALL_ADJECTIVE_GENDER_KEYS) {
+			for (const number of ['sg', 'pl'] as const) {
+				for (const case_ of ALL_BUT_VOC) {
+					expect(
+						templates.some(
+							(t) =>
+								getAdjectiveGenderKey(t.noun) === gender &&
+								t.template.requiredCase === case_ &&
+								t.template.number === number
+						),
+						`${gender} ${case_} ${number}`
+					).toBe(true);
+				}
+			}
+		}
 	});
 
 	it('belongs to the determiners deck, which asks both numbers from A2', () => {
@@ -179,6 +194,16 @@ describe('determiner sentences', () => {
 			'Petr bydlí ve ___ domě.'
 		);
 		expect(applyPrepositionVoicing(home.template.template, 'mém')).toBe('Petr bydlí v ___ domě.');
+	});
+});
+
+describe('declension charts', () => {
+	it('find determiners alongside adjectives', () => {
+		const lemmas = new Set(loadDeclinableBank().map((e) => e.lemma));
+		for (const lemma of ['nový', 'můj', 'tvůj', 'náš', 'váš', 'ten']) {
+			expect(lemmas.has(lemma), lemma).toBe(true);
+		}
+		expect(lemmas.size).toBe(loadDeclinableBank().length);
 	});
 });
 

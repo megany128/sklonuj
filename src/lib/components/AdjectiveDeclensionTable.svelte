@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
+	import { loadDeclinableBank } from '$lib/engine/determiners';
 	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER, ALL_ADJECTIVE_GENDER_KEYS } from '$lib/types';
 	import type { AdjectiveEntry, AdjectiveGenderKey, Case, CaseForms } from '$lib/types';
 	import { stripDiacritics } from '$lib/utils/diacritics';
@@ -18,7 +18,7 @@
 
 	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
-	const adjectiveBank: AdjectiveEntry[] = loadAdjectiveBank();
+	const adjectiveBank: AdjectiveEntry[] = loadDeclinableBank();
 
 	// Pre-compute stripped lemmas for fast diacritic-insensitive lookup
 	const adjectiveStripped: Array<{ stripped: string; entry: AdjectiveEntry }> = adjectiveBank.map(

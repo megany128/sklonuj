@@ -3041,6 +3041,9 @@
 		if (activeFocus !== null && q.template.topics?.includes(activeFocus) !== true) return false;
 		if (selectedCase !== 'all' && q.case !== selectedCase) return false;
 		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
+		// A determiner deck asks only its own fill-in sentences, whatever the
+		// content and exercise-type settings say, so its misses come back too.
+		if (activeFocus !== null && focusDef(activeFocus).source === 'determiners') return true;
 		if (!drillSettings.selectedDrillTypes.includes(q.drillType)) return false;
 		if (q.wordCategory === 'adjective') return enabledContentTypes.adjectives;
 		if (q.wordCategory === 'pronoun') return enabledContentTypes.pronouns;

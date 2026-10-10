@@ -5,7 +5,7 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
 	import { loadWordBank } from '$lib/engine/drill';
-	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
+	import { loadDeclinableBank } from '$lib/engine/determiners';
 	import dictionaryData from '$lib/data/dictionary.json';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 	import type { AdjectiveEntry, WordEntry } from '$lib/types';
@@ -32,7 +32,7 @@
 	const MAX_SUGGESTIONS = 10;
 
 	const wordBank: WordEntry[] = loadWordBank();
-	const adjectiveBank: AdjectiveEntry[] = loadAdjectiveBank();
+	const adjectiveBank: AdjectiveEntry[] = loadDeclinableBank();
 
 	// Pre-computed lowercase + stripped keys for fast diacritic-insensitive prefix search
 	const wordBankStripped: Array<{ key: string; stripped: string; entry: WordEntry }> = wordBank.map(
