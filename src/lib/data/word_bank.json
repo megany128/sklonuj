@@ -9709,7 +9709,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["kapsa", "kapsy", "kapse", "kapsu", "kapso", "kapse", "kapsou"],
 			"pl": ["kapsy", "kapes", "kapsám", "kapsy", "kapsy", "kapsách", "kapsami"]
@@ -10048,7 +10048,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["mistr", "mistra", "mistrovi", "mistra", "mistře", "mistrovi", "mistrem"],
 			"pl": ["mistři", "mistrů", "mistrům", "mistry", "mistři", "mistrech", "mistry"]
@@ -11082,7 +11082,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["zámek", "zámku", "zámku", "zámek", "zámku", "zámku", "zámkem"],
 			"pl": ["zámky", "zámků", "zámkům", "zámky", "zámky", "zámcích", "zámky"]
@@ -12650,7 +12650,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["tábor", "tábora", "táboru", "tábor", "tábore", "táboře", "táborem"],
 			"pl": ["tábory", "táborů", "táborům", "tábory", "tábory", "táborech", "tábory"]
@@ -12836,7 +12836,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["čtenář", "čtenáře", "čtenáři", "čtenáře", "čtenáři", "čtenáři", "čtenářem"],
 			"pl": ["čtenáři", "čtenářů", "čtenářům", "čtenáře", "čtenáři", "čtenářích", "čtenáři"]
@@ -13344,7 +13344,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["klient", "klienta", "klientovi", "klienta", "kliente", "klientovi", "klientem"],
 			"pl": ["klienti", "klientů", "klientům", "klienty", "klienti", "klientech", "klienty"]
@@ -13513,7 +13513,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["dvůr", "dvora", "dvoru", "dvůr", "dvore", "dvoře", "dvorem"],
 			"pl": ["dvory", "dvorů", "dvorům", "dvory", "dvory", "dvorech", "dvory"]
@@ -14433,7 +14433,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["cigareta", "cigarety", "cigaretě", "cigaretu", "cigareto", "cigaretě", "cigaretou"],
 			"pl": ["cigarety", "cigaret", "cigaretám", "cigarety", "cigarety", "cigaretách", "cigaretami"]
@@ -14760,7 +14760,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["pozemek", "pozemku", "pozemku", "pozemek", "pozemku", "pozemku", "pozemkem"],
 			"pl": ["pozemky", "pozemků", "pozemkům", "pozemky", "pozemky", "pozemcích", "pozemky"]
@@ -15110,7 +15110,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["lék", "léku", "léku", "lék", "léku", "léku", "lékem"],
 			"pl": ["léky", "léků", "lékům", "léky", "léky", "lécích", "léky"]
@@ -15453,7 +15453,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["pas", "pasu", "pasu", "pas", "pase", "pase", "pasem"],
 			"pl": ["pasy", "pasů", "pasům", "pasy", "pasy", "pasech", "pasy"]
@@ -15711,7 +15711,7 @@
 		"animate": false,
 		"paradigm": "moře",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["hřiště", "hřiště", "hřišti", "hřiště", "hřiště", "hřišti", "hřištěm"],
 			"pl": ["hřiště", "hřišť", "hřištím", "hřiště", "hřiště", "hřištích", "hřišti"]
@@ -15974,7 +15974,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["důl", "dolu", "dolu", "důl", "dole", "dole", "dolem"],
 			"pl": ["doly", "dolů", "dolům", "doly", "doly", "dolech", "doly"]
@@ -16504,7 +16504,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["areál", "areálu", "areálu", "areál", "areále", "areálu", "areálem"],
 			"pl": ["areály", "areálů", "areálům", "areály", "areály", "areálech", "areály"]
@@ -17047,7 +17047,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["soupeř", "soupeře", "soupeři", "soupeře", "soupeři", "soupeři", "soupeřem"],
 			"pl": ["soupeři", "soupeřů", "soupeřům", "soupeře", "soupeři", "soupeřích", "soupeři"]
@@ -18890,7 +18890,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["základna", "základny", "základně", "základnu", "základno", "základně", "základnou"],
 			"pl": [
@@ -18984,7 +18984,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"útočník",
@@ -19373,7 +19373,7 @@
 		"animate": true,
 		"paradigm": "soudce",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["tvůrce", "tvůrce", "tvůrci", "tvůrce", "tvůrce", "tvůrci", "tvůrcem"],
 			"pl": ["tvůrci", "tvůrců", "tvůrcům", "tvůrce", "tvůrci", "tvůrcích", "tvůrci"]
@@ -19429,7 +19429,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["kříž", "kříže", "kříži", "kříž", "kříži", "kříži", "křížem"],
 			"pl": ["kříže", "křížů", "křížům", "kříže", "kříže", "křížích", "kříži"]
@@ -19767,7 +19767,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"uživatel",
@@ -19932,7 +19932,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"jednotlivec",
@@ -20018,7 +20018,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"náměstek",
@@ -21193,7 +21193,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["pobřeží", "pobřeží", "pobřeží", "pobřeží", "pobřeží", "pobřeží", "pobřežím"],
 			"pl": ["pobřeží", "pobřeží", "pobřežím", "pobřeží", "pobřeží", "pobřežích", "pobřežími"]
@@ -21379,7 +21379,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["ulička", "uličky", "uličce", "uličku", "uličko", "uličce", "uličkou"],
 			"pl": ["uličky", "uliček", "uličkám", "uličky", "uličky", "uličkách", "uličkami"]
@@ -21480,7 +21480,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["sklad", "skladu", "skladu", "sklad", "sklade", "skladě", "skladem"],
 			"pl": ["sklady", "skladů", "skladům", "sklady", "sklady", "skladech", "sklady"]
@@ -21770,7 +21770,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "region", "places"],
 		"forms": {
 			"sg": ["okres", "okresu", "okresu", "okres", "okrese", "okrese", "okresem"],
 			"pl": ["okresy", "okresů", "okresům", "okresy", "okresy", "okresech", "okresy"]
@@ -22044,7 +22044,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": [
 				"obrazovka",
@@ -22199,7 +22199,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["obal", "obalu", "obalu", "obal", "obale", "obale", "obalem"],
 			"pl": ["obaly", "obalů", "obalům", "obaly", "obaly", "obalech", "obaly"]
@@ -23032,7 +23032,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"organizátor",
@@ -23481,7 +23481,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["potomek", "potomka", "potomkovi", "potomka", "potomku", "potomkovi", "potomkem"],
 			"pl": ["potomci", "potomků", "potomkům", "potomky", "potomci", "potomcích", "potomky"]
@@ -23929,7 +23929,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"zaměstnavatel",
@@ -24123,7 +24123,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "indoor", "places"],
 		"forms": {
 			"sg": ["pokladna", "pokladny", "pokladně", "pokladnu", "pokladno", "pokladně", "pokladnou"],
 			"pl": [
@@ -24241,7 +24241,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["volič", "voliče", "voliči", "voliče", "voliči", "voliči", "voličem"],
 			"pl": ["voliči", "voličů", "voličům", "voliče", "voliči", "voličích", "voliči"]
@@ -24357,7 +24357,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["plátno", "plátna", "plátnu", "plátno", "plátno", "plátně", "plátnem"],
 			"pl": ["plátna", "pláten", "plátnům", "plátna", "plátna", "plátnech", "plátny"]
@@ -24670,7 +24670,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["stan", "stanu", "stanu", "stan", "stane", "stanu", "stanem"],
 			"pl": ["stany", "stanů", "stanům", "stany", "stany", "stanech", "stany"]
@@ -24795,7 +24795,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": ["kritik", "kritika", "kritikovi", "kritika", "kritiku", "kritikovi", "kritikem"],
 			"pl": ["kritici", "kritiků", "kritikům", "kritiky", "kritici", "kriticích", "kritiky"]
@@ -25083,7 +25083,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"posluchač",
@@ -25178,7 +25178,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"spolupracovník",
@@ -25226,7 +25226,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["obálka", "obálky", "obálce", "obálku", "obálko", "obálce", "obálkou"],
 			"pl": ["obálky", "obálek", "obálkám", "obálky", "obálky", "obálkách", "obálkami"]
@@ -25459,7 +25459,7 @@
 		"animate": false,
 		"paradigm": "píseň",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["tyč", "tyče", "tyči", "tyč", "tyči", "tyči", "tyčí"],
 			"pl": ["tyče", "tyčí", "tyčím", "tyče", "tyče", "tyčích", "tyčemi"]
@@ -25559,7 +25559,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["zastávka", "zastávky", "zastávce", "zastávku", "zastávko", "zastávce", "zastávkou"],
 			"pl": [
@@ -25684,7 +25684,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": [
 				"křižovatka",
@@ -26300,7 +26300,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"příznivec",
@@ -26885,7 +26885,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["přístav", "přístavu", "přístavu", "přístav", "přístave", "přístavě", "přístavem"],
 			"pl": ["přístavy", "přístavů", "přístavům", "přístavy", "přístavy", "přístavech", "přístavy"]
@@ -27527,7 +27527,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["rukáv", "rukávu", "rukávu", "rukáv", "rukáve", "rukávě", "rukávem"],
 			"pl": ["rukávy", "rukávů", "rukávům", "rukávy", "rukávy", "rukávech", "rukávy"]
@@ -28287,7 +28287,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"zakladatel",
@@ -28623,7 +28623,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A1",
-		"categories": ["misc", "address_informal", "address_group"],
+		"categories": ["misc", "address_informal", "address_group", "people"],
 		"forms": {
 			"sg": [
 				"spolužák",
@@ -29103,7 +29103,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"primátor",
@@ -29168,7 +29168,7 @@
 		"animate": true,
 		"paradigm": "soudce",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["odpůrce", "odpůrce", "odpůrci", "odpůrce", "odpůrce", "odpůrci", "odpůrcem"],
 			"pl": ["odpůrci", "odpůrců", "odpůrcům", "odpůrce", "odpůrci", "odpůrcích", "odpůrci"]
@@ -29226,7 +29226,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "mass"],
 		"forms": {
 			"sg": ["nádobí", "nádobí", "nádobí", "nádobí", "nádobí", "nádobí", "nádobím"],
 			"pl": ["nádobí", "nádobí", "nádobím", "nádobí", "nádobí", "nádobích", "nádobími"]
@@ -29281,7 +29281,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": ["kouč", "kouče", "kouči", "kouče", "kouči", "kouči", "koučem"],
 			"pl": ["kouči", "koučů", "koučům", "kouče", "kouči", "koučích", "kouči"]
@@ -29562,7 +29562,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["portrét", "portrétu", "portrétu", "portrét", "portréte", "portrétu", "portrétem"],
 			"pl": ["portréty", "portrétů", "portrétům", "portréty", "portréty", "portrétech", "portréty"]
@@ -29593,7 +29593,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["císař", "císaře", "císaři", "císaře", "císaři", "císaři", "císařem"],
 			"pl": ["císaři", "císařů", "císařům", "císaře", "císaři", "císařích", "císaři"]
@@ -29786,7 +29786,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"pořadatel",
@@ -30096,7 +30096,7 @@
 		"animate": true,
 		"paradigm": "soudce",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["obránce", "obránce", "obránci", "obránce", "obránce", "obránci", "obráncem"],
 			"pl": ["obránci", "obránců", "obráncům", "obránce", "obránci", "obráncích", "obránci"]
@@ -30141,7 +30141,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["brankář", "brankáře", "brankáři", "brankáře", "brankáři", "brankáři", "brankářem"],
 			"pl": ["brankáři", "brankářů", "brankářům", "brankáře", "brankáři", "brankářích", "brankáři"]
@@ -30191,7 +30191,7 @@
 		"animate": true,
 		"paradigm": "soudce",
 		"difficulty": "B2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"předchůdce",
@@ -30457,7 +30457,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"tajemník",
@@ -30656,7 +30656,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"policajt",
@@ -30708,7 +30708,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "region", "places"],
 		"forms": {
 			"sg": [
 				"kontinent",
@@ -31040,7 +31040,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"historik",
@@ -32057,7 +32057,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["mlýn", "mlýna", "mlýnu", "mlýn", "mlýne", "mlýně", "mlýnem"],
 			"pl": ["mlýny", "mlýnů", "mlýnům", "mlýny", "mlýny", "mlýnech", "mlýny"]
@@ -32137,7 +32137,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["spojenec", "spojence", "spojenci", "spojence", "spojenče", "spojenci", "spojencem"],
 			"pl": ["spojenci", "spojenců", "spojencům", "spojence", "spojenci", "spojencích", "spojenci"]
@@ -32284,7 +32284,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"chlapík",
@@ -32595,7 +32595,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "readable"],
 		"forms": {
 			"sg": ["listina", "listiny", "listině", "listinu", "listino", "listině", "listinou"],
 			"pl": ["listiny", "listin", "listinám", "listiny", "listiny", "listinách", "listinami"]
@@ -32782,7 +32782,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["střelec", "střelce", "střelci", "střelce", "střelče", "střelci", "střelcem"],
 			"pl": ["střelci", "střelců", "střelcům", "střelce", "střelci", "střelcích", "střelci"]
@@ -32957,7 +32957,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["jezdec", "jezdce", "jezdci", "jezdce", "jezdče", "jezdci", "jezdcem"],
 			"pl": ["jezdci", "jezdců", "jezdcům", "jezdce", "jezdci", "jezdcích", "jezdci"]
@@ -33328,7 +33328,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"protivník",
@@ -33659,7 +33659,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["poklad", "pokladu", "pokladu", "poklad", "poklade", "pokladu", "pokladem"],
 			"pl": ["poklady", "pokladů", "pokladům", "poklady", "poklady", "pokladech", "poklady"]
@@ -33883,7 +33883,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["kabina", "kabiny", "kabině", "kabinu", "kabino", "kabině", "kabinou"],
 			"pl": ["kabiny", "kabin", "kabinám", "kabiny", "kabiny", "kabinách", "kabinami"]
@@ -33969,7 +33969,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": ["stezka", "stezky", "stezce", "stezku", "stezko", "stezce", "stezkou"],
 			"pl": ["stezky", "stezek", "stezkám", "stezky", "stezky", "stezkách", "stezkami"]
@@ -34388,7 +34388,7 @@
 		"animate": false,
 		"paradigm": "píseň",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["mříž", "mříže", "mříži", "mříž", "mříži", "mříži", "mříží"],
 			"pl": ["mříže", "mříží", "mřížím", "mříže", "mříže", "mřížích", "mřížemi"]
@@ -34664,7 +34664,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["zábradlí", "zábradlí", "zábradlí", "zábradlí", "zábradlí", "zábradlí", "zábradlím"],
 			"pl": [
@@ -34758,7 +34758,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"absolvent",
@@ -35846,7 +35846,7 @@
 		"animate": false,
 		"paradigm": "píseň",
 		"difficulty": "B1",
-		"categories": ["misc", "places", "nature", "landmark"],
+		"categories": ["misc", "places", "nature", "landmark", "na_place"],
 		"forms": {
 			"sg": ["poušť", "pouště", "poušti", "poušť", "poušti", "poušti", "pouští"],
 			"pl": ["pouště", "pouští", "pouštím", "pouště", "pouště", "pouštích", "pouštěmi"]
@@ -35898,7 +35898,7 @@
 		"animate": true,
 		"paradigm": "soudce",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["nástupce", "nástupce", "nástupci", "nástupce", "nástupce", "nástupci", "nástupcem"],
 			"pl": ["nástupci", "nástupců", "nástupcům", "nástupce", "nástupci", "nástupcích", "nástupci"]
@@ -36036,7 +36036,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "large_object"],
 		"forms": {
 			"sg": ["kotel", "kotle", "kotli", "kotel", "kotli", "kotli", "kotlem"],
 			"pl": ["kotle", "kotlů", "kotlům", "kotle", "kotle", "kotlích", "kotli"]
@@ -36095,7 +36095,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["rám", "rámu", "rámu", "rám", "ráme", "rámu", "rámem"],
 			"pl": ["rámy", "rámů", "rámům", "rámy", "rámy", "rámech", "rámy"]
@@ -36139,7 +36139,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"sponzor",
@@ -36615,7 +36615,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["kytara", "kytary", "kytaře", "kytaru", "kytaro", "kytaře", "kytarou"],
 			"pl": ["kytary", "kytar", "kytarám", "kytary", "kytary", "kytarách", "kytarami"]
@@ -36659,7 +36659,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"skladatel",
@@ -36886,7 +36886,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["šňůra", "šňůry", "šňůře", "šňůru", "šňůro", "šňůře", "šňůrou"],
 			"pl": ["šňůry", "šňůr", "šňůrám", "šňůry", "šňůry", "šňůrách", "šňůrami"]
@@ -37579,7 +37579,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"spotřebitel",
@@ -37906,7 +37906,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"filozof",
@@ -37946,7 +37946,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["šperk", "šperku", "šperku", "šperk", "šperku", "šperku", "šperkem"],
 			"pl": ["šperky", "šperků", "šperkům", "šperky", "šperky", "špercích", "šperky"]
@@ -38275,7 +38275,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"pozorovatel",
@@ -38369,7 +38369,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["cédéčko", "cédéčka", "cédéčku", "cédéčko", "cédéčko", "cédéčku", "cédéčkem"],
 			"pl": ["cédéčka", "cédéček", "cédéčkům", "cédéčka", "cédéčka", "cédéčkách", "cédéčky"]
@@ -38460,7 +38460,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "indoor", "places"],
 		"forms": {
 			"sg": ["cela", "cely", "cele", "celu", "celo", "cele", "celou"],
 			"pl": ["cely", "cel", "celám", "cely", "cely", "celách", "celami"]
@@ -38605,7 +38605,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["baterka", "baterky", "baterce", "baterku", "baterko", "baterce", "baterkou"],
 			"pl": ["baterky", "baterek", "baterkám", "baterky", "baterky", "baterkách", "baterkami"]
@@ -38649,7 +38649,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["kabel", "kabelu", "kabelu", "kabel", "kabele", "kabelu", "kabelem"],
 			"pl": ["kabely", "kabelů", "kabelům", "kabely", "kabely", "kabelech", "kabely"]
@@ -38680,7 +38680,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["past", "pasti", "pasti", "past", "pasti", "pasti", "pastí"],
 			"pl": ["pasti", "pastí", "pastem", "pasti", "pasti", "pastech", "pastmi"]
@@ -38913,7 +38913,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["chodec", "chodce", "chodci", "chodce", "chodče", "chodci", "chodcem"],
 			"pl": ["chodci", "chodců", "chodcům", "chodce", "chodci", "chodcích", "chodci"]
@@ -39163,7 +39163,7 @@
 		"animate": false,
 		"paradigm": "město",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["vízum", "víza", "vízu", "vízum", "vízum", "vízu", "vízem"],
 			"pl": ["víza", "víz", "vízům", "víza", "víza", "vízech", "vízy"]
@@ -39484,7 +39484,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "sittable", "places"],
 		"forms": {
 			"sg": ["terasa", "terasy", "terase", "terasu", "teraso", "terase", "terasou"],
 			"pl": ["terasy", "teras", "terasám", "terasy", "terasy", "terasách", "terasami"]
@@ -39497,7 +39497,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "large_object"],
 		"forms": {
 			"sg": ["topení", "topení", "topení", "topení", "topení", "topení", "topením"],
 			"pl": ["topení", "topení", "topením", "topení", "topení", "topeních", "topeními"]
@@ -39724,7 +39724,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "na_place", "places"],
 		"forms": {
 			"sg": [
 				"velvyslanectví",
@@ -39864,7 +39864,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"historička",
@@ -39893,7 +39893,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"kosmonaut",
@@ -39932,7 +39932,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"kosmonautka",
@@ -40045,7 +40045,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": ["pilotka", "pilotky", "pilotce", "pilotku", "pilotko", "pilotce", "pilotkou"],
 			"pl": ["pilotky", "pilotek", "pilotkám", "pilotky", "pilotky", "pilotkách", "pilotkami"]
@@ -40087,7 +40087,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"politička",
@@ -40273,7 +40273,7 @@
 		"animate": false,
 		"paradigm": "růže",
 		"difficulty": "A1",
-		"categories": ["misc", "title"],
+		"categories": ["misc", "title", "people", "profession"],
 		"forms": {
 			"sg": [
 				"průvodkyně",
@@ -40307,7 +40307,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"psycholožka",
@@ -40381,7 +40381,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"uklízečka",
@@ -40755,7 +40755,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["knoflík", "knoflíku", "knoflíku", "knoflík", "knoflíku", "knoflíku", "knoflíkem"],
 			"pl": ["knoflíky", "knoflíků", "knoflíkům", "knoflíky", "knoflíky", "knoflících", "knoflíky"]
@@ -40897,7 +40897,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"sběratel",
@@ -40936,7 +40936,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"sběratelka",
@@ -40965,7 +40965,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["suvenýr", "suvenýru", "suvenýru", "suvenýr", "suvenýre", "suvenýru", "suvenýrem"],
 			"pl": ["suvenýry", "suvenýrů", "suvenýrům", "suvenýry", "suvenýry", "suvenýrech", "suvenýry"]
@@ -40978,7 +40978,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": [
 				"špendlík",
@@ -41048,7 +41048,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"křesťan",
@@ -41336,7 +41336,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["čistírna", "čistírny", "čistírně", "čistírnu", "čistírno", "čistírně", "čistírnou"],
 			"pl": [
@@ -41370,7 +41370,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": [
 				"feministka",
@@ -41428,7 +41428,7 @@
 		"animate": false,
 		"paradigm": "stavení",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": [
 				"krejčovství",
@@ -41572,7 +41572,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["šachta", "šachty", "šachtě", "šachtu", "šachto", "šachtě", "šachtou"],
 			"pl": ["šachty", "šachet", "šachtám", "šachty", "šachty", "šachtách", "šachtami"]
@@ -41585,7 +41585,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["terč", "terče", "terči", "terč", "terči", "terči", "terčem"],
 			"pl": ["terče", "terčů", "terčům", "terče", "terče", "terčích", "terči"]
@@ -41699,7 +41699,7 @@
 		"animate": false,
 		"paradigm": "kost",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": ["mast", "masti", "masti", "mast", "masti", "masti", "mastí"],
 			"pl": ["masti", "mastí", "mastem", "masti", "masti", "mastech", "mastmi"]
@@ -41731,7 +41731,7 @@
 		"animate": true,
 		"paradigm": "soudce",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["vládce", "vládce", "vládci", "vládce", "vládce", "vládci", "vládcem"],
 			"pl": ["vládci", "vládců", "vládcům", "vládce", "vládci", "vládcích", "vládci"]
@@ -41802,7 +41802,7 @@
 		"animate": false,
 		"paradigm": "moře",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "v_place", "places"],
 		"forms": {
 			"sg": ["hlediště", "hlediště", "hledišti", "hlediště", "hlediště", "hledišti", "hledištěm"],
 			"pl": ["hlediště", "hledišť", "hledištím", "hlediště", "hlediště", "hledištích", "hledišti"]
@@ -42037,7 +42037,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": ["uváděč", "uváděče", "uváděči", "uváděče", "uváděči", "uváděči", "uváděčem"],
 			"pl": ["uváděči", "uváděčů", "uváděčům", "uváděče", "uváděči", "uváděčích", "uváděči"]
@@ -42353,7 +42353,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["čtenářka", "čtenářky", "čtenářce", "čtenářku", "čtenářko", "čtenářce", "čtenářkou"],
 			"pl": [
@@ -42484,7 +42484,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects", "portable"],
 		"forms": {
 			"sg": [
 				"notebook",
@@ -42993,7 +42993,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "readable"],
 		"forms": {
 			"sg": ["faktura", "faktury", "faktuře", "fakturu", "fakturo", "faktuře", "fakturou"],
 			"pl": ["faktury", "faktur", "fakturám", "faktury", "faktury", "fakturách", "fakturami"]
@@ -43436,7 +43436,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["zip", "zipu", "zipu", "zip", "zipe", "zipu", "zipem"],
 			"pl": ["zipy", "zipů", "zipům", "zipy", "zipy", "zipech", "zipy"]
@@ -43751,7 +43751,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": ["básnířka", "básnířky", "básnířce", "básnířku", "básnířko", "básnířce", "básnířkou"],
 			"pl": [
@@ -43772,7 +43772,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["buřič", "buřiče", "buřiči", "buřiče", "buřiči", "buřiči", "buřičem"],
 			"pl": ["buřiči", "buřičů", "buřičům", "buřiče", "buřiči", "buřičích", "buřiči"]
@@ -43791,7 +43791,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A1",
-		"categories": ["misc", "profession"],
+		"categories": ["misc", "profession", "people"],
 		"forms": {
 			"sg": [
 				"dramatik",
@@ -43830,7 +43830,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people"],
 		"forms": {
 			"sg": ["génius", "génia", "géniovi", "génia", "génie", "géniovi", "géniem"],
 			"pl": ["géniové", "géniů", "géniům", "génie", "géniové", "géniích", "génii"]
@@ -43850,7 +43850,7 @@
 		"animate": true,
 		"paradigm": "muž",
 		"difficulty": "B1",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": ["kreslíř", "kreslíře", "kreslíři", "kreslíře", "kreslíři", "kreslíři", "kreslířem"],
 			"pl": ["kreslíři", "kreslířů", "kreslířům", "kreslíře", "kreslíři", "kreslířích", "kreslíři"]
@@ -48696,7 +48696,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["travel"],
+		"categories": ["travel", "objects", "portable"],
 		"forms": {
 			"sg": ["jízdenka", "jízdenky", "jízdence", "jízdenku", "jízdenko", "jízdence", "jízdenkou"],
 			"pl": [
@@ -49942,7 +49942,7 @@
 		"animate": true,
 		"paradigm": "pán",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "people", "profession"],
 		"forms": {
 			"sg": [
 				"moderátor",
@@ -51133,7 +51133,7 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A2",
-		"categories": ["misc"],
+		"categories": ["misc", "objects"],
 		"forms": {
 			"sg": ["podpatek", "podpatku", "podpatku", "podpatek", "podpatku", "podpatku", "podpatkem"],
 			"pl": ["podpatky", "podpatků", "podpatkům", "podpatky", "podpatky", "podpatcích", "podpatky"]

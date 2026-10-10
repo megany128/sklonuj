@@ -521,5 +521,17 @@
 	["dat_naproti_097", "pódium"],
 	["dat_naproti_097", "lavička"],
 	["dat_naproti_097", "podchod"],
-	["dat_naproti_097", "chodník"]
+	["dat_naproti_097", "chodník"],
+	["gen_do_011", "okres"],
+	["acc_mam_007", "mříž"],
+	["acc_mam_007", "zábradlí"],
+	["acc_mam_007", "kabina"],
+	["acc_mam_007", "rukáv"],
+	["acc_mam_007", "podpatek"],
+	["gen_vedle_016", "terasa"],
+	["gen_vedle_016", "hlediště"],
+	["dat_naproti_097", "terasa"],
+	["dat_naproti_097", "hlediště"],
+	["gen_uprostred_080", "pokladna"],
+	["gen_uprostred_207", "pokladna"]
 ]
