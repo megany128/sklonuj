@@ -2,9 +2,6 @@ import { writable, get } from 'svelte/store';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Case, Number_, DrillType, Paradigm } from '../types';
 import { isCase, isNumber, ALL_PARADIGMS } from '../types';
-import { loadWordBank } from './drill';
-import { loadAdjectiveBank } from './adjective-drill';
-import { loadPronounBank } from './pronoun-drill';
 
 /** Which bank a mistake's lemma belongs to (mirrors `DrillQuestion.wordCategory`). */
 export type MistakeWordCategory = 'noun' | 'pronoun' | 'adjective';
@@ -100,16 +97,24 @@ function isValidMistakeRecord(value: unknown): value is MistakeRecord {
 	return true;
 }
 
-let cachedBankLemmaSets: BankLemmaSets | null = null;
+let bankLemmaSets: Promise<BankLemmaSets> | null = null;
 
-/** Lemma sets of the three current banks, built once on first use. */
-function getBankLemmaSets(): BankLemmaSets {
-	cachedBankLemmaSets ??= {
-		noun: new Set(loadWordBank().map((w) => w.lemma)),
-		adjective: new Set(loadAdjectiveBank().map((a) => a.lemma)),
-		pronoun: new Set(loadPronounBank().map((p) => p.lemma))
-	};
-	return cachedBankLemmaSets;
+/**
+ * Lemma sets of the three current banks, built once on first use. The banks
+ * are imported on demand: this module is in the layout, and a static import
+ * would put the whole word bank on every page.
+ */
+export function loadBankLemmaSets(): Promise<BankLemmaSets> {
+	bankLemmaSets ??= Promise.all([
+		import('./drill'),
+		import('./adjective-drill'),
+		import('./pronoun-drill')
+	]).then(([nouns, adjectives, pronouns]) => ({
+		noun: new Set(nouns.loadWordBank().map((w) => w.lemma)),
+		adjective: new Set(adjectives.loadAdjectiveBank().map((a) => a.lemma)),
+		pronoun: new Set(pronouns.loadPronounBank().map((p) => p.lemma))
+	}));
+	return bankLemmaSets;
 }
 
 /**
@@ -143,17 +148,14 @@ export function isMistakeLemmaInBank(record: MistakeRecord, banks: BankLemmaSets
 
 /**
  * Turn untrusted stored data (localStorage JSON or the `user_mistakes.mistakes`
- * column) into mistake records: malformed entries are rejected, and so are
- * mistakes on words that are no longer in the banks. Every load path goes
- * through here. `banks` is injectable for tests; the real sets are only built
- * when there is at least one well-formed record to check.
+ * column) into mistake records. Malformed entries are always rejected. With
+ * `banks`, mistakes on words that are no longer in the banks are rejected too;
+ * without, that check is left to `purgeRemovedWords`, which loads the banks.
  */
 export function parseMistakeRecords(raw: unknown, banks?: BankLemmaSets): MistakeRecord[] {
 	if (!Array.isArray(raw)) return [];
 	const valid = raw.filter(isValidMistakeRecord);
-	if (valid.length === 0) return valid;
-	const lemmaSets = banks ?? getBankLemmaSets();
-	return valid.filter((m) => isMistakeLemmaInBank(m, lemmaSets));
+	return banks ? valid.filter((m) => isMistakeLemmaInBank(m, banks)) : valid;
 }
 
 function loadFromStorage(): MistakeRecord[] {
@@ -162,10 +164,7 @@ function loadFromStorage(): MistakeRecord[] {
 		const raw = localStorage.getItem(STORAGE_KEY);
 		if (raw === null) return [];
 		const parsed: unknown = JSON.parse(raw);
-		const records = parseMistakeRecords(parsed);
-		// Write the cleaned list back so dropped entries don't linger in storage.
-		if (Array.isArray(parsed) && records.length !== parsed.length) saveToStorage(records);
-		return records;
+		return parseMistakeRecords(parsed);
 	} catch {
 		return [];
 	}
@@ -187,6 +186,24 @@ if (typeof window !== 'undefined') {
 		saveToStorage(value);
 	});
 }
+
+/**
+ * Drop saved mistakes on words that are no longer in the banks (the store
+ * subscription writes the cleaned list back). Does nothing, and loads
+ * nothing, when there are no saved mistakes.
+ */
+export async function purgeRemovedWords(): Promise<void> {
+	if (get(mistakeRecords).length === 0) return;
+	const banks = await loadBankLemmaSets();
+	const current = get(mistakeRecords);
+	const kept = current.filter((m) => isMistakeLemmaInBank(m, banks));
+	if (kept.length !== current.length) mistakeRecords.set(kept);
+}
+
+// Stored mistakes are checked against the banks once per visit, after the
+// page is up: the banks load in the background and only if there is
+// something to check.
+if (typeof window !== 'undefined') void purgeRemovedWords();
 
 export function addMistake(record: Omit<MistakeRecord, 'timestamp'>): void {
 	mistakeRecords.update((current) => {
@@ -315,10 +332,14 @@ export async function loadMistakesFromSupabase(supabase: SupabaseClient): Promis
 	// Mistakes on removed words are dropped here, as they are when reading
 	// localStorage. The remote row itself is left alone.
 	const remoteRaw: unknown = data ? data.mistakes : null;
-	const remoteMistakes = parseMistakeRecords(remoteRaw);
+	const remoteValid = parseMistakeRecords(remoteRaw);
+	const remoteMistakes =
+		remoteValid.length > 0
+			? parseMistakeRecords(remoteValid, await loadBankLemmaSets())
+			: remoteValid;
 
-	// The local list was filtered when it was read from storage, and everything
-	// added since comes from a live question.
+	// The local list is checked against the banks by `purgeRemovedWords`, and
+	// everything added since comes from a live question.
 	const localMistakes = get(mistakeRecords);
 
 	// Union local + remote, dedupe on (lemma, targetCase, targetNumber, timestamp).

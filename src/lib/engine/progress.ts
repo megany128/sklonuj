@@ -9,7 +9,7 @@ import type {
 	CellSchedule
 } from '../types.ts';
 import { isRecord } from '../utils/is-record.ts';
-import { adjectiveParadigmKey, getAdjectiveGenderKey } from './adjective-drill.ts';
+import { adjectiveParadigmKey, getAdjectiveGenderKey } from './adjective-keys.ts';
 import {
 	adjectiveCellKey,
 	advanceCell,
