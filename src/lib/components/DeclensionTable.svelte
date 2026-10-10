@@ -142,12 +142,26 @@
 	});
 
 	// A word that isn't exactly in the bank may be in the dictionary: fetch it,
-	// and the table fills in when it arrives.
+	// and the table fills in when it arrives. A failed download is retried on
+	// the next word; meanwhile the lookup answers from the bank alone.
+	let dictionaryFailed = $state(false);
+
+	function needsDictionary(lemma: string): boolean {
+		return lemma !== '' && dictionary === null && !lookupInBank(lemma)?.exact;
+	}
+
 	$effect(() => {
-		const lemma = selectedLemma.trim();
-		if (lemma === '' || dictionary !== null || lookupInBank(lemma)?.exact) return;
-		void loadDictionary().then((d) => (dictionary = d));
+		if (!needsDictionary(selectedLemma.trim())) return;
+		dictionaryFailed = false;
+		loadDictionary().then(
+			(d) => (dictionary = d),
+			() => (dictionaryFailed = true)
+		);
 	});
+
+	// While the dictionary is on its way the word is simply not known yet:
+	// say so, rather than show another word's table.
+	let lookingUp = $derived(needsDictionary(selectedLemma.trim()) && !dictionaryFailed);
 
 	let trimmedLemma = $derived(selectedLemma.trim().toLowerCase());
 	let isPivo = $derived(trimmedLemma === 'pivo');
@@ -276,82 +290,88 @@
 				{/if}
 			</div>
 
-			<!-- Word info -->
-			<div class="flex flex-wrap items-center gap-2 px-1">
-				<span class="text-sm font-semibold text-text-default">
-					{displayEntry.lemma}
-				</span>
-				<span class="text-xs text-text-subtitle">
-					{displayEntry.translation}
-				</span>
-				{#if displayEntry.paradigmHint}
-					<span
-						class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
-					>
-						{displayEntry.paradigmHint}
+			{#if lookingUp}
+				<p class="px-1 text-sm text-text-subtitle" role="status">
+					Looking up {selectedLemma.trim()}…
+				</p>
+			{:else}
+				<!-- Word info -->
+				<div class="flex flex-wrap items-center gap-2 px-1">
+					<span class="text-sm font-semibold text-text-default">
+						{displayEntry.lemma}
 					</span>
-				{/if}
-			</div>
+					<span class="text-xs text-text-subtitle">
+						{displayEntry.translation}
+					</span>
+					{#if displayEntry.paradigmHint}
+						<span
+							class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
+						>
+							{displayEntry.paradigmHint}
+						</span>
+					{/if}
+				</div>
 
-			<!-- Declension table -->
-			<div class="overflow-x-auto">
-				<table class="w-full text-left text-xs">
-					<thead>
-						<tr>
-							<th
-								class="rounded-tl-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
-							>
-								Case
-							</th>
-							<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
-								Singular
-							</th>
-							<th
-								class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
-							>
-								Plural
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each CASE_ORDER as caseKey, i (caseKey)}
-							<tr
-								class="border-t border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
-							>
-								<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
-									{CASE_NUMBER[caseKey]}. {CASE_LABELS[caseKey]}
-								</td>
-								<td class="px-3 py-2">
-									{#if displayEntry.sg[CASE_INDEX[caseKey]] === ''}
-										<span class="text-darker-shaded-background">&mdash;</span>
-									{:else if sgStem.length > 0}
-										<span class="text-text-subtitle"
-											>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
-										><span class="text-emphasis"
-											>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
-										>
-									{:else}
-										<span class="text-text-default">{displayEntry.sg[CASE_INDEX[caseKey]]}</span>
-									{/if}
-								</td>
-								<td class="px-3 py-2">
-									{#if displayEntry.pl[CASE_INDEX[caseKey]] === ''}
-										<span class="text-darker-shaded-background">&mdash;</span>
-									{:else if plStem.length > 0}
-										<span class="text-text-subtitle"
-											>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
-										><span class="text-emphasis"
-											>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
-										>
-									{:else}
-										<span class="text-text-default">{displayEntry.pl[CASE_INDEX[caseKey]]}</span>
-									{/if}
-								</td>
+				<!-- Declension table -->
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-xs">
+						<thead>
+							<tr>
+								<th
+									class="rounded-tl-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+								>
+									Case
+								</th>
+								<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
+									Singular
+								</th>
+								<th
+									class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+								>
+									Plural
+								</th>
 							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+						</thead>
+						<tbody>
+							{#each CASE_ORDER as caseKey, i (caseKey)}
+								<tr
+									class="border-t border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
+								>
+									<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
+										{CASE_NUMBER[caseKey]}. {CASE_LABELS[caseKey]}
+									</td>
+									<td class="px-3 py-2">
+										{#if displayEntry.sg[CASE_INDEX[caseKey]] === ''}
+											<span class="text-darker-shaded-background">&mdash;</span>
+										{:else if sgStem.length > 0}
+											<span class="text-text-subtitle"
+												>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
+											><span class="text-emphasis"
+												>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
+											>
+										{:else}
+											<span class="text-text-default">{displayEntry.sg[CASE_INDEX[caseKey]]}</span>
+										{/if}
+									</td>
+									<td class="px-3 py-2">
+										{#if displayEntry.pl[CASE_INDEX[caseKey]] === ''}
+											<span class="text-darker-shaded-background">&mdash;</span>
+										{:else if plStem.length > 0}
+											<span class="text-text-subtitle"
+												>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
+											><span class="text-emphasis"
+												>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
+											>
+										{:else}
+											<span class="text-text-default">{displayEntry.pl[CASE_INDEX[caseKey]]}</span>
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
 
 			{#if isPivo}
 				{#key selectedLemma}

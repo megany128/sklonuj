@@ -74,7 +74,11 @@
 	function requestDictionary(): void {
 		if (dictionaryRequested) return;
 		dictionaryRequested = true;
-		void loadDictionary().then((d) => (dictStripped = toRows(d)));
+		loadDictionary().then(
+			(d) => (dictStripped = toRows(d)),
+			// Offline or a dropped connection: the next keystroke tries again.
+			() => (dictionaryRequested = false)
+		);
 	}
 
 	function getSuggestions(q: string): Suggestion[] {
@@ -127,10 +131,6 @@
 	let suggestions: Suggestion[] = $derived.by(() => {
 		if (trimmedQuery.length < MIN_AUTOCOMPLETE_LENGTH) return [];
 		return getSuggestions(trimmedQuery);
-	});
-
-	$effect(() => {
-		if (trimmedQuery.length > 0) requestDictionary();
 	});
 
 	let dropdownOpen = $derived(showSuggestions && trimmedQuery.length >= MIN_AUTOCOMPLETE_LENGTH);
@@ -191,6 +191,9 @@
 	}
 
 	function handleInput(): void {
+		// Only typing asks for the dictionary. The parent also sets `query`
+		// (a clicked drill word, already in the bank), which must not.
+		requestDictionary();
 		showSuggestions = true;
 		highlightedIndex = -1;
 	}

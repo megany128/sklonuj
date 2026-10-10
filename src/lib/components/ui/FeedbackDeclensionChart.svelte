@@ -39,7 +39,12 @@
 
 	$effect(() => {
 		if (dictionary !== null || bankForms(lemma)) return;
-		void loadDictionary().then((d) => (dictionary = d));
+		// No chart is shown until the forms are known; a failed download is
+		// retried with the next word.
+		loadDictionary().then(
+			(d) => (dictionary = d),
+			() => undefined
+		);
 	});
 
 	let forms = $derived(lookupForms(lemma, dictionary));

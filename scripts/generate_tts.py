@@ -51,7 +51,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -273,6 +273,19 @@ async def run(
     return entries, generated, skipped, failures
 
 
+def manifest_voice() -> Optional[str]:
+    """The voice the existing manifest was generated with, if there is one."""
+    manifest_path = OUT_DIR / "index.json"
+    if not manifest_path.exists():
+        return None
+    try:
+        existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    voice = existing.get("voice") if isinstance(existing, dict) else None
+    return voice if isinstance(voice, str) else None
+
+
 def write_manifest(entries: dict[str, str], voice: str) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     manifest_path = OUT_DIR / "index.json"
@@ -350,6 +363,18 @@ def main(argv: list[str]) -> int:
 
     if args.dry_run:
         return 0
+
+    # Paths are sha1(voice|text) and the app computes them from the manifest's
+    # one voice, so a partial run can't add a second voice to it.
+    if args.only is not None:
+        prior_voice = manifest_voice()
+        if prior_voice is not None and prior_voice != args.voice:
+            print(
+                f"error: the manifest was generated with voice {prior_voice}; --only cannot "
+                f"add {args.voice} to it. Regenerate everything with the new voice instead.",
+                file=sys.stderr,
+            )
+            return 2
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     entries, generated, skipped, failures = asyncio.run(run(texts, args.voice, args.force))

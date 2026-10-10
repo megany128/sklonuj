@@ -6,8 +6,8 @@ const { default: DeclensionTable } = await import('./DeclensionTable.svelte');
 const { render, cleanup } = await import('vitest-browser-svelte');
 const { getDictionary } = await import('$lib/engine/dictionary');
 
-// The lookup dictionary is loaded on demand. These run in order: the first
-// test is the only one that sees it not yet loaded.
+// The lookup dictionary is loaded on demand. These run in order: the tests
+// before "shows the table of a dictionary-only word" see it not yet loaded.
 describe('lookup with the on-demand dictionary', () => {
 	beforeEach(() => cleanup());
 
@@ -17,9 +17,26 @@ describe('lookup with the on-demand dictionary', () => {
 		expect(getDictionary()).toBeNull();
 	});
 
-	it('suggests bank words at once and dictionary words once it has loaded', async () => {
-		const onSelect = vi.fn();
-		render(LookupSearch, { onSelect });
+	it('does not load it when the parent fills the search box with a drill word', async () => {
+		render(LookupSearch, { query: 'kniha', onSelect: vi.fn() });
+		await expect
+			.element(page.getByRole('combobox', { name: 'Search for a Czech word' }))
+			.toHaveValue('kniha');
+		await new Promise((r) => setTimeout(r, 300));
+		expect(getDictionary()).toBeNull();
+	});
+
+	it('shows the table of a dictionary-only word, and says it is looking it up meanwhile', async () => {
+		render(DeclensionTable, { selectedLemma: 'abakus', alwaysExpanded: true });
+		// Not žena's table while the dictionary is on its way.
+		expect(document.body.textContent).toContain('Looking up abakus');
+		expect(document.body.textContent).not.toContain('ženou');
+		await expect.element(page.getByText('abacích').first()).toBeInTheDocument();
+		expect(document.body.textContent).not.toContain('Looking up');
+	});
+
+	it('suggests bank words and, once typing has loaded it, dictionary words', async () => {
+		render(LookupSearch, { onSelect: vi.fn() });
 		const input = page.getByRole('combobox', { name: 'Search for a Czech word' });
 
 		await input.fill('kni');
@@ -28,11 +45,5 @@ describe('lookup with the on-demand dictionary', () => {
 		// abakus is only in the dictionary.
 		await input.fill('abak');
 		await expect.element(page.getByRole('option', { name: /abakus/ }).first()).toBeInTheDocument();
-		expect(getDictionary()).not.toBeNull();
-	});
-
-	it('shows the table of a dictionary-only word', async () => {
-		render(DeclensionTable, { selectedLemma: 'abakus', alwaysExpanded: true });
-		await expect.element(page.getByText('abacích').first()).toBeInTheDocument();
 	});
 });

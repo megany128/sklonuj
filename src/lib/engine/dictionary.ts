@@ -6,7 +6,8 @@ import { stripDiacritics } from '../utils/diacritics';
  * drill bank doesn't have. It is several megabytes, and nothing asked in
  * practice needs it (every drilled word is in the word bank), so it is loaded
  * on demand: the first lookup that misses the bank, or the first search.
- * Callers read `getDictionary()` and call `loadDictionary()` when they need it.
+ * Callers read `getDictionary()` and call `loadDictionary()` when they need it,
+ * handling a rejection (offline, a dropped connection) as "not available yet".
  */
 
 export interface DictionaryEntry {
@@ -76,11 +77,21 @@ export function getDictionary(): Dictionary | null {
 	return loaded;
 }
 
-/** Load the dictionary (once) and return it. */
+/**
+ * Load the dictionary (once) and return it. A failed download rejects and is
+ * forgotten, so the next call tries again rather than failing for the rest of
+ * the visit.
+ */
 export function loadDictionary(): Promise<Dictionary> {
-	loading ??= import('../data/dictionary.json').then((module) => {
-		loaded = buildDictionary(module.default);
-		return loaded;
-	});
+	loading ??= import('../data/dictionary.json').then(
+		(module) => {
+			loaded = buildDictionary(module.default);
+			return loaded;
+		},
+		(error: unknown) => {
+			loading = null;
+			throw error;
+		}
+	);
 	return loading;
 }
