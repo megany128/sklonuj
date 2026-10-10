@@ -1,22 +1,38 @@
 # Skloňuj
 
-A web-based drill app for mastering Czech noun declensions — all seven cases, singular and plural, with immediate feedback and adaptive difficulty.
+A web app for drilling Czech declension: nouns, adjectives and personal pronouns in all seven cases, singular and plural, with an explanation after every answer. Built for learners from A1 to B2 and for classes working through _Krok za krokem_.
 
 "Skloňuj" is the Czech imperative for "decline (a noun)." In other words, "decline it!".
 
+Live at [sklonuj.com](https://sklonuj.com).
+
 ## Features
 
-- **Three drill modes** — form production (type the correct form), case identification (name the case), and sentence fill-in-the-blank with contextual Czech sentences
-- **121 curated practice words** across masculine animate, masculine inanimate, feminine, and neuter genders, organized by CEFR difficulty level (A1, A2, B1)
-- **18,000+ noun lookup dictionary** — search any Czech noun and see its full declension table with English translation, powered by MorphoDiTa morphological data
-- **14 paradigm patterns** with a browsable paradigm list in the lookup view showing model declensions (hrad, muž, růže, město, etc.)
-- **Adaptive weighting** — the drill engine prioritizes cases and paradigms you struggle with, weighting question selection by inverse accuracy
-- **CEFR-aligned word difficulty** — A1/A2/B1 levels control which practice words appear based on their difficulty tag; all seven cases are always available for drilling
-- **Progress tracking** — per-case and per-paradigm accuracy scores stored in localStorage, with optional Supabase sync for logged-in users
-- **Reference sidebar** — slide-out panel with three tabs: word declension lookup, case guide with questions and mnemonics, and a preposition cheat sheet organized by case
-- **Diacritics-aware grading** — answers missing only diacritics (e.g., "zenu" for "ženu") are accepted as correct with a near-miss indicator
-- **Czech text-to-speech** — optional audio pronunciation of correct forms using the Web Speech API
-- **Dark mode support**
+**Practice**
+
+- **Four kinds of question:** type the form, name the case, fill in a sentence, and a multi-step question that walks from the noun's pattern to its case to the form (with an adjective step for adjective–noun agreement)
+- **About 3,200 nouns, 60 adjectives and the personal pronouns**, graded A1 to B2, in some 420 sentence frames that are matched to words by meaning, so the app asks for "Bydlím v Praze", not "Bydlím v polévce"
+- **An explanation every time:** why the sentence needs that case, which of the 14 noun patterns the word follows, and the ending rule, with the ending in bold
+- **Diacritics-aware grading:** "zenu" for "ženu" counts as a near miss, not a wrong answer; where Czech has two correct forms (pánovi / pánu) both are accepted
+- **Spaced repetition by pattern:** each pattern × case × number is scheduled on its own, so what you get wrong comes back sooner and what you know is left alone; a missed question is also asked again a few questions later
+- **Less typing:** a chip fills in the dictionary form so you only change the ending, and an accent bar follows the cursor
+- **Recorded Czech audio** for every form (about 26,000 recordings), with the browser's voice as a fallback
+
+**Levels and textbooks**
+
+- **CEFR levels A1–B2** decide which cases, words and plurals appear
+- **_Krok za krokem_ chapters:** practise with the cases and vocabulary of one lesson of KzK 1 (24 lessons) or KzK 2 (20 lessons)
+
+**Reference**
+
+- **Lookup for 18,000+ nouns** with full tables and English glosses, from MorphoDiTa
+- **Guides** to the cases, the 14 patterns, the pronouns and the prepositions
+
+**Progress and classes**
+
+- **Progress** per case and pattern, a list of recent mistakes to review, streaks and achievements; saved on the device, and synced if you sign in
+- **A weekly leaderboard** with generated Czech nicknames instead of real names
+- **Classes:** teachers create a class, set assignments with a due date, and see each student's results
 
 ## Data Sources
 
@@ -41,11 +57,14 @@ pnpm install
 pnpm dev
 ```
 
-To run type checks and linting:
+Copy `.env.example` to `.env` and fill it in: sign-in, progress sync and classes need a Supabase project.
+
+To run type checks, linting and tests:
 
 ```sh
 pnpm check
 pnpm lint
+pnpm test
 ```
 
 To format the codebase:
@@ -56,32 +75,29 @@ pnpm format
 
 ## Adding Words
 
-New words are added through a CLI pipeline that fetches declension data from MorphoDiTa and translations from Wiktionary:
+The word banks in `src/lib/data/` are generated, not edited by hand. Declensions come from MorphoDiTa and translations from Wiktionary:
 
 ```sh
-python3 scripts/add-word.py <lemma> [<lemma> ...]
+python3 scripts/add-word.py <lemma> [<lemma> ...]                        # adds to the lemma list and metadata
+python3 scripts/build_word_bank_morphodita.py --merge --only "a,b,c"     # builds just those words into the bank
+pnpm tts:generate                                                        # records audio for the new forms
 ```
 
-For each lemma, the script resolves the MorphoDiTa lemma ID, generates all inflected forms, fetches an English translation, auto-detects the paradigm, and prompts for confirmation before appending to `scripts/starter_lemmas.txt` and `scripts/starter_nouns_meta.csv`.
+A wrong form is corrected in `scripts/form_overrides.json` and the word rebuilt, never patched in the JSON. Sentence frames (`sentence_templates.json` and its adjective and pronoun counterparts) are plain JSON and can be added to directly. `CLAUDE.md` has the full workflow, including proper nouns, nouns that decline like adjectives, and the _Krok za krokem_ chapter lists.
 
-After adding words, rebuild the word bank:
-
-```sh
-python3 scripts/build_word_bank_morphodita.py
-```
-
-This outputs the final `src/lib/data/word_bank.json` consumed by the app. To rebuild the full lookup dictionary (all 18,000+ nouns), run:
+To rebuild the lookup dictionary:
 
 ```sh
 python3 scripts/build-dictionary.py
 ```
 
-## Pre-generated audio
+## Audio
 
-Czech pronunciation comes from pre-generated MP3s (edge-tts, `cs-CZ-AntoninNeural`) with the Web Speech API as fallback. Regenerate after editing any word/adjective/pronoun bank:
+Pronunciation comes from pre-generated MP3s (edge-tts, `cs-CZ-AntoninNeural`) served from Cloudflare R2, with the Web Speech API as fallback. After a bank change:
 
 ```sh
-pnpm tts:generate
+pnpm tts:generate                                    # resumable; only new forms are recorded
+bash scripts/upload_audio_to_r2.sh sklonuj-audio     # uploads what changed since the last upload
 ```
 
 See the docstring in `scripts/generate_tts.py` for flags and troubleshooting.

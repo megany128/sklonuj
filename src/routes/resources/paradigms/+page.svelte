@@ -9,7 +9,6 @@
 	import { onMount } from 'svelte';
 	import NavBar from '$lib/components/ui/NavBar.svelte';
 	import { loadWordBank } from '$lib/engine/drill';
-	import dictionaryData from '$lib/data/dictionary.json';
 	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER } from '$lib/types';
 	import type { Case, CaseForms } from '$lib/types';
 
@@ -111,39 +110,10 @@
 		return prefix;
 	}
 
+	// Every example word on this page is in the word bank.
 	function lookupExampleForms(lemma: string): { sg: CaseForms; pl: CaseForms } | null {
-		const wordBank = loadWordBank();
-		const wb = wordBank.find((w) => w.lemma.toLowerCase() === lemma.toLowerCase());
-		if (wb) return { sg: wb.forms.sg, pl: wb.forms.pl };
-
-		for (const raw of dictionaryData) {
-			if (String(raw[0]).toLowerCase() === lemma.toLowerCase()) {
-				const sgRaw = raw[2];
-				const plRaw = raw[3];
-				if (!Array.isArray(sgRaw) || !Array.isArray(plRaw)) continue;
-				return {
-					sg: [
-						String(sgRaw[0]),
-						String(sgRaw[1]),
-						String(sgRaw[2]),
-						String(sgRaw[3]),
-						String(sgRaw[4]),
-						String(sgRaw[5]),
-						String(sgRaw[6])
-					] satisfies CaseForms,
-					pl: [
-						String(plRaw[0]),
-						String(plRaw[1]),
-						String(plRaw[2]),
-						String(plRaw[3]),
-						String(plRaw[4]),
-						String(plRaw[5]),
-						String(plRaw[6])
-					] satisfies CaseForms
-				};
-			}
-		}
-		return null;
+		const wb = loadWordBank().find((w) => w.lemma.toLowerCase() === lemma.toLowerCase());
+		return wb ? { sg: wb.forms.sg, pl: wb.forms.pl } : null;
 	}
 
 	const paradigms: Paradigm[] = [

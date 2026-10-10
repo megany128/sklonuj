@@ -1,8 +1,14 @@
 import { env as publicEnv } from '$env/dynamic/public';
+import { audioPathFor } from '$lib/utils/audio-path';
+import { isRecord } from '$lib/utils/is-record';
 
+/**
+ * Which texts have a pre-generated recording, from `/audio/forms.json`. The
+ * file path is computed from the voice and the text (`audioPathFor`).
+ */
 interface AudioIndex {
 	voice: string;
-	entries: Record<string, string>;
+	forms: ReadonlySet<string>;
 }
 
 // Strip trailing slashes so we can safely join with `/${rel}`. Empty string
@@ -66,12 +72,20 @@ export function loadAudioIndex(): Promise<AudioIndex | null> {
 	if (audioIndexPromise) return audioIndexPromise;
 	audioIndexPromise = (async () => {
 		try {
-			const res = await fetch('/audio/index.json', { cache: 'force-cache' });
+			// Default caching, so a returning visitor revalidates and picks up
+			// recordings added since their last visit.
+			const res = await fetch('/audio/forms.json');
 			if (!res.ok) return null;
-			const data = (await res.json()) as AudioIndex;
-			if (!data || typeof data !== 'object' || !data.entries) return null;
-			audioIndex = data;
-			return data;
+			const data: unknown = await res.json();
+			if (!isRecord(data) || typeof data.voice !== 'string' || !Array.isArray(data.forms)) {
+				return null;
+			}
+			const forms = new Set<string>();
+			for (const form of data.forms) {
+				if (typeof form === 'string') forms.add(form);
+			}
+			audioIndex = { voice: data.voice, forms };
+			return audioIndex;
 		} catch {
 			return null;
 		}
@@ -165,9 +179,8 @@ function playPreGenerated(url: string, onFail: () => void): void {
 }
 
 function lookupEntry(text: string): string | null {
-	if (!audioIndex) return null;
-	const rel = audioIndex.entries[text];
-	if (!rel) return null;
+	if (!audioIndex || !audioIndex.forms.has(text)) return null;
+	const rel = audioPathFor(audioIndex.voice, text);
 	return AUDIO_BASE ? `${AUDIO_BASE}/${rel}` : `/audio/${rel}`;
 }
 
@@ -389,7 +402,7 @@ export function isTTSAvailable(): boolean {
 	// Pre-generated audio works on any browser that can play MP3s, even those
 	// without Web Speech API. Treat TTS as available whenever either source
 	// can deliver audio.
-	if (audioIndex && Object.keys(audioIndex.entries).length > 0) return true;
+	if (audioIndex && audioIndex.forms.size > 0) return true;
 	if (typeof window.speechSynthesis === 'undefined') return false;
 	return getCzechVoice() !== null;
 }
