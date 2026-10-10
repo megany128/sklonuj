@@ -199,6 +199,10 @@ describe('DrillCard copy-the-word chip', () => {
 	it('Tab moves focus as usual once the box has text', async () => {
 		mount();
 		const input = page.getByRole('textbox');
+		// A new question focuses its box on the next animation frame. Let that
+		// land first: typing and tabbing inside the same frame would have the
+		// card take focus straight back, which no learner is fast enough to do.
+		await expect.element(input).toHaveFocus();
 		await input.fill('muz');
 		await userEvent.keyboard('{Tab}');
 		await expect.element(input).toHaveValue('muz');
