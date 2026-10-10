@@ -1,6 +1,6 @@
 import { page, userEvent } from 'vitest/browser';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import type { DrillQuestion, DrillResult, WordEntry } from '$lib/types';
+import type { AdjectiveEntry, DrillQuestion, DrillResult, WordEntry } from '$lib/types';
 
 const { default: DrillCard } = await import('./DrillCard.svelte');
 const { render, cleanup } = await import('vitest-browser-svelte');
@@ -38,14 +38,79 @@ const question: DrillQuestion = {
 	wordCategory: 'noun'
 };
 
-function mount(result: DrillResult | null = null) {
+// Adjective drills carry an unrelated placeholder noun in `word`; the lemma the
+// learner declines lives in `adjective`.
+const humor: WordEntry = {
+	lemma: 'humor',
+	translation: 'humour',
+	gender: 'm',
+	animate: false,
+	paradigm: 'hrad',
+	difficulty: 'B1',
+	categories: ['abstract'],
+	forms: {
+		sg: ['humor', 'humoru', 'humoru', 'humor', 'humore', 'humoru', 'humorem'],
+		pl: ['humory', 'humorů', 'humorům', 'humory', 'humory', 'humorech', 'humory']
+	}
+};
+
+const maly: AdjectiveEntry = {
+	lemma: 'malý',
+	translation: 'small',
+	difficulty: 'A1',
+	paradigmType: 'hard',
+	categories: ['places'],
+	profile: 'physical_extent',
+	forms: {
+		m_anim: {
+			sg: ['malý', 'malého', 'malému', 'malého', 'malý', 'malém', 'malým'],
+			pl: ['malí', 'malých', 'malým', 'malé', 'malí', 'malých', 'malými']
+		},
+		m_inanim: {
+			sg: ['malý', 'malého', 'malému', 'malý', 'malý', 'malém', 'malým'],
+			pl: ['malé', 'malých', 'malým', 'malé', 'malé', 'malých', 'malými']
+		},
+		f: {
+			sg: ['malá', 'malé', 'malé', 'malou', 'malá', 'malé', 'malou'],
+			pl: ['malé', 'malých', 'malým', 'malé', 'malé', 'malých', 'malými']
+		},
+		n: {
+			sg: ['malé', 'malého', 'malému', 'malé', 'malé', 'malém', 'malým'],
+			pl: ['malá', 'malých', 'malým', 'malá', 'malá', 'malých', 'malými']
+		}
+	}
+};
+
+const adjectiveQuestion: DrillQuestion = {
+	word: humor,
+	adjective: maly,
+	template: {
+		id: 'adj_loc_v_obchode',
+		template: 'Jsem v ___ obchodě.',
+		lemmaCategory: 'places',
+		requiredCase: 'loc',
+		number: 'sg',
+		requiredGender: 'm',
+		requiredAnimate: false,
+		trigger: 'v',
+		why: "'V' (in) takes the locative case for location.",
+		difficulty: 'A1'
+	},
+	correctAnswer: 'malém',
+	case: 'loc',
+	number: 'sg',
+	drillType: 'sentence_fill_in',
+	wordCategory: 'adjective'
+};
+
+function mount(result: DrillResult | null = null, q: DrillQuestion = question) {
 	const onSubmit = vi.fn<(answer: string, meta?: { hinted: boolean }) => void>();
 	render(DrillCard, {
-		question,
+		question: q,
 		result,
 		onSubmit,
 		onSpeak: null,
-		selectedCases: ['dat'],
+		selectedCases: [q.case],
 		soundEnabled: false
 	});
 	return onSubmit;
@@ -199,6 +264,9 @@ describe('DrillCard copy-the-word chip', () => {
 	it('Tab moves focus as usual once the box has text', async () => {
 		mount();
 		const input = page.getByRole('textbox');
+		// The card focuses the box a frame after mount; let that land first so it
+		// can't pull focus back after the Tab.
+		await expect.element(input).toHaveFocus();
 		await input.fill('muz');
 		await userEvent.keyboard('{Tab}');
 		await expect.element(input).toHaveValue('muz');
@@ -212,5 +280,32 @@ describe('DrillCard copy-the-word chip', () => {
 		await expect
 			.element(page.getByRole('button', { name: 'Fill in muzeum' }))
 			.not.toBeInTheDocument();
+	});
+});
+
+// The sr-only label names the word being declined. Adjective drills used to
+// read out the placeholder noun ("form of humor") while the card showed "malý".
+describe('DrillCard answer label', () => {
+	beforeEach(() => cleanup());
+
+	it('names the noun for a noun fill-in', async () => {
+		mount();
+		await expect
+			.element(page.getByLabelText('Type the correct form of muzeum to fill in the blank'))
+			.toBeInTheDocument();
+	});
+
+	it('names the adjective, not the placeholder noun, for an adjective fill-in', async () => {
+		mount(null, adjectiveQuestion);
+		await expect
+			.element(page.getByLabelText('Type the correct form of malý to fill in the blank'))
+			.toBeInTheDocument();
+		await expect.element(page.getByLabelText(/humor/)).not.toBeInTheDocument();
+	});
+
+	it('names the adjective for adjective form production', async () => {
+		mount(null, { ...adjectiveQuestion, drillType: 'form_production' });
+		await expect.element(page.getByLabelText(/form of malý$/)).toBeInTheDocument();
+		await expect.element(page.getByLabelText(/humor/)).not.toBeInTheDocument();
 	});
 });
