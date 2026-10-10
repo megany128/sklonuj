@@ -989,6 +989,15 @@ const COLOR_WEATHER_ALLOW = new Set<string>([
 ]);
 
 /**
+ * Proper place names (`place_name`: Praha, Německo, Morava) are drilled as
+ * nouns only. Even the broad adjective profiles make no phrase with them
+ * ("německá Praha", "druhý Vietnam", "základní Afrika").
+ */
+export function nounTakesAdjectives(word: Pick<WordEntry, 'categories'>): boolean {
+	return !word.categories.includes('place_name');
+}
+
+/**
  * Whether an adjective is semantically compatible with a given noun, based on
  * the adjective's `profile` and the noun's `categories`.
  *
@@ -1004,6 +1013,7 @@ export function adjectiveMatchesNoun(
 	word: Pick<WordEntry, 'lemma' | 'categories'>
 ): boolean {
 	if (isBlockedAdjNounPair(adj.lemma, word.lemma)) return false;
+	if (!nounTakesAdjectives(word)) return false;
 	// Block season-on-season pairings (e.g. "jarní léto").
 	if (adj.profile === 'seasonal' && word.categories.includes('season')) return false;
 	// Block domain adjectives on emotional/feeling abstracts: "vědecká radost"

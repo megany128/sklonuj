@@ -7,8 +7,8 @@ lesson. Per lesson, ``coreLemmas`` becomes every sheet noun that
 
   * is not marked instructions-only (green) — those are classroom
     meta-vocabulary ("substantivum", "cvičení"), not declension practice;
-  * exists in ``word_bank.json`` (lower-cased match), so proper nouns,
-    indeclinables and adjectival nouns fall out until the bank supports them.
+  * exists in ``word_bank.json`` (lower-cased match), so indeclinables,
+    abbreviations and the proper nouns not added yet fall out.
 
 ``scripts/kzk1_extra_lemmas.json`` adds, per chapter, common textbook nouns
 that the sheet does not list (kept from the earlier glossary-based chapter

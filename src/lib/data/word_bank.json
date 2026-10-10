@@ -1474,7 +1474,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time"],
+		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["den", "dne", "dnu", "den", "dne", "dnu", "dnem"],
 			"pl": ["dny", "dnů", "dnům", "dny", "dny", "dnech", "dny"]
@@ -1503,7 +1503,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time"],
+		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["týden", "týdne", "týdnu", "týden", "týdne", "týdnu", "týdnem"],
 			"pl": ["týdny", "týdnů", "týdnům", "týdny", "týdny", "týdnech", "týdny"]
@@ -1531,7 +1531,15 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "celestial", "whole_span", "in_time"],
+		"categories": [
+			"time",
+			"duration",
+			"calendar_unit",
+			"celestial",
+			"whole_span",
+			"in_time",
+			"count_time"
+		],
 		"forms": {
 			"sg": ["měsíc", "měsíce", "měsíci", "měsíc", "měsíci", "měsíci", "měsícem"],
 			"pl": ["měsíce", "měsíců", "měsícům", "měsíce", "měsíce", "měsících", "měsíci"]
@@ -1544,17 +1552,22 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time"],
+		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
-			"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
+			"pl": ["roky", "let", "rokům", "roky", "roky", "rocích", "roky"]
 		},
 		"variantForms": {
 			"pl": {
-				"1": ["let"]
+				"0": ["léta"],
+				"1": ["roků"],
+				"2": ["letům"],
+				"3": ["léta"],
+				"5": ["letech"],
+				"6": ["lety"]
 			}
 		},
-		"declensionNote": "k → c in loc sg: v roce (gen roku, pl roky)\nAfter 5+ and in time phrases: let (pět let), also roků"
+		"declensionNote": "k → c in loc sg: v roce (gen roku, pl roky)\nGenitive pl: let after numbers and quantities (pět let, kolik let); roků is also possible"
 	},
 	{
 		"lemma": "hodina",
@@ -1563,7 +1576,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "whole_span", "in_time"],
+		"categories": ["time", "duration", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["hodina", "hodiny", "hodině", "hodinu", "hodino", "hodině", "hodinou"],
 			"pl": ["hodiny", "hodin", "hodinám", "hodiny", "hodiny", "hodinách", "hodinami"]
@@ -1576,7 +1589,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "whole_span", "in_time"],
+		"categories": ["time", "duration", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["minuta", "minuty", "minutě", "minutu", "minuto", "minutě", "minutou"],
 			"pl": ["minuty", "minut", "minutám", "minuty", "minuty", "minutách", "minutami"]
@@ -59939,5 +59952,961 @@
 				"rozhlednami"
 			]
 		}
+	},
+	{
+		"lemma": "Praha",
+		"translation": "Prague",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Praha", "Prahy", "Praze", "Prahu", "Praho", "Praze", "Prahou"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Plzeň",
+		"translation": "Pilsen",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "píseň",
+		"difficulty": "A2",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Plzeň", "Plzně", "Plzni", "Plzeň", "Plzni", "Plzni", "Plzní"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Paříž",
+		"translation": "Paris",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "píseň",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Paříž", "Paříže", "Paříži", "Paříž", "Paříži", "Paříži", "Paříží"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Varšava",
+		"translation": "Warsaw",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Varšava", "Varšavy", "Varšavě", "Varšavu", "Varšavo", "Varšavě", "Varšavou"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Mnichov",
+		"translation": "Munich",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A2",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Mnichov", "Mnichova", "Mnichovu", "Mnichov", "Mnichove", "Mnichově", "Mnichovem"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Genitive sg: -a (do Mnichova), like most town names in -ov\nLocative v Mnichově"
+	},
+	{
+		"lemma": "Neapol",
+		"translation": "Naples",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "píseň",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Neapol", "Neapole", "Neapoli", "Neapol", "Neapoli", "Neapoli", "Neapolí"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Feminine: do Neapole, v Neapoli"
+	},
+	{
+		"lemma": "Německo",
+		"translation": "Germany",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Německo", "Německa", "Německu", "Německo", "Německo", "Německu", "Německem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Polsko",
+		"translation": "Poland",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Polsko", "Polska", "Polsku", "Polsko", "Polsko", "Polsku", "Polskem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Řecko",
+		"translation": "Greece",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Řecko", "Řecka", "Řecku", "Řecko", "Řecko", "Řecku", "Řeckem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Norsko",
+		"translation": "Norway",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Norsko", "Norska", "Norsku", "Norsko", "Norsko", "Norsku", "Norskem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Švédsko",
+		"translation": "Sweden",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Švédsko", "Švédska", "Švédsku", "Švédsko", "Švédsko", "Švédsku", "Švédskem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Dánsko",
+		"translation": "Denmark",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Dánsko", "Dánska", "Dánsku", "Dánsko", "Dánsko", "Dánsku", "Dánskem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Bulharsko",
+		"translation": "Bulgaria",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": [
+				"Bulharsko",
+				"Bulharska",
+				"Bulharsku",
+				"Bulharsko",
+				"Bulharsko",
+				"Bulharsku",
+				"Bulharskem"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Chorvatsko",
+		"translation": "Croatia",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": [
+				"Chorvatsko",
+				"Chorvatska",
+				"Chorvatsku",
+				"Chorvatsko",
+				"Chorvatsko",
+				"Chorvatsku",
+				"Chorvatskem"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Thajsko",
+		"translation": "Thailand",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Thajsko", "Thajska", "Thajsku", "Thajsko", "Thajsko", "Thajsku", "Thajskem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Slezsko",
+		"translation": "Silesia",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Slezsko", "Slezska", "Slezsku", "Slezsko", "Slezsko", "Slezsku", "Slezskem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Itálie",
+		"translation": "Italy",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Itálie", "Itálie", "Itálii", "Itálii", "Itálie", "Itálii", "Itálií"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Anglie",
+		"translation": "England",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Anglie", "Anglie", "Anglii", "Anglii", "Anglie", "Anglii", "Anglií"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Asie",
+		"translation": "Asia",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Asie", "Asie", "Asii", "Asii", "Asie", "Asii", "Asií"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Austrálie",
+		"translation": "Australia",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": [
+				"Austrálie",
+				"Austrálie",
+				"Austrálii",
+				"Austrálii",
+				"Austrálie",
+				"Austrálii",
+				"Austrálií"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Vietnam",
+		"translation": "Vietnam",
+		"gender": "m",
+		"animate": false,
+		"paradigm": "hrad",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Vietnam", "Vietnamu", "Vietnamu", "Vietnam", "Vietname", "Vietnamu", "Vietnamem"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Evropa",
+		"translation": "Europe",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Evropa", "Evropy", "Evropě", "Evropu", "Evropo", "Evropě", "Evropou"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Afrika",
+		"translation": "Africa",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Afrika", "Afriky", "Africe", "Afriku", "Afriko", "Africe", "Afrikou"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Amerika",
+		"translation": "America",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "dwelling", "region", "place_name"],
+		"forms": {
+			"sg": ["Amerika", "Ameriky", "Americe", "Ameriku", "Ameriko", "Americe", "Amerikou"],
+			"pl": ["", "", "", "", "", "", ""]
+		}
+	},
+	{
+		"lemma": "Čechy",
+		"translation": "Bohemia",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "v_place", "dwelling", "settlement", "region", "place_name"],
+		"forms": {
+			"sg": ["", "", "", "", "", "", ""],
+			"pl": ["Čechy", "Čech", "Čechám", "Čechy", "Čechy", "Čechách", "Čechami"]
+		},
+		"pluralOnly": true
+	},
+	{
+		"lemma": "Krkonoše",
+		"translation": "the Krkonoše (Giant Mountains)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "růže",
+		"difficulty": "A1",
+		"categories": ["places", "v_place", "settlement", "region", "place_name"],
+		"forms": {
+			"sg": ["", "", "", "", "", "", ""],
+			"pl": ["Krkonoše", "Krkonoš", "Krkonoším", "Krkonoše", "Krkonoše", "Krkonoších", "Krkonošemi"]
+		},
+		"pluralOnly": true
+	},
+	{
+		"lemma": "Morava",
+		"translation": "Moravia",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Morava", "Moravy", "Moravě", "Moravu", "Moravo", "Moravě", "Moravou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Moravu, na Moravě"
+	},
+	{
+		"lemma": "Slovensko",
+		"translation": "Slovakia",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": [
+				"Slovensko",
+				"Slovenska",
+				"Slovensku",
+				"Slovensko",
+				"Slovensko",
+				"Slovensku",
+				"Slovenskem"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Slovensko, na Slovensku"
+	},
+	{
+		"lemma": "Šumava",
+		"translation": "the Šumava (Bohemian Forest)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Šumava", "Šumavy", "Šumavě", "Šumavu", "Šumavo", "Šumavě", "Šumavou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Šumavu, na Šumavě"
+	},
+	{
+		"lemma": "Vysočina",
+		"translation": "the Vysočina highlands",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Vysočina", "Vysočiny", "Vysočině", "Vysočinu", "Vysočino", "Vysočině", "Vysočinou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Vysočinu, na Vysočině"
+	},
+	{
+		"lemma": "Sněžka",
+		"translation": "Sněžka (the highest Czech mountain)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Sněžka", "Sněžky", "Sněžce", "Sněžku", "Sněžko", "Sněžce", "Sněžkou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Sněžku, na Sněžce"
+	},
+	{
+		"lemma": "Havaj",
+		"translation": "Hawaii",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "píseň",
+		"difficulty": "A1",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Havaj", "Havaje", "Havaji", "Havaj", "Havaji", "Havaji", "Havají"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Feminine, takes na: na Havaj, na Havaji, z Havaje"
+	},
+	{
+		"lemma": "Kréta",
+		"translation": "Crete",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Kréta", "Kréty", "Krétě", "Krétu", "Kréto", "Krétě", "Krétou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Krétu, na Krétě"
+	},
+	{
+		"lemma": "Florida",
+		"translation": "Florida",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Florida", "Floridy", "Floridě", "Floridu", "Florido", "Floridě", "Floridou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Floridu, na Floridě"
+	},
+	{
+		"lemma": "Aljaška",
+		"translation": "Alaska",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["places", "na_place", "region", "place_name"],
+		"forms": {
+			"sg": ["Aljaška", "Aljašky", "Aljašce", "Aljašku", "Aljaško", "Aljašce", "Aljaškou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"declensionNote": "Takes na: na Aljašku, na Aljašce"
+	},
+	{
+		"lemma": "Čech",
+		"translation": "Czech (man)",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": ["Čech", "Čecha", "Čechovi", "Čecha", "Čechu", "Čechovi", "Čechem"],
+			"pl": ["Češi", "Čechů", "Čechům", "Čechy", "Češi", "Češích", "Čechy"]
+		},
+		"variantForms": {
+			"sg": {
+				"2": ["Čechu"],
+				"5": ["Čechu"]
+			},
+			"pl": {
+				"0": ["Čechové"],
+				"4": ["Čechové"]
+			}
+		},
+		"declensionNote": "Nominative pl: ch → š (Češi); locative pl: also ch → š (o Češích)"
+	},
+	{
+		"lemma": "Češka",
+		"translation": "Czech (woman)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": ["Češka", "Češky", "Češce", "Češku", "Češko", "Češce", "Češkou"],
+			"pl": ["Češky", "Češek", "Češkám", "Češky", "Češky", "Češkách", "Češkami"]
+		}
+	},
+	{
+		"lemma": "Němec",
+		"translation": "German (man)",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "muž",
+		"difficulty": "A2",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": ["Němec", "Němce", "Němci", "Němce", "Němče", "Němci", "Němcem"],
+			"pl": ["Němci", "Němců", "Němcům", "Němce", "Němci", "Němcích", "Němci"]
+		},
+		"variantForms": {
+			"sg": {
+				"2": ["Němcovi"],
+				"5": ["Němcovi"]
+			},
+			"pl": {
+				"0": ["Němcové"],
+				"4": ["Němcové"]
+			}
+		}
+	},
+	{
+		"lemma": "Němka",
+		"translation": "German (woman)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": ["Němka", "Němky", "Němce", "Němku", "Němko", "Němce", "Němkou"],
+			"pl": ["Němky", "Němek", "Němkám", "Němky", "Němky", "Němkách", "Němkami"]
+		}
+	},
+	{
+		"lemma": "Francouz",
+		"translation": "Frenchman",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "muž",
+		"difficulty": "A2",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": [
+				"Francouz",
+				"Francouze",
+				"Francouzi",
+				"Francouze",
+				"Francouzi",
+				"Francouzi",
+				"Francouzem"
+			],
+			"pl": [
+				"Francouzi",
+				"Francouzů",
+				"Francouzům",
+				"Francouze",
+				"Francouzi",
+				"Francouzích",
+				"Francouzi"
+			]
+		},
+		"variantForms": {
+			"sg": {
+				"2": ["Francouzovi"],
+				"5": ["Francouzovi"]
+			}
+		}
+	},
+	{
+		"lemma": "Francouzka",
+		"translation": "Frenchwoman",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": [
+				"Francouzka",
+				"Francouzky",
+				"Francouzce",
+				"Francouzku",
+				"Francouzko",
+				"Francouzce",
+				"Francouzkou"
+			],
+			"pl": [
+				"Francouzky",
+				"Francouzek",
+				"Francouzkám",
+				"Francouzky",
+				"Francouzky",
+				"Francouzkách",
+				"Francouzkami"
+			]
+		}
+	},
+	{
+		"lemma": "Rakušan",
+		"translation": "Austrian (man)",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A2",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": [
+				"Rakušan",
+				"Rakušana",
+				"Rakušanovi",
+				"Rakušana",
+				"Rakušane",
+				"Rakušanovi",
+				"Rakušanem"
+			],
+			"pl": ["Rakušané", "Rakušanů", "Rakušanům", "Rakušany", "Rakušané", "Rakušanech", "Rakušany"]
+		},
+		"variantForms": {
+			"sg": {
+				"2": ["Rakušanu"],
+				"5": ["Rakušanu"]
+			},
+			"pl": {
+				"0": ["Rakušani"],
+				"4": ["Rakušani"]
+			}
+		},
+		"declensionNote": "Nominative pl: -é (Rakušané), like other -an nouns for inhabitants"
+	},
+	{
+		"lemma": "Rakušanka",
+		"translation": "Austrian (woman)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["people", "nationality"],
+		"forms": {
+			"sg": [
+				"Rakušanka",
+				"Rakušanky",
+				"Rakušance",
+				"Rakušanku",
+				"Rakušanko",
+				"Rakušance",
+				"Rakušankou"
+			],
+			"pl": [
+				"Rakušanky",
+				"Rakušanek",
+				"Rakušankám",
+				"Rakušanky",
+				"Rakušanky",
+				"Rakušankách",
+				"Rakušankami"
+			]
+		}
+	},
+	{
+		"lemma": "dovolená",
+		"translation": "holiday, leave (time off work)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["misc", "abstract", "event", "mass"],
+		"forms": {
+			"sg": ["dovolená", "dovolené", "dovolené", "dovolenou", "dovolená", "dovolené", "dovolenou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): dovolené, dovolenou"
+	},
+	{
+		"lemma": "vstupné",
+		"translation": "admission fee",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A2",
+		"categories": ["misc", "abstract", "mass"],
+		"forms": {
+			"sg": ["vstupné", "vstupného", "vstupnému", "vstupné", "vstupné", "vstupném", "vstupným"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladé): vstupného, vstupnému"
+	},
+	{
+		"lemma": "spropitné",
+		"translation": "tip (gratuity)",
+		"gender": "n",
+		"animate": false,
+		"paradigm": "město",
+		"difficulty": "A1",
+		"categories": ["misc", "abstract", "mass"],
+		"forms": {
+			"sg": [
+				"spropitné",
+				"spropitného",
+				"spropitnému",
+				"spropitné",
+				"spropitné",
+				"spropitném",
+				"spropitným"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladé): spropitného, spropitnému"
+	},
+	{
+		"lemma": "známý",
+		"translation": "acquaintance (man)",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
+		"categories": ["people"],
+		"forms": {
+			"sg": ["známý", "známého", "známému", "známého", "známý", "známém", "známým"],
+			"pl": ["známí", "známých", "známým", "známé", "známí", "známých", "známými"]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladý): známého, známému"
+	},
+	{
+		"lemma": "příbuzný",
+		"translation": "relative (man)",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A1",
+		"categories": ["people"],
+		"forms": {
+			"sg": [
+				"příbuzný",
+				"příbuzného",
+				"příbuznému",
+				"příbuzného",
+				"příbuzný",
+				"příbuzném",
+				"příbuzným"
+			],
+			"pl": [
+				"příbuzní",
+				"příbuzných",
+				"příbuzným",
+				"příbuzné",
+				"příbuzní",
+				"příbuzných",
+				"příbuznými"
+			]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladý): příbuzného, příbuznému"
+	},
+	{
+		"lemma": "příbuzná",
+		"translation": "relative (woman)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A1",
+		"categories": ["people"],
+		"forms": {
+			"sg": ["příbuzná", "příbuzné", "příbuzné", "příbuznou", "příbuzná", "příbuzné", "příbuznou"],
+			"pl": [
+				"příbuzné",
+				"příbuzných",
+				"příbuzným",
+				"příbuzné",
+				"příbuzné",
+				"příbuzných",
+				"příbuznými"
+			]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): příbuzné, příbuznou"
+	},
+	{
+		"lemma": "dospělý",
+		"translation": "adult (man)",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A2",
+		"categories": ["people"],
+		"forms": {
+			"sg": ["dospělý", "dospělého", "dospělému", "dospělého", "dospělý", "dospělém", "dospělým"],
+			"pl": ["dospělí", "dospělých", "dospělým", "dospělé", "dospělí", "dospělých", "dospělými"]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladý): dospělého, dospělému"
+	},
+	{
+		"lemma": "dospělá",
+		"translation": "adult (woman)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["people"],
+		"forms": {
+			"sg": ["dospělá", "dospělé", "dospělé", "dospělou", "dospělá", "dospělé", "dospělou"],
+			"pl": ["dospělé", "dospělých", "dospělým", "dospělé", "dospělé", "dospělých", "dospělými"]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): dospělé, dospělou"
+	},
+	{
+		"lemma": "vrátný",
+		"translation": "doorman, porter",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "pán",
+		"difficulty": "A2",
+		"categories": ["people", "profession"],
+		"forms": {
+			"sg": ["vrátný", "vrátného", "vrátnému", "vrátného", "vrátný", "vrátném", "vrátným"],
+			"pl": ["vrátní", "vrátných", "vrátným", "vrátné", "vrátní", "vrátných", "vrátnými"]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladý): vrátného, vrátnému"
+	},
+	{
+		"lemma": "vrátná",
+		"translation": "doorwoman, porter (woman)",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["people", "profession"],
+		"forms": {
+			"sg": ["vrátná", "vrátné", "vrátné", "vrátnou", "vrátná", "vrátné", "vrátnou"],
+			"pl": ["vrátné", "vrátných", "vrátným", "vrátné", "vrátné", "vrátných", "vrátnými"]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): vrátné, vrátnou"
+	},
+	{
+		"lemma": "krejčí",
+		"translation": "tailor",
+		"gender": "m",
+		"animate": true,
+		"paradigm": "muž",
+		"difficulty": "A2",
+		"categories": ["people", "profession"],
+		"forms": {
+			"sg": ["krejčí", "krejčího", "krejčímu", "krejčího", "krejčí", "krejčím", "krejčím"],
+			"pl": ["krejčí", "krejčích", "krejčím", "krejčí", "krejčí", "krejčích", "krejčími"]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like a soft adjective (like moderní): krejčího, krejčímu"
+	},
+	{
+		"lemma": "mateřská",
+		"translation": "maternity leave",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["misc", "abstract", "mass"],
+		"forms": {
+			"sg": ["mateřská", "mateřské", "mateřské", "mateřskou", "mateřská", "mateřské", "mateřskou"],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): mateřské, mateřskou"
+	},
+	{
+		"lemma": "nemocenská",
+		"translation": "sick leave, sick pay",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["misc", "abstract", "mass"],
+		"forms": {
+			"sg": [
+				"nemocenská",
+				"nemocenské",
+				"nemocenské",
+				"nemocenskou",
+				"nemocenská",
+				"nemocenské",
+				"nemocenskou"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): nemocenské, nemocenskou"
+	},
+	{
+		"lemma": "rodičovská",
+		"translation": "parental leave",
+		"gender": "f",
+		"animate": false,
+		"paradigm": "žena",
+		"difficulty": "A2",
+		"categories": ["misc", "abstract", "mass"],
+		"forms": {
+			"sg": [
+				"rodičovská",
+				"rodičovské",
+				"rodičovské",
+				"rodičovskou",
+				"rodičovská",
+				"rodičovské",
+				"rodičovskou"
+			],
+			"pl": ["", "", "", "", "", "", ""]
+		},
+		"irregular": true,
+		"declensionNote": "Declines like an adjective (like mladá): rodičovské, rodičovskou"
 	}
 ]
