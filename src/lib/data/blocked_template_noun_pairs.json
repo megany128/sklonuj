@@ -513,5 +513,13 @@
 	["nom_pada_175", "kytka"],
 	["nom_pada_175", "růže"],
 	["nom_pada_175", "keř"],
-	["nom_pada_175", "kytice"]
+	["nom_pada_175", "kytice"],
+	["dat_naproti_097", "střecha"],
+	["dat_naproti_097", "balkón"],
+	["dat_naproti_097", "balkon"],
+	["dat_naproti_097", "jeviště"],
+	["dat_naproti_097", "pódium"],
+	["dat_naproti_097", "lavička"],
+	["dat_naproti_097", "podchod"],
+	["dat_naproti_097", "chodník"]
 ]

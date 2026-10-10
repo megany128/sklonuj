@@ -370,3 +370,15 @@ describe('content sweep: adjective pairings', () => {
 		expect(pool.length).toBeGreaterThanOrEqual(8);
 	});
 });
+
+describe('"Bydlím naproti ___."', () => {
+	it('takes buildings, not parts of one', () => {
+		const t = template('dat_naproti_097');
+		for (const lemma of ['škola', 'nádraží', 'park']) {
+			expect(templateTakesWord(t, word(lemma)), lemma).toBe(true);
+		}
+		for (const lemma of ['střecha', 'balkón', 'jeviště', 'chodník']) {
+			expect(templateTakesWord(t, word(lemma)), lemma).toBe(false);
+		}
+	});
+});
