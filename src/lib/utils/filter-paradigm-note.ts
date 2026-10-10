@@ -229,7 +229,7 @@ function wordRuleLine(
 }
 
 /** Plain-English gender/type of each paradigm, for the pattern line. */
-const PARADIGM_KIND: Record<Paradigm, string> = {
+export const PARADIGM_KIND: Record<Paradigm, string> = {
 	hrad: 'hard masculine inanimate',
 	stroj: 'soft masculine inanimate',
 	pán: 'hard masculine animate',

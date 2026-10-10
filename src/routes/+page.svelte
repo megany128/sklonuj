@@ -32,6 +32,7 @@
 		DrillResult,
 		DrillSettings,
 		DrillType,
+		FocusTopic,
 		MultiStepQuestion,
 		MultiStepResult,
 		Number_,
@@ -100,6 +101,8 @@
 		pronounCellsByCase
 	} from '$lib/engine/cell-pools';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
+	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
+	import { recordDeckAnswer } from '$lib/engine/deck-progress';
 	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
 	import { capitalizeSentence } from '$lib/utils/sentence-case';
@@ -1256,6 +1259,12 @@
 			: null
 	);
 
+	// Deck in play (set via ?deck=kam-kde-odkud from /decks): narrows sentence
+	// drills to one grammar topic. A deck runs in free practice, so starting one
+	// from a KzK chapter remembers the chapter and returns to it on leaving.
+	let selectedDeck = $state<FocusTopic | null>(focusFromSlug(initialUrlParams.get('deck')));
+	let deckReturnChapter: { book: 'kzk1' | 'kzk2'; chapter: string } | null = null;
+
 	function filterByParadigm<T extends { paradigm: string }>(words: T[]): T[] {
 		return selectedParadigm ? words.filter((w) => w.paradigm === selectedParadigm) : words;
 	}
@@ -1455,6 +1464,11 @@
 	}
 
 	function handleChapterChange(book: 'kzk1' | 'kzk2' | null, chapterId: string | null): void {
+		// Opening a chapter leaves the deck: a chapter sets its own scope.
+		if (book !== null) {
+			selectedDeck = null;
+			deckReturnChapter = null;
+		}
 		chapterBook = book;
 		chapterSelection = chapterId;
 		saveChapterToStorage();
@@ -1563,6 +1577,26 @@
 		}
 		return drillSettings.numberMode;
 	});
+
+	// The deck's topic in force: free practice only (chapters and assignments
+	// set their own scope), and only at levels that offer it.
+	let activeFocus: FocusTopic | null = $derived.by(() => {
+		if (selectedDeck === null || chapterBook !== null || assignmentInfo) return null;
+		return focusUnlocked(selectedDeck, currentLevel) ? selectedDeck : null;
+	});
+
+	function leaveDeck(): void {
+		selectedDeck = null;
+		const back = deckReturnChapter;
+		deckReturnChapter = null;
+		if (back) handleChapterChange(back.book, back.chapter);
+		else generateNextQuestion();
+	}
+
+	/** Sentence templates for noun drills, narrowed to the focus topic if one is on. */
+	function nounTemplates(): SentenceTemplate[] {
+		return templatesForFocus(loadTemplates(), activeFocus);
+	}
 
 	// Derived: which content types can actually be generated, mirroring the
 	// contentDecision precedence (wordMode 'adjectives' => adjectives only).
@@ -1751,6 +1785,7 @@
 		void selectedCase;
 		void enabledCases;
 		void selectedParadigm;
+		void selectedDeck;
 
 		if (initialized) {
 			syncStateToUrl();
@@ -2064,6 +2099,19 @@
 		loadChapterFromStorage();
 		loadChapterScores();
 
+		// A deck link wins over whatever was open: step out of the chapter (kept
+		// for the way back), and drop a single-case or single-paradigm filter.
+		if (selectedDeck !== null) {
+			if (chapterBook && chapterSelection) {
+				deckReturnChapter = { book: chapterBook, chapter: chapterSelection };
+				chapterBook = null;
+				chapterSelection = null;
+				saveChapterToStorage();
+			}
+			selectedCase = 'all';
+			selectedParadigm = null;
+		}
+
 		// If chapter mode is active, apply its constraints
 		if (chapterBook && chapterSelection) {
 			const chapter = getSelectedKzkChapter();
@@ -2300,6 +2348,10 @@
 		if (!isMultiStepUnlocked()) {
 			allowed = allowed.filter((dt) => dt !== 'multi_step');
 		}
+		// A focus topic lives in its sentences; a bare "genitive of X" has none.
+		if (activeFocus !== null) {
+			allowed = allowed.filter((dt) => dt !== 'form_production');
+		}
 		// multi_step requires templates (like sentence_fill_in), filter it the same way
 		if (allowed.length === 0) allowed = ['sentence_fill_in'];
 
@@ -2310,7 +2362,7 @@
 			(dt) => dt === 'case_identification' || dt === 'sentence_fill_in' || dt === 'multi_step'
 		);
 		if (needsTemplates) {
-			const templates = loadTemplates();
+			const templates = nounTemplates();
 			const prog = get(progress);
 			const levelDifficulties = curriculum[prog.level].unlocked_difficulty;
 			const eligibleTemplates = templates.filter(
@@ -2912,6 +2964,7 @@
 	/** Whether a queued re-ask still fits what the learner is practising now. */
 	function retryEligible(q: DrillQuestion): boolean {
 		if (!effectiveEnabledCases.includes(q.case)) return false;
+		if (activeFocus !== null && q.template.topics?.includes(activeFocus) !== true) return false;
 		if (selectedCase !== 'all' && q.case !== selectedCase) return false;
 		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
 		if (!drillSettings.selectedDrillTypes.includes(q.drillType)) return false;
@@ -3030,6 +3083,8 @@
 
 		// Decide content type for this question
 		const contentDecision = (() => {
+			// Focus topics are noun sentences; adjectives and pronouns sit them out.
+			if (activeFocus !== null) return 'noun' as const;
 			if (effectiveWordMode === 'adjectives') return 'adjective' as const;
 			if (effectiveWordMode === 'both' && Math.random() < 0.3) return 'adjective' as const;
 			if (effectiveContentMode === 'pronouns') return 'pronoun' as const;
@@ -3214,7 +3269,7 @@
 
 		if (drillType === 'multi_step') {
 			// Multi-step: needs a template + word, produces a MultiStepQuestion
-			const templates = loadTemplates();
+			const templates = nounTemplates();
 			// Adjective-only practice attaches an adjective step, which vocative
 			// templates never get (see wantAdj below), so skip them up front.
 			const msEligibleTemplates = templates.filter(
@@ -3240,6 +3295,7 @@
 						// Skip vocative — adjective vocative forms are identical to nominative (no useful drill),
 						// and random descriptive adjectives produce awkward direct address (e.g. "malá profesorko").
 						const wantAdj =
+							activeFocus === null &&
 							template.requiredCase !== 'voc' &&
 							(contentDecision === 'adjective' ||
 								effectiveWordMode === 'adjectives' ||
@@ -3375,7 +3431,7 @@
 			question = generateFormProduction(word, fpCase, number_);
 		} else {
 			multiStepQuestion = null;
-			const templates = loadTemplates();
+			const templates = nounTemplates();
 			const eligibleTemplates = templates.filter(
 				(t) =>
 					activeCasesForPick.includes(t.requiredCase) &&
@@ -3679,6 +3735,9 @@
 	}
 
 	function trackSessionStats(result: DrillResult): void {
+		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
+			recordDeckAnswer(activeFocus, result.correct);
+		}
 		if (result.correct) {
 			sessionCorrect++;
 		} else {
@@ -3863,13 +3922,15 @@
 		mode: 'chapter' | 'free';
 		book: 'kzk1' | 'kzk2' | null;
 		chapter: string | null;
+		focus: FocusTopic | null;
 	} {
 		const inChapterMode = chapterBook !== null && chapterSelection !== null;
 		return {
 			level: currentLevel,
 			mode: inChapterMode ? 'chapter' : 'free',
 			book: inChapterMode ? chapterBook : null,
-			chapter: inChapterMode ? chapterSelection : null
+			chapter: inChapterMode ? chapterSelection : null,
+			focus: activeFocus
 		};
 	}
 
@@ -4109,6 +4170,14 @@
 			result.formCorrect &&
 			adjectiveOk;
 
+		// A deck is about the case and the form; the paradigm step isn't its point.
+		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
+			recordDeckAnswer(
+				activeFocus,
+				(result.caseCorrect === null || result.caseCorrect) && result.formCorrect
+			);
+		}
+
 		if (allCorrect) {
 			streak++;
 			if (streak > bestStreak) bestStreak = streak;
@@ -4239,6 +4308,11 @@
 			return;
 		}
 		selectedCase = selected;
+		// A deck runs across cases; picking one case leaves it.
+		if (selected !== 'all' && selectedDeck !== null) {
+			selectedDeck = null;
+			deckReturnChapter = null;
+		}
 		generateNextQuestion();
 	}
 
@@ -4251,6 +4325,7 @@
 		// Clear filter-related params first, then set only non-default ones
 		params.delete('selectCase');
 		params.delete('selectParadigm');
+		params.delete('deck');
 		params.delete('cases');
 		params.delete('mode');
 
@@ -4260,6 +4335,10 @@
 
 		if (selectedParadigm) {
 			params.set('selectParadigm', selectedParadigm);
+		}
+
+		if (selectedDeck) {
+			params.set('deck', focusDef(selectedDeck).slug);
 		}
 
 		const sortedEnabled = [...enabledCases].sort(
@@ -4424,6 +4503,35 @@
 				>
 					&times;
 				</button>
+			</div>
+		{/if}
+
+		<!-- Deck banner (active when a deck from /decks is in play) -->
+		{#if activeFocus !== null}
+			{@const deck = focusDef(activeFocus)}
+			<div
+				class="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-emphasis/40 bg-emphasis/5 px-4 py-3"
+				data-testid="deck-banner"
+			>
+				<p class="min-w-0 text-sm text-text-default">
+					Deck: <span class="font-semibold">{deck.label}</span>
+					<span class="ml-1 text-xs text-text-subtitle">{deck.blurb}</span>
+				</p>
+				<div class="flex shrink-0 items-center gap-2">
+					<a
+						href={resolve('/decks')}
+						class="rounded-full px-3 py-1 text-xs font-semibold text-text-subtitle transition-colors hover:text-text-default"
+					>
+						All decks
+					</a>
+					<button
+						type="button"
+						onclick={leaveDeck}
+						class="rounded-full border border-emphasis/40 px-3 py-1 text-xs font-semibold text-emphasis transition-colors hover:bg-emphasis/10"
+					>
+						Leave deck
+					</button>
+				</div>
 			</div>
 		{/if}
 
