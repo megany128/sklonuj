@@ -10,7 +10,6 @@ import type {
 	Difficulty,
 	DrillQuestion,
 	DrillResult,
-	Gender,
 	Number_,
 	Progress,
 	SentenceTemplate,
@@ -22,6 +21,11 @@ import adjectiveBankData from '../data/adjective_bank.json';
 import adjectiveTemplateData from '../data/adjective_templates.json';
 import blockedAdjNounPairsData from '../data/blocked_adj_noun_pairs.json';
 import wordBankData from '../data/word_bank.json';
+import {
+	adjectiveParadigmKey,
+	genderKeyFromGenderAnimate,
+	getAdjectiveGenderKey
+} from './adjective-keys';
 import { stripDiacritics } from '../utils/diacritics';
 import { getBlockedLemmaSet } from './lemma-blocks';
 import { adjectiveCellKey, cellWeight, weightedPick } from './spacing';
@@ -303,19 +307,7 @@ export function loadAdjectiveTemplates(): SentenceTemplate[] {
 // 3. getAdjectiveGenderKey — map noun gender+animacy to adjective gender key
 // ---------------------------------------------------------------------------
 
-export function getAdjectiveGenderKey(word: WordEntry): AdjectiveGenderKey {
-	if (word.gender === 'm') {
-		return word.animate ? 'm_anim' : 'm_inanim';
-	}
-	if (word.gender === 'f') return 'f';
-	return 'n';
-}
-
-export function genderKeyFromGenderAnimate(gender: Gender, animate: boolean): AdjectiveGenderKey {
-	if (gender === 'm') return animate ? 'm_anim' : 'm_inanim';
-	if (gender === 'f') return 'f';
-	return 'n';
-}
+export { genderKeyFromGenderAnimate, getAdjectiveGenderKey };
 
 // ---------------------------------------------------------------------------
 // 4. getAdjectiveForm — look up a specific form
@@ -1158,11 +1150,4 @@ export function filterAdjectivesByTemplate(
 // 11. adjectiveParadigmKey — progress tracking key
 // ---------------------------------------------------------------------------
 
-export function adjectiveParadigmKey(
-	adjLemma: string,
-	genderKey: AdjectiveGenderKey,
-	case_: Case,
-	number_: Number_
-): string {
-	return `adj_${adjLemma}_${genderKey}_${case_}_${number_}`;
-}
+export { adjectiveParadigmKey };

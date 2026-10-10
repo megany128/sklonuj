@@ -2,19 +2,18 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { loadWordBank } from '$lib/engine/drill';
 	import paradigmsData from '$lib/data/paradigms.json';
-	import dictionaryData from '$lib/data/dictionary.json';
+	import {
+		getDictionary,
+		loadDictionary,
+		type Dictionary,
+		type DictionaryEntry
+	} from '$lib/engine/dictionary';
 	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER } from '$lib/types';
 	import type { Case, CaseForms, WordEntry } from '$lib/types';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 
 	// Unified display entry for the table
-	interface DeclensionEntry {
-		lemma: string;
-		translation: string;
-		sg: CaseForms;
-		pl: CaseForms;
-		paradigmHint: string;
-	}
+	type DeclensionEntry = DictionaryEntry;
 
 	let {
 		selectedLemma = '',
@@ -36,62 +35,9 @@
 		paradigmNames[p.id] = p.name;
 	}
 
-	// Process dictionary JSON into typed entries.
-	// Each raw entry is [lemma, translation, sg[7], pl[7], paradigmHint?].
-	let cachedDictionary: DeclensionEntry[] | null = null;
-
-	function loadDictionary(): DeclensionEntry[] {
-		if (cachedDictionary) return cachedDictionary;
-		const entries: DeclensionEntry[] = [];
-		for (const raw of dictionaryData) {
-			const lemma = String(raw[0]);
-			const translation = String(raw[1]);
-			const sgRaw = raw[2];
-			const plRaw = raw[3];
-			if (!Array.isArray(sgRaw) || !Array.isArray(plRaw)) continue;
-			entries.push({
-				lemma,
-				translation,
-				sg: [
-					String(sgRaw[0]),
-					String(sgRaw[1]),
-					String(sgRaw[2]),
-					String(sgRaw[3]),
-					String(sgRaw[4]),
-					String(sgRaw[5]),
-					String(sgRaw[6])
-				],
-				pl: [
-					String(plRaw[0]),
-					String(plRaw[1]),
-					String(plRaw[2]),
-					String(plRaw[3]),
-					String(plRaw[4]),
-					String(plRaw[5]),
-					String(plRaw[6])
-				],
-				paradigmHint: raw[4] != null ? String(raw[4]) : ''
-			});
-		}
-		cachedDictionary = entries;
-		return entries;
-	}
-
-	const dictionary = loadDictionary();
-
-	// Build lookup maps for fast dictionary search by lemma (exact and stripped)
-	const dictByLemma: Record<string, DeclensionEntry> = {};
-	const dictByStripped: Record<string, DeclensionEntry> = {};
-	for (const entry of dictionary) {
-		const key = entry.lemma.toLowerCase();
-		if (!(key in dictByLemma)) {
-			dictByLemma[key] = entry;
-		}
-		const stripped = stripDiacritics(key);
-		if (!(stripped in dictByStripped)) {
-			dictByStripped[stripped] = entry;
-		}
-	}
+	// The lookup dictionary is loaded only when a word isn't in the word bank
+	// (see `engine/dictionary.ts`); until then lookups fall back to the bank.
+	let dictionary = $state.raw<Dictionary | null>(getDictionary());
 
 	// Pre-compute stripped lemmas for the word bank
 	const wordBankStripped: Array<{ stripped: string; word: WordEntry }> = wordBank.map((w) => ({
@@ -109,25 +55,26 @@
 		};
 	}
 
-	function lookupWord(query: string): DeclensionEntry | null {
+	function lookupInBank(query: string): { entry: DeclensionEntry; exact: boolean } | null {
 		const q = query.toLowerCase();
-		const qStripped = stripDiacritics(q);
-
-		// Exact match in word bank
 		const wbExact = wordBank.find((w) => w.lemma.toLowerCase() === q);
-		if (wbExact) return wordBankToEntry(wbExact);
-
-		// Exact match in dictionary
-		if (dictByLemma[q]) return dictByLemma[q];
-
-		// Stripped (diacritic-insensitive) match in word bank
+		if (wbExact) return { entry: wordBankToEntry(wbExact), exact: true };
+		const qStripped = stripDiacritics(q);
 		const wbStripped = wordBankStripped.find((e) => e.stripped === qStripped);
-		if (wbStripped) return wordBankToEntry(wbStripped.word);
+		return wbStripped ? { entry: wordBankToEntry(wbStripped.word), exact: false } : null;
+	}
 
+	function lookupWord(query: string, dict: Dictionary | null): DeclensionEntry | null {
+		const bank = lookupInBank(query);
+		// Exact match in word bank
+		if (bank?.exact) return bank.entry;
+		// Exact match in dictionary
+		const dictExact = dict?.find(query);
+		if (dictExact) return dictExact;
+		// Stripped (diacritic-insensitive) match in word bank
+		if (bank) return bank.entry;
 		// Stripped match in dictionary
-		if (dictByStripped[qStripped]) return dictByStripped[qStripped];
-
-		return null;
+		return dict?.findStripped(query) ?? null;
 	}
 
 	// Paradigm browser data
@@ -191,8 +138,30 @@
 	let displayEntry: DeclensionEntry = $derived.by(() => {
 		const lemma = selectedLemma.trim();
 		if (lemma === '') return fallbackEntry;
-		return lookupWord(lemma) ?? fallbackEntry;
+		return lookupWord(lemma, dictionary) ?? fallbackEntry;
 	});
+
+	// A word that isn't exactly in the bank may be in the dictionary: fetch it,
+	// and the table fills in when it arrives. A failed download is retried on
+	// the next word; meanwhile the lookup answers from the bank alone.
+	let dictionaryFailed = $state(false);
+
+	function needsDictionary(lemma: string): boolean {
+		return lemma !== '' && dictionary === null && !lookupInBank(lemma)?.exact;
+	}
+
+	$effect(() => {
+		if (!needsDictionary(selectedLemma.trim())) return;
+		dictionaryFailed = false;
+		loadDictionary().then(
+			(d) => (dictionary = d),
+			() => (dictionaryFailed = true)
+		);
+	});
+
+	// While the dictionary is on its way the word is simply not known yet:
+	// say so, rather than show another word's table.
+	let lookingUp = $derived(needsDictionary(selectedLemma.trim()) && !dictionaryFailed);
 
 	let trimmedLemma = $derived(selectedLemma.trim().toLowerCase());
 	let isPivo = $derived(trimmedLemma === 'pivo');
@@ -321,82 +290,88 @@
 				{/if}
 			</div>
 
-			<!-- Word info -->
-			<div class="flex flex-wrap items-center gap-2 px-1">
-				<span class="text-sm font-semibold text-text-default">
-					{displayEntry.lemma}
-				</span>
-				<span class="text-xs text-text-subtitle">
-					{displayEntry.translation}
-				</span>
-				{#if displayEntry.paradigmHint}
-					<span
-						class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
-					>
-						{displayEntry.paradigmHint}
+			{#if lookingUp}
+				<p class="px-1 text-sm text-text-subtitle" role="status">
+					Looking up {selectedLemma.trim()}…
+				</p>
+			{:else}
+				<!-- Word info -->
+				<div class="flex flex-wrap items-center gap-2 px-1">
+					<span class="text-sm font-semibold text-text-default">
+						{displayEntry.lemma}
 					</span>
-				{/if}
-			</div>
+					<span class="text-xs text-text-subtitle">
+						{displayEntry.translation}
+					</span>
+					{#if displayEntry.paradigmHint}
+						<span
+							class="rounded-full bg-shaded-background px-2 py-0.5 text-xs font-normal text-text-subtitle"
+						>
+							{displayEntry.paradigmHint}
+						</span>
+					{/if}
+				</div>
 
-			<!-- Declension table -->
-			<div class="overflow-x-auto">
-				<table class="w-full text-left text-xs">
-					<thead>
-						<tr>
-							<th
-								class="rounded-tl-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
-							>
-								Case
-							</th>
-							<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
-								Singular
-							</th>
-							<th
-								class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
-							>
-								Plural
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each CASE_ORDER as caseKey, i (caseKey)}
-							<tr
-								class="border-t border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
-							>
-								<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
-									{CASE_NUMBER[caseKey]}. {CASE_LABELS[caseKey]}
-								</td>
-								<td class="px-3 py-2">
-									{#if displayEntry.sg[CASE_INDEX[caseKey]] === ''}
-										<span class="text-darker-shaded-background">&mdash;</span>
-									{:else if sgStem.length > 0}
-										<span class="text-text-subtitle"
-											>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
-										><span class="text-emphasis"
-											>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
-										>
-									{:else}
-										<span class="text-text-default">{displayEntry.sg[CASE_INDEX[caseKey]]}</span>
-									{/if}
-								</td>
-								<td class="px-3 py-2">
-									{#if displayEntry.pl[CASE_INDEX[caseKey]] === ''}
-										<span class="text-darker-shaded-background">&mdash;</span>
-									{:else if plStem.length > 0}
-										<span class="text-text-subtitle"
-											>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
-										><span class="text-emphasis"
-											>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
-										>
-									{:else}
-										<span class="text-text-default">{displayEntry.pl[CASE_INDEX[caseKey]]}</span>
-									{/if}
-								</td>
+				<!-- Declension table -->
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-xs">
+						<thead>
+							<tr>
+								<th
+									class="rounded-tl-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+								>
+									Case
+								</th>
+								<th class="bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle">
+									Singular
+								</th>
+								<th
+									class="rounded-tr-lg bg-shaded-background px-3 py-2 text-xs font-semibold text-text-subtitle"
+								>
+									Plural
+								</th>
 							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+						</thead>
+						<tbody>
+							{#each CASE_ORDER as caseKey, i (caseKey)}
+								<tr
+									class="border-t border-card-stroke {i % 2 === 0 ? 'bg-shaded-background/50' : ''}"
+								>
+									<td class="whitespace-nowrap px-3 py-2 font-medium text-text-subtitle">
+										{CASE_NUMBER[caseKey]}. {CASE_LABELS[caseKey]}
+									</td>
+									<td class="px-3 py-2">
+										{#if displayEntry.sg[CASE_INDEX[caseKey]] === ''}
+											<span class="text-darker-shaded-background">&mdash;</span>
+										{:else if sgStem.length > 0}
+											<span class="text-text-subtitle"
+												>{formStem(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
+											><span class="text-emphasis"
+												>{formEnding(displayEntry.sg[CASE_INDEX[caseKey]], sgStem)}</span
+											>
+										{:else}
+											<span class="text-text-default">{displayEntry.sg[CASE_INDEX[caseKey]]}</span>
+										{/if}
+									</td>
+									<td class="px-3 py-2">
+										{#if displayEntry.pl[CASE_INDEX[caseKey]] === ''}
+											<span class="text-darker-shaded-background">&mdash;</span>
+										{:else if plStem.length > 0}
+											<span class="text-text-subtitle"
+												>{formStem(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
+											><span class="text-emphasis"
+												>{formEnding(displayEntry.pl[CASE_INDEX[caseKey]], plStem)}</span
+											>
+										{:else}
+											<span class="text-text-default">{displayEntry.pl[CASE_INDEX[caseKey]]}</span>
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
 
 			{#if isPivo}
 				{#key selectedLemma}

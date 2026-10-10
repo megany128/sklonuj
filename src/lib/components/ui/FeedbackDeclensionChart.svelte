@@ -2,7 +2,7 @@
 	import Table from '@lucide/svelte/icons/table';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { loadWordBank } from '$lib/engine/drill';
-	import dictionaryData from '$lib/data/dictionary.json';
+	import { getDictionary, loadDictionary, type Dictionary } from '$lib/engine/dictionary';
 	import type { Case, Number_, CaseForms } from '$lib/types';
 	import { CASE_LABELS, CASE_INDEX, CASE_COLORS, CASE_NUMBER } from '$lib/types';
 
@@ -18,42 +18,36 @@
 
 	const CASE_ORDER: Case[] = ['nom', 'gen', 'dat', 'acc', 'voc', 'loc', 'ins'];
 
-	function lookupForms(l: string): { sg: CaseForms; pl: CaseForms } | null {
-		const wordBank = loadWordBank();
-		const wb = wordBank.find((w) => w.lemma.toLowerCase() === l.toLowerCase());
-		if (wb) return { sg: wb.forms.sg, pl: wb.forms.pl };
+	// Drilled words are always in the word bank; the dictionary (loaded on
+	// demand) only covers a lemma from elsewhere.
+	let dictionary = $state.raw<Dictionary | null>(getDictionary());
 
-		for (const raw of dictionaryData) {
-			if (String(raw[0]).toLowerCase() === l.toLowerCase()) {
-				const sgRaw = raw[2];
-				const plRaw = raw[3];
-				if (!Array.isArray(sgRaw) || !Array.isArray(plRaw)) continue;
-				return {
-					sg: [
-						String(sgRaw[0]),
-						String(sgRaw[1]),
-						String(sgRaw[2]),
-						String(sgRaw[3]),
-						String(sgRaw[4]),
-						String(sgRaw[5]),
-						String(sgRaw[6])
-					] as CaseForms,
-					pl: [
-						String(plRaw[0]),
-						String(plRaw[1]),
-						String(plRaw[2]),
-						String(plRaw[3]),
-						String(plRaw[4]),
-						String(plRaw[5]),
-						String(plRaw[6])
-					] as CaseForms
-				};
-			}
-		}
-		return null;
+	function bankForms(l: string): { sg: CaseForms; pl: CaseForms } | null {
+		const wb = loadWordBank().find((w) => w.lemma.toLowerCase() === l.toLowerCase());
+		return wb ? { sg: wb.forms.sg, pl: wb.forms.pl } : null;
 	}
 
-	let forms = $derived(lookupForms(lemma));
+	function lookupForms(
+		l: string,
+		dict: Dictionary | null
+	): { sg: CaseForms; pl: CaseForms } | null {
+		const fromBank = bankForms(l);
+		if (fromBank) return fromBank;
+		const entry = dict?.find(l);
+		return entry ? { sg: entry.sg, pl: entry.pl } : null;
+	}
+
+	$effect(() => {
+		if (dictionary !== null || bankForms(lemma)) return;
+		// No chart is shown until the forms are known; a failed download is
+		// retried with the next word.
+		loadDictionary().then(
+			(d) => (dictionary = d),
+			() => undefined
+		);
+	});
+
+	let forms = $derived(lookupForms(lemma, dictionary));
 	let expanded = $state(false);
 
 	function computeStem(caseForms: CaseForms): string {

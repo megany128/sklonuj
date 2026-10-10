@@ -6,7 +6,8 @@ import {
 	isMistakeLemmaInBank,
 	parseMistakeRecords,
 	type BankLemmaSets,
-	type MistakeRecord
+	type MistakeRecord,
+	loadBankLemmaSets
 } from './mistakes';
 
 const STORAGE_KEY = 'sklonuj_mistakes';
@@ -159,39 +160,52 @@ describe('parseMistakeRecords', () => {
 	});
 });
 
+describe('parseMistakeRecords without banks', () => {
+	it('only validates: the bank check needs the banks loaded', () => {
+		const removed = makeMistake({ lemma: 'milenec', wordCategory: 'noun' });
+		expect(parseMistakeRecords([removed, { lemma: 'hrad' }])).toEqual([removed]);
+	});
+});
+
 describe('parseMistakeRecords against the real banks', () => {
 	const nounLemmas = new Set(loadWordBank().map((w) => w.lemma));
 
-	it('drops the nouns removed from the word bank and keeps a current one', () => {
+	it('drops the nouns removed from the word bank and keeps a current one', async () => {
 		const removed = ['trojice', 'sex', 'milenec', 'sebevražda'];
 		for (const lemma of removed) expect(nounLemmas.has(lemma)).toBe(false);
 		expect(nounLemmas.has('hrad')).toBe(true);
 
-		const parsed = parseMistakeRecords([
-			makeMistake({ lemma: 'hrad', wordCategory: 'noun' }),
-			...removed.map((lemma) => makeMistake({ lemma, wordCategory: 'noun' })),
-			...removed.map((lemma) => makeMistake({ lemma, drillType: 'multi_step' })),
-			...removed.map((lemma) => makeMistake({ lemma }))
-		]);
+		const parsed = parseMistakeRecords(
+			[
+				makeMistake({ lemma: 'hrad', wordCategory: 'noun' }),
+				...removed.map((lemma) => makeMistake({ lemma, wordCategory: 'noun' })),
+				...removed.map((lemma) => makeMistake({ lemma, drillType: 'multi_step' })),
+				...removed.map((lemma) => makeMistake({ lemma }))
+			],
+			await loadBankLemmaSets()
+		);
 		expect(lemmas(parsed)).toEqual(['hrad']);
 	});
 
-	it('checks adjective and pronoun mistakes against their own banks', () => {
+	it('checks adjective and pronoun mistakes against their own banks', async () => {
 		const adjective = loadAdjectiveBank().find((a) => !nounLemmas.has(a.lemma));
 		const pronoun = loadPronounBank().find((p) => !nounLemmas.has(p.lemma));
 		if (!adjective || !pronoun) throw new Error('banks have no adjective/pronoun-only lemma');
 
-		const parsed = parseMistakeRecords([
-			makeMistake({ lemma: adjective.lemma, wordCategory: 'adjective' }),
-			makeMistake({ lemma: pronoun.lemma, wordCategory: 'pronoun' }),
-			// Saved before `wordCategory` existed: kept, the lemma is in a bank.
-			makeMistake({ lemma: adjective.lemma }),
-			makeMistake({ lemma: pronoun.lemma }),
-			// Filed under the wrong bank: dropped.
-			makeMistake({ lemma: adjective.lemma, wordCategory: 'noun' }),
-			makeMistake({ lemma: pronoun.lemma, wordCategory: 'adjective' }),
-			makeMistake({ lemma: 'hrad', wordCategory: 'pronoun' })
-		]);
+		const parsed = parseMistakeRecords(
+			[
+				makeMistake({ lemma: adjective.lemma, wordCategory: 'adjective' }),
+				makeMistake({ lemma: pronoun.lemma, wordCategory: 'pronoun' }),
+				// Saved before `wordCategory` existed: kept, the lemma is in a bank.
+				makeMistake({ lemma: adjective.lemma }),
+				makeMistake({ lemma: pronoun.lemma }),
+				// Filed under the wrong bank: dropped.
+				makeMistake({ lemma: adjective.lemma, wordCategory: 'noun' }),
+				makeMistake({ lemma: pronoun.lemma, wordCategory: 'adjective' }),
+				makeMistake({ lemma: 'hrad', wordCategory: 'pronoun' })
+			],
+			await loadBankLemmaSets()
+		);
 		expect(lemmas(parsed)).toEqual([
 			adjective.lemma,
 			pronoun.lemma,
@@ -223,6 +237,8 @@ describe('loading mistakes from localStorage', () => {
 		});
 		vi.resetModules();
 		const module = await import('./mistakes');
+		// The check against the banks runs in the background after load.
+		await module.purgeRemovedWords();
 		return { records: module.getAllMistakes(), storage };
 	}
 
@@ -245,6 +261,28 @@ describe('loading mistakes from localStorage', () => {
 		const { records, storage } = await loadWithStorage(JSON.stringify(stored));
 		expect(records).toEqual(stored);
 		expect(JSON.parse(storage.get(STORAGE_KEY) ?? 'null')).toEqual(stored);
+	});
+
+	it('shows stored mistakes at once and loads no bank when there are none', async () => {
+		const storage = new Map<string, string>();
+		vi.stubGlobal('window', {});
+		vi.stubGlobal('localStorage', {
+			getItem: (key: string) => storage.get(key) ?? null,
+			setItem: (key: string, value: string) => {
+				storage.set(key, value);
+			}
+		});
+		vi.resetModules();
+		const drill = vi.fn();
+		vi.doMock('./drill', () => {
+			drill();
+			return { loadWordBank: () => [] };
+		});
+		const module = await import('./mistakes');
+		await module.purgeRemovedWords();
+		expect(module.getAllMistakes()).toEqual([]);
+		expect(drill).not.toHaveBeenCalled();
+		vi.doUnmock('./drill');
 	});
 
 	it('starts empty when storage is missing or corrupt', async () => {
