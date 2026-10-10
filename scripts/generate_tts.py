@@ -283,6 +283,21 @@ def write_manifest(entries: dict[str, str], voice: str) -> None:
     with manifest_path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
         f.write("\n")
+    write_forms(payload)
+
+
+def write_forms(manifest: dict[str, object]) -> None:
+    """Write forms.json: the voice and the sorted texts that have a recording.
+
+    This is what the app downloads. A path is ``path_for(voice, text)``, so the
+    client computes it and only needs to know which texts exist; index.json
+    stays the full record for this script and the R2 upload.
+    """
+    entries = manifest.get("entries")
+    texts = sorted(entries.keys()) if isinstance(entries, dict) else []
+    with (OUT_DIR / "forms.json").open("w", encoding="utf-8") as f:
+        json.dump({"voice": manifest.get("voice"), "forms": texts}, f, ensure_ascii=False, separators=(",", ":"))
+        f.write("\n")
 
 
 def parse_args(argv: Iterable[str]) -> argparse.Namespace:

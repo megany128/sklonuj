@@ -108,6 +108,7 @@ Lemmas missing from the bank are reported, not silently dropped. Sheet nouns the
 ## Audio / TTS
 
 - Pre-generated MP3s in `static/audio/` keyed by `sha1(voice|text)[:16]`, indexed via `static/audio/index.json` (the contract — don't change the scheme without migrating files).
+- The app downloads `static/audio/forms.json` (the voice plus the texts that have a recording, a sixth the size of `index.json`) and computes each path itself with `audioPathFor` in `src/lib/utils/audio-path.ts`, the mirror of `path_for` in `generate_tts.py`. `pnpm tts:generate` writes both files; a spec fails if they drift or if any path stops matching the scheme.
 - Runtime fallback chain in `src/lib/audio.ts`: manifest MP3 → Web Speech API (Czech voice, with `voiceschanged` warmup for Chrome). 500 ms manifest timeout; sentences (>25 chars or with spaces) skip lookup and go straight to Web Speech.
 - Regenerate with `pnpm tts:generate` after any bank change, then `bash scripts/upload_audio_to_r2.sh sklonuj-audio` (needs `wrangler login` as the gmail Cloudflare account). The script uploads only what changed since its last successful run, tracked in the gitignored `static/audio/.uploaded-index.json`; `--since <ref>` or `--all` override that. Voicing must be applied before hashing.
 
@@ -134,6 +135,8 @@ Every Figma-driven change:
 Rules: reuse existing components, use project tokens, respect routing/state/data patterns, prefer tokens over pixel-perfect parity, use localhost asset URLs from the MCP payload directly (no new icon packages, no placeholders).
 
 ## Watch out for
+
+- **Keep the big data files out of the first load**: `dictionary.json` (4 MB) is loaded on demand through `engine/dictionary.ts`, never imported statically; and nothing in the layout's import graph (`progress.ts`, `mistakes.ts`, …) may import `drill.ts`, `adjective-drill.ts` or `pronoun-drill.ts` statically, or the word bank lands on every page. Pure helpers those modules need live in `adjective-keys.ts`; the banks are reached with `import()`.
 
 - **Enumeration drift**: drill engine template filters live in `engine/drill.ts`; any pre-gen pipeline (TTS, audit) must stay lock-step. Don't pre-generate sentence audio without solving this.
 - **Voicing must be applied wherever you render or hash Czech text** — engine + TTS + audits.

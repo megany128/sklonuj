@@ -2,19 +2,18 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { loadWordBank } from '$lib/engine/drill';
 	import paradigmsData from '$lib/data/paradigms.json';
-	import dictionaryData from '$lib/data/dictionary.json';
+	import {
+		getDictionary,
+		loadDictionary,
+		type Dictionary,
+		type DictionaryEntry
+	} from '$lib/engine/dictionary';
 	import { CASE_LABELS, CASE_INDEX, CASE_NUMBER } from '$lib/types';
 	import type { Case, CaseForms, WordEntry } from '$lib/types';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 
 	// Unified display entry for the table
-	interface DeclensionEntry {
-		lemma: string;
-		translation: string;
-		sg: CaseForms;
-		pl: CaseForms;
-		paradigmHint: string;
-	}
+	type DeclensionEntry = DictionaryEntry;
 
 	let {
 		selectedLemma = '',
@@ -36,62 +35,9 @@
 		paradigmNames[p.id] = p.name;
 	}
 
-	// Process dictionary JSON into typed entries.
-	// Each raw entry is [lemma, translation, sg[7], pl[7], paradigmHint?].
-	let cachedDictionary: DeclensionEntry[] | null = null;
-
-	function loadDictionary(): DeclensionEntry[] {
-		if (cachedDictionary) return cachedDictionary;
-		const entries: DeclensionEntry[] = [];
-		for (const raw of dictionaryData) {
-			const lemma = String(raw[0]);
-			const translation = String(raw[1]);
-			const sgRaw = raw[2];
-			const plRaw = raw[3];
-			if (!Array.isArray(sgRaw) || !Array.isArray(plRaw)) continue;
-			entries.push({
-				lemma,
-				translation,
-				sg: [
-					String(sgRaw[0]),
-					String(sgRaw[1]),
-					String(sgRaw[2]),
-					String(sgRaw[3]),
-					String(sgRaw[4]),
-					String(sgRaw[5]),
-					String(sgRaw[6])
-				],
-				pl: [
-					String(plRaw[0]),
-					String(plRaw[1]),
-					String(plRaw[2]),
-					String(plRaw[3]),
-					String(plRaw[4]),
-					String(plRaw[5]),
-					String(plRaw[6])
-				],
-				paradigmHint: raw[4] != null ? String(raw[4]) : ''
-			});
-		}
-		cachedDictionary = entries;
-		return entries;
-	}
-
-	const dictionary = loadDictionary();
-
-	// Build lookup maps for fast dictionary search by lemma (exact and stripped)
-	const dictByLemma: Record<string, DeclensionEntry> = {};
-	const dictByStripped: Record<string, DeclensionEntry> = {};
-	for (const entry of dictionary) {
-		const key = entry.lemma.toLowerCase();
-		if (!(key in dictByLemma)) {
-			dictByLemma[key] = entry;
-		}
-		const stripped = stripDiacritics(key);
-		if (!(stripped in dictByStripped)) {
-			dictByStripped[stripped] = entry;
-		}
-	}
+	// The lookup dictionary is loaded only when a word isn't in the word bank
+	// (see `engine/dictionary.ts`); until then lookups fall back to the bank.
+	let dictionary = $state.raw<Dictionary | null>(getDictionary());
 
 	// Pre-compute stripped lemmas for the word bank
 	const wordBankStripped: Array<{ stripped: string; word: WordEntry }> = wordBank.map((w) => ({
@@ -109,25 +55,26 @@
 		};
 	}
 
-	function lookupWord(query: string): DeclensionEntry | null {
+	function lookupInBank(query: string): { entry: DeclensionEntry; exact: boolean } | null {
 		const q = query.toLowerCase();
-		const qStripped = stripDiacritics(q);
-
-		// Exact match in word bank
 		const wbExact = wordBank.find((w) => w.lemma.toLowerCase() === q);
-		if (wbExact) return wordBankToEntry(wbExact);
-
-		// Exact match in dictionary
-		if (dictByLemma[q]) return dictByLemma[q];
-
-		// Stripped (diacritic-insensitive) match in word bank
+		if (wbExact) return { entry: wordBankToEntry(wbExact), exact: true };
+		const qStripped = stripDiacritics(q);
 		const wbStripped = wordBankStripped.find((e) => e.stripped === qStripped);
-		if (wbStripped) return wordBankToEntry(wbStripped.word);
+		return wbStripped ? { entry: wordBankToEntry(wbStripped.word), exact: false } : null;
+	}
 
+	function lookupWord(query: string, dict: Dictionary | null): DeclensionEntry | null {
+		const bank = lookupInBank(query);
+		// Exact match in word bank
+		if (bank?.exact) return bank.entry;
+		// Exact match in dictionary
+		const dictExact = dict?.find(query);
+		if (dictExact) return dictExact;
+		// Stripped (diacritic-insensitive) match in word bank
+		if (bank) return bank.entry;
 		// Stripped match in dictionary
-		if (dictByStripped[qStripped]) return dictByStripped[qStripped];
-
-		return null;
+		return dict?.findStripped(query) ?? null;
 	}
 
 	// Paradigm browser data
@@ -191,7 +138,15 @@
 	let displayEntry: DeclensionEntry = $derived.by(() => {
 		const lemma = selectedLemma.trim();
 		if (lemma === '') return fallbackEntry;
-		return lookupWord(lemma) ?? fallbackEntry;
+		return lookupWord(lemma, dictionary) ?? fallbackEntry;
+	});
+
+	// A word that isn't exactly in the bank may be in the dictionary: fetch it,
+	// and the table fills in when it arrives.
+	$effect(() => {
+		const lemma = selectedLemma.trim();
+		if (lemma === '' || dictionary !== null || lookupInBank(lemma)?.exact) return;
+		void loadDictionary().then((d) => (dictionary = d));
 	});
 
 	let trimmedLemma = $derived(selectedLemma.trim().toLowerCase());

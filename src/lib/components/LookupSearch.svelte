@@ -6,7 +6,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import { loadWordBank } from '$lib/engine/drill';
 	import { loadAdjectiveBank } from '$lib/engine/adjective-drill';
-	import dictionaryData from '$lib/data/dictionary.json';
+	import { getDictionary, loadDictionary, type Dictionary } from '$lib/engine/dictionary';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 	import type { AdjectiveEntry, WordEntry } from '$lib/types';
 
@@ -50,7 +50,9 @@
 			entry: a
 		}));
 
-	// Dictionary entries: raw is [lemma, translation, sg[7], pl[7], paradigmHint?]
+	// The dictionary (18k nouns) is loaded when the learner starts typing, so
+	// it costs nothing until the search is used. Until it arrives suggestions
+	// come from the curated banks alone.
 	interface DictRow {
 		key: string;
 		stripped: string;
@@ -58,17 +60,21 @@
 		translation: string;
 	}
 
-	const dictStripped: DictRow[] = [];
-	for (const raw of dictionaryData) {
-		const lemma = String(raw[0]);
-		const translation = String(raw[1]);
-		const key = lemma.toLowerCase();
-		dictStripped.push({
-			key,
-			stripped: stripDiacritics(key),
-			lemma,
-			translation
+	function toRows(dict: Dictionary | null): DictRow[] {
+		if (!dict) return [];
+		return dict.entries.map((e) => {
+			const key = e.lemma.toLowerCase();
+			return { key, stripped: stripDiacritics(key), lemma: e.lemma, translation: e.translation };
 		});
+	}
+
+	let dictStripped = $state.raw<DictRow[]>(toRows(getDictionary()));
+	let dictionaryRequested = getDictionary() !== null;
+
+	function requestDictionary(): void {
+		if (dictionaryRequested) return;
+		dictionaryRequested = true;
+		void loadDictionary().then((d) => (dictStripped = toRows(d)));
 	}
 
 	function getSuggestions(q: string): Suggestion[] {
@@ -121,6 +127,10 @@
 	let suggestions: Suggestion[] = $derived.by(() => {
 		if (trimmedQuery.length < MIN_AUTOCOMPLETE_LENGTH) return [];
 		return getSuggestions(trimmedQuery);
+	});
+
+	$effect(() => {
+		if (trimmedQuery.length > 0) requestDictionary();
 	});
 
 	let dropdownOpen = $derived(showSuggestions && trimmedQuery.length >= MIN_AUTOCOMPLETE_LENGTH);
