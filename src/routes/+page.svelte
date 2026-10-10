@@ -2156,10 +2156,11 @@
 		loadChapterScores();
 
 		// A deck link wins over whatever was open. Arriving without one after a
-		// deck was left by navigating away goes back to the chapter it started from.
+		// deck was left by navigating away goes back to the chapter it started
+		// from; a word-pattern link is its own scope, so the chapter waits.
 		if (selectedDeck !== null) {
 			enterDeck(selectedDeck);
-		} else {
+		} else if (selectedParadigm === null) {
 			const back = loadDeckReturnChapter();
 			if (back) {
 				saveDeckReturnChapter(null);

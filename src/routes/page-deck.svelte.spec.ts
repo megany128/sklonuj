@@ -109,4 +109,18 @@ describe('?deck= URL param', () => {
 			.toEqual(chapter);
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
 	});
+
+	it('a word-pattern link does not bring the chapter back', async () => {
+		const chapter = { book: 'kzk1', chapter: 'kzk1_03' } as const;
+		localStorage.setItem(CHAPTER_STORAGE_KEY, serializeChapterSelection(chapter));
+
+		render(Page);
+		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
+
+		cleanup();
+		appPage.url.search = '?selectParadigm=hrad';
+		render(Page);
+		await expect.element(page.getByRole('button', { name: /Nom/ }).first()).toBeInTheDocument();
+		expect(parseChapterSelection(localStorage.getItem(CHAPTER_STORAGE_KEY))).toBeNull();
+	});
 });
