@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { isRecord } from '../utils/is-record.ts';
 import { getCandidates, loadTemplates, loadWordBank, templateTakesWord } from './drill.ts';
 import {
 	filterAdjectivesByTemplate,
@@ -186,6 +188,59 @@ describe('content sweep: sentence frames', () => {
 	// The fountain stays a place you can wait at or walk past.
 	it('fontána is still offered where a landmark fits', () => {
 		expect(templateTakesWord(template('gen_u_015'), word('fontána'))).toBe(true);
+	});
+});
+
+const PINNED = [
+	'publicista',
+	'publicistka',
+	'hořčice',
+	'technik',
+	'titulek',
+	'salón',
+	'pán',
+	'bufet',
+	'sestřenice',
+	'rohlík',
+	'milionářka',
+	'sekretářka',
+	'golf',
+	'biftek',
+	'zavazadlo',
+	'cyklista',
+	'cyklistka',
+	'moderátor',
+	'ježek',
+	'úplněk',
+	'podpatek',
+	'překladatel'
+];
+
+describe('content sweep: pinned forms', () => {
+	// form_overrides.json holds the forms these 22 words had before their gloss
+	// was reworded. The bank must still match it exactly, so a later rebuild
+	// can't change what learners are expected to type.
+	const overrides: unknown = JSON.parse(readFileSync('scripts/form_overrides.json', 'utf-8'));
+
+	function variants(value: unknown): Record<string, string[]> {
+		const out: Record<string, string[]> = {};
+		if (!isRecord(value)) return out;
+		for (const [index, forms] of Object.entries(value)) {
+			if (Array.isArray(forms) && forms.length > 0) out[index] = forms.map(String);
+		}
+		return out;
+	}
+
+	it.each(PINNED)('%s has exactly its pinned forms, variants, gender and animacy', (lemma) => {
+		const pin = isRecord(overrides) ? overrides[lemma] : undefined;
+		if (!isRecord(pin)) throw new Error(`no override for ${lemma}`);
+		const entry = word(lemma);
+		expect(entry.forms.sg).toEqual(pin.sg);
+		expect(entry.forms.pl).toEqual(pin.pl);
+		expect(entry.gender).toBe(pin.gender);
+		expect(entry.animate).toBe(pin.animate);
+		expect(variants(entry.variantForms?.sg)).toEqual(variants(pin.variants_sg));
+		expect(variants(entry.variantForms?.pl)).toEqual(variants(pin.variants_pl));
 	});
 });
 
