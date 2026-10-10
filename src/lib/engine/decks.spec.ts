@@ -7,14 +7,24 @@ const templates = loadTemplates();
 
 describe('grammar decks', () => {
 	it('lists every deck with its sentences and cases for the level', () => {
-		const decks = grammarDecks('A1', templates, {});
-		expect(decks.map((d) => d.def.id)).toEqual(['direction', 'verbs']);
+		const decks = grammarDecks('A2', templates, {});
+		expect(decks.map((d) => d.def.id)).toEqual(['direction', 'verbs', 'numbers']);
 		for (const d of decks) {
 			expect(d.unlocked).toBe(true);
 			expect(d.sentences).toBeGreaterThan(5);
 			expect(d.cases.length).toBeGreaterThanOrEqual(2);
 			expect(d.stat).toBeUndefined();
 		}
+	});
+
+	it('a deck above the level is listed as locked', () => {
+		const numbers = grammarDecks('A1', templates, {}).find((d) => d.def.id === 'numbers');
+		expect(numbers?.unlocked).toBe(false);
+		expect(grammarDecks('A2', templates, {}).find((d) => d.def.id === 'numbers')?.cases).toEqual([
+			'nom',
+			'gen',
+			'acc'
+		]);
 	});
 
 	it('counts only what the level can be asked: dative opens at A2', () => {

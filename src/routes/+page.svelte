@@ -1579,19 +1579,26 @@
 	});
 
 	// Derived: whether number mode should be forced to sg
-	let effectiveNumberMode = $derived.by(() => {
-		const chapter = getSelectedKzkChapter();
-		if (chapter && !chapter.pluralUnlocked) {
-			return 'sg' as const;
-		}
-		return drillSettings.numberMode;
-	});
-
 	// The deck's topic in force: free practice only (chapters and assignments
 	// set their own scope), and only at levels that offer it.
 	let activeFocus: FocusTopic | null = $derived.by(() => {
 		if (selectedDeck === null || chapterBook !== null || assignmentInfo) return null;
 		return focusUnlocked(selectedDeck, currentLevel) ? selectedDeck : null;
+	});
+
+	// A deck about singular against plural (Numbers) asks both, whatever the
+	// number setting and the singular-first rule say.
+	let deckAsksBothNumbers = $derived(
+		activeFocus !== null && focusDef(activeFocus).bothNumbers === true
+	);
+
+	let effectiveNumberMode = $derived.by(() => {
+		const chapter = getSelectedKzkChapter();
+		if (chapter && !chapter.pluralUnlocked) {
+			return 'sg' as const;
+		}
+		if (deckAsksBothNumbers) return 'both' as const;
+		return drillSettings.numberMode;
 	});
 
 	function leaveDeck(): void {
@@ -2616,7 +2623,9 @@
 	 * match the template's category even when their CEFR level isn't unlocked.
 	 */
 	function nounPoolForTemplate(template: SentenceTemplate, prog: Progress): WordEntry[] {
-		const diffFiltered = filterByParadigm(getCandidates(template, prog));
+		const diffFiltered = filterByParadigm(
+			getCandidates(template, prog, { skipSingularFirst: deckAsksBothNumbers })
+		);
 		if (chapterBook === null || chapterSelection === null) return diffFiltered;
 		const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
 		const chapterLemmasLower = new Set([
@@ -5225,7 +5234,8 @@
 						}
 						return hidden;
 					})()}
-					hideNumberMode={chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked}
+					hideNumberMode={deckAsksBothNumbers ||
+						(chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked)}
 				/>
 			</div>
 		{/if}

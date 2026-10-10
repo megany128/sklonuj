@@ -28,7 +28,8 @@ import {
 } from './adjective-drill';
 import { loadPronounBank, getPronounForm } from './pronoun-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
-import { isFocusTopic, withDirectionContrast } from './focus';
+import { isFocusTopic, templateForWord } from './focus';
+import { isCountContext, isCountable } from './numbers';
 import { cellWeight, nounCellKey, W_MAX, weightedPick } from './spacing';
 
 export { applyPrepositionVoicing };
@@ -141,6 +142,7 @@ interface RawTemplateEntry {
 	why: string;
 	difficulty: string;
 	topics?: string[];
+	countContext?: string;
 }
 
 let cachedWordBank: WordEntry[] | null = null;
@@ -267,6 +269,21 @@ export function loadTemplates(): SentenceTemplate[] {
 			}
 			mapped.topics = topics;
 		}
+		if (entry.countContext !== undefined) {
+			if (!isCountContext(entry.countContext)) {
+				throw new Error(`Invalid countContext "${entry.countContext}" in template "${entry.id}"`);
+			}
+			// After 1 and 2–4 the noun stands in the sentence's own case; after
+			// 5 and up it is genitive plural whatever the sentence.
+			const nounCase =
+				entry.number === 'pl' && entry.requiredCase === 'gen' ? 'gen' : entry.countContext;
+			if (entry.requiredCase !== nounCase) {
+				throw new Error(
+					`Template "${entry.id}" counts in the ${entry.countContext} but asks for ${entry.requiredCase}`
+				);
+			}
+			mapped.countContext = entry.countContext;
+		}
 		return mapped;
 	});
 	return cachedTemplates;
@@ -286,7 +303,11 @@ export function templateMatchesWordCategory(template: SentenceTemplate, word: Wo
 	return word.categories.some((c) => cats.includes(c));
 }
 
-export function getCandidates(template: SentenceTemplate, progress: Progress): WordEntry[] {
+export function getCandidates(
+	template: SentenceTemplate,
+	progress: Progress,
+	options: { skipSingularFirst?: boolean } = {}
+): WordEntry[] {
 	const level = curriculum[progress.level];
 	if (!level) {
 		// Unknown level — fall back to the first curriculum level if available, else return no candidates
@@ -294,7 +315,7 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 		if (!firstKey) return [];
 		if (!isDifficulty(firstKey)) return [];
 		if (firstKey === progress.level) return [];
-		return getCandidates(template, { ...progress, level: firstKey });
+		return getCandidates(template, { ...progress, level: firstKey }, options);
 	}
 
 	// Check curriculum constraints: is the template's case unlocked?
@@ -303,7 +324,7 @@ export function getCandidates(template: SentenceTemplate, progress: Progress): W
 	// Check curriculum constraints: is the template's number allowed?
 	if (template.number === 'pl') {
 		if (!level.plural_unlocked) return [];
-		if (level.plural_unlocked === 'sg_first') {
+		if (level.plural_unlocked === 'sg_first' && options.skipSingularFirst !== true) {
 			// Only show plural templates if the user has >= 60% accuracy on the singular form of the same case
 			const sgKey = `${template.requiredCase}_sg`;
 			const sgScore: CaseScore | undefined = progress.caseScores[sgKey];
@@ -354,6 +375,8 @@ function matchingWords(
 			// Mass/collective nouns (mléko, nábytek, hmyz) have dictionary plurals
 			// but no natural plural use, so plural sentence slots skip them
 			!(template.number === 'pl' && word.categories.includes('mass')) &&
+			// Counting sentences take only nouns that can follow a number
+			!(template.countContext !== undefined && !isCountable(word)) &&
 			// Nouns kept for declension tables only (pan needs a name after it,
 			// šach is "check") — not even the `any` templates take them
 			!word.categories.includes('no_templates') &&
@@ -565,7 +588,7 @@ export function generateCaseIdentification(
 ): DrillQuestion {
 	return {
 		word,
-		template: withDirectionContrast(template, word),
+		template: templateForWord(template, word),
 		correctAnswer: template.requiredCase,
 		case: template.requiredCase,
 		number: template.number,
@@ -581,7 +604,7 @@ export function generateSentenceDrill(
 	if (!correctAnswer || correctAnswer.trim().length === 0) return null;
 	return {
 		word,
-		template: withDirectionContrast(template, word),
+		template: templateForWord(template, word),
 		correctAnswer,
 		case: template.requiredCase,
 		number: template.number,
@@ -598,7 +621,7 @@ export function generateMultiStepQuestion(
 	if (!correctForm || correctForm.trim().length === 0) return null;
 	return {
 		word,
-		template: withDirectionContrast(template, word),
+		template: templateForWord(template, word),
 		case: template.requiredCase,
 		number: template.number,
 		correctParadigm: word.paradigm,

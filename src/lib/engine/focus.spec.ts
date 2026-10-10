@@ -3,6 +3,7 @@ import {
 	FOCUS_DEFS,
 	directionContrast,
 	directionRole,
+	focusDef,
 	focusFromSlug,
 	focusUnlocked,
 	isFocusTopic,
@@ -83,8 +84,12 @@ describe('focus topics', () => {
 		(id) => {
 			for (const level of ['A1', 'A2', 'B1', 'B2'] as const) {
 				if (!focusUnlocked(id, level)) continue;
+				// A new learner has no plural yet, except in a deck that asks both.
+				const bothNumbers = focusDef(id).bothNumbers === true;
 				const usable = templatesForFocus(templates, id).filter(
-					(t) => t.number === 'sg' && getCandidates(t, progressAt(level)).length >= 5
+					(t) =>
+						(bothNumbers || t.number === 'sg') &&
+						getCandidates(t, progressAt(level), { skipSingularFirst: bothNumbers }).length >= 5
 				);
 				// Enough sentences that a session doesn't loop on two of them.
 				expect(usable.length, `${id} at ${level}`).toBeGreaterThanOrEqual(6);

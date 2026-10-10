@@ -123,4 +123,23 @@ describe('?deck= URL param', () => {
 		await expect.element(page.getByRole('button', { name: /Nom/ }).first()).toBeInTheDocument();
 		expect(parseChapterSelection(localStorage.getItem(CHAPTER_STORAGE_KEY))).toBeNull();
 	});
+
+	it('the Numbers deck opens at A2 and not below', async () => {
+		const progress = (level: string) =>
+			JSON.stringify({
+				level,
+				caseScores: {},
+				paradigmScores: {},
+				lemmaScores: {},
+				cellSchedule: {},
+				lastSession: '',
+				longestStreak: 0
+			});
+		appPage.url.search = '?deck=numbers';
+
+		localStorage.setItem('sklonuj_progress', progress('A1'));
+		render(Page);
+		await expect.element(page.getByRole('button', { name: /Nom/ }).first()).toBeInTheDocument();
+		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
+	});
 });
