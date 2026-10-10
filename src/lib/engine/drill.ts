@@ -28,6 +28,7 @@ import {
 } from './adjective-drill';
 import { loadPronounBank, getPronounForm } from './pronoun-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
+import { isFocusTopic, withDirectionContrast } from './focus';
 import { cellWeight, nounCellKey, W_MAX, weightedPick } from './spacing';
 
 export { applyPrepositionVoicing };
@@ -139,6 +140,7 @@ interface RawTemplateEntry {
 	requiredGender?: string;
 	why: string;
 	difficulty: string;
+	topics?: string[];
 }
 
 let cachedWordBank: WordEntry[] | null = null;
@@ -256,6 +258,14 @@ export function loadTemplates(): SentenceTemplate[] {
 		}
 		if (entry.excludesCategories && entry.excludesCategories.length > 0) {
 			mapped.excludesCategories = entry.excludesCategories;
+		}
+		if (entry.topics && entry.topics.length > 0) {
+			// A misspelled topic would silently drop the sentence from its focus.
+			const topics = entry.topics.filter(isFocusTopic);
+			if (topics.length !== entry.topics.length) {
+				throw new Error(`Unknown topic in template "${entry.id}": ${entry.topics.join(', ')}`);
+			}
+			mapped.topics = topics;
 		}
 		return mapped;
 	});
@@ -555,7 +565,7 @@ export function generateCaseIdentification(
 ): DrillQuestion {
 	return {
 		word,
-		template,
+		template: withDirectionContrast(template, word),
 		correctAnswer: template.requiredCase,
 		case: template.requiredCase,
 		number: template.number,
@@ -571,7 +581,7 @@ export function generateSentenceDrill(
 	if (!correctAnswer || correctAnswer.trim().length === 0) return null;
 	return {
 		word,
-		template,
+		template: withDirectionContrast(template, word),
 		correctAnswer,
 		case: template.requiredCase,
 		number: template.number,
@@ -588,7 +598,7 @@ export function generateMultiStepQuestion(
 	if (!correctForm || correctForm.trim().length === 0) return null;
 	return {
 		word,
-		template,
+		template: withDirectionContrast(template, word),
 		case: template.requiredCase,
 		number: template.number,
 		correctParadigm: word.paradigm,

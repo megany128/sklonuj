@@ -380,5 +380,13 @@
 	["voc_ahoj_126", "manžel"],
 	["voc_ahoj_126", "manželka"],
 	["voc_pojdte_239", "miminko"],
-	["voc_pojdte_239", "mimino"]
+	["voc_pojdte_239", "mimino"],
+	["gen_u_260", "mimino"],
+	["gen_u_260", "miminko"],
+	["dat_radit_265", "mimino"],
+	["dat_radit_265", "miminko"],
+	["ins_souhlasit_271", "mimino"],
+	["ins_souhlasit_271", "miminko"],
+	["gen_vazit_269", "mimino"],
+	["gen_vazit_269", "miminko"]
 ]

@@ -18,7 +18,8 @@
 		"trigger": "do",
 		"why": "do (to/into) → genitive",
 		"difficulty": "A1",
-		"semanticTags": ["v_place"]
+		"semanticTags": ["v_place"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "gen_z_012",
@@ -29,7 +30,8 @@
 		"trigger": "z",
 		"why": "z (from) → genitive",
 		"difficulty": "A1",
-		"excludesCategories": ["indoor"]
+		"excludesCategories": ["indoor"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "gen_od_013",
@@ -103,7 +105,8 @@
 		"trigger": "do",
 		"why": "do (to/back to) → genitive",
 		"difficulty": "A1",
-		"semanticTags": ["v_place"]
+		"semanticTags": ["v_place"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "gen_bez_020",
@@ -124,7 +127,8 @@
 		"number": "sg",
 		"trigger": "k",
 		"why": "k (towards/to someone's place) → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["direction"]
 	},
 	{
 		"id": "dat_dat_022",
@@ -134,7 +138,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "dát (to give) + recipient → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_rict_023",
@@ -144,7 +149,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "říct (to tell) + person told → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_pomahat_024",
@@ -154,7 +160,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "pomáhat (to help) → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_verit_025",
@@ -164,7 +171,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "věřit (to believe/trust) → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_volat_026",
@@ -174,7 +182,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "volat (to call/phone) + direct object → accusative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_k_027",
@@ -194,7 +203,8 @@
 		"number": "pl",
 		"trigger": "k",
 		"why": "k (towards/to someone's place) → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["direction"]
 	},
 	{
 		"id": "acc_vid_006",
@@ -204,7 +214,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "vidět (to see) + direct object → accusative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_mam_007",
@@ -235,7 +246,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "na (to/onto) + direction → accusative\nna for events, open spaces, surfaces and some institutions (na koncert, na náměstí, na poštu)",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["direction"]
 	},
 	{
 		"id": "acc_kupuji_010",
@@ -265,7 +277,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "hledat (to look for) + direct object → accusative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_pro_031",
@@ -297,7 +310,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "znát (to know someone) + direct object → accusative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_rad_034",
@@ -388,7 +402,8 @@
 		"number": "sg",
 		"trigger": "v",
 		"why": "v (in) + location inside → locative\nv for buildings, rooms, cities and countries (v domě, ve škole, v Praze)",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["direction"]
 	},
 	{
 		"id": "loc_na_002",
@@ -399,7 +414,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "na (on/at) + location → locative\nna for surfaces, open spaces, events and some institutions (na stole, na náměstí, na koncertě, na poště)",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["direction"]
 	},
 	{
 		"id": "loc_o_003",
@@ -409,7 +425,8 @@
 		"number": "sg",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_v_004",
@@ -420,7 +437,8 @@
 		"number": "sg",
 		"trigger": "v",
 		"why": "v (in) + workplace → locative\nv for workplaces you are inside: buildings, shops, companies (v bance, v obchodě, ve firmě)",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["direction"]
 	},
 	{
 		"id": "loc_na_005",
@@ -474,7 +492,8 @@
 		"number": "sg",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_na_043",
@@ -485,7 +504,8 @@
 		"trigger": "na",
 		"why": "na (on) + surface → locative",
 		"difficulty": "A1",
-		"semanticTags": ["na_place"]
+		"semanticTags": ["na_place"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "ins_s_044",
@@ -613,7 +633,8 @@
 		"trigger": "z",
 		"why": "z (from) → genitive",
 		"difficulty": "A2",
-		"excludesCategories": ["indoor", "region"]
+		"excludesCategories": ["indoor", "region"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "loc_v_056",
@@ -624,7 +645,8 @@
 		"number": "pl",
 		"trigger": "v",
 		"why": "v (in) + location → locative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["direction"]
 	},
 	{
 		"id": "dat_pomahat_057",
@@ -634,7 +656,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "pomáhat (to help) → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_vidim_058",
@@ -644,7 +667,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "vidět (to see) + direct object → accusative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_pred_059",
@@ -865,7 +889,8 @@
 		"why": "do (to/into) → genitive",
 		"difficulty": "A2",
 		"semanticTags": ["leisure_do"],
-		"excludesCategories": ["region", "indoor"]
+		"excludesCategories": ["region", "indoor"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "gen_bez_083",
@@ -948,7 +973,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "rozumět (to understand) → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_gratulovat_091",
@@ -958,7 +984,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "gratulovat (to congratulate) → dative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_patrit_092",
@@ -968,7 +995,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "patřit (to belong to) → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_podobat_093",
@@ -978,7 +1006,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "podobat se (to resemble) → dative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_zavidet_094",
@@ -988,7 +1017,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "závidět (to envy) → dative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_ukazat_095",
@@ -998,7 +1028,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "ukázat (to show) + person shown → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_k_096",
@@ -1030,7 +1061,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "dát (to give) + recipients → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_rozumet_099",
@@ -1040,7 +1072,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "rozumět (to understand) → dative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_verit_100",
@@ -1050,7 +1083,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "věřit (to believe/trust) → dative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_k_101",
@@ -1071,7 +1105,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "potřebovat (to need) + direct object → accusative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_o_103",
@@ -1081,7 +1116,8 @@
 		"number": "sg",
 		"trigger": "o",
 		"why": "zajímat se o (to be interested in) → accusative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_na_104",
@@ -1092,7 +1128,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "čekat na (to wait for) → accusative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_na_105",
@@ -1102,7 +1139,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "dívat se na (to look at) → accusative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_mam_106",
@@ -1134,7 +1172,8 @@
 		"trigger": "na",
 		"why": "na (to/onto) + direction → accusative\nna for events, open spaces, surfaces and some institutions (na koncert, na náměstí, na poštu)",
 		"difficulty": "A2",
-		"excludesCategories": ["region", "indoor"]
+		"excludesCategories": ["region", "indoor"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "acc_kupuji_109",
@@ -1205,7 +1244,8 @@
 		"number": "pl",
 		"trigger": "na",
 		"why": "čekat na (to wait for) → accusative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "voc_pojd_116",
@@ -1416,7 +1456,8 @@
 		"number": "sg",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_v_129",
@@ -1470,7 +1511,8 @@
 		"number": "sg",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_v_134",
@@ -1481,7 +1523,8 @@
 		"number": "pl",
 		"trigger": "v",
 		"why": "v (in) + location → locative (ve městech, v domech)",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["direction"]
 	},
 	{
 		"id": "loc_o_135",
@@ -1491,7 +1534,8 @@
 		"number": "pl",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_na_136",
@@ -1502,7 +1546,8 @@
 		"trigger": "na",
 		"why": "na (on/at) + location → locative",
 		"difficulty": "B1",
-		"semanticTags": ["na_place"]
+		"semanticTags": ["na_place"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "loc_o_137",
@@ -1512,7 +1557,8 @@
 		"number": "pl",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_po_138",
@@ -1544,7 +1590,8 @@
 		"number": "sg",
 		"trigger": "o",
 		"why": "o (about) + topic → locative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_s_142",
@@ -1607,7 +1654,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "zabývat se (to deal with) → instrumental",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_mezi_149",
@@ -1661,7 +1709,8 @@
 		"number": "sg",
 		"trigger": "z",
 		"why": "z (from) → genitive",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["direction"]
 	},
 	{
 		"id": "gen_vedle_155",
@@ -1694,7 +1743,8 @@
 		"trigger": "na",
 		"why": "dívat se na (to look at) → accusative",
 		"difficulty": "A2",
-		"semanticTags": ["landmark", "flora", "celestial"]
+		"semanticTags": ["landmark", "flora", "celestial"],
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_telefonovat_158",
@@ -1704,7 +1754,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "telefonovat (to phone) + person called → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_blizit_159",
@@ -1727,7 +1778,8 @@
 		"trigger": "v",
 		"why": "v (in) + location → locative",
 		"difficulty": "A1",
-		"excludesCategories": ["region"]
+		"excludesCategories": ["region"],
+		"topics": ["direction"]
 	},
 	{
 		"id": "ins_s_161",
@@ -1758,7 +1810,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "slíbit (to promise) + person promised → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_vidim_166",
@@ -1978,7 +2031,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "být + profession/role → instrumental",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_stala_184",
@@ -1990,7 +2044,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "stát se (to become) + new role → instrumental",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_zustane_185",
@@ -2001,7 +2056,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "zůstat (to remain) + identity → instrumental",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "loc_pri_186",
@@ -2033,7 +2089,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "bát se (to be afraid of) → genitive",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_vsiml_189",
@@ -2043,7 +2100,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "všimnout si (to notice) → genitive",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_zucastnil_190",
@@ -2054,7 +2112,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "zúčastnit se (to take part in) → genitive",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_zbavil_191",
@@ -2064,7 +2123,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "zbavit se (to get rid of) → genitive",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_ptam_192",
@@ -2074,7 +2134,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "ptát se (to ask) + person asked → genitive",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_dotykam_193",
@@ -2084,7 +2145,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "dotýkat se (to touch) → genitive",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_dekuji_194",
@@ -2094,7 +2156,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "děkovat (to thank) → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_odpovidam_195",
@@ -2104,7 +2167,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "odpovídat (to answer) + person answered → dative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_blahoprej_196",
@@ -2114,7 +2178,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "blahopřát (to congratulate) → dative",
-		"difficulty": "B1"
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_voni_200",
@@ -2124,7 +2189,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "vonět (to smell of) → instrumental",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_nehlede_202",
@@ -2216,7 +2282,8 @@
 		"number": "pl",
 		"trigger": "",
 		"why": "bát se (to be afraid of) → genitive",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_vidim_211",
@@ -2238,7 +2305,8 @@
 		"trigger": "",
 		"why": "dát (to give) + recipient → dative",
 		"difficulty": "A2",
-		"excludesCategories": ["unique_relation"]
+		"excludesCategories": ["unique_relation"],
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_jdu_213",
@@ -2339,7 +2407,8 @@
 		"trigger": "",
 		"why": "děkovat (to thank) → dative",
 		"difficulty": "A2",
-		"excludesCategories": ["unique_relation"]
+		"excludesCategories": ["unique_relation"],
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_za_230",
@@ -2371,7 +2440,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "záležet na (to depend on) → locative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_od_233",
@@ -2405,7 +2475,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "být + profession → instrumental",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_stal_236",
@@ -2417,7 +2488,8 @@
 		"trigger": "",
 		"why": "stát se (to become) + new profession/role → instrumental",
 		"difficulty": "B1",
-		"requiredGender": "m"
+		"requiredGender": "m",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_byt_237",
@@ -2429,7 +2501,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "být + profession → instrumental",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_possess_240",
@@ -2482,7 +2555,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "těšit se na (to look forward to) → accusative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "acc_myslim_245",
@@ -2492,7 +2566,8 @@
 		"number": "sg",
 		"trigger": "na",
 		"why": "myslet na (to think about) → accusative",
-		"difficulty": "A2"
+		"difficulty": "A2",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_diky_246",
@@ -2590,7 +2665,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "bát se (to be afraid of) → genitive",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "gen_dost_a1",
@@ -2643,7 +2719,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "psát (to write) + recipient → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_kupuji_a1",
@@ -2653,7 +2730,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "kupovat (to buy) + person bought for → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "dat_pomaham_a1",
@@ -2663,7 +2741,8 @@
 		"number": "sg",
 		"trigger": "",
 		"why": "pomáhat (to help) → dative",
-		"difficulty": "A1"
+		"difficulty": "A1",
+		"topics": ["verbs"]
 	},
 	{
 		"id": "ins_s_bydlim_a1",
@@ -2694,5 +2773,263 @@
 		"trigger": "s",
 		"why": "s (with) → instrumental",
 		"difficulty": "A1"
+	},
+	{
+		"id": "loc_v_256",
+		"template": "Jsem v ___.",
+		"lemmaCategory": "places",
+		"semanticTags": ["v_place"],
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "v",
+		"why": "v (in) + where you are → locative",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "gen_z_257",
+		"template": "Jdu z ___.",
+		"lemmaCategory": "places",
+		"semanticTags": ["v_place"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "z",
+		"why": "z (from, out of) → genitive",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "gen_z_258",
+		"template": "Vracím se z ___.",
+		"lemmaCategory": "places",
+		"semanticTags": ["na_place"],
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "z",
+		"why": "z (from) → genitive\nna places leave with z too: na poštu → z pošty",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "gen_u_259",
+		"template": "Jsem u ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "u",
+		"why": "u (at someone's place) → genitive",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "gen_u_260",
+		"template": "Bydlím u ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "u",
+		"why": "u (at someone's place) → genitive",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "gen_od_261",
+		"template": "Jdu od ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "od",
+		"why": "od (from someone's place) → genitive",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "dat_k_262",
+		"template": "Jedu k ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "k",
+		"why": "k (to someone's place) → dative",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "acc_na_263",
+		"template": "Jdeme na ___.",
+		"lemmaCategory": "places",
+		"semanticTags": ["na_place"],
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "na (to) + direction → accusative",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "loc_na_264",
+		"template": "Jsme na ___.",
+		"lemmaCategory": "places",
+		"semanticTags": ["na_place"],
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "na (at) + location → locative",
+		"difficulty": "A1",
+		"topics": ["direction"]
+	},
+	{
+		"id": "dat_radit_265",
+		"template": "Radím ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "radit (to advise) → dative",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "dat_vadit_266",
+		"template": "To vadí ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "vadit (to bother) → dative: the person bothered",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "dat_libit_267",
+		"template": "Líbí se to ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "líbit se (to please) → dative: the person who likes it",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "dat_chutnat_268",
+		"template": "Chutná to ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "chutnat (to taste good) → dative: the person who likes it",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "gen_vazit_269",
+		"template": "Vážím si ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "vážit si (to respect) → genitive",
+		"difficulty": "B1",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "gen_tykat_270",
+		"template": "Týká se to ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "gen",
+		"number": "sg",
+		"trigger": "",
+		"why": "týkat se (to concern) → genitive",
+		"difficulty": "B1",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "ins_souhlasit_271",
+		"template": "Souhlasím s ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "s",
+		"why": "souhlasit s (to agree with) → instrumental",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "ins_setkat_272",
+		"template": "Setkal jsem se s ___.",
+		"lemmaCategory": "people",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "s",
+		"why": "setkat se s (to meet with) → instrumental",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "ins_loucit_273",
+		"template": "Loučím se s ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "ins",
+		"number": "sg",
+		"trigger": "s",
+		"why": "loučit se s (to say goodbye to) → instrumental",
+		"difficulty": "B1",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "acc_starat_274",
+		"template": "Starám se o ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "o",
+		"why": "starat se o (to take care of) → accusative",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "acc_bat_275",
+		"template": "Bojím se o ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "o",
+		"why": "bát se o (to fear for) → accusative\nbát se + genitive is to be afraid of: bojím se psa",
+		"difficulty": "B1",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "acc_zlobit_276",
+		"template": "Zlobím se na ___.",
+		"lemmaCategory": "family",
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "zlobit se na (to be angry at) → accusative",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "loc_snit_277",
+		"template": "Sním o ___.",
+		"lemmaCategory": "any",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "o",
+		"why": "snít o (to dream about) → locative",
+		"difficulty": "A2",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "loc_trvat_278",
+		"template": "Trvám na ___.",
+		"lemmaCategory": "abstract",
+		"requiredCase": "loc",
+		"number": "sg",
+		"trigger": "na",
+		"why": "trvat na (to insist on) → locative",
+		"difficulty": "B1",
+		"topics": ["verbs"]
 	}
 ]
