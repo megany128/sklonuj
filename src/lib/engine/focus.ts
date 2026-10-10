@@ -33,7 +33,7 @@ export const FOCUS_DEFS: readonly FocusDef[] = [
 		id: 'direction',
 		slug: 'kam-kde-odkud',
 		label: 'Kam? Kde? Odkud?',
-		blurb: 'Where to, where, where from: do / na / k · v / na / u · z / od',
+		blurb: 'Where to, where, where from: do školy, ve škole, ze školy',
 		unlockLevel: 'A1'
 	},
 	{
