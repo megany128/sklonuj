@@ -1527,5 +1527,311 @@
 		"pl": ["", "", "", "", "", "", ""],
 		"gender": "f",
 		"animate": false
+	},
+	"rohlík": {
+		"sg": ["rohlík", "rohlíku", "rohlíku", "rohlík", "rohlíku", "rohlíku", "rohlíkem"],
+		"pl": ["rohlíky", "rohlíků", "rohlíkům", "rohlíky", "rohlíky", "rohlících", "rohlíky"],
+		"gender": "m",
+		"animate": false
+	},
+	"milionářka": {
+		"sg": [
+			"milionářka",
+			"milionářky",
+			"milionářce",
+			"milionářku",
+			"milionářko",
+			"milionářce",
+			"milionářkou"
+		],
+		"pl": [
+			"milionářky",
+			"milionářek",
+			"milionářkám",
+			"milionářky",
+			"milionářky",
+			"milionářkách",
+			"milionářkami"
+		],
+		"gender": "f",
+		"animate": true
+	},
+	"pán": {
+		"sg": ["pán", "pána", "pánovi", "pána", "pane", "pánovi", "pánem"],
+		"pl": ["páni", "pánů", "pánům", "pány", "páni", "pánech", "pány"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["pánu"],
+			"5": ["pánu"]
+		},
+		"variants_pl": {
+			"0": ["pánové"],
+			"4": ["pánové"]
+		}
+	},
+	"sekretářka": {
+		"sg": [
+			"sekretářka",
+			"sekretářky",
+			"sekretářce",
+			"sekretářku",
+			"sekretářko",
+			"sekretářce",
+			"sekretářkou"
+		],
+		"pl": [
+			"sekretářky",
+			"sekretářek",
+			"sekretářkám",
+			"sekretářky",
+			"sekretářky",
+			"sekretářkách",
+			"sekretářkami"
+		],
+		"gender": "f",
+		"animate": true
+	},
+	"sestřenice": {
+		"sg": [
+			"sestřenice",
+			"sestřenice",
+			"sestřenici",
+			"sestřenici",
+			"sestřenice",
+			"sestřenici",
+			"sestřenicí"
+		],
+		"pl": [
+			"sestřenice",
+			"sestřenic",
+			"sestřenicím",
+			"sestřenice",
+			"sestřenice",
+			"sestřenicích",
+			"sestřenicemi"
+		],
+		"gender": "f",
+		"animate": false
+	},
+	"golf": {
+		"sg": ["golf", "golfu", "golfu", "golf", "golfe", "golfu", "golfem"],
+		"pl": ["golfy", "golfů", "golfům", "golfy", "golfy", "golfech", "golfy"],
+		"gender": "m",
+		"animate": false
+	},
+	"biftek": {
+		"sg": ["biftek", "bifteku", "bifteku", "biftek", "bifteku", "bifteku", "biftekem"],
+		"pl": ["bifteky", "bifteků", "biftekům", "bifteky", "bifteky", "biftecích", "bifteky"],
+		"gender": "m",
+		"animate": false
+	},
+	"zavazadlo": {
+		"sg": [
+			"zavazadlo",
+			"zavazadla",
+			"zavazadlu",
+			"zavazadlo",
+			"zavazadlo",
+			"zavazadle",
+			"zavazadlem"
+		],
+		"pl": [
+			"zavazadla",
+			"zavazadel",
+			"zavazadlům",
+			"zavazadla",
+			"zavazadla",
+			"zavazadlech",
+			"zavazadly"
+		],
+		"gender": "n",
+		"animate": false
+	},
+	"cyklista": {
+		"sg": ["cyklista", "cyklisty", "cyklistovi", "cyklistu", "cyklisto", "cyklistovi", "cyklistou"],
+		"pl": ["cyklisté", "cyklistů", "cyklistům", "cyklisty", "cyklisté", "cyklistech", "cyklisty"],
+		"gender": "m",
+		"animate": true
+	},
+	"cyklistka": {
+		"sg": [
+			"cyklistka",
+			"cyklistky",
+			"cyklistce",
+			"cyklistku",
+			"cyklistko",
+			"cyklistce",
+			"cyklistkou"
+		],
+		"pl": [
+			"cyklistky",
+			"cyklistek",
+			"cyklistkám",
+			"cyklistky",
+			"cyklistky",
+			"cyklistkách",
+			"cyklistkami"
+		],
+		"gender": "f",
+		"animate": true
+	},
+	"moderátor": {
+		"sg": [
+			"moderátor",
+			"moderátora",
+			"moderátorovi",
+			"moderátora",
+			"moderátore",
+			"moderátorovi",
+			"moderátorem"
+		],
+		"pl": [
+			"moderátoři",
+			"moderátorů",
+			"moderátorům",
+			"moderátory",
+			"moderátoři",
+			"moderátorech",
+			"moderátory"
+		],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["moderátoru"],
+			"5": ["moderátoru"]
+		}
+	},
+	"hořčice": {
+		"sg": ["hořčice", "hořčice", "hořčici", "hořčici", "hořčice", "hořčici", "hořčicí"],
+		"pl": ["hořčice", "hořčic", "hořčicím", "hořčice", "hořčice", "hořčicích", "hořčicemi"],
+		"gender": "f",
+		"animate": true
+	},
+	"technik": {
+		"sg": ["technik", "technika", "technikovi", "technika", "techniku", "technikovi", "technikem"],
+		"pl": ["technici", "techniků", "technikům", "techniky", "technici", "technicích", "techniky"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["techniku"],
+			"5": ["techniku"]
+		}
+	},
+	"ježek": {
+		"sg": ["ježek", "ježka", "ježkovi", "ježka", "ježku", "ježkovi", "ježkem"],
+		"pl": ["ježci", "ježků", "ježkům", "ježky", "ježci", "ježcích", "ježky"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["ježku"],
+			"5": ["ježku"]
+		}
+	},
+	"úplněk": {
+		"sg": ["úplněk", "úplňku", "úplňku", "úplněk", "úplňku", "úplňku", "úplňkem"],
+		"pl": ["úplňky", "úplňků", "úplňkům", "úplňky", "úplňky", "úplňcích", "úplňky"],
+		"gender": "m",
+		"animate": false
+	},
+	"titulek": {
+		"sg": ["titulek", "titulku", "titulku", "titulek", "titulku", "titulku", "titulkem"],
+		"pl": ["titulky", "titulků", "titulkům", "titulky", "titulky", "titulcích", "titulky"],
+		"gender": "m",
+		"animate": false
+	},
+	"podpatek": {
+		"sg": ["podpatek", "podpatku", "podpatku", "podpatek", "podpatku", "podpatku", "podpatkem"],
+		"pl": ["podpatky", "podpatků", "podpatkům", "podpatky", "podpatky", "podpatcích", "podpatky"],
+		"gender": "m",
+		"animate": false
+	},
+	"publicista": {
+		"sg": [
+			"publicista",
+			"publicisty",
+			"publicistovi",
+			"publicistu",
+			"publicisto",
+			"publicistovi",
+			"publicistou"
+		],
+		"pl": [
+			"publicisté",
+			"publicistů",
+			"publicistům",
+			"publicisty",
+			"publicisté",
+			"publicistech",
+			"publicisty"
+		],
+		"gender": "m",
+		"animate": true
+	},
+	"publicistka": {
+		"sg": [
+			"publicistka",
+			"publicistky",
+			"publicistce",
+			"publicistku",
+			"publicistko",
+			"publicistce",
+			"publicistkou"
+		],
+		"pl": [
+			"publicistky",
+			"publicistek",
+			"publicistkám",
+			"publicistky",
+			"publicistky",
+			"publicistkách",
+			"publicistkami"
+		],
+		"gender": "f",
+		"animate": true
+	},
+	"překladatel": {
+		"sg": [
+			"překladatel",
+			"překladatele",
+			"překladateli",
+			"překladatele",
+			"překladateli",
+			"překladateli",
+			"překladatelem"
+		],
+		"pl": [
+			"překladatelé",
+			"překladatelů",
+			"překladatelům",
+			"překladatele",
+			"překladatelé",
+			"překladatelích",
+			"překladateli"
+		],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["překladatelovi"],
+			"5": ["překladatelovi"]
+		}
+	},
+	"bufet": {
+		"sg": ["bufet", "bufetu", "bufetu", "bufet", "bufete", "bufetu", "bufetem"],
+		"pl": ["bufety", "bufetů", "bufetům", "bufety", "bufety", "bufetech", "bufety"],
+		"gender": "m",
+		"animate": false
+	},
+	"salón": {
+		"sg": ["salón", "salónu", "salónu", "salón", "salóne", "salónu", "salónem"],
+		"pl": ["salóny", "salónů", "salónům", "salóny", "salóny", "salónech", "salóny"],
+		"gender": "m",
+		"animate": false
+	},
+	"trouba": {
+		"sg": ["trouba", "trouby", "troubě", "troubu", "troubo", "troubě", "troubou"],
+		"pl": ["trouby", "trub", "troubám", "trouby", "trouby", "troubách", "troubami"],
+		"gender": "f",
+		"animate": false
 	}
 }
