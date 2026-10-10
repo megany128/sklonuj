@@ -3135,3 +3135,61 @@ Moravian dialect (standard frajerka)"
 rozhledna,lookout tower,žena,A2,"misc,places,na_place,leisure_na",
 američanka,American woman,žena,A1,"people,nationality",
 angličanka,Englishwoman,žena,A1,"people,nationality",
+praha,Prague,žena,A1,"places,v_place,dwelling,region,place_name",
+plzeň,Pilsen,píseň,A2,"places,v_place,dwelling,region,place_name",
+paříž,Paris,píseň,A1,"places,v_place,dwelling,region,place_name",
+varšava,Warsaw,žena,A1,"places,v_place,dwelling,region,place_name",
+mnichov,Munich,hrad,A2,"places,v_place,dwelling,region,place_name","Genitive sg: -a (do Mnichova), like most town names in -ov
+Locative v Mnichově"
+neapol,Naples,píseň,A1,"places,v_place,dwelling,region,place_name","Feminine: do Neapole, v Neapoli"
+německo,Germany,město,A1,"places,v_place,dwelling,region,place_name",
+polsko,Poland,město,A1,"places,v_place,dwelling,region,place_name",
+řecko,Greece,město,A2,"places,v_place,dwelling,region,place_name",
+norsko,Norway,město,A1,"places,v_place,dwelling,region,place_name",
+švédsko,Sweden,město,A1,"places,v_place,dwelling,region,place_name",
+dánsko,Denmark,město,A1,"places,v_place,dwelling,region,place_name",
+bulharsko,Bulgaria,město,A1,"places,v_place,dwelling,region,place_name",
+chorvatsko,Croatia,město,A1,"places,v_place,dwelling,region,place_name",
+thajsko,Thailand,město,A1,"places,v_place,dwelling,region,place_name",
+slezsko,Silesia,město,A2,"places,v_place,dwelling,region,place_name",
+itálie,Italy,růže,A1,"places,v_place,dwelling,region,place_name",
+anglie,England,růže,A1,"places,v_place,dwelling,region,place_name",
+asie,Asia,růže,A1,"places,v_place,dwelling,region,place_name",
+austrálie,Australia,růže,A1,"places,v_place,dwelling,region,place_name",
+vietnam,Vietnam,hrad,A1,"places,v_place,dwelling,region,place_name",
+evropa,Europe,žena,A1,"places,v_place,dwelling,region,place_name",
+afrika,Africa,žena,A1,"places,v_place,dwelling,region,place_name",
+amerika,America,žena,A1,"places,v_place,dwelling,region,place_name",
+čechy,Bohemia,žena,A2,"places,v_place,dwelling,settlement,region,place_name",
+krkonoše,the Krkonoše (Giant Mountains),růže,A1,"places,v_place,settlement,region,place_name",
+morava,Moravia,žena,A1,"places,na_place,region,place_name","Takes na: na Moravu, na Moravě"
+slovensko,Slovakia,město,A1,"places,na_place,region,place_name","Takes na: na Slovensko, na Slovensku"
+šumava,the Šumava (Bohemian Forest),žena,A2,"places,na_place,region,place_name","Takes na: na Šumavu, na Šumavě"
+vysočina,the Vysočina highlands,žena,A2,"places,na_place,region,place_name","Takes na: na Vysočinu, na Vysočině"
+sněžka,Sněžka (the highest Czech mountain),žena,A2,"places,na_place,region,place_name","Takes na: na Sněžku, na Sněžce"
+havaj,Hawaii,píseň,A1,"places,na_place,region,place_name","Feminine, takes na: na Havaj, na Havaji, z Havaje"
+kréta,Crete,žena,A2,"places,na_place,region,place_name","Takes na: na Krétu, na Krétě"
+florida,Florida,žena,A2,"places,na_place,region,place_name","Takes na: na Floridu, na Floridě"
+aljaška,Alaska,žena,A2,"places,na_place,region,place_name","Takes na: na Aljašku, na Aljašce"
+čech,Czech (man),pán,A1,"people,nationality",Nominative pl: ch → š (Češi); locative pl: also ch → š (o Češích)
+češka,Czech (woman),žena,A1,"people,nationality",
+němec,German (man),muž,A2,"people,nationality",
+němka,German (woman),žena,A2,"people,nationality",
+francouz,Frenchman,muž,A2,"people,nationality",
+francouzka,Frenchwoman,žena,A2,"people,nationality",
+rakušan,Austrian (man),pán,A2,"people,nationality","Nominative pl: -é (Rakušané), like other -an nouns for inhabitants"
+rakušanka,Austrian (woman),žena,A2,"people,nationality",
+dovolená,"holiday, leave (time off work)",žena,A1,"misc,abstract,event,mass","Declines like an adjective (like mladá): dovolené, dovolenou"
+vstupné,admission fee,město,A2,"misc,abstract,mass","Declines like an adjective (like mladé): vstupného, vstupnému"
+spropitné,tip (gratuity),město,A1,"misc,abstract,mass","Declines like an adjective (like mladé): spropitného, spropitnému"
+známý,acquaintance (man),pán,A1,people,"Declines like an adjective (like mladý): známého, známému"
+příbuzný,relative (man),pán,A1,people,"Declines like an adjective (like mladý): příbuzného, příbuznému"
+příbuzná,relative (woman),žena,A1,people,"Declines like an adjective (like mladá): příbuzné, příbuznou"
+dospělý,adult (man),pán,A2,people,"Declines like an adjective (like mladý): dospělého, dospělému"
+dospělá,adult (woman),žena,A2,people,"Declines like an adjective (like mladá): dospělé, dospělou"
+vrátný,"doorman, porter",pán,A2,"people,profession","Declines like an adjective (like mladý): vrátného, vrátnému"
+vrátná,"doorwoman, porter (woman)",žena,A2,"people,profession","Declines like an adjective (like mladá): vrátné, vrátnou"
+krejčí,tailor,muž,A2,"people,profession","Declines like a soft adjective (like moderní): krejčího, krejčímu"
+mateřská,maternity leave,žena,A2,"misc,abstract,mass","Declines like an adjective (like mladá): mateřské, mateřskou"
+nemocenská,"sick leave, sick pay",žena,A2,"misc,abstract,mass","Declines like an adjective (like mladá): nemocenské, nemocenskou"
+rodičovská,parental leave,žena,A2,"misc,abstract,mass","Declines like an adjective (like mladá): rodičovské, rodičovskou"

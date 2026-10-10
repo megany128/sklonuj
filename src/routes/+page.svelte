@@ -124,6 +124,7 @@
 		getAdjectiveForm,
 		getAllAdjectiveAcceptedForms,
 		adjectiveMatchesNoun,
+		nounTakesAdjectives,
 		adjectiveAllowedInNumber
 	} from '$lib/engine/adjective-drill';
 	import {
@@ -2749,7 +2750,7 @@
 		// Get eligible nouns to pair with
 		const wordBank = loadWordBank();
 		const eligibleWords = filterByParadigm(
-			wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty))
+			wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty) && nounTakesAdjectives(w))
 		);
 		if (eligibleWords.length === 0) return null;
 

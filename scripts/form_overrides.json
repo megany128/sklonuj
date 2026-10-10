@@ -1083,5 +1083,444 @@
 		"variants_sg": {
 			"5": ["patru"]
 		}
+	},
+	"praha": {
+		"capitalize": true,
+		"sg": ["praha", "prahy", "praze", "prahu", "praho", "praze", "prahou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"plzeň": {
+		"capitalize": true,
+		"sg": ["plzeň", "plzně", "plzni", "plzeň", "plzni", "plzni", "plzní"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"paříž": {
+		"capitalize": true,
+		"sg": ["paříž", "paříže", "paříži", "paříž", "paříži", "paříži", "paříží"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"varšava": {
+		"capitalize": true,
+		"sg": ["varšava", "varšavy", "varšavě", "varšavu", "varšavo", "varšavě", "varšavou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"mnichov": {
+		"capitalize": true,
+		"sg": ["mnichov", "mnichova", "mnichovu", "mnichov", "mnichove", "mnichově", "mnichovem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "m",
+		"animate": false
+	},
+	"neapol": {
+		"capitalize": true,
+		"sg": ["neapol", "neapole", "neapoli", "neapol", "neapoli", "neapoli", "neapolí"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"německo": {
+		"capitalize": true,
+		"sg": ["německo", "německa", "německu", "německo", "německo", "německu", "německem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"polsko": {
+		"capitalize": true,
+		"sg": ["polsko", "polska", "polsku", "polsko", "polsko", "polsku", "polskem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"řecko": {
+		"capitalize": true,
+		"sg": ["řecko", "řecka", "řecku", "řecko", "řecko", "řecku", "řeckem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"norsko": {
+		"capitalize": true,
+		"sg": ["norsko", "norska", "norsku", "norsko", "norsko", "norsku", "norskem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"švédsko": {
+		"capitalize": true,
+		"sg": ["švédsko", "švédska", "švédsku", "švédsko", "švédsko", "švédsku", "švédskem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"dánsko": {
+		"capitalize": true,
+		"sg": ["dánsko", "dánska", "dánsku", "dánsko", "dánsko", "dánsku", "dánskem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"bulharsko": {
+		"capitalize": true,
+		"sg": [
+			"bulharsko",
+			"bulharska",
+			"bulharsku",
+			"bulharsko",
+			"bulharsko",
+			"bulharsku",
+			"bulharskem"
+		],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"chorvatsko": {
+		"capitalize": true,
+		"sg": [
+			"chorvatsko",
+			"chorvatska",
+			"chorvatsku",
+			"chorvatsko",
+			"chorvatsko",
+			"chorvatsku",
+			"chorvatskem"
+		],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"thajsko": {
+		"capitalize": true,
+		"sg": ["thajsko", "thajska", "thajsku", "thajsko", "thajsko", "thajsku", "thajskem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"slezsko": {
+		"capitalize": true,
+		"sg": ["slezsko", "slezska", "slezsku", "slezsko", "slezsko", "slezsku", "slezskem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"itálie": {
+		"capitalize": true,
+		"sg": ["itálie", "itálie", "itálii", "itálii", "itálie", "itálii", "itálií"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"anglie": {
+		"capitalize": true,
+		"sg": ["anglie", "anglie", "anglii", "anglii", "anglie", "anglii", "anglií"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"asie": {
+		"capitalize": true,
+		"sg": ["asie", "asie", "asii", "asii", "asie", "asii", "asií"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"austrálie": {
+		"capitalize": true,
+		"sg": [
+			"austrálie",
+			"austrálie",
+			"austrálii",
+			"austrálii",
+			"austrálie",
+			"austrálii",
+			"austrálií"
+		],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"vietnam": {
+		"capitalize": true,
+		"sg": ["vietnam", "vietnamu", "vietnamu", "vietnam", "vietname", "vietnamu", "vietnamem"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "m",
+		"animate": false
+	},
+	"evropa": {
+		"capitalize": true,
+		"sg": ["evropa", "evropy", "evropě", "evropu", "evropo", "evropě", "evropou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"afrika": {
+		"capitalize": true,
+		"sg": ["afrika", "afriky", "africe", "afriku", "afriko", "africe", "afrikou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"amerika": {
+		"capitalize": true,
+		"sg": ["amerika", "ameriky", "americe", "ameriku", "ameriko", "americe", "amerikou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"čechy": {
+		"capitalize": true,
+		"sg": ["", "", "", "", "", "", ""],
+		"pl": ["čechy", "čech", "čechám", "čechy", "čechy", "čechách", "čechami"],
+		"gender": "f"
+	},
+	"krkonoše": {
+		"capitalize": true,
+		"sg": ["", "", "", "", "", "", ""],
+		"pl": ["krkonoše", "krkonoš", "krkonoším", "krkonoše", "krkonoše", "krkonoších", "krkonošemi"],
+		"gender": "f"
+	},
+	"morava": {
+		"capitalize": true,
+		"sg": ["morava", "moravy", "moravě", "moravu", "moravo", "moravě", "moravou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"slovensko": {
+		"capitalize": true,
+		"sg": [
+			"slovensko",
+			"slovenska",
+			"slovensku",
+			"slovensko",
+			"slovensko",
+			"slovensku",
+			"slovenskem"
+		],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "n"
+	},
+	"šumava": {
+		"capitalize": true,
+		"sg": ["šumava", "šumavy", "šumavě", "šumavu", "šumavo", "šumavě", "šumavou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"vysočina": {
+		"capitalize": true,
+		"sg": ["vysočina", "vysočiny", "vysočině", "vysočinu", "vysočino", "vysočině", "vysočinou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"sněžka": {
+		"capitalize": true,
+		"sg": ["sněžka", "sněžky", "sněžce", "sněžku", "sněžko", "sněžce", "sněžkou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"havaj": {
+		"capitalize": true,
+		"sg": ["havaj", "havaje", "havaji", "havaj", "havaji", "havaji", "havají"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"kréta": {
+		"capitalize": true,
+		"sg": ["kréta", "kréty", "krétě", "krétu", "kréto", "krétě", "krétou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"florida": {
+		"capitalize": true,
+		"sg": ["florida", "floridy", "floridě", "floridu", "florido", "floridě", "floridou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"aljaška": {
+		"capitalize": true,
+		"sg": ["aljaška", "aljašky", "aljašce", "aljašku", "aljaško", "aljašce", "aljaškou"],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f"
+	},
+	"čech": {
+		"capitalize": true,
+		"sg": ["čech", "čecha", "čechovi", "čecha", "čechu", "čechovi", "čechem"],
+		"pl": ["češi", "čechů", "čechům", "čechy", "češi", "češích", "čechy"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["čechu"],
+			"5": ["čechu"]
+		},
+		"variants_pl": {
+			"0": ["čechové"],
+			"4": ["čechové"]
+		}
+	},
+	"češka": {
+		"capitalize": true,
+		"sg": ["češka", "češky", "češce", "češku", "češko", "češce", "češkou"],
+		"pl": ["češky", "češek", "češkám", "češky", "češky", "češkách", "češkami"],
+		"gender": "f",
+		"animate": false
+	},
+	"němec": {
+		"capitalize": true,
+		"sg": ["němec", "němce", "němci", "němce", "němče", "němci", "němcem"],
+		"pl": ["němci", "němců", "němcům", "němce", "němci", "němcích", "němci"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["němcovi"],
+			"5": ["němcovi"]
+		},
+		"variants_pl": {
+			"0": ["němcové"],
+			"4": ["němcové"]
+		}
+	},
+	"němka": {
+		"capitalize": true,
+		"sg": ["němka", "němky", "němce", "němku", "němko", "němce", "němkou"],
+		"pl": ["němky", "němek", "němkám", "němky", "němky", "němkách", "němkami"],
+		"gender": "f",
+		"animate": false
+	},
+	"francouz": {
+		"capitalize": true,
+		"sg": [
+			"francouz",
+			"francouze",
+			"francouzi",
+			"francouze",
+			"francouzi",
+			"francouzi",
+			"francouzem"
+		],
+		"pl": [
+			"francouzi",
+			"francouzů",
+			"francouzům",
+			"francouze",
+			"francouzi",
+			"francouzích",
+			"francouzi"
+		],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["francouzovi"],
+			"5": ["francouzovi"]
+		}
+	},
+	"francouzka": {
+		"capitalize": true,
+		"sg": [
+			"francouzka",
+			"francouzky",
+			"francouzce",
+			"francouzku",
+			"francouzko",
+			"francouzce",
+			"francouzkou"
+		],
+		"pl": [
+			"francouzky",
+			"francouzek",
+			"francouzkám",
+			"francouzky",
+			"francouzky",
+			"francouzkách",
+			"francouzkami"
+		],
+		"gender": "f",
+		"animate": false
+	},
+	"rakušan": {
+		"capitalize": true,
+		"sg": ["rakušan", "rakušana", "rakušanovi", "rakušana", "rakušane", "rakušanovi", "rakušanem"],
+		"pl": ["rakušané", "rakušanů", "rakušanům", "rakušany", "rakušané", "rakušanech", "rakušany"],
+		"gender": "m",
+		"animate": true,
+		"variants_sg": {
+			"2": ["rakušanu"],
+			"5": ["rakušanu"]
+		},
+		"variants_pl": {
+			"0": ["rakušani"],
+			"4": ["rakušani"]
+		}
+	},
+	"rakušanka": {
+		"capitalize": true,
+		"sg": [
+			"rakušanka",
+			"rakušanky",
+			"rakušance",
+			"rakušanku",
+			"rakušanko",
+			"rakušance",
+			"rakušankou"
+		],
+		"pl": [
+			"rakušanky",
+			"rakušanek",
+			"rakušankám",
+			"rakušanky",
+			"rakušanky",
+			"rakušankách",
+			"rakušankami"
+		],
+		"gender": "f",
+		"animate": false
+	},
+	"dovolená": {
+		"irregular": true,
+		"pl": ["", "", "", "", "", "", ""]
+	},
+	"vstupné": {
+		"irregular": true,
+		"pl": ["", "", "", "", "", "", ""]
+	},
+	"spropitné": {
+		"irregular": true,
+		"pl": ["", "", "", "", "", "", ""]
+	},
+	"známý": {
+		"irregular": true
+	},
+	"příbuzný": {
+		"irregular": true
+	},
+	"příbuzná": {
+		"irregular": true
+	},
+	"dospělý": {
+		"irregular": true
+	},
+	"dospělá": {
+		"irregular": true,
+		"sg": ["dospělá", "dospělé", "dospělé", "dospělou", "dospělá", "dospělé", "dospělou"],
+		"pl": ["dospělé", "dospělých", "dospělým", "dospělé", "dospělé", "dospělých", "dospělými"],
+		"gender": "f",
+		"animate": false
+	},
+	"vrátný": {
+		"irregular": true
+	},
+	"vrátná": {
+		"irregular": true
+	},
+	"krejčí": {
+		"irregular": true
+	},
+	"mateřská": {
+		"irregular": true,
+		"pl": ["", "", "", "", "", "", ""]
+	},
+	"nemocenská": {
+		"irregular": true,
+		"pl": ["", "", "", "", "", "", ""]
+	},
+	"rodičovská": {
+		"irregular": true,
+		"sg": [
+			"rodičovská",
+			"rodičovské",
+			"rodičovské",
+			"rodičovskou",
+			"rodičovská",
+			"rodičovské",
+			"rodičovskou"
+		],
+		"pl": ["", "", "", "", "", "", ""],
+		"gender": "f",
+		"animate": false
 	}
 }
