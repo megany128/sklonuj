@@ -3720,7 +3720,8 @@
 				sentence:
 					result.question.drillType !== 'form_production'
 						? result.question.template?.template
-						: undefined
+						: undefined,
+				wordCategory: result.question.wordCategory ?? 'noun'
 			});
 		}
 	}
@@ -4142,7 +4143,8 @@
 					drillType: 'multi_step',
 					sentence: result.question.template?.template,
 					userParadigm: result.userParadigm,
-					correctParadigm: result.question.correctParadigm
+					correctParadigm: result.question.correctParadigm,
+					wordCategory: 'noun'
 				});
 			}
 		}
