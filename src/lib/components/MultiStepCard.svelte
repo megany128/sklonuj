@@ -720,9 +720,9 @@
 							>
 							into
 							<span class={CASE_COLORS[question.correctCase].text}
-								>{CASE_LABELS[
-									question.correctCase
-								]}{#if question.number === 'pl'}{' '}plural{/if}</span
+								>{CASE_LABELS[question.correctCase]}{question.number === 'pl'
+									? ' plural'
+									: ''}</span
 							>
 						</p>
 
@@ -890,9 +890,9 @@
 							>
 							into
 							<span class={CASE_COLORS[question.correctCase].text}
-								>{CASE_LABELS[
-									question.correctCase
-								]}{#if question.number === 'pl'}{' '}plural{/if}</span
+								>{CASE_LABELS[question.correctCase]}{question.number === 'pl'
+									? ' plural'
+									: ''}</span
 							>
 						</p>
 
