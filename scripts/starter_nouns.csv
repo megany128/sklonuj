@@ -1402,7 +1402,7 @@ ráj,paradise,m,false,stroj,A1,"misc,abstract",ráj,ráje,ráji,ráj,ráji,ráji
 redakce,editorial office,f,false,růže,A2,"places,v_place",redakce,redakce,redakci,redakci,redakce,redakci,redakcí,redakce,redakcí,redakcím,redakce,redakce,redakcích,redakcemi
 místopředseda,vice chairman,m,true,předseda,B2,"misc,people",místopředseda,místopředsedy,místopředsedovi,místopředsedu,místopředsedo,místopředsedovi,místopředsedou,místopředsedové,místopředsedů,místopředsedům,místopředsedy,místopředsedové,místopředsedech,místopředsedy
 dvojka,(number) two,f,false,žena,A1,"misc,abstract",dvojka,dvojky,dvojce,dvojku,dvojko,dvojce,dvojkou,dvojky,dvojek,dvojkám,dvojky,dvojky,dvojkách,dvojkami
-trouba,fool,m,true,předseda,A1,"misc,abstract",trouba,trouby,troubovi,troubu,troubo,troubovi,troubou,troubové,troubů,troubům,trouby,troubové,troubech,trouby
+trouba,oven,f,false,žena,A1,"objects,large_object",trouba,trouby,troubě,troubu,troubo,troubě,troubou,trouby,trub,troubám,trouby,trouby,troubách,troubami
 objev,discovery,m,false,hrad,A2,"misc,abstract",objev,objevu,objevu,objev,objeve,objevu,objevem,objevy,objevů,objevům,objevy,objevy,objevech,objevy
 vyšetření,examination,n,false,stavení,A2,"misc,abstract",vyšetření,vyšetření,vyšetření,vyšetření,vyšetření,vyšetření,vyšetřením,vyšetření,vyšetření,vyšetřením,vyšetření,vyšetření,vyšetřeních,vyšetřeními
 důchodce,pensioner,m,true,soudce,A2,"misc,people",důchodce,důchodce,důchodci,důchodce,důchodce,důchodci,důchodcem,důchodci,důchodců,důchodcům,důchodce,důchodci,důchodcích,důchodci
@@ -2486,7 +2486,7 @@ minerálka,mineral water,f,false,žena,A1,"food,drink",minerálka,minerálky,min
 okurka,cucumber,f,false,žena,A1,food,okurka,okurky,okurce,okurku,okurko,okurce,okurkou,okurky,okurek,okurkám,okurky,okurky,okurkách,okurkami
 plurál,plural,m,false,hrad,A1,abstract,plurál,plurálu,plurálu,plurál,plurále,plurále,plurálem,plurály,plurálů,plurálům,plurály,plurály,plurálech,plurály
 profesorka,female professor,f,false,žena,A1,"people,profession,title,formal_title",profesorka,profesorky,profesorce,profesorku,profesorko,profesorce,profesorkou,profesorky,profesorek,profesorkám,profesorky,profesorky,profesorkách,profesorkami
-rohlík,roll (a form of bread),m,false,hrad,A1,food,rohlík,rohlíku,rohlíku,rohlík,rohlíku,rohlíku,rohlíkem,rohlíky,rohlíků,rohlíkům,rohlíky,rohlíky,rohlících,rohlíky
+rohlík,bread roll,m,false,hrad,A1,food,rohlík,rohlíku,rohlíku,rohlík,rohlíku,rohlíku,rohlíkem,rohlíky,rohlíků,rohlíkům,rohlíky,rohlíky,rohlících,rohlíky
 salám,salami,m,false,hrad,A1,"food,weighable,sliceable",salám,salámu,salámu,salám,saláme,salámu,salámem,salámy,salámů,salámům,salámy,salámy,salámech,salámy
 studentka,student,f,false,žena,A1,"profession,people,address_group,address_group_formal",studentka,studentky,studentce,studentku,studentko,studentce,studentkou,studentky,studentek,studentkám,studentky,studentky,studentkách,studentkami
 supermarket,supermarket,m,false,hrad,A1,"places,v_place,leisure_do",supermarket,supermarketu,supermarketu,supermarket,supermarkete,supermarketu,supermarketem,supermarkety,supermarketů,supermarketům,supermarkety,supermarkety,supermarketech,supermarkety
@@ -2499,7 +2499,7 @@ diář,planner (notebook),m,false,stroj,A1,"objects,readable,portable",diář,di
 hrnek,"mug, cup (vessel for drinking)",m,false,hrad,A1,objects,hrnek,hrnku,hrnku,hrnek,hrnku,hrnku,hrnkem,hrnky,hrnků,hrnkům,hrnky,hrnky,hrncích,hrnky
 kolegyně,female colleague,f,false,růže,A1,"people,address_informal,address_formal,address_group,title,formal_title,address_group_formal",kolegyně,kolegyně,kolegyni,kolegyni,kolegyně,kolegyni,kolegyní,kolegyně,kolegyní,kolegyním,kolegyně,kolegyně,kolegyních,kolegyněmi
 milionář,millionaire,m,true,muž,A1,people,milionář,milionáře,milionáři,milionáře,milionáři,milionáři,milionářem,milionáři,milionářů,milionářům,milionáře,milionáři,milionářích,milionáři
-milionářka,female equivalent of milionář,f,true,žena,A1,people,milionářka,milionářky,milionářce,milionářku,milionářko,milionářce,milionářkou,milionářky,milionářek,milionářkám,milionářky,milionářky,milionářkách,milionářkami
+milionářka,female millionaire,f,true,žena,A1,people,milionářka,milionářky,milionářce,milionářku,milionářko,milionářce,milionářkou,milionářky,milionářek,milionářkám,milionářky,milionářky,milionářkách,milionářkami
 optimista,optimist,m,true,předseda,A1,people,optimista,optimisty,optimistovi,optimistu,optimisto,optimistovi,optimistou,optimisté,optimistů,optimistům,optimisty,optimisté,optimistech,optimisty
 optimistka,female optimist,f,true,žena,A1,people,optimistka,optimistky,optimistce,optimistku,optimistko,optimistce,optimistkou,optimistky,optimistek,optimistkám,optimistky,optimistky,optimistkách,optimistkami
 paní,"lady, Mrs., madam",f,false,žena,A1,"people,address_formal",paní,paní,paní,paní,paní,paní,paní,paní,paní,paním,paní,paní,paních,paními
@@ -2510,10 +2510,10 @@ premiérka,female prime minister,f,true,žena,A1,"misc,people,profession,title,f
 prezidentka,president (female),f,false,žena,A1,"people,profession,title,formal_title",prezidentka,prezidentky,prezidentce,prezidentku,prezidentko,prezidentce,prezidentkou,prezidentky,prezidentek,prezidentkám,prezidentky,prezidentky,prezidentkách,prezidentkami
 puberťačka,teenage girl,f,true,žena,A1,people,puberťačka,puberťačky,puberťačce,puberťačku,puberťačko,puberťačce,puberťačkou,puberťačky,puberťaček,puberťačkám,puberťačky,puberťačky,puberťačkách,puberťačkami
 puberťák,"teenager, adolescent",m,true,pán,A1,people,puberťák,puberťáka,puberťákovi,puberťáka,puberťáku,puberťákovi,puberťákem,puberťáci,puberťáků,puberťákům,puberťáky,puberťáci,puberťácích,puberťáky
-pán,Mr,m,true,pán,A1,"people,address_formal,address_group,address_group_formal",pán,pána,pánovi,pána,pane,pánovi,pánem,páni,pánů,pánům,pány,páni,pánech,pány
+pán,"gentleman, sir, Mr",m,true,pán,A1,"people,address_formal,address_group,address_group_formal",pán,pána,pánovi,pána,pane,pánovi,pánem,páni,pánů,pánům,pány,páni,pánech,pány
 sekretář,secretary,m,true,muž,A1,"people,profession",sekretář,sekretáře,sekretáři,sekretáře,sekretáři,sekretáři,sekretářem,sekretáři,sekretářů,sekretářům,sekretáře,sekretáři,sekretářích,sekretáři
-sekretářka,secretary (person who handles general clerical work),f,true,žena,A1,"people,profession",sekretářka,sekretářky,sekretářce,sekretářku,sekretářko,sekretářce,sekretářkou,sekretářky,sekretářek,sekretářkám,sekretářky,sekretářky,sekretářkách,sekretářkami
-sestřenice,cousin,f,false,růže,A1,family,sestřenice,sestřenice,sestřenici,sestřenici,sestřenice,sestřenici,sestřenicí,sestřenice,sestřenic,sestřenicím,sestřenice,sestřenice,sestřenicích,sestřenicemi
+sekretářka,secretary (woman),f,true,žena,A1,"people,profession",sekretářka,sekretářky,sekretářce,sekretářku,sekretářko,sekretářce,sekretářkou,sekretářky,sekretářek,sekretářkám,sekretářky,sekretářky,sekretářkách,sekretářkami
+sestřenice,cousin (female),f,false,růže,A1,family,sestřenice,sestřenice,sestřenici,sestřenici,sestřenice,sestřenici,sestřenicí,sestřenice,sestřenic,sestřenicím,sestřenice,sestřenice,sestřenicích,sestřenicemi
 sportovkyně,"sportswoman, female athlete",f,true,růže,A1,people,sportovkyně,sportovkyně,sportovkyni,sportovkyni,sportovkyně,sportovkyni,sportovkyní,sportovkyně,sportovkyní,sportovkyním,sportovkyně,sportovkyně,sportovkyních,sportovkyněmi
 vegetarián,vegetarian,m,true,pán,A1,people,vegetarián,vegetariána,vegetariánovi,vegetariána,vegetariáne,vegetariánovi,vegetariánem,vegetariánové,vegetariánů,vegetariánům,vegetariány,vegetariánové,vegetariánech,vegetariány
 vegetariánka,vegetarian (female),f,false,žena,A1,people,vegetariánka,vegetariánky,vegetariánce,vegetariánku,vegetariánko,vegetariánce,vegetariánkou,vegetariánky,vegetariánek,vegetariánkám,vegetariánky,vegetariánky,vegetariánkách,vegetariánkami
@@ -2523,7 +2523,7 @@ balet,ballet,m,false,hrad,A1,abstract,balet,baletu,baletu,balet,balete,baletu,ba
 basketbal,basketball (the sport),m,false,hrad,A1,abstract,basketbal,basketbalu,basketbalu,basketbal,basketbale,basketbale,basketbalem,basketbaly,basketbalů,basketbalům,basketbaly,basketbaly,basketbalech,basketbaly
 detektivka,detective story,f,false,žena,A1,"objects,readable,portable",detektivka,detektivky,detektivce,detektivku,detektivko,detektivce,detektivkou,detektivky,detektivek,detektivkám,detektivky,detektivky,detektivkách,detektivkami
 diskotéka,disco,f,false,žena,A1,"event,places,na_place,leisure_na",diskotéka,diskotéky,diskotéce,diskotéku,diskotéko,diskotéce,diskotékou,diskotéky,diskoték,diskotékám,diskotéky,diskotéky,diskotékách,diskotékami
-golf,golf (a ball game),m,false,hrad,A1,abstract,golf,golfu,golfu,golf,golfe,golfu,golfem,golfy,golfů,golfům,golfy,golfy,golfech,golfy
+golf,golf,m,false,hrad,A1,abstract,golf,golfu,golfu,golf,golfe,golfu,golfem,golfy,golfů,golfům,golfy,golfy,golfech,golfy
 jóga,yoga,f,false,žena,A1,"misc,abstract",jóga,jógy,józe,jógu,jógo,józe,jógou,jógy,jóg,jógám,jógy,jógy,jógách,jógami
 kurz,course (period of learning),m,false,hrad,A1,abstract,kurz,kurzu,kurzu,kurz,kurze,kurze,kurzem,kurzy,kurzů,kurzům,kurzy,kurzy,kurzech,kurzy
 lekce,"lesson, lessons",f,false,růže,A1,abstract,lekce,lekce,lekci,lekci,lekce,lekci,lekcí,lekce,lekcí,lekcím,lekce,lekce,lekcích,lekcemi
@@ -2533,7 +2533,7 @@ cizinka,female foreigner,f,false,žena,A1,people,cizinka,cizinky,cizince,cizinku
 cukrárna,cake shop,f,false,žena,A1,"places,v_place,leisure_do",cukrárna,cukrárny,cukrárně,cukrárnu,cukrárno,cukrárně,cukrárnou,cukrárny,cukráren,cukrárnám,cukrárny,cukrárny,cukrárnách,cukrárnami
 fotografka,female photographer,f,false,žena,A1,"people,profession",fotografka,fotografky,fotografce,fotografku,fotografko,fotografce,fotografkou,fotografky,fotografek,fotografkám,fotografky,fotografky,fotografkách,fotografkami
 šéfka,female boss,f,false,žena,A1,"people,profession,address_formal",šéfka,šéfky,šéfce,šéfku,šéfko,šéfce,šéfkou,šéfky,šéfek,šéfkám,šéfky,šéfky,šéfkách,šéfkami
-biftek,steak (slice of beef),m,false,hrad,A1,food,biftek,bifteku,bifteku,biftek,bifteku,bifteku,biftekem,bifteky,bifteků,biftekům,bifteky,bifteky,biftecích,bifteky
+biftek,steak,m,false,hrad,A1,food,biftek,bifteku,bifteku,biftek,bifteku,bifteku,biftekem,bifteky,bifteků,biftekům,bifteky,bifteky,biftecích,bifteky
 dezert,dessert,m,false,hrad,A1,"food,meal,mealtime",dezert,dezertu,dezertu,dezert,dezerte,dezertu,dezertem,dezerty,dezertů,dezertům,dezerty,dezerty,dezertech,dezerty
 dieta,diet,f,false,žena,A1,abstract,dieta,diety,dietě,dietu,dieto,dietě,dietou,diety,diet,dietám,diety,diety,dietách,dietami
 džus,juice,m,false,hrad,A1,"food,drink",džus,džusu,džusu,džus,džuse,džusu,džusem,džusy,džusů,džusům,džusy,džusy,džusech,džusy
@@ -2579,7 +2579,7 @@ penze,pension (retirement benefit),f,false,růže,A1,abstract,penze,penze,penzi,
 poliklinika,outpatient clinic,f,false,žena,A1,"places,na_place",poliklinika,polikliniky,poliklinice,polikliniku,polikliniko,poliklinice,poliklinikou,polikliniky,poliklinik,poliklinikám,polikliniky,polikliniky,poliklinikách,poliklinikami
 polopenze,half board (hotel rate),f,false,růže,A1,"abstract,travel",polopenze,polopenze,polopenzi,polopenzi,polopenze,polopenzi,polopenzí,polopenze,polopenzí,polopenzím,polopenze,polopenze,polopenzích,polopenzemi
 stravování,catering,n,false,stavení,A1,"misc,abstract",stravování,stravování,stravování,stravování,stravování,stravování,stravováním,stravování,stravování,stravováním,stravování,stravování,stravováních,stravováními
-zavazadlo,baggage (luggage; traveling equipment),n,false,město,A1,"objects,travel",zavazadlo,zavazadla,zavazadlu,zavazadlo,zavazadlo,zavazadle,zavazadlem,zavazadla,zavazadel,zavazadlům,zavazadla,zavazadla,zavazadlech,zavazadly
+zavazadlo,piece of luggage,n,false,město,A1,"objects,travel",zavazadlo,zavazadla,zavazadlu,zavazadlo,zavazadlo,zavazadle,zavazadlem,zavazadla,zavazadel,zavazadlům,zavazadla,zavazadla,zavazadlech,zavazadly
 zákusek,dessert,m,false,hrad,A1,"food,meal,mealtime",zákusek,zákusku,zákusku,zákusek,zákusku,zákusku,zákuskem,zákusky,zákusků,zákuskům,zákusky,zákusky,zákuscích,zákusky
 celebrita,celebrity,f,false,žena,A2,people,celebrita,celebrity,celebritě,celebritu,celebrito,celebritě,celebritou,celebrity,celebrit,celebritám,celebrity,celebrity,celebritách,celebritami
 jahoda,strawberry (fruit),f,false,žena,A1,food,jahoda,jahody,jahodě,jahodu,jahodo,jahodě,jahodou,jahody,jahod,jahodám,jahody,jahody,jahodách,jahodami
@@ -2609,8 +2609,8 @@ zelí,cabbage,n,false,stavení,A1,"food,weighable,mass",zelí,zelí,zelí,zelí,
 švagrová,sister-in-law,f,false,žena,A1,"family,address_informal",švagrová,švagrové,švagrové,švagrovou,švagrová,švagrové,švagrovou,švagrové,švagrových,švagrovým,švagrové,švagrové,švagrových,švagrovými
 stromeček,"little tree, Christmas tree",m,false,hrad,A1,objects,stromeček,stromečku,stromečku,stromeček,stromečku,stromečku,stromečkem,stromečky,stromečků,stromečkům,stromečky,stromečky,stromečcích,stromečky
 úklid,"cleaning, cleanup",m,false,hrad,A1,"misc,abstract",úklid,úklidu,úklidu,úklid,úklide,úklidu,úklidem,úklidy,úklidů,úklidům,úklidy,úklidy,úklidech,úklidy
-cyklista,"cyclist, biker, bicycle rider",m,true,předseda,A1,people,cyklista,cyklisty,cyklistovi,cyklistu,cyklisto,cyklistovi,cyklistou,cyklisté,cyklistů,cyklistům,cyklisty,cyklisté,cyklistech,cyklisty
-cyklistka,"female cyclist, biker, bicycle rider",f,true,žena,A1,people,cyklistka,cyklistky,cyklistce,cyklistku,cyklistko,cyklistce,cyklistkou,cyklistky,cyklistek,cyklistkám,cyklistky,cyklistky,cyklistkách,cyklistkami
+cyklista,cyclist,m,true,předseda,A1,people,cyklista,cyklisty,cyklistovi,cyklistu,cyklisto,cyklistovi,cyklistou,cyklisté,cyklistů,cyklistům,cyklisty,cyklisté,cyklistech,cyklisty
+cyklistka,female cyclist,f,true,žena,A1,people,cyklistka,cyklistky,cyklistce,cyklistku,cyklistko,cyklistce,cyklistkou,cyklistky,cyklistek,cyklistkám,cyklistky,cyklistky,cyklistkách,cyklistkami
 džungle,jungle,f,false,růže,A2,"nature,places,v_place,landmark",džungle,džungle,džungli,džungli,džungle,džungli,džunglí,džungle,džunglí,džunglím,džungle,džungle,džunglích,džunglemi
 exploze,explosion,f,false,růže,A2,"event,abstract",exploze,exploze,explozi,explozi,exploze,explozi,explozí,exploze,explozí,explozím,exploze,exploze,explozích,explozemi
 krokodýl,crocodile,m,true,pán,A2,animals,krokodýl,krokodýla,krokodýlovi,krokodýla,krokodýle,krokodýlovi,krokodýlem,krokodýli,krokodýlů,krokodýlům,krokodýly,krokodýli,krokodýlech,krokodýly
@@ -2639,7 +2639,7 @@ velryba,whale,f,false,žena,A2,animals,velryba,velryby,velrybě,velrybu,velrybo,
 kabinka,"booth, cubicle",f,false,žena,A2,objects,kabinka,kabinky,kabince,kabinku,kabinko,kabince,kabinkou,kabinky,kabinek,kabinkám,kabinky,kabinky,kabinkách,kabinkami
 klientka,female client,f,true,žena,A2,people,klientka,klientky,klientce,klientku,klientko,klientce,klientkou,klientky,klientek,klientkám,klientky,klientky,klientkách,klientkami
 kravata,"tie, necktie",f,false,žena,A2,"objects,clothing,portable",kravata,kravaty,kravatě,kravatu,kravato,kravatě,kravatou,kravaty,kravat,kravatám,kravaty,kravaty,kravatách,kravatami
-moderátor,"host (US), presenter (UK)",m,true,pán,A2,"misc,abstract",moderátor,moderátora,moderátorovi,moderátora,moderátore,moderátorovi,moderátorem,moderátoři,moderátorů,moderátorům,moderátory,moderátoři,moderátorech,moderátory
+moderátor,"presenter, host",m,true,pán,A2,"misc,abstract",moderátor,moderátora,moderátorovi,moderátora,moderátore,moderátorovi,moderátorem,moderátoři,moderátorů,moderátorům,moderátory,moderátoři,moderátorech,moderátory
 moderátorka,"female presenter, host",f,false,žena,A2,"misc,people,profession",moderátorka,moderátorky,moderátorce,moderátorku,moderátorko,moderátorce,moderátorkou,moderátorky,moderátorek,moderátorkám,moderátorky,moderátorky,moderátorkách,moderátorkami
 zavináč,"rollmop (pickled herring), at sign (@)",m,false,stroj,A1,food,zavináč,zavináče,zavináči,zavináč,zavináči,zavináči,zavináčem,zavináče,zavináčů,zavináčům,zavináče,zavináče,zavináčích,zavináči
 blůza,blouse,f,false,žena,A2,clothing,blůza,blůzy,blůze,blůzu,blůzo,blůze,blůzou,blůzy,blůz,blůzám,blůzy,blůzy,blůzách,blůzami
@@ -2653,7 +2653,7 @@ triko,T-shirt,n,false,město,A2,"misc,objects",triko,trika,triku,triko,triko,tri
 citrón,lemon,m,false,hrad,A1,food,citrón,citrónu,citrónu,citrón,citróne,citrónu,citrónem,citróny,citrónů,citrónům,citróny,citróny,citrónech,citróny
 doktorát,doctorate,m,false,hrad,A2,abstract,doktorát,doktorátu,doktorátu,doktorát,doktoráte,doktorátě,doktorátem,doktoráty,doktorátů,doktorátům,doktoráty,doktoráty,doktorátech,doktoráty
 elektronika,electronics,f,false,žena,A2,"objects,mass",elektronika,elektroniky,elektronice,elektroniku,elektroniko,elektronice,elektronikou,elektroniky,elektronik,elektronikám,elektroniky,elektroniky,elektronikách,elektronikami
-hořčice,"mustard (plant, genus Sinapis)",f,true,růže,A1,"food,mass",hořčice,hořčice,hořčici,hořčici,hořčice,hořčici,hořčicí,hořčice,hořčic,hořčicím,hořčice,hořčice,hořčicích,hořčicemi
+hořčice,mustard,f,true,růže,A1,"food,mass",hořčice,hořčice,hořčici,hořčici,hořčice,hořčici,hořčicí,hořčice,hořčic,hořčicím,hořčice,hořčice,hořčicích,hořčicemi
 hádka,"quarrel, argument",f,false,žena,A2,abstract,hádka,hádky,hádce,hádku,hádko,hádce,hádkou,hádky,hádek,hádkám,hádky,hádky,hádkách,hádkami
 inkoust,ink,m,false,hrad,A2,objects,inkoust,inkoustu,inkoustu,inkoust,inkouste,inkoustě,inkoustem,inkousty,inkoustů,inkoustům,inkousty,inkousty,inkoustech,inkousty
 kosmetička,female beautician,f,true,žena,A2,"people,profession",kosmetička,kosmetičky,kosmetičce,kosmetičku,kosmetičko,kosmetičce,kosmetičkou,kosmetičky,kosmetiček,kosmetičkám,kosmetičky,kosmetičky,kosmetičkách,kosmetičkami
@@ -2662,7 +2662,7 @@ mýdlo,soap,n,false,město,A2,objects,mýdlo,mýdla,mýdlu,mýdlo,mýdlo,mýdle,
 příbor,cutlery,m,false,hrad,A2,objects,příbor,příboru,příboru,příbor,příbore,příboru,příborem,příbory,příborů,příborům,příbory,příbory,příborech,příbory
 raketa,rocket,f,false,žena,A2,objects,raketa,rakety,raketě,raketu,raketo,raketě,raketou,rakety,raket,raketám,rakety,rakety,raketách,raketami
 sendvič,sandwich,m,false,stroj,A2,food,sendvič,sendviče,sendviči,sendvič,sendviči,sendviči,sendvičem,sendviče,sendvičů,sendvičům,sendviče,sendviče,sendvičích,sendviči
-technik,technologist,m,true,pán,A2,"people,profession",technik,technika,technikovi,technika,techniku,technikovi,technikem,technici,techniků,technikům,techniky,technici,technicích,techniky
+technik,technician,m,true,pán,A2,"people,profession",technik,technika,technikovi,technika,techniku,technikovi,technikem,technici,techniků,technikům,techniky,technici,technicích,techniky
 technička,female technician,f,true,žena,A2,"people,profession",technička,techničky,techničce,techničku,techničko,techničce,techničkou,techničky,techniček,techničkám,techničky,techničky,techničkách,techničkami
 tuňák,tuna,m,true,pán,A2,food,tuňák,tuňáka,tuňákovi,tuňáka,tuňáku,tuňákovi,tuňákem,tuňáci,tuňáků,tuňákům,tuňáky,tuňáci,tuňácích,tuňáky
 vidlička,fork,f,false,žena,A2,"objects,portable",vidlička,vidličky,vidličce,vidličku,vidličko,vidličce,vidličkou,vidličky,vidliček,vidličkám,vidličky,vidličky,vidličkách,vidličkami
@@ -2678,19 +2678,19 @@ ocásek,little tail,m,false,hrad,A2,"body,painless",ocásek,ocásku,ocásku,ocá
 včela,bee,f,false,žena,A2,animals,včela,včely,včele,včelu,včelo,včele,včelou,včely,včel,včelám,včely,včely,včelách,včelami
 včelka,little bee,f,true,žena,A2,animals,včelka,včelky,včelce,včelku,včelko,včelce,včelkou,včelky,včelek,včelkám,včelky,včelky,včelkách,včelkami
 čumáček,little snout,m,false,hrad,A2,"body,painless",čumáček,čumáčku,čumáčku,čumáček,čumáčku,čumáčku,čumáčkem,čumáčky,čumáčků,čumáčkům,čumáčky,čumáčky,čumáčcích,čumáčky
-ježek,hedgehog (mammal),m,true,pán,A2,animals,ježek,ježka,ježkovi,ježka,ježku,ježkovi,ježkem,ježci,ježků,ježkům,ježky,ježci,ježcích,ježky
+ježek,hedgehog,m,true,pán,A2,animals,ježek,ježka,ježkovi,ježka,ježku,ježkovi,ježkem,ježci,ježků,ježkům,ježky,ježci,ježcích,ježky
 kamínek,"pebble, little stone",m,false,hrad,A2,objects,kamínek,kamínku,kamínku,kamínek,kamínku,kamínku,kamínkem,kamínky,kamínků,kamínkům,kamínky,kamínky,kamíncích,kamínky
 křeček,hamster,m,true,pán,A2,animals,křeček,křečka,křečkovi,křečka,křečku,křečkovi,křečkem,křečci,křečků,křečkům,křečky,křečci,křečcích,křečky
 ubrousek,napkin,m,false,hrad,A2,"objects,portable",ubrousek,ubrousku,ubrousku,ubrousek,ubrousku,ubrousku,ubrouskem,ubrousky,ubrousků,ubrouskům,ubrousky,ubrousky,ubrouscích,ubrousky
 oříšek,little nut,m,false,hrad,A2,"objects,portable",oříšek,oříšku,oříšku,oříšek,oříšku,oříšku,oříškem,oříšky,oříšků,oříškům,oříšky,oříšky,oříšcích,oříšky
-úplněk,full moon (moon when it is in opposition to the sun),m,false,hrad,A2,"nature,celestial",úplněk,úplňku,úplňku,úplněk,úplňku,úplňku,úplňkem,úplňky,úplňků,úplňkům,úplňky,úplňky,úplňcích,úplňky
+úplněk,full moon,m,false,hrad,A2,"nature,celestial",úplněk,úplňku,úplňku,úplněk,úplňku,úplňku,úplňkem,úplňky,úplňků,úplňkům,úplňky,úplňky,úplňcích,úplňky
 masér,masseur,m,true,pán,A2,"people,profession",masér,maséra,masérovi,maséra,masére,masérovi,masérem,maséři,masérů,masérům,maséry,maséři,masérech,maséry
 předsudek,prejudice,m,false,hrad,A2,abstract,předsudek,předsudku,předsudku,předsudek,předsudku,předsudku,předsudkem,předsudky,předsudků,předsudkům,předsudky,předsudky,předsudcích,předsudky
 horolezec,mountaineer,m,true,muž,A2,"people,profession",horolezec,horolezce,horolezci,horolezce,horolezče,horolezci,horolezcem,horolezci,horolezců,horolezcům,horolezce,horolezci,horolezcích,horolezci
 letání,flying,n,false,stavení,A2,"misc,abstract",letání,letání,letání,letání,letání,letání,letáním,letání,letání,letáním,letání,letání,letáních,letáními
 míček,small ball,m,false,hrad,A2,"objects,portable",míček,míčku,míčku,míček,míčku,míčku,míčkem,míčky,míčků,míčkům,míčky,míčky,míčcích,míčky
 kašel,cough,m,false,stroj,A1,abstract,kašel,kašle,kašli,kašel,kašli,kašli,kašlem,kašle,kašlů,kašlům,kašle,kašle,kašlích,kašli
-titulek,"subtitle, caption (textual versions of the dialog in films)",m,false,hrad,A2,readable,titulek,titulku,titulku,titulek,titulku,titulku,titulkem,titulky,titulků,titulkům,titulky,titulky,titulcích,titulky
+titulek,"headline, caption, subtitle",m,false,hrad,A2,readable,titulek,titulku,titulku,titulek,titulku,titulku,titulkem,titulky,titulků,titulkům,titulky,titulky,titulcích,titulky
 bezdomovec,homeless person,m,true,muž,A2,people,bezdomovec,bezdomovce,bezdomovci,bezdomovce,bezdomovče,bezdomovci,bezdomovcem,bezdomovci,bezdomovců,bezdomovcům,bezdomovce,bezdomovci,bezdomovcích,bezdomovci
 ekolog,ecologist,m,true,pán,A2,profession,ekolog,ekologa,ekologovi,ekologa,ekologu,ekologovi,ekologem,ekologové,ekologů,ekologům,ekology,ekologové,ekolozích,ekology
 ekoložka,female ecologist,f,false,žena,A2,"people,profession",ekoložka,ekoložky,ekoložce,ekoložku,ekoložko,ekoložce,ekoložkou,ekoložky,ekoložek,ekoložkám,ekoložky,ekoložky,ekoložkách,ekoložkami
@@ -2701,14 +2701,14 @@ zaměstnavatelka,female employer,f,true,žena,A2,"people,profession",zaměstnava
 límec,collar,m,false,stroj,A2,objects,límec,límce,límci,límec,límci,límci,límcem,límce,límců,límcům,límce,límce,límcích,límci
 návrhář,designer,m,true,muž,A2,"people,profession",návrhář,návrháře,návrháři,návrháře,návrháři,návrháři,návrhářem,návrháři,návrhářů,návrhářům,návrháře,návrháři,návrhářích,návrháři
 návrhářka,female designer,f,true,žena,A2,"people,profession",návrhářka,návrhářky,návrhářce,návrhářku,návrhářko,návrhářce,návrhářkou,návrhářky,návrhářek,návrhářkám,návrhářky,návrhářky,návrhářkách,návrhářkami
-podpatek,heel (part of shoe),m,false,hrad,A2,abstract,podpatek,podpatku,podpatku,podpatek,podpatku,podpatku,podpatkem,podpatky,podpatků,podpatkům,podpatky,podpatky,podpatcích,podpatky
+podpatek,heel (of a shoe),m,false,hrad,A2,abstract,podpatek,podpatku,podpatku,podpatek,podpatku,podpatku,podpatkem,podpatky,podpatků,podpatkům,podpatky,podpatky,podpatcích,podpatky
 zákaznice,female customer,f,true,růže,A2,people,zákaznice,zákaznice,zákaznici,zákaznici,zákaznice,zákaznici,zákaznicí,zákaznice,zákaznic,zákaznicím,zákaznice,zákaznice,zákaznicích,zákaznicemi
 esejista,essayist,m,true,předseda,A2,"people,profession",esejista,esejisty,esejistovi,esejistu,esejisto,esejistovi,esejistou,esejisté,esejistů,esejistům,esejisty,esejisté,esejistech,esejisty
 esejistka,female essayist,f,true,žena,A2,"people,profession",esejistka,esejistky,esejistce,esejistku,esejistko,esejistce,esejistkou,esejistky,esejistek,esejistkám,esejistky,esejistky,esejistkách,esejistkami
-publicista,"publicist (a journalist, often a commentator)",m,true,předseda,A2,"people,profession",publicista,publicisty,publicistovi,publicistu,publicisto,publicistovi,publicistou,publicisté,publicistů,publicistům,publicisty,publicisté,publicistech,publicisty
-publicistka,"female publicist (a journalist, often a commentator)",f,true,žena,A2,"people,profession",publicistka,publicistky,publicistce,publicistku,publicistko,publicistce,publicistkou,publicistky,publicistek,publicistkám,publicistky,publicistky,publicistkách,publicistkami
+publicista,"journalist, commentator",m,true,předseda,A2,"people,profession",publicista,publicisty,publicistovi,publicistu,publicisto,publicistovi,publicistou,publicisté,publicistů,publicistům,publicisty,publicisté,publicistech,publicisty
+publicistka,"female journalist, commentator",f,true,žena,A2,"people,profession",publicistka,publicistky,publicistce,publicistku,publicistko,publicistce,publicistkou,publicistky,publicistek,publicistkám,publicistky,publicistky,publicistkách,publicistkami
 představitelka,female representative,f,true,žena,A2,"people,profession",představitelka,představitelky,představitelce,představitelku,představitelko,představitelce,představitelkou,představitelky,představitelek,představitelkám,představitelky,představitelky,představitelkách,představitelkami
-překladatel,translator (person),m,true,muž,A2,"people,profession",překladatel,překladatele,překladateli,překladatele,překladateli,překladateli,překladatelem,překladatelé,překladatelů,překladatelům,překladatele,překladatelé,překladatelích,překladateli
+překladatel,translator,m,true,muž,A2,"people,profession",překladatel,překladatele,překladateli,překladatele,překladateli,překladateli,překladatelem,překladatelé,překladatelů,překladatelům,překladatele,překladatelé,překladatelích,překladateli
 překladatelka,female translator,f,true,žena,A2,"people,profession",překladatelka,překladatelky,překladatelce,překladatelku,překladatelko,překladatelce,překladatelkou,překladatelky,překladatelek,překladatelkám,překladatelky,překladatelky,překladatelkách,překladatelkami
 scénárista,scriptwriter,m,true,předseda,A2,"people,profession",scénárista,scénáristy,scénáristovi,scénáristu,scénáristo,scénáristovi,scénáristou,scénáristé,scénáristů,scénáristům,scénáristy,scénáristé,scénáristech,scénáristy
 scénáristka,female scriptwriter,f,true,žena,A2,"people,profession",scénáristka,scénáristky,scénáristce,scénáristku,scénáristko,scénáristce,scénáristkou,scénáristky,scénáristek,scénáristkám,scénáristky,scénáristky,scénáristkách,scénáristkami
@@ -2724,15 +2724,14 @@ telenovela,soap opera,f,false,žena,A1,"misc,abstract",telenovela,telenovely,tel
 pórek,leek,m,false,hrad,A2,food,pórek,pórku,pórku,pórek,pórku,pórku,pórkem,pórky,pórků,pórkům,pórky,pórky,pórcích,pórky
 sáček,small bag,m,false,hrad,A2,"objects,portable",sáček,sáčku,sáčku,sáček,sáčku,sáčku,sáčkem,sáčky,sáčků,sáčkům,sáčky,sáčky,sáčcích,sáčky
 princ,prince,m,true,muž,A1,people,princ,prince,princovi,prince,princi,princovi,princem,princové,princů,princům,prince,princové,princích,princi
-přijezd,arrival,m,false,hrad,A1,abstract,přijezd,příjezdu,příjezdu,přijezd,příjezde,příjezdu,příjezdem,příjezdy,příjezdů,příjezdům,příjezdy,příjezdy,příjezdech,příjezdy
 přílet,arrival (by air),m,false,hrad,A1,abstract,přílet,příletu,příletu,přílet,přílete,příletu,příletem,přílety,příletů,příletům,přílety,přílety,příletech,přílety
-bufet,buffet,m,false,hrad,A2,"places,v_place",bufet,bufetu,bufetu,bufet,bufete,bufetu,bufetem,bufety,bufetů,bufetům,bufety,bufety,bufetech,bufety
+bufet,"snack bar, buffet",m,false,hrad,A2,"places,v_place",bufet,bufetu,bufetu,bufet,bufete,bufetu,bufetem,bufety,bufetů,bufetům,bufety,bufety,bufetech,bufety
 taxislužba,taxi service,f,false,žena,A2,transportation,taxislužba,taxislužby,taxislužbě,taxislužbu,taxislužbo,taxislužbě,taxislužbou,taxislužby,taxislužeb,taxislužbám,taxislužby,taxislužby,taxislužbách,taxislužbami
 punker,punk,m,true,pán,A2,people,punker,punkera,punkerovi,punkera,punkere,punkerovi,punkerem,punkeři,punkerů,punkerům,punkery,punkeři,punkerech,punkery
 balon,balloon,m,false,hrad,A2,"objects,portable",balon,balonu,balonu,balon,balone,balonu,balonem,balony,balonů,balonům,balony,balony,balonech,balony
 biliár,billiards,m,false,hrad,A2,"misc,abstract",biliár,biliáru,biliáru,biliár,biliáre,biliáru,biliárem,biliáry,biliárů,biliárům,biliáry,biliáry,biliárech,biliáry
 karamel,caramel,m,false,hrad,A2,"food,mass",karamel,karamelu,karamelu,karamel,karamele,karamelu,karamelem,karamely,karamelů,karamelům,karamely,karamely,karamelech,karamely
-salón,salon,m,false,hrad,A2,"places,v_place",salón,salónu,salónu,salón,salóne,salónu,salónem,salóny,salónů,salónům,salóny,salóny,salónech,salóny
+salón,"salon (hair, beauty; showroom)",m,false,hrad,A2,"places,v_place",salón,salónu,salónu,salón,salóne,salónu,salónem,salóny,salónů,salónům,salóny,salóny,salónech,salóny
 šampon,shampoo,m,false,hrad,A2,"objects,portable",šampon,šamponu,šamponu,šampon,šampone,šamponu,šamponem,šampony,šamponů,šamponům,šampony,šampony,šamponech,šampony
 korálek,bead,m,false,hrad,A2,"objects,portable",korálek,korálku,korálku,korálek,korálku,korálku,korálkem,korálky,korálků,korálkům,korálky,korálky,korálcích,korálky
 mikuláš,Saint Nicholas,m,true,muž,A1,"event,people",mikuláš,mikuláše,mikuláši,mikuláše,mikuláši,mikuláši,mikulášem,mikulášové,mikulášů,mikulášům,mikuláše,mikulášové,mikuláších,mikuláši

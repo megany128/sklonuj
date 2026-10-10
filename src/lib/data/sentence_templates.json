@@ -576,6 +576,7 @@
 		"id": "ins_s_052",
 		"template": "Hraju si s ___.",
 		"lemmaCategory": "animals",
+		"semanticTags": ["pet"],
 		"requiredCase": "ins",
 		"number": "sg",
 		"trigger": "s",
