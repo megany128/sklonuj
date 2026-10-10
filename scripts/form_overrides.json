@@ -159,9 +159,14 @@
 	},
 	"rok": {
 		"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
-		"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"],
+		"pl": ["roky", "let", "rokům", "roky", "roky", "rocích", "roky"],
 		"variants_pl": {
-			"1": ["let"]
+			"0": ["léta"],
+			"1": ["roků"],
+			"2": ["letům"],
+			"3": ["léta"],
+			"5": ["letech"],
+			"6": ["lety"]
 		}
 	},
 	"faktor": {

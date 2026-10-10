@@ -1,6 +1,6 @@
 lemma,translation,paradigm,difficulty,categories,note
 pes,dog,pán,A1,animals,
-den,day,stroj,A1,"time,duration,calendar_unit,whole_span,in_time","Fleeting e: den → dne, dnu, dnem (pl dny, dnů, dnech)
+den,day,stroj,A1,"time,duration,calendar_unit,whole_span,in_time,count_time","Fleeting e: den → dne, dnu, dnem (pl dny, dnů, dnech)
 Genitive dne in phrases like během dne"
 dítě,child,kuře,A1,"family,address_informal,address_group,address_group_formal",
 chléb,bread,hrad,A1,"food,sliceable","é → e outside nom/acc sg (chleba, chlebu, chlebem)
@@ -100,12 +100,12 @@ vejce,egg,moře,A1,food,
 káva,coffee,žena,A1,"food,drink,mass",
 čaj,tea,stroj,A1,"food,drink,mass",
 voda,water,žena,A1,"food,drink,mass",
-týden,week,stroj,A1,"time,duration,calendar_unit,whole_span,in_time","Fleeting e: týden → týdne, týdnu, týdnem (pl týdny, týdnů, týdnech)"
-měsíc,month,stroj,A1,"time,duration,calendar_unit,celestial,whole_span,in_time",
-rok,year,hrad,A1,"time,duration,calendar_unit,whole_span,in_time","k → c in loc sg: v roce (gen roku, pl roky)
-After 5+ and in time phrases: let (pět let), also roků"
-hodina,hour,žena,A1,"time,duration,whole_span,in_time",
-minuta,minute,žena,A1,"time,duration,whole_span,in_time",
+týden,week,stroj,A1,"time,duration,calendar_unit,whole_span,in_time,count_time","Fleeting e: týden → týdne, týdnu, týdnem (pl týdny, týdnů, týdnech)"
+měsíc,month,stroj,A1,"time,duration,calendar_unit,celestial,whole_span,in_time,count_time",
+rok,year,hrad,A1,"time,duration,calendar_unit,whole_span,in_time,count_time","k → c in loc sg: v roce (gen roku, pl roky)
+Genitive pl: let after numbers and quantities (pět let, kolik let); roků is also possible"
+hodina,hour,žena,A1,"time,duration,whole_span,in_time,count_time",
+minuta,minute,žena,A1,"time,duration,whole_span,in_time,count_time",
 rodina,family,žena,A1,"misc,people",
 babička,grandmother,žena,A1,"family,address_informal",
 dědeček,grandfather,pán,A1,"family,address_informal",

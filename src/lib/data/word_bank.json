@@ -1474,7 +1474,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time"],
+		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["den", "dne", "dnu", "den", "dne", "dnu", "dnem"],
 			"pl": ["dny", "dnů", "dnům", "dny", "dny", "dnech", "dny"]
@@ -1503,7 +1503,7 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time"],
+		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["týden", "týdne", "týdnu", "týden", "týdne", "týdnu", "týdnem"],
 			"pl": ["týdny", "týdnů", "týdnům", "týdny", "týdny", "týdnech", "týdny"]
@@ -1531,7 +1531,15 @@
 		"animate": false,
 		"paradigm": "stroj",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "celestial", "whole_span", "in_time"],
+		"categories": [
+			"time",
+			"duration",
+			"calendar_unit",
+			"celestial",
+			"whole_span",
+			"in_time",
+			"count_time"
+		],
 		"forms": {
 			"sg": ["měsíc", "měsíce", "měsíci", "měsíc", "měsíci", "měsíci", "měsícem"],
 			"pl": ["měsíce", "měsíců", "měsícům", "měsíce", "měsíce", "měsících", "měsíci"]
@@ -1544,17 +1552,22 @@
 		"animate": false,
 		"paradigm": "hrad",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time"],
+		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["rok", "roku", "roku", "rok", "roku", "roce", "rokem"],
-			"pl": ["roky", "roků", "rokům", "roky", "roky", "rocích", "roky"]
+			"pl": ["roky", "let", "rokům", "roky", "roky", "rocích", "roky"]
 		},
 		"variantForms": {
 			"pl": {
-				"1": ["let"]
+				"0": ["léta"],
+				"1": ["roků"],
+				"2": ["letům"],
+				"3": ["léta"],
+				"5": ["letech"],
+				"6": ["lety"]
 			}
 		},
-		"declensionNote": "k → c in loc sg: v roce (gen roku, pl roky)\nAfter 5+ and in time phrases: let (pět let), also roků"
+		"declensionNote": "k → c in loc sg: v roce (gen roku, pl roky)\nGenitive pl: let after numbers and quantities (pět let, kolik let); roků is also possible"
 	},
 	{
 		"lemma": "hodina",
@@ -1563,7 +1576,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "whole_span", "in_time"],
+		"categories": ["time", "duration", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["hodina", "hodiny", "hodině", "hodinu", "hodino", "hodině", "hodinou"],
 			"pl": ["hodiny", "hodin", "hodinám", "hodiny", "hodiny", "hodinách", "hodinami"]
@@ -1576,7 +1589,7 @@
 		"animate": false,
 		"paradigm": "žena",
 		"difficulty": "A1",
-		"categories": ["time", "duration", "whole_span", "in_time"],
+		"categories": ["time", "duration", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["minuta", "minuty", "minutě", "minutu", "minuto", "minutě", "minutou"],
 			"pl": ["minuty", "minut", "minutám", "minuty", "minuty", "minutách", "minutami"]
