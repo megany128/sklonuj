@@ -447,5 +447,20 @@
 	["gen_zbavil_191", "mateřská"],
 	["gen_zbavil_191", "nemocenská"],
 	["gen_zbavil_191", "rodičovská"],
-	["gen_zucastnil_190", "dovolená"]
+	["gen_zucastnil_190", "dovolená"],
+	["nom_staci_074", "konec"],
+	["nom_staci_074", "začátek"],
+	["nom_staci_074", "počátek"],
+	["nom_staci_074", "věk"],
+	["nom_staci_074", "datum"],
+	["nom_staci_074", "ročník"],
+	["nom_staci_074", "valentýn"],
+	["nom_staci_074", "silvestr"],
+	["gen_do_011", "fontána"],
+	["loc_v_160", "fontána"],
+	["gen_possess_241", "mimino"],
+	["gen_possess_241", "miminko"],
+	["acc_volat_026", "mimino"],
+	["acc_volat_026", "miminko"],
+	["acc_volat_026", "batole"]
 ]
