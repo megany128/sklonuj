@@ -1,16 +1,14 @@
+import { writable } from 'svelte/store';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FocusTopic } from '../types';
 import { isFocusTopic } from './focus';
 import { isRecord } from '../utils/is-record';
-import {
-	parseChapterSelection,
-	serializeChapterSelection,
-	type ChapterSelection
-} from './chapter-selection';
 
 /**
- * How a learner is doing in each deck: answers given and answers right. Kept
- * on the device (localStorage) so the Decks page can show "62% right · 41
- * answered"; it plays no part in scheduling.
+ * How a learner is doing in each deck: answers given and answers right, so the
+ * Decks page can show "62% right · 41 answered". Kept on the device
+ * (localStorage) and, when signed in, merged with the account so every device
+ * shows the same. It plays no part in scheduling.
  */
 export interface DeckStat {
 	attempts: number;
@@ -83,40 +81,80 @@ export function loadDeckProgress(): DeckProgress {
 	}
 }
 
-/** Count one answer in `deck` and save. Storage failures are ignored. */
-export function recordDeckAnswer(deck: FocusTopic, correct: boolean, now = Date.now()): void {
+/**
+ * The saved totals as a store, so the Decks page updates when a sync brings
+ * in another device's progress.
+ */
+export const deckProgress = writable<DeckProgress>(loadDeckProgress());
+
+function save(next: DeckProgress): void {
+	deckProgress.set(next);
 	if (typeof localStorage === 'undefined') return;
 	try {
-		const next = withDeckAnswer(loadDeckProgress(), deck, correct, now);
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
 	} catch {
-		// Private mode or a full quota: the deck still works, it just isn't counted.
+		// Private mode or a full quota: the deck still works, it just isn't kept.
 	}
 }
 
-const RETURN_CHAPTER_KEY = 'sklonuj_deck_return_chapter';
+/** Count one answer in `deck` and save. */
+export function recordDeckAnswer(deck: FocusTopic, correct: boolean, now = Date.now()): void {
+	save(withDeckAnswer(loadDeckProgress(), deck, correct, now));
+}
+
+/** Forget this device's totals (sign-out, or another account's leftovers). */
+export function clearDeckProgress(): void {
+	save({});
+}
 
 /**
- * The KzK chapter a deck was started from, so leaving the deck goes back to
- * it. Stored rather than held in memory: the practice page is rebuilt on a
- * refresh and on every trip to the Decks page and back.
+ * Combine two devices' totals. They are counters and both may have counted
+ * while apart, so there is no exact merge: per deck the one with more attempts
+ * wins, then the more recent, then `a`. The `merge_deck_progress` RPC
+ * (migration 041) applies the same rule on the account.
  */
-export function loadDeckReturnChapter(): ChapterSelection | null {
-	if (typeof localStorage === 'undefined') return null;
-	try {
-		return parseChapterSelection(localStorage.getItem(RETURN_CHAPTER_KEY));
-	} catch {
-		return null;
+export function mergeDeckProgress(a: DeckProgress, b: DeckProgress): DeckProgress {
+	const out: DeckProgress = { ...b };
+	for (const [key, stat] of Object.entries(a)) {
+		if (!isFocusTopic(key) || !stat) continue;
+		const other = b[key];
+		const keepOther =
+			other !== undefined &&
+			(other.attempts > stat.attempts ||
+				(other.attempts === stat.attempts && other.last > stat.last));
+		if (!keepOther) out[key] = stat;
 	}
+	return out;
 }
 
-/** Remember the chapter to return to, or forget it with `null`. */
-export function saveDeckReturnChapter(selection: ChapterSelection | null): void {
-	if (typeof localStorage === 'undefined') return;
-	try {
-		if (selection === null) localStorage.removeItem(RETURN_CHAPTER_KEY);
-		else localStorage.setItem(RETURN_CHAPTER_KEY, serializeChapterSelection(selection));
-	} catch {
-		// Without storage the deck still works; leaving it lands in free practice.
+/** PostgREST / Postgres codes for "this function does not exist". */
+const MISSING_FUNCTION_CODES: ReadonlySet<string> = new Set(['PGRST202', '42883']);
+
+/**
+ * Merge this device's totals into the signed-in account and bring the
+ * account's back. Safe to call often. Does nothing harmful before migration
+ * 041 has been run (the totals stay on the device) or before the account has
+ * a progress row.
+ */
+export async function syncDeckProgress(supabase: SupabaseClient): Promise<void> {
+	const { data, error } = await supabase.rpc('merge_deck_progress', {
+		p_incoming: loadDeckProgress()
+	});
+	if (error) {
+		if (!MISSING_FUNCTION_CODES.has(error.code)) {
+			console.error('Failed to sync deck progress:', error);
+		}
+		return;
 	}
+	if (data === null) return;
+	applyAccountDeckProgress(data);
+}
+
+/**
+ * Take the account's totals (untrusted JSON from the RPC) into this device.
+ * Merged with the totals as they are now, not as they were sent: answers
+ * given while the request was in flight are already in storage.
+ */
+export function applyAccountDeckProgress(remote: unknown): void {
+	save(mergeDeckProgress(loadDeckProgress(), sanitizeDeckProgress(remote)));
 }

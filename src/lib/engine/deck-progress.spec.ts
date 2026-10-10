@@ -1,5 +1,16 @@
-import { describe, it, expect } from 'vitest';
-import { deckAccuracy, sanitizeDeckProgress, withDeckAnswer } from './deck-progress';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { get } from 'svelte/store';
+import {
+	applyAccountDeckProgress,
+	clearDeckProgress,
+	deckAccuracy,
+	deckProgress,
+	loadDeckProgress,
+	mergeDeckProgress,
+	recordDeckAnswer,
+	sanitizeDeckProgress,
+	withDeckAnswer
+} from './deck-progress';
 
 describe('deck progress', () => {
 	it('counts answers per deck without touching the others', () => {
@@ -35,5 +46,99 @@ describe('deck progress', () => {
 		expect(sanitizeDeckProgress(null)).toEqual({});
 		expect(sanitizeDeckProgress('nope')).toEqual({});
 		expect(sanitizeDeckProgress({ direction: { attempts: -1, correct: 0, last: 0 } })).toEqual({});
+	});
+});
+
+describe('merging two devices', () => {
+	const stat = (attempts: number, correct: number, last: number) => ({ attempts, correct, last });
+
+	it('per deck, the device with more attempts wins', () => {
+		const laptop = { direction: stat(40, 30, 100), verbs: stat(5, 5, 900) };
+		const phone = { direction: stat(12, 6, 999), verbs: stat(9, 2, 50) };
+		expect(mergeDeckProgress(laptop, phone)).toEqual({
+			direction: stat(40, 30, 100),
+			verbs: stat(9, 2, 50)
+		});
+		// The same answer whichever side asks.
+		expect(mergeDeckProgress(phone, laptop)).toEqual(mergeDeckProgress(laptop, phone));
+	});
+
+	it('on equal attempts the more recent wins, then the first argument', () => {
+		expect(
+			mergeDeckProgress({ numbers: stat(10, 4, 100) }, { numbers: stat(10, 9, 200) }).numbers
+		).toEqual(stat(10, 9, 200));
+		expect(
+			mergeDeckProgress({ numbers: stat(10, 4, 100) }, { numbers: stat(10, 9, 100) }).numbers
+		).toEqual(stat(10, 4, 100));
+	});
+
+	it('keeps decks only one side has, and changes neither input', () => {
+		const a = { direction: stat(1, 1, 1) };
+		const b = { determiners: stat(3, 2, 2) };
+		expect(mergeDeckProgress(a, b)).toEqual({
+			direction: stat(1, 1, 1),
+			determiners: stat(3, 2, 2)
+		});
+		expect(mergeDeckProgress({}, b)).toEqual(b);
+		expect(a).toEqual({ direction: stat(1, 1, 1) });
+		expect(b).toEqual({ determiners: stat(3, 2, 2) });
+	});
+});
+
+describe('deck progress on this device', () => {
+	const storage = new Map<string, string>();
+
+	beforeEach(() => {
+		storage.clear();
+		vi.stubGlobal('localStorage', {
+			getItem: (key: string) => storage.get(key) ?? null,
+			setItem: (key: string, value: string) => {
+				storage.set(key, value);
+			},
+			removeItem: (key: string) => {
+				storage.delete(key);
+			}
+		});
+		clearDeckProgress();
+	});
+
+	afterEach(() => vi.unstubAllGlobals());
+
+	it('counts answers into storage and the store', () => {
+		recordDeckAnswer('numbers', true, 1000);
+		recordDeckAnswer('numbers', false, 2000);
+		expect(loadDeckProgress()).toEqual({ numbers: { attempts: 2, correct: 1, last: 2000 } });
+		expect(get(deckProgress)).toEqual(loadDeckProgress());
+	});
+
+	it("takes the account's totals in, keeping answers given since", () => {
+		recordDeckAnswer('numbers', true, 5000);
+		applyAccountDeckProgress({
+			numbers: { attempts: 1, correct: 0, last: 10 },
+			verbs: { attempts: 20, correct: 15, last: 4000 },
+			nonsense: { attempts: 3, correct: 3, last: 1 },
+			direction: 'broken'
+		});
+		// numbers ties on attempts and the local answer is newer; verbs comes
+		// from the account; the unknown deck and the broken entry are dropped.
+		expect(loadDeckProgress()).toEqual({
+			numbers: { attempts: 1, correct: 1, last: 5000 },
+			verbs: { attempts: 20, correct: 15, last: 4000 }
+		});
+		expect(get(deckProgress)).toEqual(loadDeckProgress());
+	});
+
+	it('ignores an account payload that is not an object', () => {
+		recordDeckAnswer('verbs', true, 1);
+		applyAccountDeckProgress('oops');
+		applyAccountDeckProgress([1, 2]);
+		expect(loadDeckProgress()).toEqual({ verbs: { attempts: 1, correct: 1, last: 1 } });
+	});
+
+	it('forgets everything on sign-out', () => {
+		recordDeckAnswer('verbs', true, 1);
+		clearDeckProgress();
+		expect(loadDeckProgress()).toEqual({});
+		expect(get(deckProgress)).toEqual({});
 	});
 });
