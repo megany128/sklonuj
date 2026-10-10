@@ -2801,7 +2801,7 @@ kemp,campsite,m,false,hrad,A1,"misc,places,v_place,dwelling",kemp,kempu,kempu,ke
 karavan,caravan,m,false,hrad,A1,"misc,transportation,vehicle",karavan,karavanu,karavanu,karavan,karavane,karavanu,karavanem,karavany,karavanů,karavanům,karavany,karavany,karavanech,karavany
 egoista,egoist,m,true,předseda,A1,"misc,people",egoista,egoisty,egoistovi,egoistu,egoisto,egoistovi,egoistou,egoisté,egoistů,egoistům,egoisty,egoisté,egoistech,egoisty
 šachy,chess,m,false,hrad,A1,"misc,objects",,,,,,,,šachy,šachů,šachům,šachy,šachy,šachách,šachy
-squash,squash,m,false,stroj,A1,"misc,abstract",squash,squashe,squashi,squash,squashi,squashi,squashem,squashe,squashů,squashům,squashe,squashe,squashích,squashi
+squash,squash (the sport),m,false,stroj,A1,"misc,abstract",squash,squashe,squashi,squash,squashi,squashi,squashem,squashe,squashů,squashům,squashe,squashe,squashích,squashi
 specialita,specialty,f,false,žena,A1,"misc,food",specialita,speciality,specialitě,specialitu,specialito,specialitě,specialitou,speciality,specialit,specialitám,speciality,speciality,specialitách,specialitami
 brusle,skate,f,false,růže,A1,"misc,objects",brusle,brusle,brusli,brusli,brusle,brusli,bruslí,brusle,bruslí,bruslím,brusle,brusle,bruslích,bruslemi
 zubař,dentist,m,true,muž,A1,"misc,people,profession",zubař,zubaře,zubaři,zubaře,zubaři,zubaři,zubařem,zubaři,zubařů,zubařům,zubaře,zubaři,zubařích,zubaři

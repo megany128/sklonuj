@@ -336,7 +336,7 @@ describe('nouns that decline like adjectives', () => {
 				).not.toContain(lemma);
 			}
 			expect(generateFormProduction(w, 'acc', 'sg'), lemma).not.toBeNull();
-			expect(candidateLemmas('acc_chci_107'), lemma).toContain(lemma); // Chci ___.
+			expect(candidateLemmas('acc_o_103'), lemma).toContain(lemma); // Zajímám se o ___.
 		}
 		// The food-only "Mám dost ___" / "Trochu ___" templates ask for `mass`.
 		for (const id of ['gen_dost_a1', 'gen_trochu_a1']) {
@@ -368,6 +368,18 @@ describe('a sentence keeps its own filters for a word let past its level', () =>
 			for (const lemma of ['Praha', 'Morava', 'Čech', 'dovolená']) {
 				expect(templateTakesWord(t, word(lemma)), `${t.id} ${lemma}`).toBe(candidates.has(lemma));
 			}
+		}
+	});
+});
+
+describe('"Chci ___."', () => {
+	// It used to take any `misc` noun, which gave "Chci squash", "Chci diabetes",
+	// "Chci zloděje". It now takes things one can want to have.
+	it('takes objects, clothes and animals, not sports, illnesses or people', () => {
+		const wanted = candidateLemmas('acc_chci_107');
+		for (const lemma of ['telefon', 'kabát', 'pes', 'auto']) expect(wanted).toContain(lemma);
+		for (const lemma of ['squash', 'diabetes', 'zloděj', 'problém']) {
+			expect(wanted).not.toContain(lemma);
 		}
 	});
 });
