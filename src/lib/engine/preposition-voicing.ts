@@ -10,6 +10,8 @@
  *   - common usage before s/z/š/ž + consonant (ke stolu, ve sněhu, ke zdi)
  *   - lexicalized cases (ke mně, se mnou, ve dne, ve dvou, se psem, se lvem,
  *     ve čtvrtek, ve jménu, ve městě, ze vsi)
+ *   - mn- only for the pronoun já and mnoho/mnohý (ke mně, se mnou, ve mnoha);
+ *     other mn- words stay unvocalized (v Mnichově, z množství, k mnichovi)
  *
  * Pure module — no dependencies. Imported by both the drill engine (runtime
  * rendering) and the template-review module (offline / admin audit) so that
@@ -19,7 +21,11 @@ const VOWELS = new Set('aeiouyáéíóúůýě');
 const SIBILANTS = 'szšž';
 
 // Groups that trigger vocalization for every non-syllabic preposition.
-const SHARED_CLUSTERS = ['tř', 'sl', 'zr', 'zl', 'mn', 'dv', 'dn', 'ct', 'čt', 'vz', 'vš'];
+const SHARED_CLUSTERS = ['tř', 'sl', 'zr', 'zl', 'dv', 'dn', 'ct', 'čt', 'vz', 'vš'];
+
+// mn- vocalizes the preposition before forms of já (mně, mne, mnou) and of
+// mnoho/mnohý, not before every mn- word ("v Mnichově", "z množství").
+const MN_VOCALIZING = /^(mně|mne|mnou|mnoh)/;
 
 const EXTRA_CLUSTERS: Record<'k' | 's' | 'v' | 'z', string[]> = {
 	k: ['ps', 'lv', 'vs'],
@@ -51,6 +57,7 @@ function needsVowel(prep: 'k' | 's' | 'v' | 'z', filledForm: string): boolean {
 	}
 
 	if (!isCluster) return false;
+	if (firstTwo === 'mn') return MN_VOCALIZING.test(lower);
 	// k/v before s, z, š, ž + consonant (s/z already covered above).
 	if (SIBILANTS.includes(first)) return true;
 	return SHARED_CLUSTERS.includes(firstTwo) || EXTRA_CLUSTERS[prep].includes(firstTwo);

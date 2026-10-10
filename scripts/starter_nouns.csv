@@ -85,12 +85,12 @@ vejce,egg,n,false,moře,A1,food,vejce,vejce,vejci,vejce,vejce,vejci,vejcem,vejce
 káva,coffee,f,false,žena,A1,"food,drink,mass",káva,kávy,kávě,kávu,kávo,kávě,kávou,kávy,káv,kávám,kávy,kávy,kávách,kávami
 čaj,tea,m,false,stroj,A1,"food,drink,mass",čaj,čaje,čaji,čaj,čaji,čaji,čajem,čaje,čajů,čajům,čaje,čaje,čajích,čaji
 voda,water,f,false,žena,A1,"food,drink,mass",voda,vody,vodě,vodu,vodo,vodě,vodou,vody,vod,vodám,vody,vody,vodách,vodami
-den,day,m,false,stroj,A1,"time,duration,calendar_unit,whole_span,in_time",den,dne,dnu,den,dne,dnu,dnem,dny,dnů,dnům,dny,dny,dnech,dny
-týden,week,m,false,stroj,A1,"time,duration,calendar_unit,whole_span,in_time",týden,týdne,týdnu,týden,týdne,týdnu,týdnem,týdny,týdnů,týdnům,týdny,týdny,týdnech,týdny
-měsíc,month,m,false,stroj,A1,"time,duration,calendar_unit,celestial,whole_span,in_time",měsíc,měsíce,měsíci,měsíc,měsíci,měsíci,měsícem,měsíce,měsíců,měsícům,měsíce,měsíce,měsících,měsíci
-rok,year,m,false,hrad,A1,"time,duration,calendar_unit,whole_span,in_time",rok,roku,roku,rok,roku,roce,rokem,roky,roků,rokům,roky,roky,rocích,roky
-hodina,hour,f,false,žena,A1,"time,duration,whole_span,in_time",hodina,hodiny,hodině,hodinu,hodino,hodině,hodinou,hodiny,hodin,hodinám,hodiny,hodiny,hodinách,hodinami
-minuta,minute,f,false,žena,A1,"time,duration,whole_span,in_time",minuta,minuty,minutě,minutu,minuto,minutě,minutou,minuty,minut,minutám,minuty,minuty,minutách,minutami
+den,day,m,false,stroj,A1,"time,duration,calendar_unit,whole_span,in_time,count_time",den,dne,dnu,den,dne,dnu,dnem,dny,dnů,dnům,dny,dny,dnech,dny
+týden,week,m,false,stroj,A1,"time,duration,calendar_unit,whole_span,in_time,count_time",týden,týdne,týdnu,týden,týdne,týdnu,týdnem,týdny,týdnů,týdnům,týdny,týdny,týdnech,týdny
+měsíc,month,m,false,stroj,A1,"time,duration,calendar_unit,celestial,whole_span,in_time,count_time",měsíc,měsíce,měsíci,měsíc,měsíci,měsíci,měsícem,měsíce,měsíců,měsícům,měsíce,měsíce,měsících,měsíci
+rok,year,m,false,hrad,A1,"time,duration,calendar_unit,whole_span,in_time,count_time",rok,roku,roku,rok,roku,roce,rokem,roky,let,rokům,roky,roky,rocích,roky
+hodina,hour,f,false,žena,A1,"time,duration,whole_span,in_time,count_time",hodina,hodiny,hodině,hodinu,hodino,hodině,hodinou,hodiny,hodin,hodinám,hodiny,hodiny,hodinách,hodinami
+minuta,minute,f,false,žena,A1,"time,duration,whole_span,in_time,count_time",minuta,minuty,minutě,minutu,minuto,minutě,minutou,minuty,minut,minutám,minuty,minuty,minutách,minutami
 rodina,family,f,false,žena,A1,"misc,people",rodina,rodiny,rodině,rodinu,rodino,rodině,rodinou,rodiny,rodin,rodinám,rodiny,rodiny,rodinách,rodinami
 babička,grandmother,f,false,žena,A1,"family,address_informal",babička,babičky,babičce,babičku,babičko,babičce,babičkou,babičky,babiček,babičkám,babičky,babičky,babičkách,babičkami
 dědeček,grandfather,m,true,pán,A1,"family,address_informal",dědeček,dědečka,dědečkovi,dědečka,dědečku,dědečkovi,dědečkem,dědečci,dědečků,dědečkům,dědečky,dědečci,dědečcích,dědečky
@@ -2801,7 +2801,7 @@ kemp,campsite,m,false,hrad,A1,"misc,places,v_place,dwelling",kemp,kempu,kempu,ke
 karavan,caravan,m,false,hrad,A1,"misc,transportation,vehicle",karavan,karavanu,karavanu,karavan,karavane,karavanu,karavanem,karavany,karavanů,karavanům,karavany,karavany,karavanech,karavany
 egoista,egoist,m,true,předseda,A1,"misc,people",egoista,egoisty,egoistovi,egoistu,egoisto,egoistovi,egoistou,egoisté,egoistů,egoistům,egoisty,egoisté,egoistech,egoisty
 šachy,chess,m,false,hrad,A1,"misc,objects",,,,,,,,šachy,šachů,šachům,šachy,šachy,šachách,šachy
-squash,squash,m,false,stroj,A1,"misc,abstract",squash,squashe,squashi,squash,squashi,squashi,squashem,squashe,squashů,squashům,squashe,squashe,squashích,squashi
+squash,squash (the sport),m,false,stroj,A1,"misc,abstract",squash,squashe,squashi,squash,squashi,squashi,squashem,squashe,squashů,squashům,squashe,squashe,squashích,squashi
 specialita,specialty,f,false,žena,A1,"misc,food",specialita,speciality,specialitě,specialitu,specialito,specialitě,specialitou,speciality,specialit,specialitám,speciality,speciality,specialitách,specialitami
 brusle,skate,f,false,růže,A1,"misc,objects",brusle,brusle,brusli,brusli,brusle,brusli,bruslí,brusle,bruslí,bruslím,brusle,brusle,bruslích,bruslemi
 zubař,dentist,m,true,muž,A1,"misc,people,profession",zubař,zubaře,zubaři,zubaře,zubaři,zubaři,zubařem,zubaři,zubařů,zubařům,zubaře,zubaři,zubařích,zubaři
@@ -3140,3 +3140,60 @@ pivovar,brewery,m,false,hrad,A2,"misc,places,v_place,leisure_do",pivovar,pivovar
 basa,double bass,f,false,žena,A2,"misc,objects",basa,basy,base,basu,baso,base,basou,basy,bas,basám,basy,basy,basách,basami
 frajárka,sweetheart,f,false,žena,A2,"misc,people",frajárka,frajárky,frajárce,frajárku,frajárko,frajárce,frajárkou,frajárky,frajárek,frajárkám,frajárky,frajárky,frajárkách,frajárkami
 rozhledna,lookout tower,f,false,žena,A2,"misc,places,na_place,leisure_na",rozhledna,rozhledny,rozhledně,rozhlednu,rozhledno,rozhledně,rozhlednou,rozhledny,rozhleden,rozhlednám,rozhledny,rozhledny,rozhlednách,rozhlednami
+Praha,Prague,f,false,žena,A1,"places,v_place,dwelling,region,place_name",Praha,Prahy,Praze,Prahu,Praho,Praze,Prahou,,,,,,,
+Plzeň,Pilsen,f,false,píseň,A2,"places,v_place,dwelling,region,place_name",Plzeň,Plzně,Plzni,Plzeň,Plzni,Plzni,Plzní,,,,,,,
+Paříž,Paris,f,false,píseň,A1,"places,v_place,dwelling,region,place_name",Paříž,Paříže,Paříži,Paříž,Paříži,Paříži,Paříží,,,,,,,
+Varšava,Warsaw,f,false,žena,A1,"places,v_place,dwelling,region,place_name",Varšava,Varšavy,Varšavě,Varšavu,Varšavo,Varšavě,Varšavou,,,,,,,
+Mnichov,Munich,m,false,hrad,A2,"places,v_place,dwelling,region,place_name",Mnichov,Mnichova,Mnichovu,Mnichov,Mnichove,Mnichově,Mnichovem,,,,,,,
+Neapol,Naples,f,false,píseň,A1,"places,v_place,dwelling,region,place_name",Neapol,Neapole,Neapoli,Neapol,Neapoli,Neapoli,Neapolí,,,,,,,
+Německo,Germany,n,false,město,A1,"places,v_place,dwelling,region,place_name",Německo,Německa,Německu,Německo,Německo,Německu,Německem,,,,,,,
+Polsko,Poland,n,false,město,A1,"places,v_place,dwelling,region,place_name",Polsko,Polska,Polsku,Polsko,Polsko,Polsku,Polskem,,,,,,,
+Řecko,Greece,n,false,město,A2,"places,v_place,dwelling,region,place_name",Řecko,Řecka,Řecku,Řecko,Řecko,Řecku,Řeckem,,,,,,,
+Norsko,Norway,n,false,město,A1,"places,v_place,dwelling,region,place_name",Norsko,Norska,Norsku,Norsko,Norsko,Norsku,Norskem,,,,,,,
+Švédsko,Sweden,n,false,město,A1,"places,v_place,dwelling,region,place_name",Švédsko,Švédska,Švédsku,Švédsko,Švédsko,Švédsku,Švédskem,,,,,,,
+Dánsko,Denmark,n,false,město,A1,"places,v_place,dwelling,region,place_name",Dánsko,Dánska,Dánsku,Dánsko,Dánsko,Dánsku,Dánskem,,,,,,,
+Bulharsko,Bulgaria,n,false,město,A1,"places,v_place,dwelling,region,place_name",Bulharsko,Bulharska,Bulharsku,Bulharsko,Bulharsko,Bulharsku,Bulharskem,,,,,,,
+Chorvatsko,Croatia,n,false,město,A1,"places,v_place,dwelling,region,place_name",Chorvatsko,Chorvatska,Chorvatsku,Chorvatsko,Chorvatsko,Chorvatsku,Chorvatskem,,,,,,,
+Thajsko,Thailand,n,false,město,A1,"places,v_place,dwelling,region,place_name",Thajsko,Thajska,Thajsku,Thajsko,Thajsko,Thajsku,Thajskem,,,,,,,
+Slezsko,Silesia,n,false,město,A2,"places,v_place,dwelling,region,place_name",Slezsko,Slezska,Slezsku,Slezsko,Slezsko,Slezsku,Slezskem,,,,,,,
+Itálie,Italy,f,false,růže,A1,"places,v_place,dwelling,region,place_name",Itálie,Itálie,Itálii,Itálii,Itálie,Itálii,Itálií,,,,,,,
+Anglie,England,f,false,růže,A1,"places,v_place,dwelling,region,place_name",Anglie,Anglie,Anglii,Anglii,Anglie,Anglii,Anglií,,,,,,,
+Asie,Asia,f,false,růže,A1,"places,v_place,dwelling,region,place_name",Asie,Asie,Asii,Asii,Asie,Asii,Asií,,,,,,,
+Austrálie,Australia,f,false,růže,A1,"places,v_place,dwelling,region,place_name",Austrálie,Austrálie,Austrálii,Austrálii,Austrálie,Austrálii,Austrálií,,,,,,,
+Vietnam,Vietnam,m,false,hrad,A1,"places,v_place,dwelling,region,place_name",Vietnam,Vietnamu,Vietnamu,Vietnam,Vietname,Vietnamu,Vietnamem,,,,,,,
+Evropa,Europe,f,false,žena,A1,"places,v_place,dwelling,region,place_name",Evropa,Evropy,Evropě,Evropu,Evropo,Evropě,Evropou,,,,,,,
+Afrika,Africa,f,false,žena,A1,"places,v_place,dwelling,region,place_name",Afrika,Afriky,Africe,Afriku,Afriko,Africe,Afrikou,,,,,,,
+Amerika,America,f,false,žena,A1,"places,v_place,dwelling,region,place_name",Amerika,Ameriky,Americe,Ameriku,Ameriko,Americe,Amerikou,,,,,,,
+Čechy,Bohemia,f,false,žena,A2,"places,v_place,dwelling,settlement,region,place_name",,,,,,,,Čechy,Čech,Čechám,Čechy,Čechy,Čechách,Čechami
+Krkonoše,the Krkonoše (Giant Mountains),f,false,růže,A1,"places,v_place,settlement,region,place_name",,,,,,,,Krkonoše,Krkonoš,Krkonoším,Krkonoše,Krkonoše,Krkonoších,Krkonošemi
+Morava,Moravia,f,false,žena,A1,"places,na_place,region,place_name",Morava,Moravy,Moravě,Moravu,Moravo,Moravě,Moravou,,,,,,,
+Slovensko,Slovakia,n,false,město,A1,"places,na_place,region,place_name",Slovensko,Slovenska,Slovensku,Slovensko,Slovensko,Slovensku,Slovenskem,,,,,,,
+Šumava,the Šumava (Bohemian Forest),f,false,žena,A2,"places,na_place,region,place_name",Šumava,Šumavy,Šumavě,Šumavu,Šumavo,Šumavě,Šumavou,,,,,,,
+Vysočina,the Vysočina highlands,f,false,žena,A2,"places,na_place,region,place_name",Vysočina,Vysočiny,Vysočině,Vysočinu,Vysočino,Vysočině,Vysočinou,,,,,,,
+Sněžka,Sněžka (the highest Czech mountain),f,false,žena,A2,"places,na_place,region,place_name",Sněžka,Sněžky,Sněžce,Sněžku,Sněžko,Sněžce,Sněžkou,,,,,,,
+Havaj,Hawaii,f,false,píseň,A1,"places,na_place,region,place_name",Havaj,Havaje,Havaji,Havaj,Havaji,Havaji,Havají,,,,,,,
+Kréta,Crete,f,false,žena,A2,"places,na_place,region,place_name",Kréta,Kréty,Krétě,Krétu,Kréto,Krétě,Krétou,,,,,,,
+Florida,Florida,f,false,žena,A2,"places,na_place,region,place_name",Florida,Floridy,Floridě,Floridu,Florido,Floridě,Floridou,,,,,,,
+Aljaška,Alaska,f,false,žena,A2,"places,na_place,region,place_name",Aljaška,Aljašky,Aljašce,Aljašku,Aljaško,Aljašce,Aljaškou,,,,,,,
+Čech,Czech (man),m,true,pán,A1,"people,nationality",Čech,Čecha,Čechovi,Čecha,Čechu,Čechovi,Čechem,Češi,Čechů,Čechům,Čechy,Češi,Češích,Čechy
+Češka,Czech (woman),f,false,žena,A1,"people,nationality",Češka,Češky,Češce,Češku,Češko,Češce,Češkou,Češky,Češek,Češkám,Češky,Češky,Češkách,Češkami
+Němec,German (man),m,true,muž,A2,"people,nationality",Němec,Němce,Němci,Němce,Němče,Němci,Němcem,Němci,Němců,Němcům,Němce,Němci,Němcích,Němci
+Němka,German (woman),f,false,žena,A2,"people,nationality",Němka,Němky,Němce,Němku,Němko,Němce,Němkou,Němky,Němek,Němkám,Němky,Němky,Němkách,Němkami
+Francouz,Frenchman,m,true,muž,A2,"people,nationality",Francouz,Francouze,Francouzi,Francouze,Francouzi,Francouzi,Francouzem,Francouzi,Francouzů,Francouzům,Francouze,Francouzi,Francouzích,Francouzi
+Francouzka,Frenchwoman,f,false,žena,A2,"people,nationality",Francouzka,Francouzky,Francouzce,Francouzku,Francouzko,Francouzce,Francouzkou,Francouzky,Francouzek,Francouzkám,Francouzky,Francouzky,Francouzkách,Francouzkami
+Rakušan,Austrian (man),m,true,pán,A2,"people,nationality",Rakušan,Rakušana,Rakušanovi,Rakušana,Rakušane,Rakušanovi,Rakušanem,Rakušané,Rakušanů,Rakušanům,Rakušany,Rakušané,Rakušanech,Rakušany
+Rakušanka,Austrian (woman),f,false,žena,A2,"people,nationality",Rakušanka,Rakušanky,Rakušance,Rakušanku,Rakušanko,Rakušance,Rakušankou,Rakušanky,Rakušanek,Rakušankám,Rakušanky,Rakušanky,Rakušankách,Rakušankami
+dovolená,"holiday, leave (time off work)",f,false,žena,A1,"misc,abstract,event,mass",dovolená,dovolené,dovolené,dovolenou,dovolená,dovolené,dovolenou,,,,,,,
+vstupné,admission fee,n,false,město,A2,"misc,abstract,mass",vstupné,vstupného,vstupnému,vstupné,vstupné,vstupném,vstupným,,,,,,,
+spropitné,tip (gratuity),n,false,město,A1,"misc,abstract,mass",spropitné,spropitného,spropitnému,spropitné,spropitné,spropitném,spropitným,,,,,,,
+známý,acquaintance (man),m,true,pán,A1,people,známý,známého,známému,známého,známý,známém,známým,známí,známých,známým,známé,známí,známých,známými
+příbuzný,relative (man),m,true,pán,A1,people,příbuzný,příbuzného,příbuznému,příbuzného,příbuzný,příbuzném,příbuzným,příbuzní,příbuzných,příbuzným,příbuzné,příbuzní,příbuzných,příbuznými
+příbuzná,relative (woman),f,false,žena,A1,people,příbuzná,příbuzné,příbuzné,příbuznou,příbuzná,příbuzné,příbuznou,příbuzné,příbuzných,příbuzným,příbuzné,příbuzné,příbuzných,příbuznými
+dospělý,adult (man),m,true,pán,A2,people,dospělý,dospělého,dospělému,dospělého,dospělý,dospělém,dospělým,dospělí,dospělých,dospělým,dospělé,dospělí,dospělých,dospělými
+dospělá,adult (woman),f,false,žena,A2,people,dospělá,dospělé,dospělé,dospělou,dospělá,dospělé,dospělou,dospělé,dospělých,dospělým,dospělé,dospělé,dospělých,dospělými
+vrátný,"doorman, porter",m,true,pán,A2,"people,profession",vrátný,vrátného,vrátnému,vrátného,vrátný,vrátném,vrátným,vrátní,vrátných,vrátným,vrátné,vrátní,vrátných,vrátnými
+vrátná,"doorwoman, porter (woman)",f,false,žena,A2,"people,profession",vrátná,vrátné,vrátné,vrátnou,vrátná,vrátné,vrátnou,vrátné,vrátných,vrátným,vrátné,vrátné,vrátných,vrátnými
+krejčí,tailor,m,true,muž,A2,"people,profession",krejčí,krejčího,krejčímu,krejčího,krejčí,krejčím,krejčím,krejčí,krejčích,krejčím,krejčí,krejčí,krejčích,krejčími
+mateřská,maternity leave,f,false,žena,A2,"misc,abstract,mass",mateřská,mateřské,mateřské,mateřskou,mateřská,mateřské,mateřskou,,,,,,,
+nemocenská,"sick leave, sick pay",f,false,žena,A2,"misc,abstract,mass",nemocenská,nemocenské,nemocenské,nemocenskou,nemocenská,nemocenské,nemocenskou,,,,,,,
+rodičovská,parental leave,f,false,žena,A2,"misc,abstract,mass",rodičovská,rodičovské,rodičovské,rodičovskou,rodičovská,rodičovské,rodičovskou,,,,,,,

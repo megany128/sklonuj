@@ -1157,7 +1157,7 @@
 	{
 		"id": "acc_chci_107",
 		"template": "Chci ___.",
-		"lemmaCategory": "misc",
+		"lemmaCategory": ["objects", "portable", "clothing", "animals", "vehicle", "large_object"],
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
@@ -2798,7 +2798,8 @@
 		"trigger": "z",
 		"why": "z (from, out of) → genitive",
 		"difficulty": "A1",
-		"topics": ["direction"]
+		"topics": ["direction"],
+		"excludesCategories": ["place_name"]
 	},
 	{
 		"id": "gen_z_258",
@@ -2866,7 +2867,8 @@
 		"trigger": "na",
 		"why": "na (to) + direction → accusative",
 		"difficulty": "A1",
-		"topics": ["direction"]
+		"topics": ["direction"],
+		"excludesCategories": ["place_name"]
 	},
 	{
 		"id": "loc_na_264",
@@ -3322,6 +3324,90 @@
 		"number": "pl",
 		"trigger": "dvacet",
 		"why": "5 and up → genitive plural",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "acc_jeden_303",
+		"template": "Čekám už {jeden} ___.",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "acc",
+		"number": "sg",
+		"trigger": "{jeden}",
+		"why": "1 → singular; how long → accusative",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "acc_dva_304",
+		"template": "Čekám už {dva} ___.",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "acc",
+		"number": "pl",
+		"trigger": "{dva}",
+		"why": "2, 3, 4 → plural; how long → accusative\ndva with masculine nouns, dvě with feminine and neuter",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "acc_tri_305",
+		"template": "Trvá to tři ___.",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "acc",
+		"number": "pl",
+		"trigger": "tři",
+		"why": "2, 3, 4 → plural; how long → accusative",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "gen_pet_306",
+		"template": "Čekám už pět ___.",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "gen",
+		"number": "pl",
+		"trigger": "pět",
+		"why": "5 and up → genitive plural",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "gen_deset_307",
+		"template": "Trvá to deset ___.",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "gen",
+		"number": "pl",
+		"trigger": "deset",
+		"why": "5 and up → genitive plural",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "gen_nekolik_308",
+		"template": "Trvá to několik ___.",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "gen",
+		"number": "pl",
+		"trigger": "několik",
+		"why": "několik (several) counts like 5 and up → genitive plural",
+		"difficulty": "A2",
+		"topics": ["numbers"],
+		"countContext": "acc"
+	},
+	{
+		"id": "gen_kolik_309",
+		"template": "Kolik ___ to trvá?",
+		"lemmaCategory": ["count_time"],
+		"requiredCase": "gen",
+		"number": "pl",
+		"trigger": "Kolik",
+		"why": "kolik (how many) counts like 5 and up → genitive plural",
 		"difficulty": "A2",
 		"topics": ["numbers"],
 		"countContext": "acc"

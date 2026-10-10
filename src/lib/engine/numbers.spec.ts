@@ -224,3 +224,42 @@ describe('Numbers deck', () => {
 		}
 	});
 });
+
+describe('time units', () => {
+	const UNITS = ['rok', 'měsíc', 'týden', 'den', 'hodina', 'minuta'];
+	const timeSentences = counting.filter((t) =>
+		Array.isArray(t.lemmaCategory) ? t.lemmaCategory.includes('count_time') : false
+	);
+
+	it('take exactly the six units, in every sentence', () => {
+		expect(timeSentences.length).toBe(7);
+		for (const t of timeSentences) {
+			const lemmas = getCandidates(t, progressAt('A2'), { skipSingularFirst: true }).map(
+				(w) => w.lemma
+			);
+			expect(lemmas.sort(), t.id).toEqual([...UNITS].sort());
+		}
+	});
+
+	it('say "pět let", with roků still accepted', () => {
+		const q = generateSentenceDrill(template('gen_pet_306'), word('rok'));
+		expect(q?.correctAnswer).toBe('let');
+		expect(word('rok').variantForms?.pl?.[1]).toContain('roků');
+		expect(q?.template.why).toContain('Compare: 1 jeden rok · 2–4 dva roky · **5+ pět let**');
+	});
+
+	it('agree in gender: dvě hodiny, dva dny, jednu minutu', () => {
+		expect(generateSentenceDrill(template('acc_dva_304'), word('hodina'))?.template.template).toBe(
+			'Čekám už dvě ___.'
+		);
+		expect(generateSentenceDrill(template('acc_dva_304'), word('den'))?.template.template).toBe(
+			'Čekám už dva ___.'
+		);
+		const one = generateSentenceDrill(template('acc_jeden_303'), word('minuta'));
+		expect(one?.template.template).toBe('Čekám už jednu ___.');
+		expect(one?.correctAnswer).toBe('minutu');
+		expect(countContrast(template('gen_kolik_309'), word('hodina'))).toBe(
+			'Compare: 1 jednu hodinu · 2–4 dvě hodiny · **5+ pět hodin**'
+		);
+	});
+});

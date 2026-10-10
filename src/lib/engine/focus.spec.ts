@@ -184,3 +184,23 @@ describe('Kam? Kde? Odkud?', () => {
 		}
 	});
 });
+
+describe('place names in Kam? Kde? Odkud?', () => {
+	it('builds the contrast for a city and for a "na" region', () => {
+		expect(directionContrast(template('loc_v_256'), word('Praha'))).toBe(
+			'Compare: Kam? do Prahy · **Kde? v Praze** · Odkud? z Prahy'
+		);
+		expect(directionContrast(template('loc_na_264'), word('Morava'))).toBe(
+			'Compare: Kam? na Moravu · **Kde? na Moravě** · Odkud? z Moravy'
+		);
+	});
+
+	it('walking sentences skip them: you go to Prague by "jet", not "jít"', () => {
+		const lemmas = (id: string) =>
+			getCandidates(template(id), progressAt('B2')).map((w) => w.lemma);
+		expect(lemmas('gen_z_257')).not.toContain('Praha'); // Jdu z ___.
+		expect(lemmas('acc_na_263')).not.toContain('Morava'); // Jdeme na ___.
+		expect(lemmas('loc_v_256')).toContain('Praha'); // Jsem v ___.
+		expect(lemmas('loc_na_264')).toContain('Morava'); // Jsme na ___.
+	});
+});

@@ -34,10 +34,13 @@
 	// --- Content multi-select ---
 	// Derive the selected content set from contentMode + wordMode
 	let selectedContent = $derived.by(() => {
+		// wordMode 'adjectives' means adjectives only, whatever contentMode says
+		// (same precedence as enabledContentTypes on the practice page).
+		if (wordMode === 'adjectives') return ['adjectives'];
 		const items: string[] = [];
 		if (contentMode === 'nouns' || contentMode === 'both') items.push('nouns');
 		if (contentMode === 'pronouns' || contentMode === 'both') items.push('pronouns');
-		if (wordMode === 'adjectives' || wordMode === 'both') items.push('adjectives');
+		if (wordMode === 'both') items.push('adjectives');
 		// If nothing selected (e.g. wordMode='nouns' and contentMode='nouns'), ensure nouns is there
 		if (items.length === 0) items.push('nouns');
 		return items;
