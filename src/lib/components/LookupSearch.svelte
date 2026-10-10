@@ -6,7 +6,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import { loadWordBank } from '$lib/engine/drill';
 	import { loadDeclinableBank } from '$lib/engine/determiners';
-	import dictionaryData from '$lib/data/dictionary.json';
+	import { getDictionary, loadDictionary, type Dictionary } from '$lib/engine/dictionary';
 	import { stripDiacritics } from '$lib/utils/diacritics';
 	import type { AdjectiveEntry, WordEntry } from '$lib/types';
 
@@ -50,7 +50,9 @@
 			entry: a
 		}));
 
-	// Dictionary entries: raw is [lemma, translation, sg[7], pl[7], paradigmHint?]
+	// The dictionary (18k nouns) is loaded when the learner starts typing, so
+	// it costs nothing until the search is used. Until it arrives suggestions
+	// come from the curated banks alone.
 	interface DictRow {
 		key: string;
 		stripped: string;
@@ -58,17 +60,25 @@
 		translation: string;
 	}
 
-	const dictStripped: DictRow[] = [];
-	for (const raw of dictionaryData) {
-		const lemma = String(raw[0]);
-		const translation = String(raw[1]);
-		const key = lemma.toLowerCase();
-		dictStripped.push({
-			key,
-			stripped: stripDiacritics(key),
-			lemma,
-			translation
+	function toRows(dict: Dictionary | null): DictRow[] {
+		if (!dict) return [];
+		return dict.entries.map((e) => {
+			const key = e.lemma.toLowerCase();
+			return { key, stripped: stripDiacritics(key), lemma: e.lemma, translation: e.translation };
 		});
+	}
+
+	let dictStripped = $state.raw<DictRow[]>(toRows(getDictionary()));
+	let dictionaryRequested = getDictionary() !== null;
+
+	function requestDictionary(): void {
+		if (dictionaryRequested) return;
+		dictionaryRequested = true;
+		loadDictionary().then(
+			(d) => (dictStripped = toRows(d)),
+			// Offline or a dropped connection: the next keystroke tries again.
+			() => (dictionaryRequested = false)
+		);
 	}
 
 	function getSuggestions(q: string): Suggestion[] {
@@ -181,6 +191,9 @@
 	}
 
 	function handleInput(): void {
+		// Only typing asks for the dictionary. The parent also sets `query`
+		// (a clicked drill word, already in the bank), which must not.
+		requestDictionary();
 		showSuggestions = true;
 		highlightedIndex = -1;
 	}
