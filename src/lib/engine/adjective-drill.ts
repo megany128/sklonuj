@@ -989,6 +989,15 @@ export function nounTakesAdjectives(word: Pick<WordEntry, 'categories'>): boolea
 	return !word.categories.includes('place_name');
 }
 
+/** Fixed terms in which a field or usefulness adjective does describe a person. */
+const FIELD_PERSON_ALLOW = new Set<string>([
+	'praktický|lékař',
+	'praktický|lékařka',
+	'vědecký|pracovník',
+	'vědecký|pracovnice',
+	'politický|poradce'
+]);
+
 /**
  * Whether an adjective is semantically compatible with a given noun, based on
  * the adjective's `profile` and the noun's `categories`.
@@ -999,6 +1008,8 @@ export function nounTakesAdjectives(word: Pick<WordEntry, 'categories'>): boolea
  *      collocations the rule system can't catch.
  *   2. Season-on-season — `seasonal` adjectives (jarní, etc.) never pair with
  *      season nouns (jaro, léto, podzim, zima): "jarní léto" is nonsensical.
+ * Further rules below rule out whole profile × category combinations (price
+ * or field adjectives on people, colours on weather, and so on).
  */
 export function adjectiveMatchesNoun(
 	adj: AdjectiveEntry,
@@ -1062,6 +1073,15 @@ export function adjectiveMatchesNoun(
 	if (
 		adj.profile === 'wealth' &&
 		word.categories.some((c) => WEALTH_EXCLUDED_PERSON_CATEGORIES.includes(c))
+	)
+		return false;
+	// Field and usefulness adjectives describe a subject or a thing, not who
+	// someone is: "vědecký kouč", "společenský doktor" and "praktický herec"
+	// don't carry. A few fixed terms do (praktický lékař = GP).
+	if (
+		(adj.profile === 'domain' || adj.profile === 'utility') &&
+		word.categories.some((c) => WEALTH_EXCLUDED_PERSON_CATEGORIES.includes(c)) &&
+		!FIELD_PERSON_ALLOW.has(`${adj.lemma}|${word.lemma}`)
 	)
 		return false;
 	// Only natural colours on animals.
