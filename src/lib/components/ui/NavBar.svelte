@@ -13,6 +13,7 @@
 	import { onMount } from 'svelte';
 
 	let isPracticePage = $derived(page.url.pathname === '/');
+	let isDecksPage = $derived(page.url.pathname.startsWith('/decks'));
 	let isResourcesPage = $derived(page.url.pathname.startsWith('/resources'));
 	let isClassesPage = $derived(page.url.pathname.startsWith('/classes'));
 
@@ -217,6 +218,15 @@
 				Practice
 			</a>
 			<a
+				href={resolve('/decks')}
+				class="nav-tab text-xs transition-colors sm:text-sm {isDecksPage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle hover:text-text-default'}"
+				data-label="Decks"
+			>
+				Decks
+			</a>
+			<a
 				href={resolve('/resources')}
 				class="nav-tab text-xs transition-colors sm:text-sm {isResourcesPage
 					? 'font-semibold text-text-default'
@@ -391,6 +401,15 @@
 					: 'text-text-subtitle'}"
 			>
 				Practice
+			</a>
+			<a
+				href={resolve('/decks')}
+				onclick={closeMobileMenu}
+				class="rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-shaded-background {isDecksPage
+					? 'font-semibold text-text-default'
+					: 'text-text-subtitle'}"
+			>
+				Decks
 			</a>
 			<a
 				href={resolve('/resources')}

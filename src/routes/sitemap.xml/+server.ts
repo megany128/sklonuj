@@ -6,6 +6,7 @@ const lastmod = new Date().toISOString().split('T')[0];
 export function GET() {
 	const pages = [
 		{ url: 'https://sklonuj.com', priority: '1.0', changefreq: 'weekly' },
+		{ url: 'https://sklonuj.com/decks', priority: '0.8', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources', priority: '0.8', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources/czech-cases', priority: '0.8', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources/paradigms', priority: '0.8', changefreq: 'monthly' },
