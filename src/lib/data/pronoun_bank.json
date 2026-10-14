@@ -8,7 +8,7 @@
 		"forms": {
 			"sg": {
 				"nom": { "prep": "", "bare": "já" },
-				"gen": { "prep": "mne/mě", "bare": "mě/mne" },
+				"gen": { "prep": "mě/mne", "bare": "mě/mne" },
 				"dat": { "prep": "mně", "bare": "mi/mně" },
 				"acc": { "prep": "mě/mne", "bare": "mě/mne" },
 				"voc": { "prep": "", "bare": "" },
@@ -60,9 +60,9 @@
 		"forms": {
 			"sg": {
 				"nom": { "prep": "", "bare": "on" },
-				"gen": { "prep": "něho/něj", "bare": "ho/jeho" },
+				"gen": { "prep": "něj/něho", "bare": "ho/jeho" },
 				"dat": { "prep": "němu", "bare": "mu/jemu" },
-				"acc": { "prep": "něho/něj", "bare": "ho/jeho/jej" },
+				"acc": { "prep": "něj/něho", "bare": "ho/jeho/jej" },
 				"voc": { "prep": "", "bare": "" },
 				"loc": { "prep": "něm", "bare": "" },
 				"ins": { "prep": "ním", "bare": "jím" }
@@ -112,7 +112,7 @@
 		"forms": {
 			"sg": {
 				"nom": { "prep": "", "bare": "ono" },
-				"gen": { "prep": "něho/něj", "bare": "ho/jeho" },
+				"gen": { "prep": "něj/něho", "bare": "ho/jeho" },
 				"dat": { "prep": "němu", "bare": "mu/jemu" },
 				"acc": { "prep": "ně/něj", "bare": "je" },
 				"voc": { "prep": "", "bare": "" },

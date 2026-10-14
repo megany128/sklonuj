@@ -1477,8 +1477,9 @@
 		"categories": ["time", "duration", "calendar_unit", "whole_span", "in_time", "count_time"],
 		"forms": {
 			"sg": ["den", "dne", "dnu", "den", "dne", "dnu", "dnem"],
-			"pl": ["dny", "dnů", "dnům", "dny", "dny", "dnech", "dny"]
+			"pl": ["dny", "dní", "dnům", "dny", "dny", "dnech", "dny"]
 		},
+		"irregular": true,
 		"variantForms": {
 			"sg": {
 				"1": ["dnu"],
@@ -1488,13 +1489,12 @@
 			},
 			"pl": {
 				"0": ["dni"],
-				"1": ["dní"],
+				"1": ["dnů"],
 				"3": ["dni"],
 				"4": ["dni"]
 			}
 		},
-		"irregular": true,
-		"declensionNote": "Fleeting e: den → dne, dnu, dnem (pl dny, dnů, dnech)\nGenitive dne in phrases like během dne"
+		"declensionNote": "Fleeting e: den → dne, dnu, dnem (pl dny, dní, dnech)\nGenitive dne in phrases like během dne\nGenitive pl: dní is the everyday form after numbers (deset dní); dnů is also correct"
 	},
 	{
 		"lemma": "týden",
