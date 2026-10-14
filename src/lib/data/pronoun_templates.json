@@ -876,18 +876,6 @@
 		"formContext": "bare"
 	},
 	{
-		"id": "pt_076",
-		"template": "Ptal ___ na cestu.",
-		"requiredCase": "acc",
-		"number": "sg",
-		"trigger": "ptát se + accusative (reflexive)",
-		"why": "ptát se (ask) → accusative\nreflexive, no preposition: se (short)",
-		"difficulty": "A1",
-		"pronounCategory": "personal",
-		"requiredPronoun": "se",
-		"formContext": "bare"
-	},
-	{
 		"id": "pt_077",
 		"template": "Řekni ___ to.",
 		"requiredCase": "dat",
