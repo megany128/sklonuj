@@ -24,6 +24,8 @@ export interface GrammarDeck {
 	unlocked: boolean;
 	/** Sentences the learner's level can actually be asked. */
 	sentences: number;
+	/** Every sentence in the deck, at any level. */
+	total: number;
 	/** The cases those sentences practise, in the usual case order. */
 	cases: Case[];
 	stat: DeckStat | undefined;
@@ -36,7 +38,8 @@ export function grammarDecks(
 ): GrammarDeck[] {
 	const config = curriculum[level];
 	return FOCUS_DEFS.map((def) => {
-		const usable = templatesForFocus(templates, def.id).filter(
+		const all = templatesForFocus(templates, def.id);
+		const usable = all.filter(
 			(t) =>
 				config.unlocked_cases.includes(t.requiredCase) &&
 				config.unlocked_difficulty.includes(t.difficulty)
@@ -46,6 +49,7 @@ export function grammarDecks(
 			def,
 			unlocked: focusUnlocked(def.id, level),
 			sentences: usable.length,
+			total: all.length,
 			cases: ALL_CASES.filter((c) => present.has(c)),
 			stat: progress[def.id]
 		};
@@ -77,6 +81,15 @@ export function paradigmDecks(paradigmScores: Record<string, CaseScore>): Paradi
 		}
 		return { paradigm, attempts, correct };
 	});
+}
+
+/**
+ * The sentence count on a deck card. Below the deck's full size it says so
+ * ("18 of 27 sentences at A1"), so the learner knows more open up later.
+ */
+export function sentenceCountLabel(deck: GrammarDeck, level: Difficulty): string {
+	if (!deck.unlocked || deck.sentences >= deck.total) return `${deck.total} sentences`;
+	return `${deck.sentences} of ${deck.total} sentences at ${level}`;
 }
 
 /** The practice link for a grammar deck: `?deck=kam-kde-odkud`. */

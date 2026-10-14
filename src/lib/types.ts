@@ -16,7 +16,7 @@ export type DrillType =
  * A grammar topic with its own deck on the Decks page (see `engine/focus.ts`).
  * Templates opt in through their `topics` list.
  */
-export type FocusTopic = 'direction' | 'verbs';
+export type FocusTopic = 'direction' | 'verbs' | 'numbers';
 
 export const CASE_LABELS: Record<Case, string> = {
 	nom: 'Nominative',
@@ -177,6 +177,11 @@ export interface SentenceTemplate {
 	difficulty: Difficulty;
 	/** Focus topics this sentence belongs to (Kam? Kde? Odkud?, verbs + case …). */
 	topics?: FocusTopic[];
+	/**
+	 * Marks a counting sentence (a number or quantity word before the blank)
+	 * and gives the case the counted phrase stands in. See `engine/numbers.ts`.
+	 */
+	countContext?: 'nom' | 'acc';
 	// Adjective template fields (optional)
 	adjectiveCategories?: string[];
 	/**
