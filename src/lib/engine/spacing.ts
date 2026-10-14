@@ -240,7 +240,12 @@ export function isValidCellState(value: unknown): value is CellState {
 }
 
 const MAX_CELL_KEY_LENGTH = 80;
-const ADJECTIVE_TYPES: ReadonlySet<string> = new Set(['hard', 'soft']);
+const ADJECTIVE_TYPES: ReadonlySet<string> = new Set([
+	'hard',
+	'soft',
+	'possessive',
+	'demonstrative'
+]);
 const GENDER_KEYS: ReadonlySet<string> = new Set(ALL_ADJECTIVE_GENDER_KEYS);
 
 /**
@@ -249,7 +254,7 @@ const GENDER_KEYS: ReadonlySet<string> = new Set(ALL_ADJECTIVE_GENDER_KEYS);
  * the schedule that every later merge would carry along forever.
  *
  *   n:<paradigm>:<case>:<number>
- *   a:<hard|soft>:<gender>:<case>:<number>
+ *   a:<hard|soft|possessive|demonstrative>:<gender>:<case>:<number>
  *   p:<lemma>:<case>:<number>
  *   c:<case>:<number>
  */

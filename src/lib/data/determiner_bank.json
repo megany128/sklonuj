@@ -1,0 +1,223 @@
+[
+	{
+		"lemma": "můj",
+		"translation": "my",
+		"difficulty": "A2",
+		"paradigmType": "possessive",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["můj", "mého", "mému", "mého", "můj", "mém", "mým"],
+				"pl": ["moji", "mých", "mým", "moje", "moji", "mých", "mými"]
+			},
+			"m_inanim": {
+				"sg": ["můj", "mého", "mému", "můj", "můj", "mém", "mým"],
+				"pl": ["moje", "mých", "mým", "moje", "moje", "mých", "mými"]
+			},
+			"f": {
+				"sg": ["moje", "mojí", "mojí", "moji", "moje", "mojí", "mojí"],
+				"pl": ["moje", "mých", "mým", "moje", "moje", "mých", "mými"]
+			},
+			"n": {
+				"sg": ["moje", "mého", "mému", "moje", "moje", "mém", "mým"],
+				"pl": ["moje", "mých", "mým", "moje", "moje", "mých", "mými"]
+			}
+		},
+		"variantForms": {
+			"m_anim": {
+				"pl": {
+					"0": ["mí"],
+					"3": ["mé"],
+					"4": ["mí"]
+				}
+			},
+			"m_inanim": {
+				"pl": {
+					"0": ["mé"],
+					"3": ["mé"],
+					"4": ["mé"]
+				}
+			},
+			"f": {
+				"sg": {
+					"0": ["má"],
+					"1": ["mé"],
+					"2": ["mé"],
+					"3": ["mou"],
+					"4": ["má"],
+					"5": ["mé"],
+					"6": ["mou"]
+				},
+				"pl": {
+					"0": ["mé"],
+					"3": ["mé"],
+					"4": ["mé"]
+				}
+			},
+			"n": {
+				"sg": {
+					"0": ["mé"],
+					"3": ["mé"],
+					"4": ["mé"]
+				},
+				"pl": {
+					"0": ["má"],
+					"3": ["má"],
+					"4": ["má"]
+				}
+			}
+		}
+	},
+	{
+		"lemma": "tvůj",
+		"translation": "your (one person)",
+		"difficulty": "A2",
+		"paradigmType": "possessive",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["tvůj", "tvého", "tvému", "tvého", "tvůj", "tvém", "tvým"],
+				"pl": ["tvoji", "tvých", "tvým", "tvoje", "tvoji", "tvých", "tvými"]
+			},
+			"m_inanim": {
+				"sg": ["tvůj", "tvého", "tvému", "tvůj", "tvůj", "tvém", "tvým"],
+				"pl": ["tvoje", "tvých", "tvým", "tvoje", "tvoje", "tvých", "tvými"]
+			},
+			"f": {
+				"sg": ["tvoje", "tvojí", "tvojí", "tvoji", "tvoje", "tvojí", "tvojí"],
+				"pl": ["tvoje", "tvých", "tvým", "tvoje", "tvoje", "tvých", "tvými"]
+			},
+			"n": {
+				"sg": ["tvoje", "tvého", "tvému", "tvoje", "tvoje", "tvém", "tvým"],
+				"pl": ["tvoje", "tvých", "tvým", "tvoje", "tvoje", "tvých", "tvými"]
+			}
+		},
+		"variantForms": {
+			"m_anim": {
+				"pl": {
+					"0": ["tví"],
+					"3": ["tvé"],
+					"4": ["tví"]
+				}
+			},
+			"m_inanim": {
+				"pl": {
+					"0": ["tvé"],
+					"3": ["tvé"],
+					"4": ["tvé"]
+				}
+			},
+			"f": {
+				"sg": {
+					"0": ["tvá"],
+					"1": ["tvé"],
+					"2": ["tvé"],
+					"3": ["tvou"],
+					"4": ["tvá"],
+					"5": ["tvé"],
+					"6": ["tvou"]
+				},
+				"pl": {
+					"0": ["tvé"],
+					"3": ["tvé"],
+					"4": ["tvé"]
+				}
+			},
+			"n": {
+				"sg": {
+					"0": ["tvé"],
+					"3": ["tvé"],
+					"4": ["tvé"]
+				},
+				"pl": {
+					"0": ["tvá"],
+					"3": ["tvá"],
+					"4": ["tvá"]
+				}
+			}
+		}
+	},
+	{
+		"lemma": "náš",
+		"translation": "our",
+		"difficulty": "A2",
+		"paradigmType": "possessive",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["náš", "našeho", "našemu", "našeho", "náš", "našem", "naším"],
+				"pl": ["naši", "našich", "našim", "naše", "naši", "našich", "našimi"]
+			},
+			"m_inanim": {
+				"sg": ["náš", "našeho", "našemu", "náš", "náš", "našem", "naším"],
+				"pl": ["naše", "našich", "našim", "naše", "naše", "našich", "našimi"]
+			},
+			"f": {
+				"sg": ["naše", "naší", "naší", "naši", "naše", "naší", "naší"],
+				"pl": ["naše", "našich", "našim", "naše", "naše", "našich", "našimi"]
+			},
+			"n": {
+				"sg": ["naše", "našeho", "našemu", "naše", "naše", "našem", "naším"],
+				"pl": ["naše", "našich", "našim", "naše", "naše", "našich", "našimi"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "váš",
+		"translation": "your (several people, or formal)",
+		"difficulty": "A2",
+		"paradigmType": "possessive",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["váš", "vašeho", "vašemu", "vašeho", "váš", "vašem", "vaším"],
+				"pl": ["vaši", "vašich", "vašim", "vaše", "vaši", "vašich", "vašimi"]
+			},
+			"m_inanim": {
+				"sg": ["váš", "vašeho", "vašemu", "váš", "váš", "vašem", "vaším"],
+				"pl": ["vaše", "vašich", "vašim", "vaše", "vaše", "vašich", "vašimi"]
+			},
+			"f": {
+				"sg": ["vaše", "vaší", "vaší", "vaši", "vaše", "vaší", "vaší"],
+				"pl": ["vaše", "vašich", "vašim", "vaše", "vaše", "vašich", "vašimi"]
+			},
+			"n": {
+				"sg": ["vaše", "vašeho", "vašemu", "vaše", "vaše", "vašem", "vaším"],
+				"pl": ["vaše", "vašich", "vašim", "vaše", "vaše", "vašich", "vašimi"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "ten",
+		"translation": "that, the",
+		"difficulty": "A2",
+		"paradigmType": "demonstrative",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["ten", "toho", "tomu", "toho", "ten", "tom", "tím"],
+				"pl": ["ti", "těch", "těm", "ty", "ti", "těch", "těmi"]
+			},
+			"m_inanim": {
+				"sg": ["ten", "toho", "tomu", "ten", "ten", "tom", "tím"],
+				"pl": ["ty", "těch", "těm", "ty", "ty", "těch", "těmi"]
+			},
+			"f": {
+				"sg": ["ta", "té", "té", "tu", "ta", "té", "tou"],
+				"pl": ["ty", "těch", "těm", "ty", "ty", "těch", "těmi"]
+			},
+			"n": {
+				"sg": ["to", "toho", "tomu", "to", "to", "tom", "tím"],
+				"pl": ["ta", "těch", "těm", "ta", "ta", "těch", "těmi"]
+			}
+		},
+		"variantForms": {}
+	}
+]

@@ -28,7 +28,8 @@ Flags:
 
 The script is resumable: files that already exist are skipped. Re-runs
 after small edits take seconds, not minutes. Run this after editing any of
-``word_bank.json``, ``adjective_bank.json``, ``pronoun_bank.json``.
+``word_bank.json``, ``adjective_bank.json``, ``determiner_bank.json``,
+``pronoun_bank.json``.
 
 Bootstrap: if ``scripts/.venv-tts/`` does not exist, the script creates it
 automatically (preferring ``uv`` when available) and re-execs inside that
@@ -145,8 +146,13 @@ def collect_texts() -> list[str]:
             _collect_strings(entry.get("forms"), texts)
             _collect_strings(entry.get("variantForms"), texts)
 
-    adj_bank = load_json(DATA_DIR / "adjective_bank.json")
-    if isinstance(adj_bank, list):
+    # Determiners (můj, ten) are stored in the adjective shape.
+    adj_bank: list[object] = []
+    for name in ("adjective_bank.json", "determiner_bank.json"):
+        bank = load_json(DATA_DIR / name)
+        if isinstance(bank, list):
+            adj_bank.extend(bank)
+    if adj_bank:
         for entry in adj_bank:
             if not isinstance(entry, dict):
                 continue

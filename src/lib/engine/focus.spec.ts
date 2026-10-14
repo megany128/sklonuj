@@ -79,7 +79,9 @@ describe('focus topics', () => {
 		expect(focusUnlocked('verbs', 'B2')).toBe(true);
 	});
 
-	it.each(FOCUS_DEFS.map((d) => d.id))(
+	// Decks made of tagged noun sentences; the determiner deck has its own
+	// sentences and its own spec.
+	it.each(FOCUS_DEFS.filter((d) => d.source === undefined).map((d) => d.id))(
 		'%s has drillable sentences at every level it is offered',
 		(id) => {
 			for (const level of ['A1', 'A2', 'B1', 'B2'] as const) {

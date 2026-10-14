@@ -1,0 +1,402 @@
+[
+	{
+		"id": "det_nom_sg_klic_001",
+		"template": "Kde je ___ klíč?",
+		"nounLemma": "klíč",
+		"requiredCase": "nom",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_sg_kniha_002",
+		"template": "Kde je ___ kniha?",
+		"nounLemma": "kniha",
+		"requiredCase": "nom",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_sg_auto_003",
+		"template": "Kde je ___ auto?",
+		"nounLemma": "auto",
+		"requiredCase": "nom",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_sg_kamarad_004",
+		"template": "Kde je ___ kamarád?",
+		"nounLemma": "kamarád",
+		"requiredCase": "nom",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_pl_kamarad_005",
+		"template": "Kde jsou ___ kamarádi?",
+		"nounLemma": "kamarád",
+		"requiredCase": "nom",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_pl_klic_006",
+		"template": "Kde jsou ___ klíče?",
+		"nounLemma": "klíč",
+		"requiredCase": "nom",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_pl_kniha_007",
+		"template": "Kde jsou ___ knihy?",
+		"nounLemma": "kniha",
+		"requiredCase": "nom",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_nom_pl_auto_008",
+		"template": "Kde jsou ___ auta?",
+		"nounLemma": "auto",
+		"requiredCase": "nom",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_sg_kamarad_009",
+		"template": "Petr zná ___ kamaráda.",
+		"nounLemma": "kamarád",
+		"requiredCase": "acc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_sg_klic_010",
+		"template": "Eva hledá ___ klíč.",
+		"nounLemma": "klíč",
+		"requiredCase": "acc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_sg_kniha_011",
+		"template": "Eva čte ___ knihu.",
+		"nounLemma": "kniha",
+		"requiredCase": "acc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_sg_auto_012",
+		"template": "Petr vidí ___ auto.",
+		"nounLemma": "auto",
+		"requiredCase": "acc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_pl_kamarad_013",
+		"template": "Petr zná ___ kamarády.",
+		"nounLemma": "kamarád",
+		"requiredCase": "acc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_pl_klic_014",
+		"template": "Eva hledá ___ klíče.",
+		"nounLemma": "klíč",
+		"requiredCase": "acc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_pl_kniha_015",
+		"template": "Eva čte ___ knihy.",
+		"nounLemma": "kniha",
+		"requiredCase": "acc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_acc_pl_auto_016",
+		"template": "Petr vidí ___ auta.",
+		"nounLemma": "auto",
+		"requiredCase": "acc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_sg_kamarad_017",
+		"template": "To je dům ___ kamaráda.",
+		"nounLemma": "kamarád",
+		"requiredCase": "gen",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_sg_kamaradka_018",
+		"template": "Petr jde od ___ kamarádky.",
+		"nounLemma": "kamarádka",
+		"requiredCase": "gen",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_sg_pes_019",
+		"template": "Eva se bojí ___ psa.",
+		"nounLemma": "pes",
+		"requiredCase": "gen",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_sg_auto_020",
+		"template": "To je barva ___ auta.",
+		"nounLemma": "auto",
+		"requiredCase": "gen",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_kamarad_021",
+		"template": "To je dům ___ kamarádů.",
+		"nounLemma": "kamarád",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_pes_022",
+		"template": "Eva se bojí ___ psů.",
+		"nounLemma": "pes",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_kamaradka_023",
+		"template": "Petr se ptá ___ kamarádek.",
+		"nounLemma": "kamarádka",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_sg_kamarad_024",
+		"template": "Petr pomáhá ___ kamarádovi.",
+		"nounLemma": "kamarád",
+		"requiredCase": "dat",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_sg_kamaradka_025",
+		"template": "Eva jde k ___ kamarádce.",
+		"nounLemma": "kamarádka",
+		"requiredCase": "dat",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_sg_auto_026",
+		"template": "Petr jde k ___ autu.",
+		"nounLemma": "auto",
+		"requiredCase": "dat",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_pl_kamarad_027",
+		"template": "Petr pomáhá ___ kamarádům.",
+		"nounLemma": "kamarád",
+		"requiredCase": "dat",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_pl_kamaradka_028",
+		"template": "Eva píše ___ kamarádkám.",
+		"nounLemma": "kamarádka",
+		"requiredCase": "dat",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_sg_dum_029",
+		"template": "Petr bydlí v ___ domě.",
+		"nounLemma": "dům",
+		"requiredCase": "loc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_sg_kniha_030",
+		"template": "Eva mluví o ___ knize.",
+		"nounLemma": "kniha",
+		"requiredCase": "loc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_sg_auto_031",
+		"template": "Děti sedí v ___ autě.",
+		"nounLemma": "auto",
+		"requiredCase": "loc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_sg_kamarad_032",
+		"template": "Eva mluví o ___ kamarádovi.",
+		"nounLemma": "kamarád",
+		"requiredCase": "loc",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_pl_kniha_033",
+		"template": "Eva mluví o ___ knihách.",
+		"nounLemma": "kniha",
+		"requiredCase": "loc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_pl_kamarad_034",
+		"template": "Petr mluví o ___ kamarádech.",
+		"nounLemma": "kamarád",
+		"requiredCase": "loc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_sg_kamarad_035",
+		"template": "Petr jede s ___ kamarádem.",
+		"nounLemma": "kamarád",
+		"requiredCase": "ins",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_sg_kamaradka_036",
+		"template": "Eva bydlí s ___ kamarádkou.",
+		"nounLemma": "kamarádka",
+		"requiredCase": "ins",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_sg_auto_037",
+		"template": "Petr jede ___ autem.",
+		"nounLemma": "auto",
+		"requiredCase": "ins",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_pl_kamarad_038",
+		"template": "Petr jede s ___ kamarády.",
+		"nounLemma": "kamarád",
+		"requiredCase": "ins",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_pl_kamaradka_039",
+		"template": "Eva bydlí s ___ kamarádkami.",
+		"nounLemma": "kamarádka",
+		"requiredCase": "ins",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_sg_dum_040",
+		"template": "To je střecha ___ domu.",
+		"nounLemma": "dům",
+		"requiredCase": "gen",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_sg_dum_041",
+		"template": "Petr jde k ___ domu.",
+		"nounLemma": "dům",
+		"requiredCase": "dat",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_sg_klic_042",
+		"template": "Eva otevírá dveře ___ klíčem.",
+		"nounLemma": "klíč",
+		"requiredCase": "ins",
+		"number": "sg",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_dum_043",
+		"template": "To jsou střechy ___ domů.",
+		"nounLemma": "dům",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_pl_dum_044",
+		"template": "Petr jde k ___ domům.",
+		"nounLemma": "dům",
+		"requiredCase": "dat",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_pl_dum_045",
+		"template": "Petr mluví o ___ domech.",
+		"nounLemma": "dům",
+		"requiredCase": "loc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_pl_klic_046",
+		"template": "Eva otevírá dveře ___ klíči.",
+		"nounLemma": "klíč",
+		"requiredCase": "ins",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_gen_pl_auto_047",
+		"template": "To je barva ___ aut.",
+		"nounLemma": "auto",
+		"requiredCase": "gen",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_dat_pl_auto_048",
+		"template": "Petr jde k ___ autům.",
+		"nounLemma": "auto",
+		"requiredCase": "dat",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_loc_pl_auto_049",
+		"template": "Děti sedí v ___ autech.",
+		"nounLemma": "auto",
+		"requiredCase": "loc",
+		"number": "pl",
+		"difficulty": "A2"
+	},
+	{
+		"id": "det_ins_pl_auto_050",
+		"template": "Petr a Eva jedou ___ auty.",
+		"nounLemma": "auto",
+		"requiredCase": "ins",
+		"number": "pl",
+		"difficulty": "A2"
+	}
+]

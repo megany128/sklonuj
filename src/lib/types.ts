@@ -16,7 +16,7 @@ export type DrillType =
  * A grammar topic with its own deck on the Decks page (see `engine/focus.ts`).
  * Templates opt in through their `topics` list.
  */
-export type FocusTopic = 'direction' | 'verbs' | 'numbers';
+export type FocusTopic = 'direction' | 'verbs' | 'numbers' | 'determiners';
 
 export const CASE_LABELS: Record<Case, string> = {
 	nom: 'Nominative',
@@ -300,7 +300,12 @@ export type WordMode = 'nouns' | 'adjectives' | 'both';
 
 export type AdjectiveGenderKey = 'm_anim' | 'm_inanim' | 'f' | 'n';
 
-export type AdjectiveParadigmType = 'hard' | 'soft';
+/**
+ * How an adjective-shaped word declines. `hard` and `soft` are the adjective
+ * bank; `possessive` (můj, náš) and `demonstrative` (ten) are the determiners
+ * in `engine/determiners.ts`, which are asked through the same drill.
+ */
+export type AdjectiveParadigmType = 'hard' | 'soft' | 'possessive' | 'demonstrative';
 
 /**
  * Semantic compatibility profile for noun pairing. The legacy `categories`
