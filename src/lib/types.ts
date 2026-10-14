@@ -12,6 +12,12 @@ export type DrillType =
 	| 'sentence_fill_in'
 	| 'multi_step';
 
+/**
+ * A grammar topic with its own deck on the Decks page (see `engine/focus.ts`).
+ * Templates opt in through their `topics` list.
+ */
+export type FocusTopic = 'direction' | 'verbs';
+
 export const CASE_LABELS: Record<Case, string> = {
 	nom: 'Nominative',
 	gen: 'Genitive',
@@ -169,6 +175,8 @@ export interface SentenceTemplate {
 	requiredAnimate?: boolean;
 	why: string;
 	difficulty: Difficulty;
+	/** Focus topics this sentence belongs to (Kam? Kde? Odkud?, verbs + case …). */
+	topics?: FocusTopic[];
 	// Adjective template fields (optional)
 	adjectiveCategories?: string[];
 	/**

@@ -91,9 +91,14 @@ describe('AliasName tooltip', () => {
 
 		it('does not log a pointer just passing over the name', async () => {
 			render(AliasName, { name: 'Domácí Knedlík', gloss, placement: 'list' });
-			const name = page.getByRole('button', { name: 'Domácí Knedlík' });
-			await name.hover();
-			await userEvent.unhover(name);
+			// Park the real pointer off the name, then enter and leave in the same
+			// tick: a real hover + unhover can take longer than the dwell on a slow
+			// machine, which would log a view.
+			await userEvent.unhover(page.getByRole('button', { name: 'Domácí Knedlík' }));
+			capture.mockClear();
+			const el = nameButton();
+			el.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'mouse' }));
+			el.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
 			await new Promise((r) => setTimeout(r, 700));
 			expect(capture).not.toHaveBeenCalled();
 		});
