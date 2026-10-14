@@ -185,4 +185,25 @@ describe('?deck= URL param', () => {
 		await page.getByRole('button', { name: 'Leave deck' }).click();
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
 	});
+
+	it('mistake review and a deck do not run at once: the review link wins', async () => {
+		const { addMistake, clearMistakes } = await import('$lib/engine/mistakes');
+		clearMistakes();
+		addMistake({
+			lemma: 'hrad',
+			translation: 'castle',
+			targetCase: 'gen',
+			targetNumber: 'sg',
+			userAnswer: 'hrade',
+			correctAnswer: 'hradu',
+			drillType: 'form_production',
+			wordCategory: 'noun'
+		});
+		appPage.url.search = `${DECK_QUERY}&mode=review`;
+		render(Page);
+		await expect.element(page.getByRole('button', { name: /Nom/ }).first()).toBeInTheDocument();
+		// Reviewing asks bare forms on any topic, so the deck is left, not shown.
+		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
+		clearMistakes();
+	});
 });

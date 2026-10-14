@@ -1617,6 +1617,9 @@
 	 */
 	function enterDeck(deck: FocusTopic): void {
 		selectedDeck = deck;
+		// A deck asks only its own sentences, so it ends mistake review.
+		practicingMistakes = false;
+		lastMistakeIndex = -1;
 		if (chapterBook && chapterSelection) {
 			setDeckReturn({ book: chapterBook, chapter: chapterSelection });
 			chapterBook = null;
@@ -1627,6 +1630,13 @@
 		}
 		selectedCase = 'all';
 		selectedParadigm = null;
+	}
+
+	/** Turn the deck off without asking a question or returning to its chapter. */
+	function leaveDeckSilently(): void {
+		if (selectedDeck === null) return;
+		selectedDeck = null;
+		setDeckReturn(null);
 	}
 
 	/** Whether the current case, number and level filters leave a deck any sentence to ask. */
@@ -2081,6 +2091,8 @@
 			mistakes = generatedMistakes;
 			practicingMistakes = true;
 			lastMistakeIndex = -1;
+			// Mistake review is its own mode: it asks bare forms on any topic.
+			leaveDeckSilently();
 			chapterBook = null;
 			chapterSelection = null;
 			saveChapterToStorage();
@@ -2129,6 +2141,8 @@
 			mistakes = generatedMistakes;
 			practicingMistakes = true;
 			lastMistakeIndex = -1;
+			// Mistake review is its own mode: it asks bare forms on any topic.
+			leaveDeckSilently();
 			chapterBook = null;
 			chapterSelection = null;
 			saveChapterToStorage();
@@ -3042,9 +3056,10 @@
 		if (activeFocus !== null && q.template.topics?.includes(activeFocus) !== true) return false;
 		if (selectedCase !== 'all' && q.case !== selectedCase) return false;
 		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
-		// A determiner deck asks only its own fill-in sentences, whatever the
-		// content and exercise-type settings say, so its misses come back too.
-		if (activeFocus !== null && focusDef(activeFocus).source === 'determiners') return true;
+		// A deck sets its own content and exercise types (noun sentences, or the
+		// determiner deck's own), so its misses come back whatever the learner's
+		// usual settings say.
+		if (activeFocus !== null) return true;
 		if (!drillSettings.selectedDrillTypes.includes(q.drillType)) return false;
 		if (q.wordCategory === 'adjective') return enabledContentTypes.adjectives;
 		if (q.wordCategory === 'pronoun') return enabledContentTypes.pronouns;
