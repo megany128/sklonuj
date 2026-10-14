@@ -2994,17 +2994,6 @@
 		"topics": ["verbs"]
 	},
 	{
-		"id": "acc_bat_275",
-		"template": "Bojím se o ___.",
-		"lemmaCategory": "family",
-		"requiredCase": "acc",
-		"number": "sg",
-		"trigger": "o",
-		"why": "bát se o (to fear for) → accusative\nbát se + genitive is to be afraid of: bojím se psa",
-		"difficulty": "B1",
-		"topics": ["verbs"]
-	},
-	{
 		"id": "acc_zlobit_276",
 		"template": "Zlobím se na ___.",
 		"lemmaCategory": "family",
@@ -3024,17 +3013,6 @@
 		"trigger": "o",
 		"why": "snít o (to dream about) → locative",
 		"difficulty": "A2",
-		"topics": ["verbs"]
-	},
-	{
-		"id": "loc_trvat_278",
-		"template": "Trvám na ___.",
-		"lemmaCategory": "abstract",
-		"requiredCase": "loc",
-		"number": "sg",
-		"trigger": "na",
-		"why": "trvat na (to insist on) → locative",
-		"difficulty": "B1",
 		"topics": ["verbs"]
 	},
 	{
