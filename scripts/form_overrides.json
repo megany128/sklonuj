@@ -1841,5 +1841,13 @@
 		"animate": true,
 		"variants_sg": { "2": ["favoritu"], "5": ["favoritu"] },
 		"variants_pl": { "0": ["favoriti"], "4": ["favoriti"] }
+	},
+	"den": {
+		"sg": ["den", "dne", "dnu", "den", "dne", "dnu", "dnem"],
+		"pl": ["dny", "dní", "dnům", "dny", "dny", "dnech", "dny"],
+		"gender": "m",
+		"animate": false,
+		"variants_sg": { "1": ["dnu"], "2": ["dni"], "4": ["dni"], "5": ["dni"] },
+		"variants_pl": { "0": ["dni"], "1": ["dnů"], "3": ["dni"], "4": ["dni"] }
 	}
 }
