@@ -26,6 +26,7 @@
 		clearMistakes
 	} from '$lib/engine/mistakes';
 	import { getGuestSessions, clearGuestSessions } from '$lib/engine/guest-sessions';
+	import { clearDeckProgress, syncDeckProgress } from '$lib/engine/deck-progress';
 	import { clearGuestId } from '$lib/engine/guest-id';
 	import { clearMasteryCelebrations } from '$lib/engine/mastery-celebrations';
 	import { addPracticeDays } from '$lib/engine/achievements';
@@ -81,6 +82,7 @@
 				await syncStreakToSupabase(client);
 				await loadMistakesFromSupabase(client);
 				await syncMistakesToSupabase(client);
+				await syncDeckProgress(client);
 				badgeStreakSyncedUserId = userId;
 			} catch (err) {
 				console.error('Error syncing badges/streaks:', err);
@@ -246,6 +248,7 @@
 		clearMistakes();
 		clearBadges();
 		clearMasteryCelebrations();
+		clearDeckProgress();
 	}
 
 	onMount(() => {
@@ -325,6 +328,7 @@
 					clearMistakes();
 					clearBadges();
 					clearMasteryCelebrations();
+					clearDeckProgress();
 				}
 			}
 			localStorage.setItem(STORAGE_USER_KEY, pageData.user.id);
