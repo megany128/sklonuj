@@ -813,6 +813,21 @@
 					/>
 				</a>
 				<a
+					href={resolve('/resources/adjectives')}
+					class="group flex items-center justify-between rounded-xl bg-shaded-background px-4 py-2.5 transition-colors hover:bg-shaded-background/80"
+				>
+					<div>
+						<span class="text-sm font-medium text-text-default">Adjective Declension</span>
+						<p class="text-xs text-text-subtitle">
+							Hard and soft adjective tables with agreement rules
+						</p>
+					</div>
+					<ArrowRight
+						class="size-4 shrink-0 text-text-subtitle transition-transform group-hover:translate-x-0.5 group-hover:text-emphasis"
+						aria-hidden="true"
+					/>
+				</a>
+				<a
 					href={resolve('/')}
 					class="group flex items-center justify-between rounded-xl bg-shaded-background px-4 py-2.5 transition-colors hover:bg-shaded-background/80"
 				>

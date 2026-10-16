@@ -27,6 +27,12 @@
 			route: '/resources/pronouns' as const
 		},
 		{
+			title: 'Adjective Declension',
+			description:
+				'Full tables for hard (mladý) and soft (jarní) adjectives in every case, gender, and number, plus agreement rules.',
+			route: '/resources/adjectives' as const
+		},
+		{
 			title: 'Practical Tips for Learning Czech Declension',
 			description:
 				'Which cases to learn first, how to memorize paradigms, common mistakes to avoid, and effective daily practice strategies.',
@@ -39,11 +45,11 @@
 	<title>Czech Declension Resources — Learn Cases, Patterns & Grammar | Skloňuj</title>
 	<meta
 		name="description"
-		content="Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun charts, and study tips. Everything you need to master Czech grammar."
+		content="Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun and adjective charts, and study tips. Everything you need to master Czech grammar."
 	/>
 	<meta
 		name="keywords"
-		content="Czech declension guide, Czech cases explained, Czech grammar resources, learn Czech noun cases, Czech declension tables, skloňování, Czech language learning"
+		content="Czech declension guide, Czech cases explained, Czech grammar resources, learn Czech noun cases, Czech declension tables, Czech adjective declension, skloňování, Czech language learning"
 	/>
 	<link rel="canonical" href="https://sklonuj.com/resources" />
 	<link rel="alternate" hreflang="en" href="https://sklonuj.com/resources" />
@@ -54,7 +60,7 @@
 	/>
 	<meta
 		property="og:description"
-		content="Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun charts, and study tips."
+		content="Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun and adjective charts, and study tips."
 	/>
 	<meta property="og:url" content="https://sklonuj.com/resources" />
 	<meta property="og:type" content="website" />
@@ -66,7 +72,7 @@
 	/>
 	<meta
 		name="twitter:description"
-		content="Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun charts, and study tips."
+		content="Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun and adjective charts, and study tips."
 	/>
 	<meta name="twitter:image" content="https://sklonuj.com/og.png" />
 	<script type="application/ld+json">
@@ -74,7 +80,7 @@
 			"@context": "https://schema.org",
 			"@type": "CollectionPage",
 			"name": "Czech Declension Resources",
-			"description": "Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun charts, and study tips.",
+			"description": "Free guides to Czech declension: all 7 cases explained, noun paradigm tables, pronoun and adjective charts, and study tips.",
 			"url": "https://sklonuj.com/resources",
 			"isPartOf": {
 				"@type": "WebSite",
