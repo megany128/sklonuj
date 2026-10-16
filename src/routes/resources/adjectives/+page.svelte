@@ -118,7 +118,7 @@
 		{
 			question: 'Why does velký become velcí in the plural?',
 			answer:
-				'In the nominative plural of masculine animate nouns, hard adjectives end in -í, and that -í softens the consonant before it: k → c (velcí), h → z (drazí), ch → š (tiší), r → ř (dobří), sk → šť (čeští) and ck → čť (němečtí). The change only happens in this one form, for people and animals: velcí kluci but velké domy.'
+				'In the nominative and vocative plural of masculine animate nouns, hard adjectives end in -í, and that -í softens the consonant before it: k → c (velcí), h → z (drazí), ch → š (tiší), r → ř (dobří), sk → šť (čeští) and ck → čť (němečtí). The change only happens in these two forms, for people and animals: velcí kluci and Milí čeští přátelé! but velké domy.'
 		},
 		{
 			question: 'Which adjective endings are the same across genders?',
@@ -448,9 +448,9 @@
 					Consonant Changes in the Masculine Animate Plural
 				</h2>
 				<p class="mt-1 text-sm text-text-subtitle">
-					When a hard adjective describes people or animals in the nominative plural, its ending -í
-					softens the consonant before it. This happens only in that one form: velcí kluci (big
-					boys), but velké domy (big houses).
+					When a hard adjective describes people or animals in the nominative or vocative plural,
+					its ending -í softens the consonant before it: velcí kluci (big boys), Milí čeští přátelé!
+					(Dear Czech friends!). Inanimate nouns keep the hard consonant: velké domy (big houses).
 				</p>
 			</div>
 
