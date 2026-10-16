@@ -11,6 +11,7 @@ export function GET() {
 		{ url: 'https://sklonuj.com/resources/czech-cases', priority: '0.8', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources/paradigms', priority: '0.8', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources/pronouns', priority: '0.7', changefreq: 'monthly' },
+		{ url: 'https://sklonuj.com/resources/adjectives', priority: '0.7', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/resources/tips', priority: '0.7', changefreq: 'monthly' },
 		{ url: 'https://sklonuj.com/privacy', priority: '0.2', changefreq: 'yearly' },
 		{ url: 'https://sklonuj.com/contact', priority: '0.3', changefreq: 'monthly' },
