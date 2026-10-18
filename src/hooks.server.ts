@@ -48,9 +48,39 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set(
 		'Content-Security-Policy',
 		// Note: 'unsafe-inline' is required for Google Analytics inline scripts in app.html
-		// To remove it, we would need to refactor GTM to load via external script or use a nonce
+		// To remove it, we would need to refactor GTM to load via external script or use a nonce.
+		// Keep this in sync with the _headers file (which covers static/prerendered responses).
 		"default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://us-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.supabase.co; media-src 'self' https://audio.sklonuj.com; connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google-analytics.com https://cloudflareinsights.com https://us.i.posthog.com https://us-assets.i.posthog.com; frame-src https://challenges.cloudflare.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com"
 	);
 
+	// Edge-cache the homepage for crawler/bot sweeps so repeated hits are served
+	// from Cloudflare's CDN instead of re-invoking the function every time.
+	// Only cookieless GETs are cached: with no cookie the response can't be
+	// personalized (no auth, no guest-leaderboard window, no saved chapter), so
+	// it's the generic render and safe to share. Authenticated responses are
+	// explicitly no-store so per-user HTML can never land in a shared cache.
+	// (Static/prerendered pages are already CDN-cached as assets and don't reach
+	// this hook.)
+	if (
+		event.request.method === 'GET' &&
+		(response.headers.get('content-type') ?? '').includes('text/html') &&
+		!response.headers.has('Cache-Control')
+	) {
+		if (event.locals.user) {
+			response.headers.set('Cache-Control', 'private, no-store');
+		} else if (
+			CACHEABLE_ANON_PATHS.has(event.url.pathname) &&
+			!event.request.headers.get('cookie')
+		) {
+			response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+			response.headers.append('Vary', 'Cookie');
+		}
+	}
+
 	return response;
 };
+
+// Dynamic (non-prerendered) routes whose cookieless render is identical for
+// every visitor — safe to serve from the CDN cache. The homepage is the hot
+// path crawlers hammer; personalization happens client-side after load.
+const CACHEABLE_ANON_PATHS = new Set(['/']);
