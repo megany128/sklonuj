@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
+import { building } from '$app/environment';
 import { createSupabaseServerClient } from '$lib/supabase-server';
 import { GUEST_ID_STORAGE_KEY, isGuestId } from '$lib/engine/guest-id';
 import { handlePostHogProxy, isPostHogProxyRequest } from '$lib/posthog-proxy';
@@ -18,21 +19,31 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return handlePostHogProxy(event);
 	}
 
-	const supabase = createSupabaseServerClient(event.cookies);
-	event.locals.supabase = supabase;
+	if (building) {
+		// Prerendering runs this hook with no request context, no cookies, and no
+		// Supabase env (the CI build doesn't inject PUBLIC_SUPABASE_*). Prerendered
+		// pages carry no per-user data, so render them anonymously instead of
+		// constructing a Supabase client that would throw. Security headers below
+		// still apply; the _headers file covers the emitted static files at runtime.
+		event.locals.user = null;
+		event.locals.guestId = null;
+	} else {
+		const supabase = createSupabaseServerClient(event.cookies);
+		event.locals.supabase = supabase;
 
-	const {
-		data: { user }
-	} = await supabase.auth.getUser();
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
 
-	event.locals.user = user;
+		event.locals.user = user;
 
-	// Anonymous visitors mirror their localStorage guest id into a cookie so the
-	// global leaderboard can include them (and window around them during SSR).
-	// Parsed for every request; consumers decide whether it applies to a
-	// signed-in user (it never does for scoring — see computeGlobalLeaderboard).
-	const guestCookie = event.cookies.get(GUEST_ID_STORAGE_KEY);
-	event.locals.guestId = isGuestId(guestCookie) ? guestCookie.toLowerCase() : null;
+		// Anonymous visitors mirror their localStorage guest id into a cookie so the
+		// global leaderboard can include them (and window around them during SSR).
+		// Parsed for every request; consumers decide whether it applies to a
+		// signed-in user (it never does for scoring — see computeGlobalLeaderboard).
+		const guestCookie = event.cookies.get(GUEST_ID_STORAGE_KEY);
+		event.locals.guestId = isGuestId(guestCookie) ? guestCookie.toLowerCase() : null;
+	}
 
 	const response = await resolve(event, {
 		filterSerializedResponseHeaders(name) {
