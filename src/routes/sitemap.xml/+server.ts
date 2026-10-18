@@ -1,6 +1,11 @@
-// Evaluated once at module load (i.e. when the worker boots after a deploy),
-// so it reflects the current deployment's build/boot date rather than lying
-// that every page changes on every request.
+// Prerender the sitemap to a static file: it lists a fixed set of URLs and has
+// no per-request data, so there's no reason to invoke the function for every
+// crawler fetch.
+export const prerender = true;
+
+// Evaluated once at build time (prerender) / module load, so it reflects the
+// current deployment's build date rather than lying that every page changes on
+// every request.
 const lastmod = new Date().toISOString().split('T')[0];
 
 export function GET() {

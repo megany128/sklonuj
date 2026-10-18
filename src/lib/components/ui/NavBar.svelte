@@ -11,6 +11,7 @@
 		toggleDarkMode as toggleDarkModeFn
 	} from '$lib/darkmode';
 	import { onMount } from 'svelte';
+	import { getSupabaseBrowserClient } from '$lib/supabase';
 
 	let isPracticePage = $derived(page.url.pathname === '/');
 	let isDecksPage = $derived(page.url.pathname.startsWith('/decks'));
@@ -27,8 +28,31 @@
 		isHomePage?: boolean;
 	} = $props();
 
+	// Prerendered pages (/resources, /privacy, /about) bake the server `user` as
+	// null even for a logged-in visitor, since there's no request context at
+	// build time. Fall back to the browser Supabase session so the nav shows the
+	// correct auth state there. On server-rendered pages `user` is already set and
+	// wins, so this never overrides a known user.
+	let clientUser = $state<{ id: string; email?: string; display_name?: string | null } | null>(
+		null
+	);
+	let effectiveUser = $derived(user ?? clientUser);
+
 	onMount(() => {
 		initDarkMode();
+
+		const supabase = getSupabaseBrowserClient();
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange(
+			(_event: string, session: { user?: { id: string; email?: string } } | null) => {
+				clientUser = session?.user
+					? { id: session.user.id, email: session.user.email, display_name: null }
+					: null;
+			}
+		);
+
+		return () => subscription.unsubscribe();
 	});
 
 	let darkMode = $derived($darkModeStore);
@@ -42,12 +66,14 @@
 		'var(--color-case-ins)'
 	];
 
-	let initial = $derived((user?.display_name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase());
+	let initial = $derived(
+		(effectiveUser?.display_name?.[0] ?? effectiveUser?.email?.[0] ?? '?').toUpperCase()
+	);
 	let avatarColor = $derived.by(() => {
-		if (!user?.id) return AVATAR_COLORS[0];
+		if (!effectiveUser?.id) return AVATAR_COLORS[0];
 		let hash = 0;
-		for (let i = 0; i < user.id.length; i++) {
-			hash = (hash * 31 + user.id.charCodeAt(i)) | 0;
+		for (let i = 0; i < effectiveUser.id.length; i++) {
+			hash = (hash * 31 + effectiveUser.id.charCodeAt(i)) | 0;
 		}
 		return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 	});
@@ -255,7 +281,7 @@
 				{$streak.currentStreak}
 			</span>
 		{/if}
-		{#if user}
+		{#if effectiveUser}
 			<div
 				class="relative"
 				onmouseenter={handleHoverEnter}
@@ -429,7 +455,7 @@
 			>
 				Classes
 			</a>
-			{#if !user}
+			{#if !effectiveUser}
 				<button
 					type="button"
 					onclick={() => {
