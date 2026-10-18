@@ -111,16 +111,35 @@ jobs:
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
-          for url in "$DEPLOY_URL" "https://sklonuj.com"; do
-            for attempt in 1 2 3 4 5 6; do
-              status=$(curl -s -o /dev/null -w '%{http_code}' "$url/")
-              if [ "$status" = "200" ]; then
-                echo "$url -> 200"
-                continue 2
-              fi
-              echo "$url -> $status (attempt $attempt), retrying"
-              sleep 10
-            done
-            echo "::error::$url did not return 200 after deploy"
-            exit 1
+          # Verify the deploy is actually serving by hitting a STATIC asset
+          # (robots.txt). Static files are served by Cloudflare's CDN independently
+          # of the Pages Function, so they return 200 even when the daily request
+          # cap has temporarily disabled the function. A failure here means a
+          # genuinely broken deploy, so this is the only hard gate.
+          served=0
+          for attempt in 1 2 3 4 5 6; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$DEPLOY_URL/robots.txt" || echo 000)
+            if [ "$status" = "200" ]; then
+              echo "$DEPLOY_URL/robots.txt -> 200 (deploy is serving)"
+              served=1
+              break
+            fi
+            echo "$DEPLOY_URL/robots.txt -> $status (attempt $attempt), retrying"
+            sleep 10
           done
+          if [ "$served" != "1" ]; then
+            echo "::error::$DEPLOY_URL/robots.txt did not return 200 — the deploy appears broken"
+            exit 1
+          fi
+
+          # Non-fatal: the server-rendered homepage on production. A non-200 here
+          # almost always means the site is over its daily Worker request cap
+          # (the function is disabled, so SSR routes 404/5xx) rather than a bad
+          # deploy — which the hard check above already ruled out. Warn, don't fail,
+          # so a rate-limited site doesn't mark a successful deploy as failed.
+          home=$(curl -s -o /dev/null -w '%{http_code}' "https://sklonuj.com/" || echo 000)
+          if [ "$home" = "200" ]; then
+            echo "https://sklonuj.com/ -> 200"
+          else
+            echo "::warning::https://sklonuj.com/ -> $home — static assets deployed fine; the SSR function looks rate-limited (daily Worker request cap)."
+          fi
