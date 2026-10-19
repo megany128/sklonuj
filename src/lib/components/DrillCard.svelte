@@ -42,6 +42,7 @@
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
+	import { adjectiveAnimacyMixup, nounAnimacyMixup } from '$lib/utils/animacy-mixup';
 
 	/** How the Why box names the word's type on an adjective-shaped question. */
 	const ADJECTIVE_TYPE_NOTE: Record<AdjectiveParadigmType, string> = {
@@ -1075,12 +1076,33 @@
 								question.drillType === 'case_identification' && isCase(result.userAnswer)
 									? result.userAnswer
 									: null}
+							{@const animacyNote =
+								question.drillType === 'case_identification' || wasSkipped || result.nearMiss
+									? null
+									: question.wordCategory === 'adjective'
+										? question.adjective
+											? adjectiveAnimacyMixup(
+													question.adjective,
+													question.word,
+													{ case: question.case, number: question.number },
+													userTyped,
+													question.template.nounLemma
+												)
+											: null
+										: question.wordCategory === 'pronoun'
+											? null
+											: nounAnimacyMixup(
+													question.word,
+													{ case: question.case, number: question.number },
+													userTyped
+												)}
 							{@const endingLine =
 								question.wordCategory !== 'adjective' &&
 								question.wordCategory !== 'pronoun' &&
 								question.drillType !== 'case_identification' &&
 								!wasSkipped &&
-								!result.nearMiss
+								!result.nearMiss &&
+								animacyNote === null
 									? explainWrongEnding(
 											question.word,
 											{ case: question.case, number: question.number },
@@ -1099,6 +1121,10 @@
 							{:else if result.nearMiss}
 								<FeedbackVerdict tone="almost" title="Almost — check the accents">
 									Right letters, but accents count here.
+								</FeedbackVerdict>
+							{:else if animacyNote}
+								<FeedbackVerdict tone="wrong" title="Animate or inanimate?">
+									{animacyNote}
 								</FeedbackVerdict>
 							{:else if result.accidentalCase}
 								{@const typedAs = result.accidentalCase}

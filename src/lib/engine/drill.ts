@@ -30,7 +30,7 @@ import { loadPronounBank, getPronounForm } from './pronoun-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
 import { isFocusTopic, templateForWord } from './focus';
 import { isCountContext, isCountable } from './numbers';
-import { cellWeight, nounCellKey, W_MAX, weightedPick } from './spacing';
+import { cellWeight, nounCellKey, weightedPick } from './spacing';
 
 export { applyPrepositionVoicing };
 
@@ -859,6 +859,18 @@ export function checkMultiStepForm(
 	return { correct: false, nearMiss: false };
 }
 
+/**
+ * Pick the noun for a slot in two stages. First the paradigm — the ending
+ * rule being drilled — weighted by how due its spacing cell (paradigm × case
+ * × number) is, so a rule the learner has mastered (high Leitner box, long
+ * interval) comes up far less than one they keep missing, whatever the slot.
+ * Then a lemma inside that paradigm, by lifetime accuracy on the lemma.
+ *
+ * Each paradigm's weight also scales with the square root of how many of its
+ * nouns the pool holds: common patterns (hrad, žena) still come up more than
+ * rare ones (kuře, předseda) when the learner is equally strong at both, but
+ * the cell weight, not the noun count, decides most of the mix.
+ */
 export function weightedRandom(
 	candidates: WordEntry[],
 	progress: Progress,
@@ -871,30 +883,29 @@ export function weightedRandom(
 		throw new Error('weightedRandom called with empty candidates array');
 	}
 
-	// Per-lemma weight dominates: unseen lemmas (attempts=0) get the maximum
-	// weight (1 / 0.1 = 10), so the selector tries each lemma before recycling
-	// any. Multiply by a smaller paradigm signal — how due the word's spacing
-	// cell (paradigm × case × number) is — so due or never-seen paradigms
-	// drift upward in priority once every lemma has been seen at least once.
-	const lemmaScores = progress.lemmaScores ?? {};
 	const schedule = progress.cellSchedule ?? {};
-	const weights = candidates.map((word) => {
-		const lemmaKey = `${word.lemma}_${case_}_${number_}`;
-		const lemmaScore: CaseScore | undefined = lemmaScores[lemmaKey];
-		const lemmaAccuracy =
-			lemmaScore && lemmaScore.attempts > 0
-				? Math.min(lemmaScore.correct / lemmaScore.attempts, 1)
-				: 0;
-		const lemmaAttempts = lemmaScore?.attempts ?? 0;
-		// Unseen lemmas: weight = 1/0.1 = 10. Seen lemmas decay toward 1/(1+0.1) ~ 0.91.
-		const lemmaWeight = lemmaAttempts === 0 ? 10 : 1 / (lemmaAccuracy + 0.1);
+	const byParadigm = new Map<string, WordEntry[]>();
+	for (const word of candidates) {
+		const group = byParadigm.get(word.paradigm);
+		if (group) group.push(word);
+		else byParadigm.set(word.paradigm, [word]);
+	}
+	const paradigms = [...byParadigm.keys()];
+	const paradigmWeights = paradigms.map((p) => {
+		const count = byParadigm.get(p)?.length ?? 0;
+		return cellWeight(schedule[nounCellKey(p, case_, number_)], now) * Math.sqrt(count);
+	});
+	const paradigm = weightedPick(paradigms, paradigmWeights, random);
+	const words = byParadigm.get(paradigm) ?? candidates;
 
-		// Compressed cell signal in [~0.5, 1.0] so it nudges without overriding.
-		const cell = cellWeight(schedule[nounCellKey(word.paradigm, case_, number_)], now);
-		const paradigmWeight = 0.5 + 0.5 * (cell / W_MAX);
-
-		return lemmaWeight * paradigmWeight;
+	// Unseen lemmas weigh 1/0.1 = 10, so each exemplar of the rule is tried
+	// before any is recycled; seen ones decay toward 1/(1+0.1) ≈ 0.91.
+	const lemmaScores = progress.lemmaScores ?? {};
+	const lemmaWeights = words.map((word) => {
+		const lemmaScore: CaseScore | undefined = lemmaScores[`${word.lemma}_${case_}_${number_}`];
+		if (!lemmaScore || lemmaScore.attempts === 0) return 10;
+		return 1 / (Math.min(lemmaScore.correct / lemmaScore.attempts, 1) + 0.1);
 	});
 
-	return weightedPick(candidates, weights, random);
+	return weightedPick(words, lemmaWeights, random);
 }
