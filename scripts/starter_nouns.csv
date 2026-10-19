@@ -1526,7 +1526,7 @@ pevnost,fortress,f,false,kost,A2,"places,v_place",pevnost,pevnosti,pevnosti,pevn
 slavnost,celebration,f,false,kost,A2,"misc,event,gathering",slavnost,slavnosti,slavnosti,slavnost,slavnosti,slavnosti,slavností,slavnosti,slavností,slavnostem,slavnosti,slavnosti,slavnostech,slavnostmi
 klášter,monastery,m,false,hrad,A2,"places,v_place",klášter,kláštera,klášteru,klášter,kláštere,klášteře,klášterem,kláštery,klášterů,klášterům,kláštery,kláštery,klášterech,kláštery
 schodiště,staircase,n,false,moře,A2,"places,na_place,indoor",schodiště,schodiště,schodišti,schodiště,schodiště,schodišti,schodištěm,schodiště,schodišť,schodištím,schodiště,schodiště,schodištích,schodišti
-šťáva,juice,f,false,žena,A2,"food,drink,mass",šťáva,šťávy,šťávě,šťávu,šťávo,šťávě,šťávou,šťávy,šťáv,šťávám,šťávy,šťávy,šťávách,šťávami
+šťáva,"juice (from fruit), gravy",f,false,žena,A2,"food,drink,mass",šťáva,šťávy,šťávě,šťávu,šťávo,šťávě,šťávou,šťávy,šťáv,šťávám,šťávy,šťávy,šťávách,šťávami
 svah,slope,m,false,hrad,A2,"nature,places,na_place,landmark",svah,svahu,svahu,svah,svahu,svahu,svahem,svahy,svahů,svahům,svahy,svahy,svazích,svahy
 poslání,mission,n,false,stavení,A2,"misc,abstract",poslání,poslání,poslání,poslání,poslání,poslání,posláním,poslání,poslání,posláním,poslání,poslání,posláních,posláními
 posádka,crew,f,false,žena,A2,"misc,abstract",posádka,posádky,posádce,posádku,posádko,posádce,posádkou,posádky,posádek,posádkám,posádky,posádky,posádkách,posádkami

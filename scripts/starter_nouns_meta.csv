@@ -1593,7 +1593,7 @@ slavnost,celebration,,A2,"misc,event,gathering",
 klášter,monastery,,A2,"places,v_place","Genitive sg kláštera (do kláštera), locative v klášteře
 Also accepted in both: klášteru"
 schodiště,staircase,,A2,"places,na_place,indoor",
-šťáva,juice,,A2,"food,drink,mass",
+šťáva,"juice (from fruit), gravy",,A2,"food,drink,mass",
 svah,slope,,A2,"nature,places,na_place,landmark",
 poslání,mission,,A2,misc,
 posádka,crew,,A2,misc,
