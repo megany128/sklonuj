@@ -563,6 +563,10 @@
 			text: 'Configure drill types, number, and content.'
 		},
 		{
+			target: 'decks-link',
+			text: 'Want to drill one grammar topic \u2014 Kam? Kde? Odkud?, verbs that pick the case, or a single noun pattern \u2014 on its own? Open Decks.'
+		},
+		{
 			target: 'classes-link',
 			text: 'If you\u2019re part of a class, find your assignments and track your progress here.'
 		}
@@ -1602,6 +1606,25 @@
 		if (deckAsksBothNumbers) return 'both' as const;
 		return drillSettings.numberMode;
 	});
+
+	// A deck has no "finished" state — it's open-ended — so count a learner as
+	// having engaged with a deck once they've answered a meaningful number of its
+	// questions. `deck_engaged` fires once per deck, the moment its lifetime
+	// answer count crosses the threshold; together with `deck_opened` (fired on
+	// /decks) that gives an opened→actually-practised funnel in PostHog.
+	const DECK_ENGAGED_THRESHOLD = 10;
+
+	function recordDeckAnswerTracked(deck: FocusTopic, correct: boolean): void {
+		const before = loadDeckProgress()[deck]?.attempts ?? 0;
+		recordDeckAnswer(deck, correct);
+		if (before < DECK_ENGAGED_THRESHOLD && before + 1 >= DECK_ENGAGED_THRESHOLD) {
+			posthog.capture('deck_engaged', {
+				deck,
+				slug: focusDef(deck).slug,
+				questions: DECK_ENGAGED_THRESHOLD
+			});
+		}
+	}
 
 	function leaveDeck(): void {
 		selectedDeck = null;
@@ -3869,7 +3892,7 @@
 
 	function trackSessionStats(result: DrillResult): void {
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
-			recordDeckAnswer(activeFocus, result.correct);
+			recordDeckAnswerTracked(activeFocus, result.correct);
 		}
 		if (result.correct) {
 			sessionCorrect++;
@@ -4306,10 +4329,8 @@
 
 		// A deck is about the case and the form; the paradigm step isn't its point.
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
-			recordDeckAnswer(
-				activeFocus,
-				(result.caseCorrect === null || result.caseCorrect) && result.formCorrect
-			);
+			const deckCorrect = (result.caseCorrect === null || result.caseCorrect) && result.formCorrect;
+			recordDeckAnswerTracked(activeFocus, deckCorrect);
 		}
 
 		if (allCorrect) {

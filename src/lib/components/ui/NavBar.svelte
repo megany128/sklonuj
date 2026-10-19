@@ -249,6 +249,7 @@
 					? 'font-semibold text-text-default'
 					: 'text-text-subtitle hover:text-text-default'}"
 				data-label="Decks"
+				data-tour="decks-link"
 			>
 				Decks
 			</a>
