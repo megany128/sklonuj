@@ -14,6 +14,7 @@
 		type DeckProgress
 	} from '$lib/engine/deck-progress';
 	import { PARADIGM_KIND } from '$lib/utils/filter-paradigm-note';
+	import posthog from '$lib/posthog';
 
 	let user = $derived(page.data.user);
 
@@ -130,6 +131,14 @@
 							{#if deck.unlocked}
 								<a
 									href="{resolve('/')}{deckQuery(deck.def.id)}"
+									onclick={() =>
+										posthog.capture('deck_opened', {
+											type: 'grammar',
+											deck: deck.def.id,
+											slug: deck.def.slug,
+											started,
+											level
+										})}
 									class="rounded-full border-2 border-emphasis bg-emphasis px-4 py-1 text-sm font-semibold text-text-inverted transition-opacity hover:opacity-90"
 								>
 									{started ? 'Continue' : 'Start'}
@@ -153,6 +162,12 @@
 					{@const answered = mounted ? deck.attempts : 0}
 					<a
 						href="{resolve('/')}?selectParadigm={deck.paradigm}"
+						onclick={() =>
+							posthog.capture('deck_opened', {
+								type: 'pattern',
+								paradigm: deck.paradigm,
+								started: answered > 0
+							})}
 						class="flex flex-col gap-1 rounded-2xl border-2 border-card-stroke bg-card-bg px-3.5 py-3 transition-colors hover:border-emphasis/40"
 						data-testid="pattern-{deck.paradigm}"
 					>
