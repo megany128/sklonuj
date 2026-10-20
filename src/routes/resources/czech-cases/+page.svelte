@@ -36,7 +36,32 @@
 		return () => observer.disconnect();
 	});
 
-	const cases = [
+	type EndingRow = { sg: string; pl: string; exSg: string; exPl: string };
+
+	type CaseInfo = {
+		id: string;
+		caseCode: string;
+		name: string;
+		number: number;
+		question: string;
+		mnemonic: string;
+		color: string;
+		usage: string[];
+		prepositions: string;
+		endings: [EndingRow, EndingRow, EndingRow, EndingRow];
+		endingsNote?: string;
+		examples: { sentence: string; highlight: string; translation: string }[];
+	};
+
+	// Row labels for `endings`, in order.
+	const genderLabels = ['Masculine animate', 'Masculine inanimate', 'Feminine', 'Neuter'];
+
+	// Example text marks the ending with braces: "k pán{ovi}" bolds "ovi".
+	function endingSegments(text: string) {
+		return text.split(/[{}]/).map((part, i) => ({ part, bold: i % 2 === 1 }));
+	}
+
+	const cases: CaseInfo[] = [
 		{
 			id: 'nominative',
 			caseCode: 'nom',
@@ -51,6 +76,28 @@
 				'The default dictionary form of a noun'
 			],
 			prepositions: 'None — this is the default/dictionary form.',
+			endings: [
+				{
+					sg: 'Ø / -a / -e',
+					pl: '-i / -ové / -é',
+					exSg: 'pán, muž, předsed{a}, soudc{e}',
+					exPl: 'pán{i}, muž{i}, předsed{ové}, učitel{é}'
+				},
+				{ sg: 'Ø', pl: '-y / -e', exSg: 'hrad, stroj', exPl: 'hrad{y}, stroj{e}' },
+				{
+					sg: '-a / -e / Ø',
+					pl: '-y / -e / -ě / -i',
+					exSg: 'žen{a}, růž{e}, píseň, kost',
+					exPl: 'žen{y}, růž{e}, písn{ě}, kost{i}'
+				},
+				{
+					sg: '-o / -e / -í',
+					pl: '-a / -e / -ata / -í',
+					exSg: 'měst{o}, moř{e}, kuř{e}, nádraž{í}',
+					exPl: 'měst{a}, moř{e}, kuř{ata}, nádraž{í}'
+				}
+			],
+			endingsNote: 'Ø = no ending: the bare dictionary form.',
 			examples: [
 				{
 					sentence: 'Kniha je na stole.',
@@ -84,6 +131,33 @@
 				'After certain prepositions indicating origin, absence, or proximity'
 			],
 			prepositions: 'z/ze, do, od/ode, bez, u, kolem, vedle, během',
+			endings: [
+				{
+					sg: '-a / -e / -y',
+					pl: '-ů',
+					exSg: 'od pán{a}, od muž{e}, od předsed{y}',
+					exPl: 'od pán{ů}, od muž{ů}'
+				},
+				{
+					sg: '-u / -a / -e',
+					pl: '-ů',
+					exSg: 'z hrad{u}, z les{a}, ze stroj{e}',
+					exPl: 'z hrad{ů}, ze stroj{ů}'
+				},
+				{
+					sg: '-y / -e / -ě / -i',
+					pl: 'Ø / -í',
+					exSg: 'bez žen{y}, bez růž{e}, bez písn{ě}, bez kost{i}',
+					exPl: 'bez žen, bez růž{í}, bez kost{í}'
+				},
+				{
+					sg: '-a / -e / -ete / -í',
+					pl: 'Ø / -í / -at',
+					exSg: 'z měst{a}, z moř{e}, z kuř{ete}, z nádraž{í}',
+					exPl: 'z měst, z moř{í}, z kuř{at}, z nádraž{í}'
+				}
+			],
+			endingsNote: 'Ø = no ending (žen, měst). A vowel is sometimes inserted: matka → matek.',
 			examples: [
 				{
 					sentence: 'To je auto mého otce.',
@@ -121,6 +195,33 @@
 				'Expressing benefit or direction toward someone'
 			],
 			prepositions: 'k/ke, proti, díky, kvůli, navzdory',
+			endings: [
+				{
+					sg: '-ovi / -u / -i',
+					pl: '-ům',
+					exSg: 'k pán{ovi}/pán{u}*, k muž{ovi}/muž{i}*',
+					exPl: 'k pán{ům}, k muž{ům}'
+				},
+				{
+					sg: '-u / -i',
+					pl: '-ům',
+					exSg: 'naproti stol{u}, naproti stroj{i}',
+					exPl: 'naproti stol{ům}, stroj{ům}'
+				},
+				{
+					sg: '-ě / -i',
+					pl: '-ám / -ím / -em',
+					exSg: 'k žen{ě}, k růž{i}, ke kost{i}',
+					exPl: 'kvůli žen{ám}, růž{ím}, kost{em}'
+				},
+				{
+					sg: '-u / -i / -eti / -í',
+					pl: '-ům / -ím / -atům',
+					exSg: 'k měst{u}, k moř{i}, k nádraž{í}',
+					exPl: 'k měst{ům}, k nádraž{ím}'
+				}
+			],
+			endingsNote: '* both forms are possible.',
 			examples: [
 				{
 					sentence: 'Pomáhám bratrovi.',
@@ -158,6 +259,29 @@
 				'Duration of time or expressing price'
 			],
 			prepositions: 'na, za, pro, přes, o, v (days and fixed phrases: ve středu, věřit v)',
+			endings: [
+				{
+					sg: '-a / -e / -u',
+					pl: '-y / -e',
+					exSg: 'vidím pán{a}, muž{e}, předsed{u}',
+					exPl: 'vidím pán{y}, muž{e}'
+				},
+				{ sg: 'Ø', pl: '-y / -e', exSg: 'vidím hrad, stroj', exPl: 'vidím hrad{y}, stroj{e}' },
+				{
+					sg: '-u / -i / Ø',
+					pl: '-y / -e / -ě / -i',
+					exSg: 'vidím žen{u}, růž{i}, kost',
+					exPl: 'vidím žen{y}, růž{e}, kost{i}'
+				},
+				{
+					sg: '-o / -e / -í',
+					pl: '-a / -e / -ata / -í',
+					exSg: 'vidím měst{o}, moř{e}, nádraž{í}',
+					exPl: 'vidím měst{a}, moř{e}, nádraž{í}'
+				}
+			],
+			endingsNote:
+				'Masculine animate singular is the same as the genitive (pána, muže), except nouns in -a (předsedu). Masculine inanimate and neuter are the same as the nominative. Ø = no ending.',
 			examples: [
 				{ sentence: 'Čtu knihu.', highlight: 'knihu', translation: "I'm reading a book." },
 				{
@@ -187,6 +311,34 @@
 				'Formal and informal greetings with names and titles'
 			],
 			prepositions: 'None — vocative is used only for direct address.',
+			endings: [
+				{
+					sg: '-e / -u / -i / -o',
+					pl: '-i / -ové / -é',
+					exSg: 'pan{e}!, Petř{e}!, kluk{u}!, muž{i}!, předsed{o}!',
+					exPl: 'pán{i}!, kluc{i}!, muž{i}!'
+				},
+				{
+					sg: '-e / -u / -i',
+					pl: '-y / -e',
+					exSg: 'hrad{e}!, stroj{i}!',
+					exPl: 'hrad{y}!, stroj{e}!'
+				},
+				{
+					sg: '-o / -e / -i',
+					pl: '-y / -e / -ě / -i',
+					exSg: 'žen{o}!, Jan{o}!, růž{e}!, kost{i}!',
+					exPl: 'žen{y}!, růž{e}!, kost{i}!'
+				},
+				{
+					sg: '-o / -e / -í',
+					pl: '-a / -e / -ata / -í',
+					exSg: 'měst{o}!, moř{e}!',
+					exPl: 'měst{a}!, moř{e}!'
+				}
+			],
+			endingsNote:
+				'The plural, and every neuter form, is the same as the nominative. Masculines ending in -k, -g, -h, -ch take -u (kluku!); -r after a consonant becomes -ře (Petře!).',
 			examples: [
 				{
 					sentence: 'Mami, kde jsi?',
@@ -220,6 +372,34 @@
 				'Always requires a preposition — never stands alone'
 			],
 			prepositions: 'v/ve, na, o, po, při',
+			endings: [
+				{
+					sg: '-ovi / -u / -i',
+					pl: '-ech / -ích',
+					exSg: 'o pán{ovi}/pán{u}*, o muž{ovi}/muž{i}*',
+					exPl: 'o pán{ech}, o muž{ích}'
+				},
+				{
+					sg: '-ě / -e / -u / -i',
+					pl: '-ech / -ích',
+					exSg: 'na hrad{ě}, v les{e}, o hrad{u}, ve stroj{i}',
+					exPl: 'na hrad{ech}, v les{ích}, ve stroj{ích}'
+				},
+				{
+					sg: '-ě / -e / -i',
+					pl: '-ách / -ích / -ech',
+					exSg: 'o žen{ě}, v Praz{e}, o růž{i}, v kost{i}',
+					exPl: 'o žen{ách}, o růž{ích}, o kost{ech}'
+				},
+				{
+					sg: '-ě / -u / -i / -eti / -í',
+					pl: '-ech / -ích / -atech',
+					exSg: 've měst{ě}, v moř{i}, na nádraž{í}',
+					exPl: 've měst{ech}, v moř{ích}, na nádraž{ích}'
+				}
+			],
+			endingsNote:
+				'* both forms are possible. The ending -ě/-e often changes the consonant before it: Praha → v Praze, ruka → v ruce.',
 			examples: [
 				{
 					sentence: 'Bydlím v České republice.',
@@ -257,6 +437,32 @@
 				'Expressing location (behind, in front of, between, etc.)'
 			],
 			prepositions: 's/se, za, nad, pod, před, mezi',
+			endings: [
+				{
+					sg: '-em / -ou',
+					pl: '-y / -i',
+					exSg: 's pán{em}, s muž{em}, s předsed{ou}',
+					exPl: 's pán{y}, s muž{i}'
+				},
+				{
+					sg: '-em',
+					pl: '-y / -i',
+					exSg: 'před hrad{em}, se stroj{em}',
+					exPl: 'před hrad{y}, se stroj{i}'
+				},
+				{
+					sg: '-ou / -í',
+					pl: '-ami / -emi / -ěmi / -mi',
+					exSg: 'se žen{ou}, s růž{í}, s kost{í}',
+					exPl: 'se žen{ami}, s růž{emi}, s písn{ěmi}, s kost{mi}'
+				},
+				{
+					sg: '-em / -etem / -ím',
+					pl: '-y / -i / -aty / -ími',
+					exSg: 's měst{em}, s moř{em}, s nádraž{ím}',
+					exPl: 's měst{y}, s moř{i}, s nádraž{ími}'
+				}
+			],
 			examples: [
 				{
 					sentence: 'Jedu autobusem.',
@@ -472,6 +678,55 @@
 									>
 								{/each}
 							</div>
+						{/if}
+					</div>
+
+					<!-- Endings -->
+					<div class="mb-4">
+						<h3 class="mb-2 text-xs font-semibold uppercase tracking-widest text-text-subtitle">
+							Endings
+						</h3>
+						<div class="overflow-x-auto rounded-xl">
+							<table class="w-full text-left text-xs sm:text-sm">
+								<thead>
+									<tr>
+										{#each ['Gender', 'Singular', 'Plural', 'Example (sg.)', 'Example (pl.)'] as header (header)}
+											<th
+												scope="col"
+												class="whitespace-nowrap bg-shaded-background px-3 py-2 text-xs font-semibold uppercase tracking-wider text-text-subtitle"
+											>
+												{header}
+											</th>
+										{/each}
+									</tr>
+								</thead>
+								<tbody>
+									{#each c.endings as row, i (i)}
+										<tr class={i % 2 === 0 ? '' : 'bg-shaded-background/40'}>
+											<th scope="row" class="min-w-24 px-3 py-2 font-semibold text-text-subtitle">
+												{genderLabels[i]}
+											</th>
+											<td class="whitespace-nowrap px-3 py-2 font-semibold text-text-default"
+												>{row.sg}</td
+											>
+											<td class="whitespace-nowrap px-3 py-2 font-semibold text-text-default"
+												>{row.pl}</td
+											>
+											{#each [row.exSg, row.exPl] as ex, j (j)}
+												<td class="min-w-36 px-3 py-2 italic text-text-default"
+													>{#each endingSegments(ex) as seg, k (k)}{#if seg.bold}<strong
+																class="font-bold not-italic"
+																style="color: {c.color}">{seg.part}</strong
+															>{:else}{seg.part}{/if}{/each}</td
+												>
+											{/each}
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+						{#if c.endingsNote}
+							<p class="mt-2 text-xs text-text-subtitle">{c.endingsNote}</p>
 						{/if}
 					</div>
 
