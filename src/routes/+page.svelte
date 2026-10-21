@@ -109,8 +109,8 @@
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
 	import {
 		determinerSentenceTemplates,
-		loadDeterminerBank,
-		pickDeterminerQuestion
+		pickDeterminerQuestion,
+		reviewDeterminerQuestion
 	} from '$lib/engine/determiners';
 	import { loadDeckProgress, recordDeckAnswer } from '$lib/engine/deck-progress';
 	import { loadDeckReturnChapter, saveDeckReturnChapter } from '$lib/engine/deck-return';
@@ -2225,25 +2225,11 @@
 				}
 			} else {
 				const pronoun = pronounBank.find((p) => p.lemma === mk.lemma);
-				const determiner = pronoun
-					? undefined
-					: loadDeterminerBank().find((d) => d.lemma === mk.lemma);
 				// A determiner (můj, ten, tenhle…) is re-asked in a fresh sentence:
 				// its form depends on the noun, which the mistake doesn't keep.
 				const q = pronoun
 					? generatePronounFormProduction(pronoun, mk.targetCase, mk.targetNumber)
-					: determiner
-						? pickDeterminerQuestion({
-								set: determiner.paradigmType === 'demonstrative' ? 'demonstratives' : 'determiners',
-								lemma: determiner.lemma,
-								cases: [mk.targetCase],
-								numbers: [mk.targetNumber],
-								difficulties: LEVEL_ORDER,
-								progress: get(progress),
-								recentTemplateIds: [],
-								skipSingularFirst: true
-							})
-						: null;
+					: reviewDeterminerQuestion(mk.lemma, mk.targetCase, mk.targetNumber, get(progress));
 				if (q) {
 					generatedMistakes.push({
 						question: q,

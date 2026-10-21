@@ -5,7 +5,8 @@ import {
 	loadDeclinableBank,
 	loadDeterminerBank,
 	loadDeterminerTemplates,
-	pickDeterminerQuestion
+	pickDeterminerQuestion,
+	reviewDeterminerQuestion
 } from './determiners';
 import { checkAdjectiveAnswer, getAdjectiveForm, getAdjectiveGenderKey } from './adjective-drill';
 import { applyPrepositionVoicing } from './preposition-voicing';
@@ -617,5 +618,26 @@ describe('ten, ta, to sentences', () => {
 		const knihu = ask(['acc'], ['sg'], 'f', false);
 		expect(checkAdjectiveAnswer(knihu, 'tý')?.correct).toBe(false);
 		expect(knihu.template.why).not.toContain('Spoken Czech');
+	});
+
+	it('asks a stored mistake again whatever level the learner is at now', () => {
+		const atA1: Progress = { ...progress, level: 'A1' };
+		// A1 opens neither the instrumental nor plurals.
+		expect(
+			pickDeterminerQuestion({
+				set: 'demonstratives',
+				lemma: 'ten',
+				cases: ['ins'],
+				numbers: ['pl'],
+				difficulties: ['A1', 'A2', 'B1', 'B2'],
+				progress: atA1,
+				recentTemplateIds: []
+			})
+		).toBeNull();
+		const q = reviewDeterminerQuestion('ten', 'ins', 'pl', atA1);
+		expect(q?.adjective?.lemma).toBe('ten');
+		expect(q?.correctAnswer).toBe('těmi');
+		expect(reviewDeterminerQuestion('můj', 'dat', 'sg', atA1)?.adjective?.lemma).toBe('můj');
+		expect(reviewDeterminerQuestion('hrad', 'gen', 'sg', atA1)).toBeNull();
 	});
 });

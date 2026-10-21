@@ -554,3 +554,30 @@ export function pickDeterminerQuestion(pick: DeterminerPick): DrillQuestion | nu
 		template: { ...template, why: [template.why, ...notes].join('\n') }
 	};
 }
+
+/**
+ * A missed determiner asked again in mistake review, in a fresh sentence (its
+ * form depends on the noun, which a stored mistake doesn't keep). The mistake
+ * may come from a higher level than the learner's current one, so no level
+ * limit applies: every case, number and difficulty is open. Null when the
+ * lemma isn't a determiner, or nothing fits the case and number.
+ */
+export function reviewDeterminerQuestion(
+	lemma: string,
+	case_: Case,
+	number: Number_,
+	progress: Progress
+): DrillQuestion | null {
+	const determiner = loadDeterminerBank().find((d) => d.lemma === lemma);
+	if (!determiner) return null;
+	return pickDeterminerQuestion({
+		set: determiner.paradigmType === 'demonstrative' ? 'demonstratives' : 'determiners',
+		lemma,
+		cases: [case_],
+		numbers: [number],
+		difficulties: LEVEL_ORDER,
+		// B2 opens every case and number, with no singular-first gate.
+		progress: { ...progress, level: 'B2' },
+		recentTemplateIds: []
+	});
+}
