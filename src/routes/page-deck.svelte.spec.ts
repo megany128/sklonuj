@@ -186,9 +186,9 @@ describe('?deck= URL param', () => {
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
 	});
 
-	it('the Ten, ta, to deck asks for a form of ten at A1', async () => {
+	it('the Ten, ta, to deck asks for a form of ten at A2', async () => {
 		appPage.url.search = '?deck=ten-ta-to';
-		setLevel('A1');
+		setLevel('A2');
 		localStorage.setItem('sklonuj_onboarded', '1');
 		render(Page);
 		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Ten, ta, to');

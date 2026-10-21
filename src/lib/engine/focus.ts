@@ -56,7 +56,7 @@ export const FOCUS_DEFS: readonly FocusDef[] = [
 		slug: 'ten-ta-to',
 		label: 'Ten, ta, to',
 		blurb: 'Ten, tenhle and tento in every case: toho psa, s touhle ženou, v těchto domech',
-		unlockLevel: 'A1',
+		unlockLevel: 'A2',
 		source: 'demonstratives'
 	},
 	{

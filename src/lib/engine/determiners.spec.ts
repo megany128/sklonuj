@@ -62,7 +62,7 @@ describe('determiner forms', () => {
 			'tento'
 		]);
 		expect(det('ten').paradigmType).toBe('demonstrative');
-		expect(det('ten').difficulty).toBe('A1');
+		expect(det('ten').difficulty).toBe('A2');
 		expect(det('náš').paradigmType).toBe('possessive');
 	});
 
@@ -324,7 +324,7 @@ describe('ten, ta, to sentences', () => {
 		}
 		const def = focusDef('demonstratives');
 		expect(def.source).toBe('demonstratives');
-		expect(def.unlockLevel).toBe('A1');
+		expect(def.unlockLevel).toBe('A2');
 		const sentences = determinerSentenceTemplates();
 		expect(templatesForFocus(sentences, 'demonstratives')).toHaveLength(frames.length);
 		expect(templatesForFocus(sentences, 'determiners')).toHaveLength(templates.length);
@@ -486,21 +486,31 @@ describe('ten, ta, to sentences', () => {
 		expect(lemmas.has('tento')).toBe(false);
 	});
 
-	it('at A1 asks only A1 sentences, A1 nouns and the A1 words', () => {
+	it('keeps to the difficulties it is given, and asks no word below them', () => {
 		for (let i = 0; i < 100; i++) {
 			const q = pickDeterminerQuestion({
 				set: 'demonstratives',
 				cases: ['nom', 'acc', 'gen', 'loc'],
 				numbers: ['sg'],
-				difficulties: ['A1'],
+				difficulties: ['A1', 'A2'],
 				progress,
 				recentTemplateIds: []
 			});
 			if (!q?.adjective) throw new Error('no question');
-			expect(q.template.difficulty).toBe('A1');
-			expect(q.word.difficulty).toBe('A1');
-			expect(['ten', 'tenhle']).toContain(q.adjective.lemma);
+			expect(['A1', 'A2']).toContain(q.template.difficulty);
+			expect(['A1', 'A2']).toContain(q.word.difficulty);
 		}
+		// All three words are A2, so an A1-only pick has none to ask.
+		expect(
+			pickDeterminerQuestion({
+				set: 'demonstratives',
+				cases: ['nom'],
+				numbers: ['sg'],
+				difficulties: ['A1'],
+				progress,
+				recentTemplateIds: []
+			})
+		).toBeNull();
 	});
 
 	it('takes the spoken těma for těmi, with a note that it is colloquial', () => {

@@ -60,14 +60,20 @@ describe('lockedContentForLevel', () => {
 	it('offers the level that unlocks each content toggle the level lacks', () => {
 		expect(lockedContentForLevel('A1')).toEqual([
 			{ content: 'pronouns', unlockLevel: 'B1' },
-			{ content: 'adjectives', unlockLevel: 'A2' }
+			{ content: 'adjectives', unlockLevel: 'A2' },
+			{ content: 'demonstratives', unlockLevel: 'A2' }
 		]);
 		expect(lockedContentForLevel('A2')).toEqual([{ content: 'pronouns', unlockLevel: 'B1' }]);
 		expect(lockedContentForLevel('B1')).toEqual([]);
 		expect(lockedContentForLevel('B2')).toEqual([]);
 	});
 
-	it('ten, ta, to is open at every level', () => {
-		for (const level of LEVELS) expect(curriculum[level].demonstratives_unlocked).toBe(true);
+	it('ten, ta, to opens at A2: it is about declining it through the cases', () => {
+		expect(LEVELS.map((level) => curriculum[level].demonstratives_unlocked)).toEqual([
+			false,
+			true,
+			true,
+			true
+		]);
 	});
 });

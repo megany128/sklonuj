@@ -12,6 +12,12 @@
 	import VolumeX from '@lucide/svelte/icons/volume-x';
 	import Settings from '@lucide/svelte/icons/settings';
 	import X from '@lucide/svelte/icons/x';
+	import WhatsNewBanner from '$lib/components/ui/WhatsNewBanner.svelte';
+	import {
+		activeAnnouncement,
+		dismissAnnouncement,
+		type Announcement
+	} from '$lib/engine/announcements';
 	import NotebookText from '@lucide/svelte/icons/notebook-text';
 	import Star from '@lucide/svelte/icons/star';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
@@ -497,7 +503,7 @@
 						level,
 						drillSettings.selectedDrillTypes ?? getDefaultSettings().selectedDrillTypes
 					),
-					// Ten, ta, to is open at every level, so the choice carries over.
+					// The Ten, ta, to choice carries over (it only applies where unlocked).
 					includeDemonstratives: drillSettings.includeDemonstratives
 				};
 	}
@@ -526,6 +532,9 @@
 	let hasInteracted = $state(false);
 	let sessionCount = $state(0);
 	let signupPromptDismissed = $state(false);
+	// The "what's new" banner, read from storage on mount (null on the server).
+	let announcement: Announcement | null = $state(null);
+	let announcementShownLogged = false;
 	let authModalOpen = $state(false);
 	let authModalInitialMode = $derived<'login' | 'signup' | 'forgot' | 'welcome'>(
 		page.url.searchParams.get('modal') === 'welcome' ? 'welcome' : 'login'
@@ -1612,6 +1621,30 @@
 
 	// A deck about singular against plural (Numbers) asks both, whatever the
 	// number setting and the singular-first rule say.
+	// The "what's new" banner stays out of the way of onboarding, assignments
+	// and decks (a deck has its own banner).
+	let showAnnouncement = $derived(
+		announcement !== null &&
+			!showOnboarding &&
+			// An assignment link hides it from the start, not only once it loads.
+			!assignmentLoading &&
+			!assignmentInfo &&
+			activeFocus === null
+	);
+
+	$effect(() => {
+		if (!showAnnouncement || announcement === null || announcementShownLogged) return;
+		announcementShownLogged = true;
+		posthog.capture('announcement_shown', { id: announcement.id, level: currentLevel });
+	});
+
+	function closeAnnouncement(action: 'clicked' | 'dismissed'): void {
+		if (announcement === null) return;
+		posthog.capture(`announcement_${action}`, { id: announcement.id, level: currentLevel });
+		dismissAnnouncement(announcement.id);
+		announcement = null;
+	}
+
 	let deckAsksBothNumbers = $derived(
 		activeFocus !== null && focusDef(activeFocus).bothNumbers === true
 	);
@@ -2280,6 +2313,7 @@
 		}
 		levelSettingsMap = loadLevelSettings();
 		applyLevelSettings(currentLevel);
+		announcement = activeAnnouncement();
 		loadChapterFromStorage();
 		loadChapterScores();
 
@@ -4248,6 +4282,8 @@
 				correct: false,
 				drillType: question?.drillType,
 				case: question?.case,
+				content: question?.wordCategory ?? 'noun',
+				topic: question?.template.topics?.[0] ?? null,
 				skipped: true
 			});
 			streak = 0;
@@ -4374,7 +4410,12 @@
 			...drillAnalyticsProps(),
 			correct: result.correct,
 			drillType: result.question.drillType,
-			case: result.question.case
+			case: result.question.case,
+			// What was asked: noun / adjective / pronoun, and the sentence's topic
+			// (a ten question mixed in by the setting has no deck but topic
+			// 'demonstratives').
+			content: result.question.wordCategory ?? 'noun',
+			topic: result.question.template.topics?.[0] ?? null
 		});
 		if (sessionCount === 3) {
 			posthog.capture('three_questions_completed', drillAnalyticsProps());
@@ -4787,6 +4828,14 @@
 					&times;
 				</button>
 			</div>
+		{/if}
+
+		{#if showAnnouncement && announcement}
+			<WhatsNewBanner
+				{announcement}
+				onAction={() => closeAnnouncement('clicked')}
+				onDismiss={() => closeAnnouncement('dismissed')}
+			/>
 		{/if}
 
 		<!-- Deck banner (active when a deck from /decks is in play) -->
@@ -5521,7 +5570,7 @@
 					result={lastResult}
 					onSubmit={handleSubmit}
 					onSpeak={ttsAvailable ? handleSpeak : null}
-					selectedCases={assignmentInfo ? effectiveEnabledCases : ALL_CASES}
+					selectedCases={assignmentInfo ? effectiveEnabledCases : availableCases}
 					{paradigmNotes}
 					onWordClick={handleWordClick}
 					{streak}

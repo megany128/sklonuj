@@ -25,16 +25,17 @@ describe('grammar decks', () => {
 		}
 	});
 
-	it('Ten, ta, to opens at A1 with its A1 sentences in the A1 cases', () => {
-		const ten = grammarDecks('A1', templates, {}).find((d) => d.def.id === 'demonstratives');
+	it('Ten, ta, to is locked at A1 and opens at A2 with its A1 and A2 sentences', () => {
+		const deck = (level: 'A1' | 'A2') =>
+			grammarDecks(level, templates, {}).find((d) => d.def.id === 'demonstratives');
+		expect(deck('A1')?.unlocked).toBe(false);
+		const ten = deck('A2');
 		expect(ten?.unlocked).toBe(true);
-		expect(ten?.cases).toEqual(['nom', 'gen', 'acc', 'loc']);
-		// A1 frames in A1's cases; every ten frame counts toward the total.
+		// A2 opens every case but the vocative, which the deck never asks.
+		expect(ten?.cases).toEqual(['nom', 'gen', 'dat', 'acc', 'loc', 'ins']);
 		const frames = demonstrativeFrames();
 		expect(ten?.sentences).toBe(
-			frames.filter(
-				(t) => t.difficulty === 'A1' && ['nom', 'acc', 'gen', 'loc'].includes(t.requiredCase)
-			).length
+			frames.filter((t) => t.difficulty === 'A1' || t.difficulty === 'A2').length
 		);
 		expect(ten?.total).toBe(frames.length);
 		expect(deckQuery('demonstratives')).toBe('?deck=ten-ta-to');

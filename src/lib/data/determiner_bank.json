@@ -196,7 +196,7 @@
 	{
 		"lemma": "ten",
 		"translation": "that, the",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"paradigmType": "demonstrative",
 		"categories": ["determiner"],
 		"profile": "quality",
@@ -223,7 +223,7 @@
 	{
 		"lemma": "tenhle",
 		"translation": "this (everyday, spoken)",
-		"difficulty": "A1",
+		"difficulty": "A2",
 		"paradigmType": "demonstrative",
 		"categories": ["determiner"],
 		"profile": "quality",

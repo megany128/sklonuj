@@ -75,6 +75,7 @@
 		/** `hinted` is set when the learner opened a hint before answering. */
 		onSubmit: (answer: string, meta?: { hinted: boolean }) => void;
 		onSpeak: ((text: string) => void) | null;
+		/** The cases the learner can be asked; "Which case?" choices come from these. */
 		selectedCases: Case[];
 		paradigmNotes?: Record<string, string> | null;
 		onWordClick?: ((lemma: string) => void) | null;
@@ -146,7 +147,12 @@
 		if (!question || question.drillType !== 'case_identification') return selectedCases;
 		if (!isCase(question.correctAnswer)) return selectedCases;
 		const correctCase = question.correctAnswer;
-		if (selectedCases.length <= MAX_CASE_OPTIONS) return selectedCases;
+		if (selectedCases.length <= MAX_CASE_OPTIONS) {
+			// A short list must still offer the right answer.
+			return selectedCases.includes(correctCase)
+				? selectedCases
+				: [...selectedCases, correctCase].sort((a, b) => CASE_NUMBER[a] - CASE_NUMBER[b]);
+		}
 		const distractors = selectedCases.filter((c) => c !== correctCase);
 		// Shuffle distractors deterministically based on stable question data
 		const seed = hashString(question.correctAnswer + question.word.lemma + question.template.id);
