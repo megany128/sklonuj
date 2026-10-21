@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from './decks';
 import { loadTemplates } from './drill';
-import { determinerSentenceTemplates } from './determiners';
+import { demonstrativeFrames, determinerSentenceTemplates } from './determiners';
 import { ALL_PARADIGMS } from '../types';
 
 // What the Decks page passes in: noun sentences plus the determiner deck's own.
@@ -10,13 +10,34 @@ const templates = [...loadTemplates(), ...determinerSentenceTemplates()];
 describe('grammar decks', () => {
 	it('lists every deck with its sentences and cases for the level', () => {
 		const decks = grammarDecks('A2', templates, {});
-		expect(decks.map((d) => d.def.id)).toEqual(['direction', 'verbs', 'numbers', 'determiners']);
+		expect(decks.map((d) => d.def.id)).toEqual([
+			'direction',
+			'verbs',
+			'demonstratives',
+			'numbers',
+			'determiners'
+		]);
 		for (const d of decks) {
 			expect(d.unlocked).toBe(true);
 			expect(d.sentences).toBeGreaterThan(5);
 			expect(d.cases.length).toBeGreaterThanOrEqual(2);
 			expect(d.stat).toBeUndefined();
 		}
+	});
+
+	it('Ten, ta, to opens at A1 with its A1 sentences in the A1 cases', () => {
+		const ten = grammarDecks('A1', templates, {}).find((d) => d.def.id === 'demonstratives');
+		expect(ten?.unlocked).toBe(true);
+		expect(ten?.cases).toEqual(['nom', 'gen', 'acc', 'loc']);
+		// A1 frames in A1's cases; every ten frame counts toward the total.
+		const frames = demonstrativeFrames();
+		expect(ten?.sentences).toBe(
+			frames.filter(
+				(t) => t.difficulty === 'A1' && ['nom', 'acc', 'gen', 'loc'].includes(t.requiredCase)
+			).length
+		);
+		expect(ten?.total).toBe(frames.length);
+		expect(deckQuery('demonstratives')).toBe('?deck=ten-ta-to');
 	});
 
 	it('a deck above the level is listed as locked', () => {

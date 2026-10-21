@@ -164,7 +164,8 @@ describe('Numbers deck', () => {
 		// The other decks leave the number setting alone.
 		expect(FOCUS_DEFS.filter((d) => !d.bothNumbers).map((d) => d.id)).toEqual([
 			'direction',
-			'verbs'
+			'verbs',
+			'demonstratives'
 		]);
 	});
 

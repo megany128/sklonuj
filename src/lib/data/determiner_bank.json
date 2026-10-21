@@ -196,7 +196,7 @@
 	{
 		"lemma": "ten",
 		"translation": "that, the",
-		"difficulty": "A2",
+		"difficulty": "A1",
 		"paradigmType": "demonstrative",
 		"categories": ["determiner"],
 		"profile": "quality",
@@ -216,6 +216,60 @@
 			"n": {
 				"sg": ["to", "toho", "tomu", "to", "to", "tom", "tím"],
 				"pl": ["ta", "těch", "těm", "ta", "ta", "těch", "těmi"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "tenhle",
+		"translation": "this (everyday, spoken)",
+		"difficulty": "A1",
+		"paradigmType": "demonstrative",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["tenhle", "tohohle", "tomuhle", "tohohle", "tenhle", "tomhle", "tímhle"],
+				"pl": ["tihle", "těchhle", "těmhle", "tyhle", "tihle", "těchhle", "těmihle"]
+			},
+			"m_inanim": {
+				"sg": ["tenhle", "tohohle", "tomuhle", "tenhle", "tenhle", "tomhle", "tímhle"],
+				"pl": ["tyhle", "těchhle", "těmhle", "tyhle", "tyhle", "těchhle", "těmihle"]
+			},
+			"f": {
+				"sg": ["tahle", "téhle", "téhle", "tuhle", "tahle", "téhle", "touhle"],
+				"pl": ["tyhle", "těchhle", "těmhle", "tyhle", "tyhle", "těchhle", "těmihle"]
+			},
+			"n": {
+				"sg": ["tohle", "tohohle", "tomuhle", "tohle", "tohle", "tomhle", "tímhle"],
+				"pl": ["tahle", "těchhle", "těmhle", "tahle", "tahle", "těchhle", "těmihle"]
+			}
+		},
+		"variantForms": {}
+	},
+	{
+		"lemma": "tento",
+		"translation": "this (formal, written)",
+		"difficulty": "A2",
+		"paradigmType": "demonstrative",
+		"categories": ["determiner"],
+		"profile": "quality",
+		"forms": {
+			"m_anim": {
+				"sg": ["tento", "tohoto", "tomuto", "tohoto", "tento", "tomto", "tímto"],
+				"pl": ["tito", "těchto", "těmto", "tyto", "tito", "těchto", "těmito"]
+			},
+			"m_inanim": {
+				"sg": ["tento", "tohoto", "tomuto", "tento", "tento", "tomto", "tímto"],
+				"pl": ["tyto", "těchto", "těmto", "tyto", "tyto", "těchto", "těmito"]
+			},
+			"f": {
+				"sg": ["tato", "této", "této", "tuto", "tato", "této", "touto"],
+				"pl": ["tyto", "těchto", "těmto", "tyto", "tyto", "těchto", "těmito"]
+			},
+			"n": {
+				"sg": ["toto", "tohoto", "tomuto", "toto", "toto", "tomto", "tímto"],
+				"pl": ["tato", "těchto", "těmto", "tato", "tato", "těchto", "těmito"]
 			}
 		},
 		"variantForms": {}

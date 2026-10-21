@@ -44,6 +44,7 @@
 	} from '$lib/types';
 	import {
 		ALL_CASES,
+		LEVEL_ORDER,
 		ALL_DRILL_TYPES,
 		CASE_LABELS,
 		CASE_SHORT_LABELS,
@@ -80,7 +81,11 @@
 		lockedCasesForLevel,
 		type CurriculumLevel
 	} from '$lib/engine/drill';
-	import { levelDefaultSettings } from '$lib/engine/level-settings';
+	import {
+		levelDefaultSettings,
+		lockedContentForLevel,
+		type GatedContent
+	} from '$lib/engine/level-settings';
 	import {
 		progress,
 		STORAGE_USER_KEY,
@@ -102,7 +107,11 @@
 	} from '$lib/engine/cell-pools';
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
-	import { determinerSentenceTemplates, pickDeterminerQuestion } from '$lib/engine/determiners';
+	import {
+		determinerSentenceTemplates,
+		pickDeterminerQuestion,
+		reviewDeterminerQuestion
+	} from '$lib/engine/determiners';
 	import { loadDeckProgress, recordDeckAnswer } from '$lib/engine/deck-progress';
 	import { loadDeckReturnChapter, saveDeckReturnChapter } from '$lib/engine/deck-return';
 	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
@@ -430,6 +439,8 @@
 			obj.wordMode !== 'both'
 		)
 			return false;
+		if (obj.includeDemonstratives !== undefined && typeof obj.includeDemonstratives !== 'boolean')
+			return false;
 		if (!obj.selectedCases.every((c: unknown) => isCaseValue(c))) return false;
 		if (!obj.selectedDrillTypes.every((dt: unknown) => isDrillType(dt))) {
 			// Some drill types may be legacy (e.g. adjective_agreement) - filter them
@@ -449,8 +460,6 @@
 		}
 	}
 
-	const ALL_LEVELS: readonly Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
-
 	function loadLevelSettings(): Partial<Record<Difficulty, DrillSettings>> {
 		if (typeof window === 'undefined') return {};
 		try {
@@ -459,7 +468,7 @@
 			const parsed: unknown = JSON.parse(raw);
 			if (!isRecord(parsed)) return {};
 			const out: Partial<Record<Difficulty, DrillSettings>> = {};
-			for (const lvl of ALL_LEVELS) {
+			for (const lvl of LEVEL_ORDER) {
 				const entry = parsed[lvl];
 				if (isValidDrillSettings(entry)) out[lvl] = { ...entry, selectedCases: ALL_CASES };
 			}
@@ -483,10 +492,14 @@
 		const saved = levelSettingsMap[level];
 		drillSettings = saved
 			? { ...saved, selectedCases: ALL_CASES }
-			: levelDefaultSettings(
-					level,
-					drillSettings.selectedDrillTypes ?? getDefaultSettings().selectedDrillTypes
-				);
+			: {
+					...levelDefaultSettings(
+						level,
+						drillSettings.selectedDrillTypes ?? getDefaultSettings().selectedDrillTypes
+					),
+					// Ten, ta, to is open at every level, so the choice carries over.
+					includeDemonstratives: drillSettings.includeDemonstratives
+				};
 	}
 
 	let currentProgress = $state(get(progress));
@@ -1552,6 +1565,11 @@
 		chapterBook === 'kzk1' ? false : (curriculum[currentLevel]?.adjectives_unlocked ?? false)
 	);
 
+	// Derived: whether the Ten, ta, to setting is offered (same KzK1 nouns-only rule).
+	let demonstrativesUnlocked = $derived(
+		chapterBook === 'kzk1' ? false : (curriculum[currentLevel]?.demonstratives_unlocked ?? false)
+	);
+
 	// Derived: effective content mode (constrained by unlock state)
 	let effectiveContentMode: ContentMode = $derived.by(() => {
 		const mode = drillSettings.contentMode ?? 'both';
@@ -1596,6 +1614,18 @@
 	// number setting and the singular-first rule say.
 	let deckAsksBothNumbers = $derived(
 		activeFocus !== null && focusDef(activeFocus).bothNumbers === true
+	);
+
+	// Derived: whether ten questions are mixed into this question stream. Decks
+	// ask only their own sentences and paradigm practice only that paradigm.
+	let demonstrativesActive = $derived(
+		demonstrativesUnlocked &&
+			drillSettings.includeDemonstratives === true &&
+			// Ten questions are sentence fill-ins, so they follow that exercise type.
+			drillSettings.selectedDrillTypes.includes('sentence_fill_in') &&
+			activeFocus === null &&
+			selectedParadigm === null &&
+			!assignmentInfo
 	);
 
 	let effectiveNumberMode = $derived.by(() => {
@@ -1667,7 +1697,7 @@
 		const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 		const difficulties = curriculum[get(progress).level].unlocked_difficulty;
 		const source =
-			focusDef(deck).source === 'determiners' ? determinerSentenceTemplates() : loadTemplates();
+			focusDef(deck).source !== undefined ? determinerSentenceTemplates() : loadTemplates();
 		return templatesForFocus(source, deck).some(
 			(t) =>
 				cases.includes(t.requiredCase) &&
@@ -1736,8 +1766,56 @@
 		assignmentInfo || getSelectedKzkChapter() ? [] : lockedCasesForLevel(currentLevel)
 	);
 
-	// The locked case whose upsell modal is open, if any.
-	let lockedCaseModal: { case: Case; unlockLevel: Difficulty } | null = $state(null);
+	// Content toggles this level hasn't unlocked — shown greyed in the drill
+	// settings, offering the level that unlocks them (same rules as lockedCases).
+	let lockedContent: { content: GatedContent; unlockLevel: Difficulty }[] = $derived.by(() =>
+		assignmentInfo || getSelectedKzkChapter() ? [] : lockedContentForLevel(currentLevel)
+	);
+
+	/**
+	 * The open "move up a level?" prompt, if any: for a locked case pill or a
+	 * locked content toggle. `name` fills "X unlocks at B1"; `confirm` runs
+	 * after the level change to turn the picked thing on.
+	 */
+	let levelUpPrompt: {
+		name: string;
+		unlockLevel: Difficulty;
+		/** How the prompt refers back to it: "start practicing it / them". */
+		pronoun: 'it' | 'them';
+		confirm: () => void;
+	} | null = $state(null);
+
+	const GATED_CONTENT_NAMES: Record<GatedContent, { name: string; pronoun: 'it' | 'them' }> = {
+		pronouns: { name: 'Pronouns', pronoun: 'them' },
+		adjectives: { name: 'Adjectives', pronoun: 'them' },
+		demonstratives: { name: 'Ten, ta, to', pronoun: 'them' }
+	};
+
+	/** Move up to the level that unlocks a content toggle, then turn it on. */
+	function unlockContent(content: GatedContent, level: Difficulty): void {
+		handleLevelChange(level, false);
+		const cm = drillSettings.contentMode ?? 'nouns';
+		const wm = drillSettings.wordMode ?? 'nouns';
+		const base = {
+			selectedDrillTypes: drillSettings.selectedDrillTypes,
+			numberMode: drillSettings.numberMode,
+			contentMode: cm,
+			wordMode: wm,
+			includeDemonstratives: drillSettings.includeDemonstratives
+		};
+		if (content === 'pronouns') {
+			handleSettingsChange({
+				...base,
+				contentMode: cm === 'pronouns' ? 'pronouns' : 'both',
+				// Adjectives-only would hide the pronouns just turned on.
+				wordMode: wm === 'adjectives' ? 'both' : wm
+			});
+		} else if (content === 'adjectives') {
+			handleSettingsChange({ ...base, wordMode: wm === 'adjectives' ? 'adjectives' : 'both' });
+		} else {
+			handleSettingsChange({ ...base, includeDemonstratives: true });
+		}
+	}
 
 	// How many of the *available* cases the user has enabled — drives the filter
 	// badge/Reset against the gated universe rather than all 7.
@@ -2147,16 +2225,18 @@
 				}
 			} else {
 				const pronoun = pronounBank.find((p) => p.lemma === mk.lemma);
-				if (pronoun) {
-					const q = generatePronounFormProduction(pronoun, mk.targetCase, mk.targetNumber);
-					if (q) {
-						generatedMistakes.push({
-							question: q,
-							userAnswer: '',
-							correct: false,
-							nearMiss: false
-						});
-					}
+				// A determiner (můj, ten, tenhle…) is re-asked in a fresh sentence:
+				// its form depends on the noun, which the mistake doesn't keep.
+				const q = pronoun
+					? generatePronounFormProduction(pronoun, mk.targetCase, mk.targetNumber)
+					: reviewDeterminerQuestion(mk.lemma, mk.targetCase, mk.targetNumber, get(progress));
+				if (q) {
+					generatedMistakes.push({
+						question: q,
+						userAnswer: '',
+						correct: false,
+						nearMiss: false
+					});
 				}
 			}
 		}
@@ -3041,7 +3121,7 @@
 	 */
 	function generateFallbackQuestion(): DrillQuestion | null {
 		// A determiner deck asks its own sentences or nothing.
-		if (activeFocus !== null && focusDef(activeFocus).source === 'determiners') return null;
+		if (activeFocus !== null && focusDef(activeFocus).source !== undefined) return null;
 		if (effectiveWordMode === 'adjectives') return generateFallbackAdjectiveQuestion();
 		if (effectiveContentMode === 'pronouns') return generateFallbackPronounQuestion();
 		const wordBank = loadWordBank();
@@ -3083,6 +3163,8 @@
 		// determiner deck's own), so its misses come back whatever the learner's
 		// usual settings say.
 		if (activeFocus !== null) return true;
+		// A ten question from the Ten, ta, to setting comes back while it is on.
+		if (q.template.topics?.includes('demonstratives') === true) return demonstrativesActive;
 		if (!drillSettings.selectedDrillTypes.includes(q.drillType)) return false;
 		if (q.wordCategory === 'adjective') return enabledContentTypes.adjectives;
 		if (q.wordCategory === 'pronoun') return enabledContentTypes.pronouns;
@@ -3203,12 +3285,15 @@
 			return;
 		}
 
-		// A determiner deck (můj, tvůj, ten) has its own sentences, with the
-		// blank on the determiner; nothing else is asked while it is on.
-		if (activeFocus !== null && focusDef(activeFocus).source === 'determiners') {
+		// A determiner deck (můj, tvůj, ten, or ten, ta, to) has its own
+		// sentences, with the blank on the determiner; nothing else is asked
+		// while it is on.
+		const deckSource = activeFocus !== null ? focusDef(activeFocus).source : undefined;
+		if (deckSource !== undefined) {
 			const prog = get(progress);
 			const levelConfig = curriculum[prog.level];
 			const determinerQ = pickDeterminerQuestion({
+				set: deckSource,
 				cases: effectiveEnabledCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
 				numbers: allowedNumbers(),
 				difficulties: levelConfig.unlocked_difficulty,
@@ -3229,6 +3314,42 @@
 				autoPlayPrompt(determinerQ);
 			}
 			return;
+		}
+
+		// The Ten, ta, to setting mixes ten questions into the usual drill,
+		// about one in five. A miss (no sentence fits the case and number
+		// filters) falls through to the usual content.
+		if (demonstrativesActive && Math.random() < 0.2) {
+			const prog = get(progress);
+			const levelConfig = curriculum[prog.level];
+			const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+			// In chapter mode the noun comes from the chapter's words, as it does
+			// for every other question there.
+			const chapterWords = chapterWordPool();
+			const chapterLemmas = chapterWords ? new Set(chapterWords.map((w) => w.lemma)) : null;
+			const demonstrativeQ = pickDeterminerQuestion({
+				set: 'demonstratives',
+				nounFilter: chapterLemmas ? (w) => chapterLemmas.has(w.lemma) : undefined,
+				cases: cases.filter((c) => levelConfig.unlocked_cases.includes(c)),
+				numbers: allowedNumbers(),
+				difficulties: levelConfig.unlocked_difficulty,
+				progress: prog,
+				recentTemplateIds
+			});
+			if (demonstrativeQ) {
+				question = demonstrativeQ;
+				multiStepQuestion = null;
+				lastResult = null;
+				paradigmNotes = null;
+				submitted = false;
+				pushRecent(recentTemplateIds, demonstrativeQ.template.id, RECENT_TEMPLATE_LIMIT);
+				if (advanceTimer !== null) {
+					clearTimeout(advanceTimer);
+					advanceTimer = null;
+				}
+				autoPlayPrompt(demonstrativeQ);
+				return;
+			}
 		}
 
 		// Decide content type for this question
@@ -4425,7 +4546,12 @@
 		generateNextQuestion();
 	}
 
-	function handleLevelChange(level: Difficulty): void {
+	/**
+	 * Switch level. `ask` false leaves the next question to the caller, which
+	 * is about to change something else and ask one itself; asking twice would
+	 * throw the first away (and any due re-ask it took off the queue).
+	 */
+	function handleLevelChange(level: Difficulty, ask = true): void {
 		const previousLevel = currentLevel;
 		setLevel(level);
 		// Auto-enable the new level's content toggles (pronouns/adjectives/plural),
@@ -4440,7 +4566,7 @@
 		}
 		posthog.capture('level_changed', { ...drillAnalyticsProps(), from: previousLevel, to: level });
 		scheduleSyncToSupabase();
-		generateNextQuestion();
+		if (ask) generateNextQuestion();
 	}
 
 	function handleSettingsChange(settings: {
@@ -4448,6 +4574,7 @@
 		numberMode: 'sg' | 'pl' | 'both';
 		contentMode?: ContentMode;
 		wordMode?: WordMode;
+		includeDemonstratives?: boolean;
 	}): void {
 		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
@@ -5033,7 +5160,16 @@
 						{availableCases}
 						{lockedCases}
 						onSelect={handleCaseSelect}
-						onLockedSelect={(locked) => (lockedCaseModal = locked)}
+						onLockedSelect={(locked) =>
+							(levelUpPrompt = {
+								name: CASE_LABELS[locked.case],
+								unlockLevel: locked.unlockLevel,
+								pronoun: 'it',
+								confirm: () => {
+									handleLevelChange(locked.unlockLevel, false);
+									handleCaseSelect(locked.case);
+								}
+							})}
 					/>
 				{/if}
 			</div>
@@ -5301,6 +5437,15 @@
 					wordMode={drillSettings.wordMode ?? 'nouns'}
 					{pronounsUnlocked}
 					{adjectivesUnlocked}
+					includeDemonstratives={drillSettings.includeDemonstratives === true}
+					{demonstrativesUnlocked}
+					{lockedContent}
+					onLockedSelect={(locked) =>
+						(levelUpPrompt = {
+							...GATED_CONTENT_NAMES[locked.content],
+							unlockLevel: locked.unlockLevel,
+							confirm: () => unlockContent(locked.content, locked.unlockLevel)
+						})}
 					onSettingsChange={handleSettingsChange}
 					hiddenDrillTypes={(() => {
 						const hidden: DrillType[] = [];
@@ -5516,15 +5661,15 @@
 	initialMode={authModalInitialMode}
 />
 
-{#if lockedCaseModal}
-	{@const locked = lockedCaseModal}
+{#if levelUpPrompt}
+	{@const locked = levelUpPrompt}
 	<div
 		class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
 		transition:fade={{ duration: 150 }}
 		role="button"
 		tabindex="-1"
-		onclick={() => (lockedCaseModal = null)}
-		onkeydown={(e) => e.key === 'Escape' && (lockedCaseModal = null)}
+		onclick={() => (levelUpPrompt = null)}
+		onkeydown={(e) => e.key === 'Escape' && (levelUpPrompt = null)}
 	>
 		<div
 			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
@@ -5535,16 +5680,16 @@
 			onkeydown={() => {}}
 		>
 			<h2 class="text-lg font-semibold text-text-default">
-				{CASE_LABELS[locked.case]} unlocks at {locked.unlockLevel}
+				{locked.name} unlocks at {locked.unlockLevel}
 			</h2>
 			<p class="mt-2 text-sm text-text-subtitle">
-				{currentLevel} doesn't cover {CASE_LABELS[locked.case].toLowerCase()}. Move up to {locked.unlockLevel}
-				to start practicing it?
+				{currentLevel} doesn't cover {locked.name.toLowerCase()}. Move up to {locked.unlockLevel}
+				to start practicing {locked.pronoun}?
 			</p>
 			<div class="mt-5 flex gap-3">
 				<button
 					type="button"
-					onclick={() => (lockedCaseModal = null)}
+					onclick={() => (levelUpPrompt = null)}
 					class="flex-1 cursor-pointer rounded-xl border border-card-stroke px-4 py-2.5 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
 				>
 					Not yet
@@ -5552,10 +5697,10 @@
 				<button
 					type="button"
 					onclick={() => {
-						const target = locked.unlockLevel;
-						lockedCaseModal = null;
-						handleLevelChange(target);
-						handleCaseSelect(locked.case);
+						// Read it before closing: `locked` follows levelUpPrompt.
+						const confirm = locked.confirm;
+						levelUpPrompt = null;
+						confirm();
 					}}
 					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
 				>

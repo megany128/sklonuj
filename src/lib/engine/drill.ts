@@ -15,7 +15,7 @@ import type {
 	VariantForms,
 	WordEntry
 } from '../types';
-import { ALL_CASES, CASE_INDEX, isCase, isNumber } from '../types';
+import { ALL_CASES, CASE_INDEX, LEVEL_ORDER, isCase, isNumber } from '../types';
 import wordBankData from '../data/word_bank.json';
 import templateData from '../data/sentence_templates.json';
 import curriculumData from '../data/curriculum.json';
@@ -71,6 +71,7 @@ export interface CurriculumLevel {
 	adjectives_unlocked: boolean;
 	plural_unlocked: boolean | string;
 	pronouns_unlocked: boolean;
+	demonstratives_unlocked: boolean;
 }
 
 const curriculum: Record<string, CurriculumLevel> = curriculumData;
@@ -526,8 +527,6 @@ export function casesWithContent(opts: CasesWithContentOptions): Case[] {
 		);
 	});
 }
-
-const LEVEL_ORDER: readonly Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
 
 /**
  * The lowest CEFR level whose curriculum unlocks `case_`, or null if no level

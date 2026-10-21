@@ -1,5 +1,5 @@
 import type { Case, Difficulty, FocusTopic, SentenceTemplate, WordEntry } from '../types';
-import { CASE_INDEX } from '../types';
+import { CASE_INDEX, LEVEL_ORDER } from '../types';
 import { applyPrepositionVoicing } from './preposition-voicing';
 import { withCount } from './numbers';
 
@@ -28,10 +28,12 @@ export interface FocusDef {
 	bothNumbers?: true;
 	/**
 	 * Where the topic's sentences come from. Most topics are tagged noun
-	 * sentences; `determiners` has its own bank and sentences
-	 * (`engine/determiners.ts`), with the blank on the determiner.
+	 * sentences, with the blank on the noun. The other two put the blank on a
+	 * determiner (`engine/determiners.ts`): `determiners` (můj, tvůj, náš, váš,
+	 * ten) has its own sentences; `demonstratives` (ten, tenhle, tento) borrows
+	 * the noun sentences with a random noun written in.
 	 */
-	source?: 'determiners';
+	source?: 'determiners' | 'demonstratives';
 }
 
 export const FOCUS_DEFS: readonly FocusDef[] = [
@@ -48,6 +50,14 @@ export const FOCUS_DEFS: readonly FocusDef[] = [
 		label: 'Verbs + case',
 		blurb: 'Verbs that decide the case: pomáhat + dative, bát se + genitive',
 		unlockLevel: 'A1'
+	},
+	{
+		id: 'demonstratives',
+		slug: 'ten-ta-to',
+		label: 'Ten, ta, to',
+		blurb: 'Ten, tenhle and tento in every case: toho psa, s touhle ženou, v těchto domech',
+		unlockLevel: 'A1',
+		source: 'demonstratives'
 	},
 	{
 		id: 'numbers',
@@ -84,8 +94,6 @@ export function focusDef(id: FocusTopic): FocusDef {
 export function focusFromSlug(slug: string | null | undefined): FocusTopic | null {
 	return FOCUS_DEFS.find((d) => d.slug === slug)?.id ?? null;
 }
-
-const LEVEL_ORDER: readonly Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
 
 export function focusUnlocked(id: FocusTopic, level: Difficulty): boolean {
 	return LEVEL_ORDER.indexOf(level) >= LEVEL_ORDER.indexOf(focusDef(id).unlockLevel);
