@@ -53,4 +53,47 @@ describe('DrillSettings content pills', () => {
 		await pill('Adjectives').click();
 		expect(onSettingsChange).not.toHaveBeenCalled();
 	});
+
+	it('shows a locked pill that offers its level instead of toggling', async () => {
+		const onSettingsChange = vi.fn();
+		const onLockedSelect = vi.fn();
+		render(DrillSettings, {
+			selectedDrillTypes: ['sentence_fill_in'],
+			numberMode: 'sg',
+			contentMode: 'nouns',
+			wordMode: 'both',
+			pronounsUnlocked: false,
+			adjectivesUnlocked: true,
+			demonstrativesUnlocked: true,
+			lockedContent: [{ content: 'pronouns', unlockLevel: 'B1' }],
+			onLockedSelect,
+			onSettingsChange
+		});
+		const locked = page.getByRole('button', { name: /Pronouns/ });
+		await expect.element(locked).toHaveAttribute('title', 'Unlocks at B1');
+		await locked.click();
+		expect(onLockedSelect).toHaveBeenCalledWith({ content: 'pronouns', unlockLevel: 'B1' });
+		expect(onSettingsChange).not.toHaveBeenCalled();
+	});
+
+	it('toggles Ten, ta, to on its own, keeping the other content', async () => {
+		const onSettingsChange = vi.fn();
+		render(DrillSettings, {
+			selectedDrillTypes: ['sentence_fill_in'],
+			numberMode: 'sg',
+			contentMode: 'nouns',
+			wordMode: 'nouns',
+			demonstrativesUnlocked: true,
+			onSettingsChange
+		});
+		await expect.element(pill('Ten, ta, to')).toHaveAttribute('aria-pressed', 'false');
+		await pill('Ten, ta, to').click();
+		expect(onSettingsChange).toHaveBeenCalledWith(
+			expect.objectContaining({
+				contentMode: 'nouns',
+				wordMode: 'nouns',
+				includeDemonstratives: true
+			})
+		);
+	});
 });

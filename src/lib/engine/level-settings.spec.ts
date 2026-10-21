@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import curriculumData from '$lib/data/curriculum.json';
 import { ALL_CASES, type Difficulty, type DrillType } from '$lib/types';
 import type { CurriculumLevel } from './drill';
-import { levelDefaultSettings } from './level-settings';
+import { levelDefaultSettings, lockedContentForLevel } from './level-settings';
 
 const curriculum: Record<string, CurriculumLevel> = curriculumData;
 const LEVELS: Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
@@ -53,5 +53,21 @@ describe('levelDefaultSettings', () => {
 			expect(s.wordMode).toBe(cfg.adjectives_unlocked ? 'both' : 'nouns');
 			expect(s.numberMode).toBe(cfg.plural_unlocked === true ? 'both' : 'sg');
 		}
+	});
+});
+
+describe('lockedContentForLevel', () => {
+	it('offers the level that unlocks each content toggle the level lacks', () => {
+		expect(lockedContentForLevel('A1')).toEqual([
+			{ content: 'pronouns', unlockLevel: 'B1' },
+			{ content: 'adjectives', unlockLevel: 'A2' }
+		]);
+		expect(lockedContentForLevel('A2')).toEqual([{ content: 'pronouns', unlockLevel: 'B1' }]);
+		expect(lockedContentForLevel('B1')).toEqual([]);
+		expect(lockedContentForLevel('B2')).toEqual([]);
+	});
+
+	it('ten, ta, to is open at every level', () => {
+		for (const level of LEVELS) expect(curriculum[level].demonstratives_unlocked).toBe(true);
 	});
 });

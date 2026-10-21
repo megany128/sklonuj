@@ -6,6 +6,9 @@ export type Number_ = 'sg' | 'pl';
 
 export type Difficulty = 'A1' | 'A2' | 'B1' | 'B2';
 
+/** The CEFR levels, lowest first. */
+export const LEVEL_ORDER: readonly Difficulty[] = ['A1', 'A2', 'B1', 'B2'];
+
 export type DrillType =
 	| 'form_production'
 	| 'case_identification'
@@ -16,7 +19,7 @@ export type DrillType =
  * A grammar topic with its own deck on the Decks page (see `engine/focus.ts`).
  * Templates opt in through their `topics` list.
  */
-export type FocusTopic = 'direction' | 'verbs' | 'numbers' | 'determiners';
+export type FocusTopic = 'direction' | 'verbs' | 'numbers' | 'demonstratives' | 'determiners';
 
 export const CASE_LABELS: Record<Case, string> = {
 	nom: 'Nominative',
@@ -268,6 +271,8 @@ export interface DrillSettings {
 	numberMode: 'sg' | 'pl' | 'both';
 	contentMode?: ContentMode;
 	wordMode?: WordMode;
+	/** Mix ten / ta / to questions (the demonstrative sentences) into practice. */
+	includeDemonstratives?: boolean;
 }
 
 export type PronounFormContext = 'prep' | 'bare' | 'either';

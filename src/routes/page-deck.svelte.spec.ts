@@ -186,6 +186,20 @@ describe('?deck= URL param', () => {
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
 	});
 
+	it('the Ten, ta, to deck asks for a form of ten at A1', async () => {
+		appPage.url.search = '?deck=ten-ta-to';
+		setLevel('A1');
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Ten, ta, to');
+
+		const input = page.getByRole('textbox').first();
+		await expect.element(input).toBeInTheDocument();
+		const banner = page.getByTestId('deck-banner').element().textContent ?? '';
+		const card = (document.body.textContent ?? '').replace(banner, '');
+		expect(card).toMatch(/\bten(hle|to)?\b/);
+	});
+
 	it('mistake review and a deck do not run at once: the review link wins', async () => {
 		const { addMistake, clearMistakes } = await import('$lib/engine/mistakes');
 		clearMistakes();

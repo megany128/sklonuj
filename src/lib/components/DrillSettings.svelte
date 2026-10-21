@@ -1,6 +1,21 @@
 <script lang="ts">
-	import type { DrillType, ContentMode, WordMode } from '$lib/types';
+	import type { DrillType, ContentMode, WordMode, Difficulty } from '$lib/types';
 	import { ALL_DRILL_TYPES, DRILL_TYPE_LABELS } from '$lib/types';
+	import type { GatedContent } from '$lib/engine/level-settings';
+	import Lock from '@lucide/svelte/icons/lock';
+
+	interface Settings {
+		selectedDrillTypes: DrillType[];
+		numberMode: 'sg' | 'pl' | 'both';
+		contentMode?: ContentMode;
+		wordMode?: WordMode;
+		includeDemonstratives?: boolean;
+	}
+
+	interface LockedContent {
+		content: GatedContent;
+		unlockLevel: Difficulty;
+	}
 
 	let {
 		selectedDrillTypes,
@@ -9,6 +24,10 @@
 		wordMode = 'nouns' as WordMode,
 		pronounsUnlocked = false,
 		adjectivesUnlocked = false,
+		includeDemonstratives = false,
+		demonstrativesUnlocked = false,
+		lockedContent = [],
+		onLockedSelect,
 		onSettingsChange,
 		hiddenDrillTypes = [],
 		hideNumberMode = false
@@ -19,12 +38,15 @@
 		wordMode?: WordMode;
 		pronounsUnlocked?: boolean;
 		adjectivesUnlocked?: boolean;
-		onSettingsChange: (settings: {
-			selectedDrillTypes: DrillType[];
-			numberMode: 'sg' | 'pl' | 'both';
-			contentMode?: ContentMode;
-			wordMode?: WordMode;
-		}) => void;
+		includeDemonstratives?: boolean;
+		demonstrativesUnlocked?: boolean;
+		/**
+		 * Content the learner's level hasn't unlocked yet. Shown greyed;
+		 * picking one calls onLockedSelect, which offers the unlocking level.
+		 */
+		lockedContent?: LockedContent[];
+		onLockedSelect?: (locked: LockedContent) => void;
+		onSettingsChange: (settings: Settings) => void;
 		hiddenDrillTypes?: DrillType[];
 		hideNumberMode?: boolean;
 	} = $props();
@@ -70,20 +92,52 @@
 			selectedDrillTypes,
 			numberMode,
 			contentMode: newContentMode,
-			wordMode: newWordMode
+			wordMode: newWordMode,
+			includeDemonstratives
 		});
 	}
 
+	// Ten, ta, to is an add-on: it mixes ten questions into whatever else is
+	// on, so it never counts as the last selected content.
+	function toggleDemonstratives() {
+		onSettingsChange({
+			selectedDrillTypes,
+			numberMode,
+			contentMode,
+			wordMode,
+			includeDemonstratives: !includeDemonstratives
+		});
+	}
+
+	type ContentItem =
+		| { value: string; label: string; state: 'unlocked' }
+		| { value: string; label: string; state: 'locked'; locked: LockedContent };
+
+	// Every content toggle shows at every level. One the level hasn't unlocked
+	// is greyed and offers the level that does; one no level up unlocks either
+	// (KzK1 chapters stay nouns-only) is left out.
 	let contentItems = $derived.by(() => {
-		const items: { value: string; label: string }[] = [{ value: 'nouns', label: 'Nouns' }];
-		if (pronounsUnlocked) {
-			items.push({ value: 'pronouns', label: 'Pronouns' });
-		}
-		if (adjectivesUnlocked) {
-			items.push({ value: 'adjectives', label: 'Adjectives' });
+		const all: { value: string; label: string; unlocked: boolean }[] = [
+			{ value: 'nouns', label: 'Nouns', unlocked: true },
+			{ value: 'pronouns', label: 'Pronouns', unlocked: pronounsUnlocked },
+			{ value: 'adjectives', label: 'Adjectives', unlocked: adjectivesUnlocked },
+			{ value: 'demonstratives', label: 'Ten, ta, to', unlocked: demonstrativesUnlocked }
+		];
+		const items: ContentItem[] = [];
+		for (const item of all) {
+			if (item.unlocked) {
+				items.push({ value: item.value, label: item.label, state: 'unlocked' });
+				continue;
+			}
+			const locked = lockedContent.find((l) => l.content === item.value);
+			if (locked) items.push({ value: item.value, label: item.label, state: 'locked', locked });
 		}
 		return items;
 	});
+
+	function isPressed(value: string): boolean {
+		return value === 'demonstratives' ? includeDemonstratives : selectedContent.includes(value);
+	}
 
 	function toggleDrillType(dt: DrillType) {
 		const isSelected = selectedDrillTypes.includes(dt);
@@ -91,11 +145,23 @@
 		const next = isSelected
 			? selectedDrillTypes.filter((x) => x !== dt)
 			: [...selectedDrillTypes, dt];
-		onSettingsChange({ selectedDrillTypes: next, numberMode, contentMode, wordMode });
+		onSettingsChange({
+			selectedDrillTypes: next,
+			numberMode,
+			contentMode,
+			wordMode,
+			includeDemonstratives
+		});
 	}
 
 	function setNumberMode(mode: 'sg' | 'pl' | 'both') {
-		onSettingsChange({ selectedDrillTypes, numberMode: mode, contentMode, wordMode });
+		onSettingsChange({
+			selectedDrillTypes,
+			numberMode: mode,
+			contentMode,
+			wordMode,
+			includeDemonstratives
+		});
 	}
 
 	const numberOptions: { value: 'sg' | 'pl' | 'both'; label: string }[] = [
@@ -106,22 +172,35 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6">
-	<!-- Content multi-select (only shown when more than just nouns available) -->
-	{#if pronounsUnlocked || adjectivesUnlocked}
+	<!-- Content multi-select -->
+	{#if contentItems.length > 1}
 		<div class="flex items-center gap-2" role="group" aria-label="Content type">
 			<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Content</span>
-			<div class="flex gap-1.5">
+			<div class="flex flex-wrap gap-1.5">
 				{#each contentItems as opt (opt.value)}
-					{@const active = selectedContent.includes(opt.value)}
-					<button
-						onclick={() => toggleContent(opt.value)}
-						class="rounded-full border px-2.5 py-1 text-xs transition-all {active
-							? 'border-emphasis bg-shaded-background font-semibold text-text-default'
-							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
-						aria-pressed={active}
-					>
-						{opt.label}
-					</button>
+					{#if opt.state === 'locked'}
+						<button
+							onclick={() => onLockedSelect?.(opt.locked)}
+							title="Unlocks at {opt.locked.unlockLevel}"
+							class="flex items-center gap-1 rounded-full border border-dashed border-card-stroke bg-transparent px-2.5 py-1 text-xs text-text-subtitle/70 transition-all hover:border-text-subtitle"
+						>
+							<Lock class="h-3 w-3 shrink-0" aria-hidden="true" />
+							{opt.label}
+							<span class="sr-only">(unlocks at {opt.locked.unlockLevel})</span>
+						</button>
+					{:else}
+						{@const active = isPressed(opt.value)}
+						<button
+							onclick={() =>
+								opt.value === 'demonstratives' ? toggleDemonstratives() : toggleContent(opt.value)}
+							class="rounded-full border px-2.5 py-1 text-xs transition-all {active
+								? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+								: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
+							aria-pressed={active}
+						>
+							{opt.label}
+						</button>
+					{/if}
 				{/each}
 			</div>
 		</div>

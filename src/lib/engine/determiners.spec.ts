@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+	demonstrativeFrames,
 	determinerSentenceTemplates,
 	loadDeclinableBank,
 	loadDeterminerBank,
@@ -11,7 +12,8 @@ import { applyPrepositionVoicing } from './preposition-voicing';
 import { focusDef, templatesForFocus } from './focus';
 import { adjectiveCellKey, isCellKey } from './spacing';
 import type { AdjectiveEntry, AdjectiveGenderKey, Case, Number_, Progress } from '../types';
-import { ALL_ADJECTIVE_GENDER_KEYS, CASE_INDEX } from '../types';
+import { ALL_ADJECTIVE_GENDER_KEYS, CASE_INDEX, LEVEL_ORDER } from '../types';
+import { loadTemplates } from './drill';
 
 const bank = loadDeterminerBank();
 const templates = loadDeterminerTemplates();
@@ -48,9 +50,18 @@ const progress: Progress = {
 const ALL_BUT_VOC: Case[] = ['nom', 'gen', 'dat', 'acc', 'loc', 'ins'];
 
 describe('determiner forms', () => {
-	it('holds the five words', () => {
-		expect(bank.map((d) => d.lemma)).toEqual(['můj', 'tvůj', 'náš', 'váš', 'ten']);
+	it('holds the seven words', () => {
+		expect(bank.map((d) => d.lemma)).toEqual([
+			'můj',
+			'tvůj',
+			'náš',
+			'váš',
+			'ten',
+			'tenhle',
+			'tento'
+		]);
 		expect(det('ten').paradigmType).toBe('demonstrative');
+		expect(det('ten').difficulty).toBe('A1');
 		expect(det('náš').paradigmType).toBe('possessive');
 	});
 
@@ -81,7 +92,25 @@ describe('determiner forms', () => {
 		['ten', 'm_anim', 'pl', ['ti', 'těch', 'těm', 'ty', 'ti', 'těch', 'těmi']],
 		['ten', 'm_inanim', 'pl', ['ty', 'těch', 'těm', 'ty', 'ty', 'těch', 'těmi']],
 		['ten', 'f', 'pl', ['ty', 'těch', 'těm', 'ty', 'ty', 'těch', 'těmi']],
-		['ten', 'n', 'pl', ['ta', 'těch', 'těm', 'ta', 'ta', 'těch', 'těmi']]
+		['ten', 'n', 'pl', ['ta', 'těch', 'těm', 'ta', 'ta', 'těch', 'těmi']],
+		[
+			'tenhle',
+			'm_anim',
+			'sg',
+			['tenhle', 'tohohle', 'tomuhle', 'tohohle', 'tenhle', 'tomhle', 'tímhle']
+		],
+		['tenhle', 'f', 'sg', ['tahle', 'téhle', 'téhle', 'tuhle', 'tahle', 'téhle', 'touhle']],
+		['tenhle', 'n', 'pl', ['tahle', 'těchhle', 'těmhle', 'tahle', 'tahle', 'těchhle', 'těmihle']],
+		[
+			'tenhle',
+			'm_anim',
+			'pl',
+			['tihle', 'těchhle', 'těmhle', 'tyhle', 'tihle', 'těchhle', 'těmihle']
+		],
+		['tento', 'm_inanim', 'sg', ['tento', 'tohoto', 'tomuto', 'tento', 'tento', 'tomto', 'tímto']],
+		['tento', 'f', 'sg', ['tato', 'této', 'této', 'tuto', 'tato', 'této', 'touto']],
+		['tento', 'n', 'sg', ['toto', 'tohoto', 'tomuto', 'toto', 'toto', 'tomto', 'tímto']],
+		['tento', 'm_anim', 'pl', ['tito', 'těchto', 'těmto', 'tyto', 'tito', 'těchto', 'těmito']]
 	])('%s %s %s', (lemma, gender, number, expected) => {
 		expect(det(lemma).forms[gender][number]).toEqual(expected);
 	});
@@ -183,7 +212,7 @@ describe('determiner sentences', () => {
 		expect(def.unlockLevel).toBe('A2');
 		expect(def.bothNumbers).toBe(true);
 		const sentences = determinerSentenceTemplates();
-		expect(templatesForFocus(sentences, 'determiners')).toHaveLength(sentences.length);
+		expect(templatesForFocus(sentences, 'determiners')).toHaveLength(templates.length);
 		expect(templatesForFocus(sentences, 'numbers')).toHaveLength(0);
 	});
 
@@ -200,7 +229,7 @@ describe('determiner sentences', () => {
 describe('declension charts', () => {
 	it('find determiners alongside adjectives', () => {
 		const lemmas = new Set(loadDeclinableBank().map((e) => e.lemma));
-		for (const lemma of ['nový', 'můj', 'tvůj', 'náš', 'váš', 'ten']) {
+		for (const lemma of ['nový', 'můj', 'tvůj', 'náš', 'váš', 'ten', 'tenhle', 'tento']) {
 			expect(lemmas.has(lemma), lemma).toBe(true);
 		}
 		expect(lemmas.size).toBe(loadDeclinableBank().length);
@@ -278,5 +307,315 @@ describe('determiner questions', () => {
 			expect(checkAdjectiveAnswer(q, 'mého')?.correct).toBe(false);
 		}
 		expect(checked).toBeGreaterThan(0);
+	});
+});
+
+describe('ten, ta, to sentences', () => {
+	const frames = demonstrativeFrames();
+
+	it('borrows the noun sentences, tagged with their own deck', () => {
+		expect(frames.length).toBeGreaterThan(150);
+		for (const t of frames) {
+			expect(t.id.startsWith('dem:'), t.id).toBe(true);
+			expect(t.topics).toEqual(['demonstratives']);
+			expect(t.requiredCase).not.toBe('voc');
+			expect(t.template.trimStart().startsWith('___'), t.template).toBe(false);
+		}
+		const def = focusDef('demonstratives');
+		expect(def.source).toBe('demonstratives');
+		expect(def.unlockLevel).toBe('A1');
+		const sentences = determinerSentenceTemplates();
+		expect(templatesForFocus(sentences, 'demonstratives')).toHaveLength(frames.length);
+		expect(templatesForFocus(sentences, 'determiners')).toHaveLength(templates.length);
+	});
+
+	it('leaves out sentences that take no ten', () => {
+		const texts = new Set(frames.map((t) => t.template));
+		for (const text of [
+			'Bratr je ___.',
+			'Stal se ___.',
+			'Sestra se stala ___.',
+			'Chci být ___.',
+			'Myji si ___.',
+			'Bolí mě ___.',
+			'Přijdu za ___.',
+			'Odejdu do ___.'
+		]) {
+			expect(texts.has(text), text).toBe(false);
+		}
+		for (const text of [
+			'Bydlím v ___.',
+			'Kočka je za ___.',
+			'Zabývám se ___.',
+			'Bojím se ___.',
+			'Čekám celou ___.',
+			'Po ___ si dám kávu.'
+		]) {
+			expect(texts.has(text), text).toBe(true);
+		}
+		expect(frames.some((t) => t.template.includes('{'))).toBe(false);
+	});
+
+	it('writes a random noun into the sentence, from many paradigms and all genders', () => {
+		let s = 21;
+		const random = () => {
+			s = (s * 1664525 + 1013904223) % 4294967296;
+			return s / 4294967296;
+		};
+		const nouns = new Set<string>();
+		const paradigms = new Set<string>();
+		const genders = new Set<string>();
+		for (let i = 0; i < 300; i++) {
+			const q = pickDeterminerQuestion({
+				set: 'demonstratives',
+				cases: ALL_BUT_VOC,
+				numbers: ['sg', 'pl'],
+				difficulties: ['A1', 'A2'],
+				progress,
+				recentTemplateIds: [],
+				random
+			});
+			if (!q) throw new Error('no question');
+			const nounForm = q.word.forms[q.number][CASE_INDEX[q.case]];
+			expect(q.template.template).toContain(`___ ${nounForm}`);
+			expect(q.template.template.match(/___/g)?.length).toBe(1);
+			expect(q.template.nounLemma).toBe(q.word.lemma);
+			expect(q.template.why.split('\n')[0]).toContain(`agrees with ${nounForm}`);
+			expect(q.word.categories).not.toContain('place_name');
+			nouns.add(q.word.lemma);
+			paradigms.add(q.word.paradigm);
+			genders.add(getAdjectiveGenderKey(q.word));
+		}
+		expect(nouns.size).toBeGreaterThan(150);
+		expect(paradigms.size).toBeGreaterThanOrEqual(10);
+		expect(genders.size).toBe(4);
+	});
+
+	it('asks ten, tenhle and tento, mostly ten, in the form that agrees with the noun', () => {
+		let s = 5;
+		const random = () => {
+			s = (s * 1664525 + 1013904223) % 4294967296;
+			return s / 4294967296;
+		};
+		const expected: Record<AdjectiveGenderKey, Partial<Record<Case, string>>> = {
+			m_anim: { acc: 'toho', ins: 'tím' },
+			m_inanim: { acc: 'ten', ins: 'tím' },
+			f: { acc: 'tu', ins: 'tou' },
+			n: { acc: 'to', ins: 'tím' }
+		};
+		const counts = new Map<string, number>();
+		for (let i = 0; i < 300; i++) {
+			const q = pickDeterminerQuestion({
+				set: 'demonstratives',
+				cases: ['acc', 'ins'],
+				numbers: ['sg'],
+				difficulties: ['A1', 'A2'],
+				progress,
+				recentTemplateIds: [],
+				random
+			});
+			if (!q?.adjective) throw new Error('no question');
+			const lemma = q.adjective.lemma;
+			counts.set(lemma, (counts.get(lemma) ?? 0) + 1);
+			expect(q.template.topics).toEqual(['demonstratives']);
+			const suffix = lemma === 'tenhle' ? 'hle' : lemma === 'tento' ? 'to' : '';
+			expect(q.correctAnswer).toBe(`${expected[getAdjectiveGenderKey(q.word)][q.case]}${suffix}`);
+		}
+		expect([...counts.keys()].sort()).toEqual(['ten', 'tenhle', 'tento']);
+		expect(counts.get('ten') ?? 0).toBeGreaterThan(counts.get('tento') ?? 0);
+	});
+
+	it('takes tenhle and tento as right answers where ten is asked, in both decks', () => {
+		let s = 9;
+		const random = () => {
+			s = (s * 1664525 + 1013904223) % 4294967296;
+			return s / 4294967296;
+		};
+		let checked = 0;
+		for (const set of ['demonstratives', 'determiners'] as const) {
+			for (let i = 0; i < 300; i++) {
+				const q = pickDeterminerQuestion({
+					set,
+					cases: ['ins'],
+					numbers: ['sg'],
+					difficulties: ['A1', 'A2'],
+					progress,
+					recentTemplateIds: [],
+					random
+				});
+				if (!q?.adjective || q.adjective.lemma !== 'ten' || q.word.gender !== 'f') continue;
+				checked++;
+				expect(q.correctAnswer).toBe('tou');
+				expect(checkAdjectiveAnswer(q, 'touhle')?.correct).toBe(true);
+				expect(checkAdjectiveAnswer(q, 'touto')?.correct).toBe(true);
+				expect(checkAdjectiveAnswer(q, 'tu')?.correct).toBe(false);
+				expect(q.template.why).toContain('Also correct: touhle, touto');
+			}
+		}
+		expect(checked).toBeGreaterThan(5);
+	});
+
+	it('a tenhle question wants tenhle, and the Můj, tvůj, ten deck never asks it', () => {
+		const pickFrom = (set: 'demonstratives' | 'determiners', seed: number) => {
+			let s = seed;
+			const random = () => {
+				s = (s * 1664525 + 1013904223) % 4294967296;
+				return s / 4294967296;
+			};
+			return Array.from({ length: 200 }, () =>
+				pickDeterminerQuestion({
+					set,
+					cases: ['acc'],
+					numbers: ['sg'],
+					difficulties: ['A1', 'A2'],
+					progress,
+					recentTemplateIds: [],
+					random
+				})
+			);
+		};
+		const tenhle = pickFrom('demonstratives', 4).find(
+			(q) => q?.adjective?.lemma === 'tenhle' && q.word.gender === 'f'
+		);
+		if (!tenhle) throw new Error('no tenhle question');
+		expect(checkAdjectiveAnswer(tenhle, 'tuhle')?.correct).toBe(true);
+		expect(checkAdjectiveAnswer(tenhle, 'tu')?.correct).toBe(false);
+		const lemmas = new Set(pickFrom('determiners', 4).map((q) => q?.adjective?.lemma));
+		expect(lemmas.has('tenhle')).toBe(false);
+		expect(lemmas.has('tento')).toBe(false);
+	});
+
+	it('at A1 asks only A1 sentences, A1 nouns and the A1 words', () => {
+		for (let i = 0; i < 100; i++) {
+			const q = pickDeterminerQuestion({
+				set: 'demonstratives',
+				cases: ['nom', 'acc', 'gen', 'loc'],
+				numbers: ['sg'],
+				difficulties: ['A1'],
+				progress,
+				recentTemplateIds: []
+			});
+			if (!q?.adjective) throw new Error('no question');
+			expect(q.template.difficulty).toBe('A1');
+			expect(q.word.difficulty).toBe('A1');
+			expect(['ten', 'tenhle']).toContain(q.adjective.lemma);
+		}
+	});
+
+	it('takes the spoken těma for těmi, with a note that it is colloquial', () => {
+		let s = 13;
+		const random = () => {
+			s = (s * 1664525 + 1013904223) % 4294967296;
+			return s / 4294967296;
+		};
+		const seen = new Set<string>();
+		for (let i = 0; i < 300; i++) {
+			const q = pickDeterminerQuestion({
+				set: 'demonstratives',
+				cases: ['ins'],
+				numbers: ['pl'],
+				difficulties: ['A1', 'A2'],
+				progress,
+				recentTemplateIds: [],
+				skipSingularFirst: true,
+				random
+			});
+			if (!q?.adjective) throw new Error('no question');
+			const lemma = q.adjective.lemma;
+			seen.add(lemma);
+			if (lemma === 'ten') {
+				expect(q.correctAnswer).toBe('těmi');
+				expect(checkAdjectiveAnswer(q, 'těma')?.correct).toBe(true);
+				expect(checkAdjectiveAnswer(q, 'těmahle')?.correct).toBe(true);
+				expect(q.template.why).toContain('Also correct: těmihle, těmito');
+				expect(q.template.why).toContain(
+					'Spoken Czech often says těma (s těma holkama); written Czech uses těmi.'
+				);
+			} else if (lemma === 'tenhle') {
+				expect(checkAdjectiveAnswer(q, 'těmahle')?.correct).toBe(true);
+				expect(checkAdjectiveAnswer(q, 'těma')?.correct).toBe(false);
+				expect(q.template.why).toContain('says těmahle');
+			} else {
+				// Nobody says *těmato*: tento keeps its one form.
+				expect(q.acceptedAnswers).toEqual(['těmito']);
+				expect(q.template.why).not.toContain('Spoken Czech');
+			}
+		}
+		expect(seen.size).toBe(3);
+	});
+
+	it('keeps the A2 singular-first gate on plurals unless told to skip it', () => {
+		const ask = (skipSingularFirst: boolean) =>
+			pickDeterminerQuestion({
+				set: 'demonstratives',
+				cases: ['ins'],
+				numbers: ['pl'],
+				difficulties: ['A1', 'A2'],
+				progress,
+				recentTemplateIds: [],
+				skipSingularFirst
+			});
+		expect(ask(false)).toBeNull();
+		expect(ask(true)).not.toBeNull();
+	});
+
+	it('keeps to the noun filter and the asked word', () => {
+		for (let i = 0; i < 50; i++) {
+			const q = pickDeterminerQuestion({
+				set: 'demonstratives',
+				lemma: 'tenhle',
+				cases: ['acc', 'loc'],
+				numbers: ['sg'],
+				difficulties: ['A1', 'A2'],
+				progress,
+				recentTemplateIds: [],
+				nounFilter: (w) => w.lemma === 'kniha' || w.lemma === 'dům'
+			});
+			if (!q?.adjective) throw new Error('no question');
+			expect(q.adjective.lemma).toBe('tenhle');
+			expect(['kniha', 'dům']).toContain(q.word.lemma);
+		}
+	});
+
+	it('lists a frame at the level of its easiest noun, and none without nouns', () => {
+		for (const frame of demonstrativeFrames()) {
+			const original = loadTemplates().find((t) => `dem:${t.id}` === frame.id);
+			if (!original) throw new Error(`no noun sentence for ${frame.id}`);
+			expect(LEVEL_ORDER.indexOf(frame.difficulty)).toBeGreaterThanOrEqual(
+				LEVEL_ORDER.indexOf(original.difficulty)
+			);
+		}
+	});
+
+	it('takes the spoken ty for ti and tý for té, only where they belong', () => {
+		const ask = (cases: Case[], numbers: Number_[], gender: string, animate: boolean) => {
+			for (let i = 0; i < 400; i++) {
+				const q = pickDeterminerQuestion({
+					set: 'demonstratives',
+					lemma: 'ten',
+					cases,
+					numbers,
+					difficulties: ['A1', 'A2'],
+					progress,
+					recentTemplateIds: [],
+					skipSingularFirst: true
+				});
+				if (q && q.word.gender === gender && q.word.animate === animate) return q;
+			}
+			throw new Error('no question');
+		};
+		const kluci = ask(['nom'], ['pl'], 'm', true);
+		expect(kluci.correctAnswer).toBe('ti');
+		expect(checkAdjectiveAnswer(kluci, 'ty')?.correct).toBe(true);
+		expect(checkAdjectiveAnswer(kluci, 'tyhle')?.correct).toBe(true);
+		expect(kluci.template.why).toContain('Spoken Czech often says ty (ty kluci)');
+		const holky = ask(['gen'], ['sg'], 'f', false);
+		expect(holky.correctAnswer).toBe('té');
+		expect(checkAdjectiveAnswer(holky, 'tý')?.correct).toBe(true);
+		expect(holky.template.why).toContain('written Czech uses té');
+		// tu (feminine accusative) has no spoken stand-in: tý stays wrong there.
+		const knihu = ask(['acc'], ['sg'], 'f', false);
+		expect(checkAdjectiveAnswer(knihu, 'tý')?.correct).toBe(false);
+		expect(knihu.template.why).not.toContain('Spoken Czech');
 	});
 });
