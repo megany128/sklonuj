@@ -1624,7 +1624,12 @@
 	// The "what's new" banner stays out of the way of onboarding, assignments
 	// and decks (a deck has its own banner).
 	let showAnnouncement = $derived(
-		announcement !== null && !showOnboarding && !assignmentInfo && activeFocus === null
+		announcement !== null &&
+			!showOnboarding &&
+			// An assignment link hides it from the start, not only once it loads.
+			!assignmentLoading &&
+			!assignmentInfo &&
+			activeFocus === null
 	);
 
 	$effect(() => {
