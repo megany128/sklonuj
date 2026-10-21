@@ -5,7 +5,7 @@
 		"adjectives_unlocked": false,
 		"plural_unlocked": false,
 		"pronouns_unlocked": false,
-		"demonstratives_unlocked": true
+		"demonstratives_unlocked": false
 	},
 	"A2": {
 		"unlocked_cases": ["nom", "acc", "gen", "dat", "loc", "ins", "voc"],
