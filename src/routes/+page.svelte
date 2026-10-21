@@ -5565,7 +5565,7 @@
 					result={lastResult}
 					onSubmit={handleSubmit}
 					onSpeak={ttsAvailable ? handleSpeak : null}
-					selectedCases={assignmentInfo ? effectiveEnabledCases : ALL_CASES}
+					selectedCases={assignmentInfo ? effectiveEnabledCases : availableCases}
 					{paradigmNotes}
 					onWordClick={handleWordClick}
 					{streak}

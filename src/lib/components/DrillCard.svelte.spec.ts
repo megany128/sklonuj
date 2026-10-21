@@ -309,3 +309,45 @@ describe('DrillCard answer label', () => {
 		await expect.element(page.getByLabelText(/humor/)).not.toBeInTheDocument();
 	});
 });
+
+// "Which case?" choices come from the cases the learner's level covers: an
+// A1 learner was offered Vocative, which A1 hasn't unlocked.
+describe('DrillCard case identification choices', () => {
+	beforeEach(() => cleanup());
+
+	const caseQuestion = (correct: 'acc' | 'voc'): DrillQuestion => ({
+		...question,
+		template: { ...question.template, template: 'Vidím ___.' },
+		correctAnswer: correct,
+		case: correct,
+		drillType: 'case_identification'
+	});
+
+	function mountCases(q: DrillQuestion, selectedCases: DrillQuestion['case'][]) {
+		render(DrillCard, {
+			question: q,
+			result: null,
+			onSubmit: vi.fn(),
+			onSpeak: null,
+			selectedCases,
+			soundEnabled: false
+		});
+	}
+
+	it('offers only the cases it is given, with the right one among them', async () => {
+		for (let i = 0; i < 5; i++) {
+			cleanup();
+			mountCases(caseQuestion('acc'), ['nom', 'gen', 'acc', 'loc']);
+			await expect.element(page.getByRole('button', { name: /Accusative/ })).toBeInTheDocument();
+			expect(
+				page.getByRole('button', { name: /Vocative|Dative|Instrumental/ }).elements()
+			).toHaveLength(0);
+		}
+	});
+
+	it('still offers the right case when the list is short and leaves it out', async () => {
+		mountCases(caseQuestion('voc'), ['nom', 'acc']);
+		await expect.element(page.getByRole('button', { name: /Vocative/ })).toBeInTheDocument();
+		await expect.element(page.getByRole('button', { name: /Nominative/ })).toBeInTheDocument();
+	});
+});
