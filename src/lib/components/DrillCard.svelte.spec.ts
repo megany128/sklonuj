@@ -351,3 +351,55 @@ describe('DrillCard case identification choices', () => {
 		await expect.element(page.getByRole('button', { name: /Nominative/ })).toBeInTheDocument();
 	});
 });
+
+// The pivo Easter egg hides the system cursor on the card. Its cleanup used to
+// read the bound card element after the {#key} block had already unset it, so
+// it threw and the next question kept the pivo answer locked in the box.
+describe('DrillCard after a pivo question', () => {
+	beforeEach(() => cleanup());
+
+	it('the next question gets a fresh, typeable box', async () => {
+		const pivo: WordEntry = {
+			lemma: 'pivo',
+			translation: 'beer',
+			gender: 'n',
+			animate: false,
+			paradigm: 'město',
+			difficulty: 'A1',
+			categories: ['drinks'],
+			forms: {
+				sg: ['pivo', 'piva', 'pivu', 'pivo', 'pivo', 'pivu', 'pivem'],
+				pl: ['piva', 'piv', 'pivům', 'piva', 'piva', 'pivech', 'pivy']
+			}
+		};
+		const pivoQuestion: DrillQuestion = {
+			...question,
+			word: pivo,
+			correctAnswer: 'pivu',
+			drillType: 'form_production'
+		};
+		const onSubmit = vi.fn<(answer: string, meta?: { hinted: boolean }) => void>();
+		const props = {
+			question: pivoQuestion,
+			result: null,
+			onSubmit,
+			onSpeak: null,
+			selectedCases: [pivoQuestion.case],
+			soundEnabled: false
+		};
+		const { rerender } = render(DrillCard, props);
+		await page.getByRole('textbox').fill('pivu');
+		await userEvent.keyboard('{Enter}');
+		const result: DrillResult = {
+			question: pivoQuestion,
+			userAnswer: 'pivu',
+			correct: true,
+			nearMiss: false
+		};
+		await rerender({ ...props, result });
+		await rerender({ ...props, question, result: null });
+		const input = page.getByRole('textbox');
+		await expect.element(input).toBeEnabled();
+		await expect.element(input).toHaveValue('');
+	});
+});
