@@ -27,6 +27,11 @@
 	import FeedbackAdjectiveDeclensionChart from '$lib/components/ui/FeedbackAdjectiveDeclensionChart.svelte';
 	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
 	import { stripDiacritics } from '$lib/utils/diacritics';
+	import {
+		adjectiveAnimacyMixup,
+		nounAnimacyMixup,
+		paradigmAnimacyMixup
+	} from '$lib/utils/animacy-mixup';
 	import paradigmsData from '$lib/data/paradigms.json';
 
 	interface ParadigmEntry {
@@ -453,6 +458,33 @@
 			? getParadigmExplanation(question.word.lemma, correctParadigmEntry)
 			: null
 	);
+
+	// Animate/inanimate mix-ups get their own verdict: the plain "not quite"
+	// hides that the learner treated a thing as a person (or the reverse).
+	let paradigmAnimacyNote = $derived(
+		question && paradigmSubmitted && !paradigmCorrect && isParadigm(selectedParadigm)
+			? paradigmAnimacyMixup(question.word, selectedParadigm)
+			: null
+	);
+	let formAnimacyNote = $derived(
+		question && formSubmitted && !formCorrect && !formNearMiss
+			? nounAnimacyMixup(
+					question.word,
+					{ case: question.correctCase, number: question.number },
+					formInput
+				)
+			: null
+	);
+	let adjAnimacyNote = $derived(
+		question?.adjective && adjFormSubmitted && !adjFormCorrect && !adjFormNearMiss
+			? adjectiveAnimacyMixup(
+					question.adjective,
+					question.word,
+					{ case: question.correctCase, number: question.number },
+					adjFormInput
+				)
+			: null
+	);
 </script>
 
 <svelte:window onkeydown={handleWindowKeydown} />
@@ -622,6 +654,10 @@
 											{paradigmExplanation ??
 												`${correctParadigmEntry?.exampleLemma} paradigm · ${correctParadigmEntry?.name}`}
 										</span>
+									</FeedbackVerdict>
+								{:else if paradigmAnimacyNote}
+									<FeedbackVerdict tone="wrong" title="Animate or inanimate?">
+										{paradigmAnimacyNote}
 									</FeedbackVerdict>
 								{:else}
 									<FeedbackVerdict tone="wrong" title="Not quite">
@@ -837,6 +873,10 @@
 										<FeedbackVerdict tone="almost" title="Almost — check the accents">
 											Right letters, but accents count here.
 										</FeedbackVerdict>
+									{:else if formAnimacyNote}
+										<FeedbackVerdict tone="wrong" title="Animate or inanimate?">
+											{formAnimacyNote}
+										</FeedbackVerdict>
 									{:else}
 										<FeedbackVerdict tone="wrong" title="Not quite" />
 									{/if}
@@ -994,7 +1034,13 @@
 								</FeedbackVerdict>
 							{:else}
 								<div class="flex w-full max-w-md flex-col gap-4">
-									<FeedbackVerdict tone="wrong" title="Not quite" />
+									{#if adjAnimacyNote}
+										<FeedbackVerdict tone="wrong" title="Animate or inanimate?">
+											{adjAnimacyNote}
+										</FeedbackVerdict>
+									{:else}
+										<FeedbackVerdict tone="wrong" title="Not quite" />
+									{/if}
 									<CorrectAnswerPanel
 										correctAnswer={question.correctAdjectiveForm}
 										userAnswer={adjFormInput.trim()}

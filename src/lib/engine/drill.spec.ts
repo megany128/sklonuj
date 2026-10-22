@@ -368,73 +368,82 @@ describe('weightedRandom', () => {
 		expect(candidates).toContainEqual(picked);
 	});
 
-	it('favors unseen lemmas over well-known ones', () => {
+	it('favors unseen lemmas within a paradigm over well-known ones', () => {
 		const bank = loadWordBank();
-		const hrad = bank.find((w) => w.paradigm === 'hrad');
-		const zena = bank.find((w) => w.paradigm === 'žena');
-		const mesto = bank.find((w) => w.paradigm === 'město');
-		expect(hrad).toBeDefined();
-		expect(zena).toBeDefined();
-		expect(mesto).toBeDefined();
-		if (!hrad || !zena || !mesto) return;
-		const candidates = [hrad, zena, mesto];
-		// Mark hrad and žena lemmas as well-known, leave město unseen
+		const [known, unseen] = bank.filter((w) => w.paradigm === 'hrad');
+		expect(unseen).toBeDefined();
+		if (!known || !unseen) return;
 		const progress: Progress = {
 			level: 'A1',
 			caseScores: {},
 			paradigmScores: {},
-			lemmaScores: {
-				[`${hrad.lemma}_loc_sg`]: { attempts: 20, correct: 20 },
-				[`${zena.lemma}_loc_sg`]: { attempts: 20, correct: 20 }
-			},
+			lemmaScores: { [`${known.lemma}_loc_sg`]: { attempts: 20, correct: 20 } },
 			cellSchedule: {},
 			lastSession: '',
 			longestStreak: 0
 		};
-
-		const counts: Record<string, number> = {};
-		for (const c of candidates) counts[c.lemma] = 0;
-
-		const iterations = 1000;
-		for (let i = 0; i < iterations; i++) {
-			const picked = weightedRandom(candidates, progress, 'loc', 'sg');
-			counts[picked.lemma]++;
-		}
-
-		// Unseen lemma (město): lemma_weight ~10. Seen lemmas: lemma_weight ~0.91.
-		// město should dominate the picks heavily.
-		expect(counts[mesto.lemma]).toBeGreaterThan(iterations * 0.7);
+		// One paradigm, so the first draw is moot; lemma weights 0.91 vs 10.
+		expect(weightedRandom([known, unseen], progress, 'loc', 'sg', 0, () => 0.1)).toBe(unseen);
+		expect(weightedRandom([known, unseen], progress, 'loc', 'sg', 0, () => 0.05)).toBe(known);
 	});
 
-	it('prefers a word whose spacing cell is due over one just practised', () => {
+	it('drills a weak paradigm far more than a mastered one in the same slot', () => {
 		const bank = loadWordBank();
-		const hrad = bank.find((w) => w.paradigm === 'hrad');
-		const zena = bank.find((w) => w.paradigm === 'žena');
-		expect(hrad).toBeDefined();
-		expect(zena).toBeDefined();
-		if (!hrad || !zena) return;
-		const candidates = [hrad, zena];
+		const zeny = bank.filter((w) => w.paradigm === 'žena').slice(0, 9);
+		const ruze = bank.filter((w) => w.paradigm === 'růže').slice(0, 9);
+		expect(zeny).toHaveLength(9);
+		expect(ruze).toHaveLength(9);
 		const now = 10 * DAY_MS;
-		// Both lemmas equally known; hrad's cell was just seen, žena's is a week overdue.
+		// Genitive žena mastered (box 4, seen an hour ago); růže missed and due.
 		const progress: Progress = {
 			level: 'A1',
 			caseScores: {},
 			paradigmScores: {},
-			lemmaScores: {
-				[`${hrad.lemma}_loc_sg`]: { attempts: 5, correct: 5 },
-				[`${zena.lemma}_loc_sg`]: { attempts: 5, correct: 5 }
-			},
+			lemmaScores: {},
 			cellSchedule: {
-				[nounCellKey('hrad', 'loc', 'sg')]: { last: now, box: 1, streak: 1 },
-				[nounCellKey('žena', 'loc', 'sg')]: { last: now - 8 * DAY_MS, box: 1, streak: 1 }
+				[nounCellKey('žena', 'gen', 'sg')]: { last: now - 60 * 60_000, box: 4, streak: 6 },
+				[nounCellKey('růže', 'gen', 'sg')]: { last: now - 20 * 60_000, box: 0, streak: 0 }
 			},
 			lastSession: '',
 			longestStreak: 0
 		};
-		// hrad weight ≈ 0.91 * 0.5 (floor), žena ≈ 0.91 * 1.0 (capped overdue):
-		// a draw just above hrad's share must land on žena.
-		expect(weightedRandom(candidates, progress, 'loc', 'sg', now, () => 0.4)).toBe(zena);
-		expect(weightedRandom(candidates, progress, 'loc', 'sg', now, () => 0.2)).toBe(hrad);
+		let seed = 1;
+		const random = () => {
+			seed = (seed * 16807) % 2147483647;
+			return seed / 2147483647;
+		};
+		let ruzeCount = 0;
+		const iterations = 2000;
+		for (let i = 0; i < iterations; i++) {
+			const picked = weightedRandom([...zeny, ...ruze], progress, 'gen', 'sg', now, random);
+			if (picked.paradigm === 'růže') ruzeCount++;
+		}
+		// Weights ≈ 5.75 vs 0.5 per equal-sized group: růže ≈ 92% of picks.
+		expect(ruzeCount).toBeGreaterThan(iterations * 0.85);
+	});
+
+	it('does not let a paradigm with many nouns drown out one with few', () => {
+		const bank = loadWordBank();
+		const hrady = bank.filter((w) => w.paradigm === 'hrad').slice(0, 16);
+		const kure = bank.find((w) => w.paradigm === 'kuře');
+		expect(hrady).toHaveLength(16);
+		expect(kure).toBeDefined();
+		if (!kure) return;
+		const progress: Progress = {
+			level: 'A1',
+			caseScores: {},
+			paradigmScores: {},
+			lemmaScores: {},
+			cellSchedule: {},
+			lastSession: '',
+			longestStreak: 0
+		};
+		// Both cells unseen: weights 3·√16 = 12 vs 3·√1 = 3, so kuře owns the
+		// top fifth of the first draw (by noun count it would be 1/17).
+		expect(weightedRandom([...hrady, kure], progress, 'dat', 'sg', 0, () => 0.85)).toBe(kure);
+		expect(weightedRandom([...hrady, kure], progress, 'dat', 'sg', 0, () => 0.75).paradigm).toBe(
+			'hrad'
+		);
 	});
 });
 
