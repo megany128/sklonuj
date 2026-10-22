@@ -201,12 +201,15 @@
 	// Hide system cursor on mount and whenever DOM changes
 	$effect(() => {
 		if (!cardEl || !isPivo) return;
-		hideSystemCursor(cardEl);
-		const observer = new MutationObserver(() => hideSystemCursor(cardEl!));
-		observer.observe(cardEl, { childList: true, subtree: true });
+		// Hold the element: by teardown the {#key} block has unset cardEl, and
+		// restoring on undefined throws, which aborts the next question's reset.
+		const el = cardEl;
+		hideSystemCursor(el);
+		const observer = new MutationObserver(() => hideSystemCursor(el));
+		observer.observe(el, { childList: true, subtree: true });
 		return () => {
 			observer.disconnect();
-			restoreSystemCursor(cardEl!);
+			restoreSystemCursor(el);
 		};
 	});
 
