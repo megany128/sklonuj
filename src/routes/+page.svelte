@@ -1858,6 +1858,7 @@
 
 	// Settings expanded state
 	let settingsExpanded = $state(false);
+	let settingsButton: HTMLButtonElement | undefined = $state();
 	let caseFilterExpanded = $state(false);
 	let showExitAssignmentConfirm = $state(false);
 	let chapterPickerOpen = $state(false);
@@ -4742,6 +4743,7 @@
 		if (e.key === 'Escape') {
 			if (settingsExpanded && !levelUpPrompt) {
 				settingsExpanded = false;
+				settingsButton?.focus();
 			} else if (chapterPickerOpen) {
 				chapterPickerOpen = false;
 			} else if (authModalOpen) {
@@ -5195,6 +5197,7 @@
 				<!-- Settings popover, anchored under its button -->
 				<div class="relative" data-settings-popover>
 					<button
+						bind:this={settingsButton}
 						type="button"
 						onclick={() => {
 							if (assignmentInfo) {
