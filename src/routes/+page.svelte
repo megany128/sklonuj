@@ -2727,11 +2727,14 @@
 	}
 
 	/**
-	 * Chapter mode picks the word before the sentence, so the lesson's share
-	 * doesn't depend on how many templates its words happen to fit: a word
-	 * from the pool `pickChapterPool` chooses, preferring one a template in
-	 * the spaced case and number takes (then the case, then any template),
-	 * then a template that takes it. Null when no template takes any word.
+	 * Chapter mode picks the word pool before the sentence, so the lesson's
+	 * share doesn't depend on how many templates its words happen to fit:
+	 * `pickChapterPool` chooses the pool, then a template that takes one of
+	 * its words, preferring the spaced case and number, then the case, then
+	 * any template (a slice whose templates were all just shown is passed
+	 * over, as in `preferCase`), then a word from the pool that template
+	 * takes, weighted for the form it asks. Null when no template takes any
+	 * word in the pool.
 	 */
 	function pickChapterSentence(
 		templates: SentenceTemplate[],
@@ -2751,13 +2754,19 @@
 		const pool = pickChapterPool(chapterPoolsFor([...candidates.values()]));
 		const inCase = templates.filter((t) => t.requiredCase === case_);
 		const inCell = inCase.filter((t) => t.number === number_);
-		for (const slice of [inCell, inCase, templates]) {
-			const words = pool.filter((w) => slice.some((t) => takes(t, w)));
-			if (words.length === 0) continue;
-			const word = pickWord(words, prog, case_, number_);
-			const template = pickTemplate(
-				slice.filter((t) => takes(t, word)),
-				(t) => pools.get(t.id)?.length ?? 0
+		const fits = new Map(templates.map((t) => [t.id, pool.filter((w) => takes(t, w))]));
+		const slices = [inCell, inCase, templates];
+		for (const [i, slice] of slices.entries()) {
+			const usable = slice.filter((t) => (fits.get(t.id)?.length ?? 0) > 0);
+			if (usable.length === 0) continue;
+			const isLast = i === slices.length - 1;
+			if (!isLast && usable.every((t) => recentTemplateIds.includes(t.id))) continue;
+			const template = pickTemplate(usable, (t) => fits.get(t.id)?.length ?? 0);
+			const word = pickWord(
+				fits.get(template.id) ?? [],
+				prog,
+				template.requiredCase,
+				template.number
 			);
 			return { template, word };
 		}
