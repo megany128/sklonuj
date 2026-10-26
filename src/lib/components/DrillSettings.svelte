@@ -171,10 +171,14 @@
 	];
 </script>
 
-<div class="flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6">
+<div class="flex flex-col gap-3">
 	<!-- Content multi-select -->
 	{#if contentItems.length > 1}
-		<div class="flex items-center gap-2" role="group" aria-label="Content type">
+		<div
+			class="grid grid-cols-[4.5rem_1fr] items-baseline gap-2"
+			role="group"
+			aria-label="Content type"
+		>
 			<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Content</span>
 			<div class="flex flex-wrap gap-1.5">
 				{#each contentItems as opt (opt.value)}
@@ -207,9 +211,13 @@
 	{/if}
 
 	<!-- Drill types -->
-	<div class="flex items-center gap-2" role="group" aria-label="Exercise type">
+	<div
+		class="grid grid-cols-[4.5rem_1fr] items-baseline gap-2"
+		role="group"
+		aria-label="Exercise type"
+	>
 		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
-		<div class="flex gap-1.5">
+		<div class="flex flex-wrap gap-1.5">
 			{#each visibleDrillTypes as dt (dt)}
 				{@const active = selectedDrillTypes.includes(dt)}
 				<button
@@ -227,9 +235,13 @@
 
 	<!-- Number mode (hidden when chapter forces singular only) -->
 	{#if !hideNumberMode}
-		<div class="flex items-center gap-2" role="group" aria-label="Grammatical number">
+		<div
+			class="grid grid-cols-[4.5rem_1fr] items-baseline gap-2"
+			role="group"
+			aria-label="Grammatical number"
+		>
 			<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Number</span>
-			<div class="flex gap-1.5">
+			<div class="flex flex-wrap gap-1.5">
 				{#each numberOptions as opt (opt.value)}
 					<button
 						onclick={() => setNumberMode(opt.value)}

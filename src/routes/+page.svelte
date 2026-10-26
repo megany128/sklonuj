@@ -23,7 +23,7 @@
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import ArrowUpCircle from '@lucide/svelte/icons/arrow-up-circle';
 	import Confetti from '$lib/components/ui/Confetti.svelte';
-	import { slide, fly, fade } from 'svelte/transition';
+	import { slide, fly, fade, scale } from 'svelte/transition';
 	import { untrack } from 'svelte';
 	import { get } from 'svelte/store';
 	import { afterNavigate, goto, replaceState } from '$app/navigation';
@@ -1858,6 +1858,7 @@
 
 	// Settings expanded state
 	let settingsExpanded = $state(false);
+	let settingsButton: HTMLButtonElement | undefined = $state();
 	let caseFilterExpanded = $state(false);
 	let showExitAssignmentConfirm = $state(false);
 	let chapterPickerOpen = $state(false);
@@ -4740,13 +4741,28 @@
 <svelte:window
 	onkeydown={(e) => {
 		if (e.key === 'Escape') {
-			if (chapterPickerOpen) {
+			if (settingsExpanded && !levelUpPrompt) {
+				settingsExpanded = false;
+				settingsButton?.focus();
+			} else if (chapterPickerOpen) {
 				chapterPickerOpen = false;
 			} else if (authModalOpen) {
 				authModalOpen = false;
 			} else if (refSidebarOpen) {
 				refSidebarOpen = false;
 			}
+		}
+	}}
+	onpointerdown={(e) => {
+		// pointerdown, not click: the click that opens the popover from the
+		// exit-assignment dialog would otherwise close it straight away
+		if (
+			settingsExpanded &&
+			!levelUpPrompt &&
+			e.target instanceof Element &&
+			!e.target.closest('[data-settings-popover]')
+		) {
+			settingsExpanded = false;
 		}
 	}}
 	onclick={(e) => {
@@ -5178,22 +5194,73 @@
 						{/if}
 					</button>
 				{/if}
-				<button
-					type="button"
-					onclick={() => {
-						if (assignmentInfo) {
-							showExitAssignmentConfirm = true;
-							return;
-						}
-						settingsExpanded = !settingsExpanded;
-						if (settingsExpanded) caseFilterExpanded = false;
-					}}
-					class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default"
-					aria-label="Exercise settings"
-					data-tour="settings"
-				>
-					<Settings class="size-4" aria-hidden="true" />
-				</button>
+				<!-- Settings popover, anchored under its button -->
+				<div class="relative" data-settings-popover>
+					<button
+						bind:this={settingsButton}
+						type="button"
+						onclick={() => {
+							if (assignmentInfo) {
+								showExitAssignmentConfirm = true;
+								return;
+							}
+							settingsExpanded = !settingsExpanded;
+							if (settingsExpanded) caseFilterExpanded = false;
+						}}
+						class="flex size-11 items-center justify-center rounded-full text-darker-subtitle transition-colors hover:bg-icon-hover hover:text-text-default {settingsExpanded &&
+						!assignmentInfo
+							? 'bg-icon-hover text-text-default'
+							: ''}"
+						aria-label="Exercise settings"
+						aria-haspopup="dialog"
+						aria-expanded={settingsExpanded && !assignmentInfo}
+						data-tour="settings"
+					>
+						<Settings class="size-4" aria-hidden="true" />
+					</button>
+					{#if settingsExpanded && !assignmentInfo}
+						<div
+							transition:scale={{ duration: 150, start: 0.96 }}
+							role="dialog"
+							aria-label="Exercise settings"
+							class="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] origin-top-right rounded-2xl border border-card-stroke bg-card-bg p-4 shadow-lg"
+						>
+							<DrillSettings_
+								selectedDrillTypes={drillSettings.selectedDrillTypes}
+								numberMode={effectiveNumberMode}
+								contentMode={drillSettings.contentMode ?? 'nouns'}
+								wordMode={drillSettings.wordMode ?? 'nouns'}
+								{pronounsUnlocked}
+								{adjectivesUnlocked}
+								includeDemonstratives={drillSettings.includeDemonstratives === true}
+								{demonstrativesUnlocked}
+								{lockedContent}
+								onLockedSelect={(locked) =>
+									(levelUpPrompt = {
+										...GATED_CONTENT_NAMES[locked.content],
+										unlockLevel: locked.unlockLevel,
+										confirm: () => unlockContent(locked.content, locked.unlockLevel)
+									})}
+								onSettingsChange={handleSettingsChange}
+								hiddenDrillTypes={(() => {
+									const hidden: DrillType[] = [];
+									if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
+										hidden.push('case_identification');
+									}
+									if (selectedCase === 'nom') {
+										hidden.push('form_production');
+									}
+									if (!isMultiStepUnlocked() || effectiveContentMode === 'pronouns') {
+										hidden.push('multi_step');
+									}
+									return hidden;
+								})()}
+								hideNumberMode={deckAsksBothNumbers ||
+									(chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked)}
+							/>
+						</div>
+					{/if}
+				</div>
 			</div>
 		</div>
 
@@ -5473,48 +5540,6 @@
 			</div>
 		{/if}
 
-		<!-- Expandable settings (inline, pushes content down) -->
-		{#if settingsExpanded && !assignmentInfo}
-			<div
-				transition:slide={{ duration: 200 }}
-				class="flex flex-wrap items-start gap-x-4 gap-y-3 rounded-2xl border border-card-stroke bg-card-bg px-3 py-3 sm:gap-x-6 sm:px-5 sm:py-4"
-			>
-				<DrillSettings_
-					selectedDrillTypes={drillSettings.selectedDrillTypes}
-					numberMode={effectiveNumberMode}
-					contentMode={drillSettings.contentMode ?? 'nouns'}
-					wordMode={drillSettings.wordMode ?? 'nouns'}
-					{pronounsUnlocked}
-					{adjectivesUnlocked}
-					includeDemonstratives={drillSettings.includeDemonstratives === true}
-					{demonstrativesUnlocked}
-					{lockedContent}
-					onLockedSelect={(locked) =>
-						(levelUpPrompt = {
-							...GATED_CONTENT_NAMES[locked.content],
-							unlockLevel: locked.unlockLevel,
-							confirm: () => unlockContent(locked.content, locked.unlockLevel)
-						})}
-					onSettingsChange={handleSettingsChange}
-					hiddenDrillTypes={(() => {
-						const hidden: DrillType[] = [];
-						if (selectedCase !== 'all' || effectiveEnabledCases.length < 2) {
-							hidden.push('case_identification');
-						}
-						if (selectedCase === 'nom') {
-							hidden.push('form_production');
-						}
-						if (!isMultiStepUnlocked() || effectiveContentMode === 'pronouns') {
-							hidden.push('multi_step');
-						}
-						return hidden;
-					})()}
-					hideNumberMode={deckAsksBothNumbers ||
-						(chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked)}
-				/>
-			</div>
-		{/if}
-
 		<!-- Sign-up prompt for guests after 3 questions -->
 		{#if !user && sessionCount >= 3 && !signupPromptDismissed}
 			<div
@@ -5621,21 +5646,24 @@
 		tabindex="-1"
 	></button>
 
-	<!-- Sidebar + handle -->
+	<!-- Sidebar + handle. The wrapper lets taps through: closed, its 44px handle
+	     column still spans the page height and would cover the right edge -->
 	<div
-		class="fixed top-14 right-0 z-40 flex h-[calc(100%-3.5rem)] transition-transform duration-300 ease-in-out sm:top-16 sm:h-[calc(100%-4rem)]"
+		class="pointer-events-none fixed top-14 right-0 z-40 flex h-[calc(100%-3.5rem)] transition-transform duration-300 ease-in-out sm:top-16 sm:h-[calc(100%-4rem)]"
 		style="transform: translateX({refSidebarOpen ? '0px' : 'calc(100% - 44px)'})"
 	>
 		<button
 			type="button"
 			onclick={toggleReferenceSidebar}
-			class="self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2.5 py-5 text-text-inverted shadow-lg transition-opacity hover:opacity-90 sm:px-3.5 sm:py-6"
+			class="pointer-events-auto self-center shrink-0 rounded-bl-[12px] rounded-tl-[12px] bg-emphasis px-2.5 py-5 text-text-inverted shadow-lg transition-opacity hover:opacity-90 sm:px-3.5 sm:py-6"
 			aria-label="Toggle reference sidebar"
 			data-tour="ref-sidebar"
 		>
 			<NotebookText class="size-5" aria-hidden="true" />
 		</button>
-		<aside class="h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md">
+		<aside
+			class="pointer-events-auto h-full w-[calc(100vw-44px)] bg-card-bg shadow-2xl sm:w-screen sm:max-w-md"
+		>
 			<ReferenceSidebar
 				initialWord={refSidebarWord}
 				initialPronoun={refSidebarPronoun}
