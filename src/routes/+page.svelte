@@ -5308,27 +5308,6 @@
 			{@render casePills()}
 		{/if}
 
-		<!-- Global leaderboard banner — always rendered (skeleton while loading) so
-		     the layout doesn't shift once the data arrives -->
-		<div class="mb-3">
-			<LeaderboardBanner
-				mode="global"
-				loading={globalLeaderboardStatus === 'loading'}
-				unavailable={globalLeaderboardStatus === 'error'}
-				leaderboard={globalLeaderboardData}
-				totalStudents={globalLeaderboardTotal}
-				pointsDelta={globalLeaderboardPointsDelta}
-				currentUserId={viewerId ?? ''}
-				showOnLeaderboard={globalShowOnLeaderboard}
-				onToggleVisibility={handleGlobalLeaderboardToggle}
-				isAnonymous={user === null}
-				onSignUp={() => {
-					stashAnonSession();
-					authModalOpen = true;
-				}}
-			/>
-		</div>
-
 		<!-- Toolbar: filter cases / chapter stepper (KzK) + review mistakes.
 		     Stacks on mobile (stepper row, then mistakes row) so a long chapter
 		     title has room to truncate; a 3-col grid on sm+. Omitted when it would
@@ -5544,6 +5523,28 @@
 				{/if}
 			</div>
 		{/if}
+
+		<!-- Global leaderboard banner, below the practice controls — always
+		     rendered (skeleton while loading) so the layout doesn't shift once the
+		     data arrives -->
+		<div class="mb-3">
+			<LeaderboardBanner
+				mode="global"
+				loading={globalLeaderboardStatus === 'loading'}
+				unavailable={globalLeaderboardStatus === 'error'}
+				leaderboard={globalLeaderboardData}
+				totalStudents={globalLeaderboardTotal}
+				pointsDelta={globalLeaderboardPointsDelta}
+				currentUserId={viewerId ?? ''}
+				showOnLeaderboard={globalShowOnLeaderboard}
+				onToggleVisibility={handleGlobalLeaderboardToggle}
+				isAnonymous={user === null}
+				onSignUp={() => {
+					stashAnonSession();
+					authModalOpen = true;
+				}}
+			/>
+		</div>
 
 		<!-- Sign-up prompt for guests after 3 questions -->
 		{#if !user && sessionCount >= 3 && !signupPromptDismissed}
