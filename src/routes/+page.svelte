@@ -53,7 +53,6 @@
 		LEVEL_ORDER,
 		ALL_DRILL_TYPES,
 		CASE_LABELS,
-		CASE_SHORT_LABELS,
 		CASE_HEX,
 		CASE_INDEX,
 		isCase,
@@ -158,6 +157,7 @@
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
 	import { enqueueRetry, takeDueRetry, type RetryItem } from '$lib/engine/retry-queue';
+	import type { LockedCase } from '$lib/components/case-pill-bar';
 	import {
 		GENERAL_WORDS_FROM_CHAPTER_INDEX,
 		pickChapterPool,
@@ -1552,7 +1552,8 @@
 			enabledCases = [...ALL_CASES];
 		}
 
-		selectedCase = 'all';
+		// Keep a single case across chapters that still teach it.
+		if (selectedCase !== 'all' && !pillCases.includes(selectedCase)) selectedCase = 'all';
 		generateNextQuestion();
 	}
 
@@ -1802,12 +1803,56 @@
 		});
 	});
 
+	// Cases the pill bar offers: in chapter mode only the ones the chapter teaches.
+	let pillCases: Case[] = $derived.by(() => {
+		const chapter = getSelectedKzkChapter();
+		return chapter
+			? availableCases.filter((c) => chapter.unlockedCases.includes(c))
+			: availableCases;
+	});
+
 	// Cases this CEFR level hasn't unlocked yet but a higher one does — shown as
 	// greyed "locked" pills that upsell the unlocking level. Suppressed in
 	// assignment mode (the teacher's case selection governs there).
-	let lockedCases: { case: Case; unlockLevel: Difficulty }[] = $derived.by(() =>
-		assignmentInfo || getSelectedKzkChapter() ? [] : lockedCasesForLevel(currentLevel)
-	);
+	// In chapter mode, the cases a later lesson of the book introduces.
+	// `unlock` opens the lesson (or level) with that case selected.
+	let lockedCases: (LockedCase & { unlock: () => void; current: string; action: string })[] =
+		$derived.by(() => {
+			if (assignmentInfo) return [];
+			const chapter = getSelectedKzkChapter();
+			if (chapter && chapterBook) {
+				const book = chapterBook;
+				const chapters = kzkChapters[book].chapters;
+				const later = chapters.slice(chapters.findIndex((ch) => ch.id === chapter.id) + 1);
+				return ALL_CASES.filter((c) => !chapter.unlockedCases.includes(c)).flatMap((c) => {
+					const target = later.find((ch) => ch.unlockedCases.includes(c));
+					if (!target) return [];
+					return [
+						{
+							case: c,
+							unlockAt: target.label,
+							current: chapter.label,
+							action: `Go to ${target.label}`,
+							unlock: () => {
+								// The chapter change keeps a case its new lesson teaches.
+								selectedCase = c;
+								handleChapterChange(book, target.id);
+							}
+						}
+					];
+				});
+			}
+			return lockedCasesForLevel(currentLevel).map((l) => ({
+				case: l.case,
+				unlockAt: l.unlockLevel,
+				current: currentLevel,
+				action: `Move up to ${l.unlockLevel}`,
+				unlock: () => {
+					handleLevelChange(l.unlockLevel, false);
+					handleCaseSelect(l.case);
+				}
+			}));
+		});
 
 	// Content toggles this level hasn't unlocked — shown greyed in the drill
 	// settings, offering the level that unlocks them (same rules as lockedCases).
@@ -1822,7 +1867,12 @@
 	 */
 	let levelUpPrompt: {
 		name: string;
-		unlockLevel: Difficulty;
+		/** What unlocks it: a CEFR level, or a lesson in chapter mode. */
+		unlockAt: string;
+		/** What the learner is on now, which doesn't cover it. */
+		current: string;
+		/** The confirm button: "Move up to A2", "Go to Lekce 17". */
+		action: string;
 		/** How the prompt refers back to it: "start practicing it / them". */
 		pronoun: 'it' | 'them';
 		confirm: () => void;
@@ -2013,11 +2063,12 @@
 		}
 	});
 
-	// Reset a single-case filter that the current level no longer exposes (e.g.
-	// dropping to A1 with `ins` selected, or a stale `?selectCase=ins` URL).
-	// Prevents the single-case generation path from drilling a hidden case.
+	// Reset a single-case filter that the current level or chapter no longer
+	// exposes (e.g. dropping to A1 with `ins` selected, or a stale
+	// `?selectCase=ins` URL). Prevents the single-case generation path from
+	// drilling a hidden case.
 	$effect(() => {
-		if (initialized && selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
+		if (initialized && selectedCase !== 'all' && !pillCases.includes(selectedCase)) {
 			selectedCase = 'all';
 		}
 	});
@@ -4563,7 +4614,7 @@
 		// setLevel updates the progress store synchronously, so availableCases is
 		// already fresh here. Clamp a now-hidden single-case filter before
 		// generating so we never flash a question for a case the level hides.
-		if (selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
+		if (selectedCase !== 'all' && !pillCases.includes(selectedCase)) {
 			selectedCase = 'all';
 		}
 		posthog.capture('level_changed', { ...drillAnalyticsProps(), from: previousLevel, to: level });
@@ -5158,8 +5209,9 @@
 			</div>
 		</div>
 
-		{#if chapterBook === null}
-			<!-- Case selection pill bar (Free Practice mode) -->
+		<!-- Case selection pill bar. In chapter mode it sits under the lesson
+		     stepper, since the lesson decides which cases it offers. -->
+		{#snippet casePills()}
 			<div class="mb-4" data-tour="case-pills">
 				{#if wordsLoading}
 					<CasePillBarSkeleton />
@@ -5167,22 +5219,24 @@
 					<CasePillBar
 						{selectedCase}
 						{caseStrengths}
-						{availableCases}
+						availableCases={pillCases}
 						{lockedCases}
 						onSelect={handleCaseSelect}
 						onLockedSelect={(locked) =>
 							(levelUpPrompt = {
 								name: CASE_LABELS[locked.case],
-								unlockLevel: locked.unlockLevel,
+								unlockAt: locked.unlockAt,
+								current: locked.current,
+								action: locked.action,
 								pronoun: 'it',
-								confirm: () => {
-									handleLevelChange(locked.unlockLevel, false);
-									handleCaseSelect(locked.case);
-								}
+								confirm: locked.unlock
 							})}
 					/>
 				{/if}
 			</div>
+		{/snippet}
+		{#if chapterBook === null}
+			{@render casePills()}
 		{/if}
 
 		<!-- Global leaderboard banner — always rendered (skeleton while loading) so
@@ -5313,22 +5367,6 @@
 										</div>
 									{/if}
 									<div class="flex flex-wrap items-center justify-center gap-1">
-										{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
-											<span
-												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
-											>
-												All cases
-											</span>
-										{:else}
-											{#each kzkChapter.unlockedCases as c (c)}
-												<span
-													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
-													style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
-												>
-													{CASE_SHORT_LABELS[c]}
-												</span>
-											{/each}
-										{/if}
 										<span
 											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 										>
@@ -5400,6 +5438,10 @@
 			</div>
 		{/if}
 
+		{#if chapterBook !== null}
+			{@render casePills()}
+		{/if}
+
 		<!-- Expandable case filter (inline, pushes content down) -->
 		{#if chapterBook === null && caseFilterExpanded && !assignmentInfo}
 			<div
@@ -5453,7 +5495,9 @@
 					onLockedSelect={(locked) =>
 						(levelUpPrompt = {
 							...GATED_CONTENT_NAMES[locked.content],
-							unlockLevel: locked.unlockLevel,
+							unlockAt: locked.unlockLevel,
+							current: currentLevel,
+							action: `Move up to ${locked.unlockLevel}`,
 							confirm: () => unlockContent(locked.content, locked.unlockLevel)
 						})}
 					onSettingsChange={handleSettingsChange}
@@ -5690,11 +5734,11 @@
 			onkeydown={() => {}}
 		>
 			<h2 class="text-lg font-semibold text-text-default">
-				{locked.name} unlocks at {locked.unlockLevel}
+				{locked.name} unlocks at {locked.unlockAt}
 			</h2>
 			<p class="mt-2 text-sm text-text-subtitle">
-				{currentLevel} doesn't cover {locked.name.toLowerCase()}. Move up to {locked.unlockLevel}
-				to start practicing {locked.pronoun}?
+				{locked.current} doesn't cover {locked.name.toLowerCase()}. {locked.action} to start practicing
+				{locked.pronoun}?
 			</p>
 			<div class="mt-5 flex gap-3">
 				<button
@@ -5714,7 +5758,7 @@
 					}}
 					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
 				>
-					Move up to {locked.unlockLevel}
+					{locked.action}
 				</button>
 			</div>
 		</div>

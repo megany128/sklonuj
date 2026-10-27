@@ -47,8 +47,8 @@ describe('CasePillBar', () => {
 			caseStrengths: emptyStrengths(),
 			availableCases: ['nom', 'acc'],
 			lockedCases: [
-				{ case: 'gen', unlockLevel: 'A2' },
-				{ case: 'dat', unlockLevel: 'B1' }
+				{ case: 'gen', unlockAt: 'A2' },
+				{ case: 'dat', unlockAt: 'B1' }
 			],
 			onSelect: () => {},
 			onLockedSelect: () => {}
