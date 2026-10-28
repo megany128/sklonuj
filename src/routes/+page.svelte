@@ -53,7 +53,6 @@
 		LEVEL_ORDER,
 		ALL_DRILL_TYPES,
 		CASE_LABELS,
-		CASE_SHORT_LABELS,
 		CASE_HEX,
 		CASE_INDEX,
 		isCase,
@@ -158,6 +157,13 @@
 	} from '$lib/audio';
 	import { addMistake, getUniqueMistakeKeys } from '$lib/engine/mistakes';
 	import { enqueueRetry, takeDueRetry, type RetryItem } from '$lib/engine/retry-queue';
+	import type { LockedCase } from '$lib/components/case-pill-bar';
+	import {
+		GENERAL_WORDS_FROM_CHAPTER_INDEX,
+		pickChapterPool,
+		splitChapterPools,
+		type ChapterPools
+	} from '$lib/engine/chapter-words';
 	import { recordGuestSessionActivity, getTodayGuestSession } from '$lib/engine/guest-sessions';
 	import { getOrCreateGuestId } from '$lib/engine/guest-id';
 	import { generateAlias } from '$lib/engine/leaderboard-alias';
@@ -1457,24 +1463,28 @@
 	}
 
 	/**
-	 * Get all coreLemmas from the current chapter and all previous chapters in the same book,
-	 * with current-chapter lemmas tagged separately for weighting.
+	 * The selected chapter's coreLemmas, and each earlier chapter's in the same
+	 * book as its own list (the picker weighs earlier chapters per chapter).
 	 */
 	function getChapterLemmas(): {
 		currentLemmas: string[];
-		previousLemmas: string[];
+		previousChapters: string[][];
 	} {
-		if (!chapterBook || !chapterSelection) return { currentLemmas: [], previousLemmas: [] };
+		if (!chapterBook || !chapterSelection) return { currentLemmas: [], previousChapters: [] };
 		const book = kzkChapters[chapterBook];
 		const chapterIndex = book.chapters.findIndex((ch) => ch.id === chapterSelection);
-		if (chapterIndex < 0) return { currentLemmas: [], previousLemmas: [] };
+		if (chapterIndex < 0) return { currentLemmas: [], previousChapters: [] };
 
-		const currentLemmas = book.chapters[chapterIndex].coreLemmas;
-		const previousLemmas: string[] = [];
-		for (let i = 0; i < chapterIndex; i++) {
-			previousLemmas.push(...book.chapters[i].coreLemmas);
-		}
-		return { currentLemmas, previousLemmas };
+		return {
+			currentLemmas: book.chapters[chapterIndex].coreLemmas,
+			previousChapters: book.chapters.slice(0, chapterIndex).map((ch) => ch.coreLemmas)
+		};
+	}
+
+	/** Lower-cased coreLemmas of the selected chapter and every earlier one. */
+	function chapterLemmaSet(): Set<string> {
+		const { currentLemmas, previousChapters } = getChapterLemmas();
+		return new Set([currentLemmas, ...previousChapters].flat().map((l) => l.toLowerCase()));
 	}
 
 	function handleBookSelect(book: 'kzk1' | 'kzk2'): void {
@@ -1542,7 +1552,8 @@
 			enabledCases = [...ALL_CASES];
 		}
 
-		selectedCase = 'all';
+		// Keep a single case across chapters that still teach it.
+		if (selectedCase !== 'all' && !pillCases.includes(selectedCase)) selectedCase = 'all';
 		generateNextQuestion();
 	}
 
@@ -1792,12 +1803,56 @@
 		});
 	});
 
+	// Cases the pill bar offers: in chapter mode only the ones the chapter teaches.
+	let pillCases: Case[] = $derived.by(() => {
+		const chapter = getSelectedKzkChapter();
+		return chapter
+			? availableCases.filter((c) => chapter.unlockedCases.includes(c))
+			: availableCases;
+	});
+
 	// Cases this CEFR level hasn't unlocked yet but a higher one does — shown as
 	// greyed "locked" pills that upsell the unlocking level. Suppressed in
 	// assignment mode (the teacher's case selection governs there).
-	let lockedCases: { case: Case; unlockLevel: Difficulty }[] = $derived.by(() =>
-		assignmentInfo || getSelectedKzkChapter() ? [] : lockedCasesForLevel(currentLevel)
-	);
+	// In chapter mode, the cases a later lesson of the book introduces.
+	// `unlock` opens the lesson (or level) with that case selected.
+	let lockedCases: (LockedCase & { unlock: () => void; current: string; action: string })[] =
+		$derived.by(() => {
+			if (assignmentInfo) return [];
+			const chapter = getSelectedKzkChapter();
+			if (chapter && chapterBook) {
+				const book = chapterBook;
+				const chapters = kzkChapters[book].chapters;
+				const later = chapters.slice(chapters.findIndex((ch) => ch.id === chapter.id) + 1);
+				return ALL_CASES.filter((c) => !chapter.unlockedCases.includes(c)).flatMap((c) => {
+					const target = later.find((ch) => ch.unlockedCases.includes(c));
+					if (!target) return [];
+					return [
+						{
+							case: c,
+							unlockAt: target.label,
+							current: chapter.label,
+							action: `Go to ${target.label}`,
+							unlock: () => {
+								// The chapter change keeps a case its new lesson teaches.
+								selectedCase = c;
+								handleChapterChange(book, target.id);
+							}
+						}
+					];
+				});
+			}
+			return lockedCasesForLevel(currentLevel).map((l) => ({
+				case: l.case,
+				unlockAt: l.unlockLevel,
+				current: currentLevel,
+				action: `Move up to ${l.unlockLevel}`,
+				unlock: () => {
+					handleLevelChange(l.unlockLevel, false);
+					handleCaseSelect(l.case);
+				}
+			}));
+		});
 
 	// Content toggles this level hasn't unlocked — shown greyed in the drill
 	// settings, offering the level that unlocks them (same rules as lockedCases).
@@ -1812,7 +1867,12 @@
 	 */
 	let levelUpPrompt: {
 		name: string;
-		unlockLevel: Difficulty;
+		/** What unlocks it: a CEFR level, or a lesson in chapter mode. */
+		unlockAt: string;
+		/** What the learner is on now, which doesn't cover it. */
+		current: string;
+		/** The confirm button: "Move up to A2", "Go to Lekce 17". */
+		action: string;
 		/** How the prompt refers back to it: "start practicing it / them". */
 		pronoun: 'it' | 'them';
 		confirm: () => void;
@@ -2004,11 +2064,12 @@
 		}
 	});
 
-	// Reset a single-case filter that the current level no longer exposes (e.g.
-	// dropping to A1 with `ins` selected, or a stale `?selectCase=ins` URL).
-	// Prevents the single-case generation path from drilling a hidden case.
+	// Reset a single-case filter that the current level or chapter no longer
+	// exposes (e.g. dropping to A1 with `ins` selected, or a stale
+	// `?selectCase=ins` URL). Prevents the single-case generation path from
+	// drilling a hidden case.
 	$effect(() => {
-		if (initialized && selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
+		if (initialized && selectedCase !== 'all' && !pillCases.includes(selectedCase)) {
 			selectedCase = 'all';
 		}
 	});
@@ -2638,8 +2699,7 @@
 	 */
 	function chapterWordPool(): WordEntry[] | null {
 		if (chapterBook === null || chapterSelection === null) return null;
-		const { currentLemmas, previousLemmas } = getChapterLemmas();
-		const lemmas = new Set([...currentLemmas, ...previousLemmas].map((l) => l.toLowerCase()));
+		const lemmas = chapterLemmaSet();
 		if (lemmas.size === 0) return null;
 		const words = filterByParadigm(loadWordBank()).filter((w) => lemmas.has(w.lemma.toLowerCase()));
 		return words.length > 0 ? words : null;
@@ -2671,77 +2731,98 @@
 	}
 
 	/**
-	 * Pick a word from the word bank, biased toward chapter coreLemmas.
-	 * In chapter mode:
-	 *   - 75% current chapter, 25% previous chapters
-	 *   - From chapter 13 onward, 20% chance of a CEFR-level-filtered general pool word
+	 * `words` plus, in chapter mode, the chapter's own nouns (this lesson and
+	 * every earlier one) that pass `accept`. The textbook teaching a word
+	 * overrides its CEFR level, so these come from the whole bank.
+	 */
+	function withChapterWords(words: WordEntry[], accept: (w: WordEntry) => boolean): WordEntry[] {
+		if (chapterBook === null || chapterSelection === null) return words;
+		const lemmas = chapterLemmaSet();
+		const have = new Set(words.map((w) => w.lemma));
+		const extras = filterByParadigm(loadWordBank()).filter(
+			(w) => lemmas.has(w.lemma.toLowerCase()) && !have.has(w.lemma) && accept(w)
+		);
+		return [...words, ...extras];
+	}
+
+	/** Split candidate words into this chapter's, each earlier chapter's and general ones. */
+	function chapterPoolsFor(words: WordEntry[]): ChapterPools<WordEntry> {
+		const { currentLemmas, previousChapters } = getChapterLemmas();
+		return splitChapterPools(
+			words,
+			currentLemmas,
+			previousChapters,
+			getChapterIndex() >= GENERAL_WORDS_FROM_CHAPTER_INDEX
+		);
+	}
+
+	/**
+	 * Pick a chapter-mode word for a case and number: this lesson's words most
+	 * of the time, then earlier lessons (weighted per lesson), then a little of
+	 * the level's general pool from lesson 13 on (see `chapter-words.ts`).
+	 * `accept` narrows the chapter's own words the way `eligibleWords` is
+	 * already narrowed.
 	 */
 	function pickWordForChapter(
 		eligibleWords: WordEntry[],
 		prog: Progress,
 		case_: Case,
-		number_: Number_
+		number_: Number_,
+		accept: (w: WordEntry) => boolean = () => true
 	): WordEntry | null {
-		const { currentLemmas, previousLemmas } = getChapterLemmas();
+		const fits = (w: WordEntry): boolean => hasValidForm(w, case_, number_);
+		const words = withChapterWords(eligibleWords.filter(fits), (w) => fits(w) && accept(w));
+		const pool = pickChapterPool(chapterPoolsFor(words));
+		// No chapter word has this form (and general words are off before lesson 13).
+		const from = pool.length > 0 ? pool : words;
+		return from.length > 0 ? pickWord(from, prog, case_, number_) : null;
+	}
 
-		// If no chapter lemmas, fall back to normal selection
-		if (currentLemmas.length === 0 && previousLemmas.length === 0) {
-			const valid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-			return valid.length > 0 ? pickWord(valid, prog, case_, number_) : null;
-		}
-
-		const allLemmasLower = new Set([
-			...currentLemmas.map((l) => l.toLowerCase()),
-			...previousLemmas.map((l) => l.toLowerCase())
-		]);
-		const currentLemmasLower = new Set(currentLemmas.map((l) => l.toLowerCase()));
-
-		// Chapter coreLemmas bypass the CEFR difficulty filter — if the textbook
-		// teaches a word in this chapter, we drill it regardless of its CEFR level.
-		const fullWordBank = loadWordBank();
-		const coreCurrentWords = fullWordBank.filter(
-			(w) => currentLemmasLower.has(w.lemma.toLowerCase()) && hasValidForm(w, case_, number_)
+	/**
+	 * Chapter mode picks the word pool before the sentence, so the lesson's
+	 * share doesn't depend on how many templates its words happen to fit:
+	 * `pickChapterPool` chooses the pool, then a template that takes one of
+	 * its words, preferring the spaced case and number, then the case, then
+	 * any template (a slice whose templates were all just shown is passed
+	 * over, as in `preferCase`), then a word from the pool that template
+	 * takes, weighted for the form it asks. Null when no template takes any
+	 * word in the pool.
+	 */
+	function pickChapterSentence(
+		templates: SentenceTemplate[],
+		poolFor: (template: SentenceTemplate) => WordEntry[],
+		prog: Progress,
+		case_: Case,
+		number_: Number_
+	): { template: SentenceTemplate; word: WordEntry } | null {
+		const pools = new Map(templates.map((t) => [t.id, poolFor(t)]));
+		const lemmasOf = new Map(
+			[...pools].map(([id, words]) => [id, new Set(words.map((w) => w.lemma))])
 		);
-		const corePreviousWords = fullWordBank.filter(
-			(w) =>
-				!currentLemmasLower.has(w.lemma.toLowerCase()) &&
-				allLemmasLower.has(w.lemma.toLowerCase()) &&
-				hasValidForm(w, case_, number_)
-		);
+		const takes = (t: SentenceTemplate, w: WordEntry): boolean =>
+			lemmasOf.get(t.id)?.has(w.lemma) ?? false;
+		const candidates = new Map([...pools.values()].flat().map((w) => [w.lemma, w]));
 
-		const hasCoreWords = coreCurrentWords.length > 0 || corePreviousWords.length > 0;
-
-		if (!hasCoreWords) {
-			const valid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-			return valid.length > 0 ? pickWord(valid, prog, case_, number_) : null;
-		}
-
-		// General pool only from chapter 13 onward, at 20%
-		const chapterIndex = getChapterIndex();
-		const generalPoolEnabled = chapterIndex >= 12; // 0-indexed, so 12 = chapter 13
-
-		if (generalPoolEnabled && Math.random() < 0.2) {
-			const generalWords = eligibleWords.filter(
-				(w) => !allLemmasLower.has(w.lemma.toLowerCase()) && hasValidForm(w, case_, number_)
+		const pool = pickChapterPool(chapterPoolsFor([...candidates.values()]));
+		const inCase = templates.filter((t) => t.requiredCase === case_);
+		const inCell = inCase.filter((t) => t.number === number_);
+		const fits = new Map(templates.map((t) => [t.id, pool.filter((w) => takes(t, w))]));
+		const slices = [inCell, inCase, templates];
+		for (const [i, slice] of slices.entries()) {
+			const usable = slice.filter((t) => (fits.get(t.id)?.length ?? 0) > 0);
+			if (usable.length === 0) continue;
+			const isLast = i === slices.length - 1;
+			if (!isLast && usable.every((t) => recentTemplateIds.includes(t.id))) continue;
+			const template = pickTemplate(usable, (t) => fits.get(t.id)?.length ?? 0);
+			const word = pickWord(
+				fits.get(template.id) ?? [],
+				prog,
+				template.requiredCase,
+				template.number
 			);
-			if (generalWords.length > 0) {
-				return pickWord(generalWords, prog, case_, number_);
-			}
+			return { template, word };
 		}
-
-		// Pick from chapter vocab: 75% current, 25% previous
-		const innerRoll = Math.random();
-		if (innerRoll < 0.75 && coreCurrentWords.length > 0) {
-			return pickWord(coreCurrentWords, prog, case_, number_);
-		} else if (corePreviousWords.length > 0) {
-			return pickWord(corePreviousWords, prog, case_, number_);
-		} else if (coreCurrentWords.length > 0) {
-			return pickWord(coreCurrentWords, prog, case_, number_);
-		}
-
-		// Absolute fallback
-		const allValid = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
-		return allValid.length > 0 ? pickWord(allValid, prog, case_, number_) : null;
+		return null;
 	}
 
 	function getChapterIndex(): number {
@@ -2782,21 +2863,8 @@
 		const diffFiltered = filterByParadigm(
 			getCandidates(template, prog, { skipSingularFirst: deckAsksBothNumbers })
 		);
-		if (chapterBook === null || chapterSelection === null) return diffFiltered;
-		const { currentLemmas: curL, previousLemmas: prevL } = getChapterLemmas();
-		const chapterLemmasLower = new Set([
-			...curL.map((l) => l.toLowerCase()),
-			...prevL.map((l) => l.toLowerCase())
-		]);
-		const diffLemmas = new Set(diffFiltered.map((w) => w.lemma));
-		const chapterExtras = filterByParadigm(loadWordBank()).filter(
-			(w) =>
-				chapterLemmasLower.has(w.lemma.toLowerCase()) &&
-				!diffLemmas.has(w.lemma) &&
-				// Past its CEFR level, but not past the sentence's own filters.
-				templateTakesWord(template, w)
-		);
-		return [...diffFiltered, ...chapterExtras];
+		// Past its CEFR level, but not past the sentence's own filters.
+		return withChapterWords(diffFiltered, (w) => templateTakesWord(template, w));
 	}
 
 	function pickWord(
@@ -3025,8 +3093,15 @@
 
 		// Get eligible nouns to pair with
 		const wordBank = loadWordBank();
-		const eligibleWords = filterByParadigm(
-			wordBank.filter((w) => unlockedDifficulties.includes(w.difficulty) && nounTakesAdjectives(w))
+		// In chapter mode the chapter's own nouns join past their CEFR level.
+		const isChapterMode = chapterBook !== null && chapterSelection !== null;
+		const eligibleWords = withChapterWords(
+			filterByParadigm(
+				wordBank.filter(
+					(w) => unlockedDifficulties.includes(w.difficulty) && nounTakesAdjectives(w)
+				)
+			),
+			nounTakesAdjectives
 		);
 		if (eligibleWords.length === 0) return null;
 
@@ -3048,7 +3123,13 @@
 			// Find a noun to pair the adjective with (determines gender key)
 			const validWords = eligibleWords.filter((w) => hasValidForm(w, case_, number_));
 			if (validWords.length === 0) return null;
-			const word = pickWord(validWords, prog, case_, number_);
+			const chapterPool = isChapterMode ? pickChapterPool(chapterPoolsFor(validWords)) : [];
+			const word = pickWord(
+				chapterPool.length > 0 ? chapterPool : validWords,
+				prog,
+				case_,
+				number_
+			);
 			const genderKey = getAdjectiveGenderKey(word);
 
 			// Filter adjectives that have a valid form for this combination,
@@ -3091,16 +3172,31 @@
 					(!t.requiredGender || w.gender === t.requiredGender) &&
 					(typeof t.requiredAnimate !== 'boolean' || w.animate === t.requiredAnimate)
 			);
-		const template = pickTemplate(
-			eligibleTemplates,
-			(t) => nounsForTemplate(t).length,
-			preferredCase,
-			preferredNumber
-		);
-		const templateWords = nounsForTemplate(template);
-		if (templateWords.length === 0) return null;
+		const picked = isChapterMode
+			? pickChapterSentence(
+					eligibleTemplates,
+					nounsForTemplate,
+					prog,
+					preferredCase,
+					preferredNumber
+				)
+			: (() => {
+					const template = pickTemplate(
+						eligibleTemplates,
+						(t) => nounsForTemplate(t).length,
+						preferredCase,
+						preferredNumber
+					);
+					const templateWords = nounsForTemplate(template);
+					if (templateWords.length === 0) return null;
+					return {
+						template,
+						word: pickWord(templateWords, prog, template.requiredCase, template.number)
+					};
+				})();
+		if (!picked) return null;
 
-		const word = pickWord(templateWords, prog, template.requiredCase, template.number);
+		const { template, word } = picked;
 		const compatibleAdjs = filterAdjectivesByTemplate(adjCandidates, template);
 		if (compatibleAdjs.length === 0) return null;
 		const adj = pickAdjective(compatibleAdjs, prog, template.requiredCase, template.number, word);
@@ -3596,10 +3692,24 @@
 							!(effectiveWordMode === 'adjectives' && !nounTakesAdjectives(w))
 					);
 				// Prefer templates in the spaced case pick that still have words.
-				const template = pickTemplate(msEligibleTemplates, (t) => msPool(t).length, case_, number_);
-				const candidates = msPool(template);
-				if (candidates.length > 0) {
-					const word = pickWord(candidates, prog, template.requiredCase, template.number);
+				const msPick = isChapterMode
+					? pickChapterSentence(msEligibleTemplates, msPool, prog, case_, number_)
+					: (() => {
+							const template = pickTemplate(
+								msEligibleTemplates,
+								(t) => msPool(t).length,
+								case_,
+								number_
+							);
+							const candidates = msPool(template);
+							if (candidates.length === 0) return null;
+							return {
+								template,
+								word: pickWord(candidates, prog, template.requiredCase, template.number)
+							};
+						})();
+				if (msPick) {
+					const { template, word } = msPick;
 					const showCaseStep = effectiveEnabledCases.length > 1;
 					const msq = generateMultiStepQuestion(word, template, showCaseStep);
 					if (msq) {
@@ -3786,6 +3896,27 @@
 					return;
 				}
 				question = generateFormProduction(word, fallbackCase, number_);
+			} else if (isChapterMode) {
+				const picked = pickChapterSentence(
+					eligibleTemplates,
+					(t) => nounPoolForTemplate(t, prog),
+					prog,
+					case_,
+					number_
+				);
+				if (picked) {
+					question =
+						drillType === 'case_identification'
+							? generateCaseIdentification(picked.template, picked.word)
+							: generateSentenceDrill(picked.template, picked.word);
+				} else {
+					// No sentence takes any word: form production, never nom → nom.
+					const nonNom = effectiveEnabledCases.filter((c) => c !== 'nom');
+					const fbCase =
+						case_ !== 'nom' ? case_ : nonNom[Math.floor(Math.random() * nonNom.length)];
+					const word = fbCase ? pickWordForChapter(eligibleWords, prog, fbCase, number_) : null;
+					question = word && fbCase ? generateFormProduction(word, fbCase, number_) : null;
+				}
 			} else {
 				const template = pickTemplate(
 					eligibleTemplates,
@@ -3793,153 +3924,34 @@
 					case_,
 					number_
 				);
+				const candidates = nounPoolForTemplate(template, prog);
 
-				let candidates: WordEntry[];
-				if (isChapterMode) {
-					// In chapter mode, get candidates but bias toward coreLemmas.
-					// Chapter coreLemmas bypass CEFR difficulty — include them from
-					// the full word bank even if their level isn't unlocked yet.
-					const baseCandidates = nounPoolForTemplate(template, prog);
-					if (baseCandidates.length === 0) {
-						// Try picking a chapter word directly
-						const word = pickWordForChapter(
-							eligibleWords,
-							prog,
-							template.requiredCase,
-							template.number
-						);
-						if (!word) {
+				if (candidates.length === 0) {
+					// Fallback to form_production — skip nom→nom (trivial)
+					let fbCase2 = case_;
+					if (fbCase2 === 'nom') {
+						const nonNom = effectiveEnabledCases.filter((c) => c !== 'nom');
+						if (nonNom.length > 0) {
+							fbCase2 = nonNom[Math.floor(Math.random() * nonNom.length)];
+						} else {
 							question = null;
 							return;
 						}
-						if (drillType === 'case_identification') {
-							question = generateCaseIdentification(template, word);
-						} else {
-							question = generateSentenceDrill(template, word);
-						}
-						lastResult = null;
-						paradigmNotes = null;
-						submitted = false;
-						const tid = question?.template.id;
-						if (tid) pushRecent(recentTemplateIds, tid, RECENT_TEMPLATE_LIMIT);
-						if (advanceTimer !== null) {
-							clearTimeout(advanceTimer);
-							advanceTimer = null;
-						}
-						if (question) autoPlayPrompt(question);
+					}
+					const validWords = eligibleWords.filter((w) => hasValidForm(w, fbCase2, number_));
+					if (validWords.length === 0) {
+						question = null;
 						return;
 					}
-					// Apply chapter weighting to the template candidates
-					const { currentLemmas, previousLemmas } = getChapterLemmas();
-					const allLemmasLower = new Set([
-						...currentLemmas.map((l) => l.toLowerCase()),
-						...previousLemmas.map((l) => l.toLowerCase())
-					]);
-					const currentLemmasLower = new Set(currentLemmas.map((l) => l.toLowerCase()));
-
-					const coreCurrent = baseCandidates.filter((w) =>
-						currentLemmasLower.has(w.lemma.toLowerCase())
-					);
-					const corePrevious = baseCandidates.filter(
-						(w) =>
-							!currentLemmasLower.has(w.lemma.toLowerCase()) &&
-							allLemmasLower.has(w.lemma.toLowerCase())
-					);
-					const general = baseCandidates.filter((w) => !allLemmasLower.has(w.lemma.toLowerCase()));
-
-					const hasCoreWords = coreCurrent.length > 0 || corePrevious.length > 0;
-					let picked: WordEntry;
-
-					// Before chapter 13, only use chapter words — don't leak general pool words
-					const chIdx = getChapterIndex();
-					const allowGeneral = chIdx >= 12; // 0-indexed, so 12 = chapter 13
-
-					if (hasCoreWords && Math.random() < 0.7) {
-						if (Math.random() < 0.75 && coreCurrent.length > 0) {
-							picked = pickWord(coreCurrent, prog, template.requiredCase, template.number);
-						} else if (corePrevious.length > 0) {
-							picked = pickWord(corePrevious, prog, template.requiredCase, template.number);
-						} else {
-							picked = pickWord(coreCurrent, prog, template.requiredCase, template.number);
-						}
-					} else if (hasCoreWords) {
-						// 30% chance we still pick from chapter words instead of general
-						const allCore = [...coreCurrent, ...corePrevious];
-						picked = pickWord(allCore, prog, template.requiredCase, template.number);
-					} else if (allowGeneral && general.length > 0) {
-						picked = pickWord(general, prog, template.requiredCase, template.number);
-					} else if (!allowGeneral) {
-						// Early chapter, no chapter words match this template — use the
-						// template with a chapter word directly (sentence fill-in is still
-						// valid even when the word's category doesn't perfectly match).
-						const word = pickWordForChapter(
-							eligibleWords,
-							prog,
-							template.requiredCase,
-							template.number
-						);
-						if (!word) {
-							question = null;
-							return;
-						}
-						if (drillType === 'case_identification') {
-							question = generateCaseIdentification(template, word);
-						} else {
-							question = generateSentenceDrill(template, word);
-						}
-						if (!question) {
-							question = null;
-							return;
-						}
-						lastResult = null;
-						paradigmNotes = null;
-						submitted = false;
-						pushRecent(recentTemplateIds, question.template.id, RECENT_TEMPLATE_LIMIT);
-						if (advanceTimer !== null) {
-							clearTimeout(advanceTimer);
-							advanceTimer = null;
-						}
-						autoPlayPrompt(question);
-						return;
-					} else {
-						picked = pickWord(baseCandidates, prog, template.requiredCase, template.number);
-					}
+					const word = pickWord(validWords, prog, fbCase2, number_);
+					question = generateFormProduction(word, fbCase2, number_);
+				} else {
+					const word = pickWord(candidates, prog, template.requiredCase, template.number);
 
 					if (drillType === 'case_identification') {
-						question = generateCaseIdentification(template, picked);
+						question = generateCaseIdentification(template, word);
 					} else {
-						question = generateSentenceDrill(template, picked);
-					}
-				} else {
-					candidates = nounPoolForTemplate(template, prog);
-
-					if (candidates.length === 0) {
-						// Fallback to form_production — skip nom→nom (trivial)
-						let fbCase2 = case_;
-						if (fbCase2 === 'nom') {
-							const nonNom = effectiveEnabledCases.filter((c) => c !== 'nom');
-							if (nonNom.length > 0) {
-								fbCase2 = nonNom[Math.floor(Math.random() * nonNom.length)];
-							} else {
-								question = null;
-								return;
-							}
-						}
-						const validWords = eligibleWords.filter((w) => hasValidForm(w, fbCase2, number_));
-						if (validWords.length === 0) {
-							question = null;
-							return;
-						}
-						const word = pickWord(validWords, prog, fbCase2, number_);
-						question = generateFormProduction(word, fbCase2, number_);
-					} else {
-						const word = pickWord(candidates, prog, template.requiredCase, template.number);
-
-						if (drillType === 'case_identification') {
-							question = generateCaseIdentification(template, word);
-						} else {
-							question = generateSentenceDrill(template, word);
-						}
+						question = generateSentenceDrill(template, word);
 					}
 				}
 			}
@@ -4603,7 +4615,7 @@
 		// setLevel updates the progress store synchronously, so availableCases is
 		// already fresh here. Clamp a now-hidden single-case filter before
 		// generating so we never flash a question for a case the level hides.
-		if (selectedCase !== 'all' && !availableCases.includes(selectedCase)) {
+		if (selectedCase !== 'all' && !pillCases.includes(selectedCase)) {
 			selectedCase = 'all';
 		}
 		posthog.capture('level_changed', { ...drillAnalyticsProps(), from: previousLevel, to: level });
@@ -5238,7 +5250,9 @@
 								onLockedSelect={(locked) =>
 									(levelUpPrompt = {
 										...GATED_CONTENT_NAMES[locked.content],
-										unlockLevel: locked.unlockLevel,
+										unlockAt: locked.unlockLevel,
+										current: currentLevel,
+										action: `Move up to ${locked.unlockLevel}`,
 										confirm: () => unlockContent(locked.content, locked.unlockLevel)
 									})}
 								onSettingsChange={handleSettingsChange}
@@ -5264,8 +5278,9 @@
 			</div>
 		</div>
 
-		{#if chapterBook === null}
-			<!-- Case selection pill bar (Free Practice mode) -->
+		<!-- Case selection pill bar. In chapter mode it sits under the lesson
+		     stepper, since the lesson decides which cases it offers. -->
+		{#snippet casePills()}
 			<div class="mb-4" data-tour="case-pills">
 				{#if wordsLoading}
 					<CasePillBarSkeleton />
@@ -5273,44 +5288,25 @@
 					<CasePillBar
 						{selectedCase}
 						{caseStrengths}
-						{availableCases}
+						availableCases={pillCases}
 						{lockedCases}
 						onSelect={handleCaseSelect}
 						onLockedSelect={(locked) =>
 							(levelUpPrompt = {
 								name: CASE_LABELS[locked.case],
-								unlockLevel: locked.unlockLevel,
+								unlockAt: locked.unlockAt,
+								current: locked.current,
+								action: locked.action,
 								pronoun: 'it',
-								confirm: () => {
-									handleLevelChange(locked.unlockLevel, false);
-									handleCaseSelect(locked.case);
-								}
+								confirm: locked.unlock
 							})}
 					/>
 				{/if}
 			</div>
+		{/snippet}
+		{#if chapterBook === null}
+			{@render casePills()}
 		{/if}
-
-		<!-- Global leaderboard banner — always rendered (skeleton while loading) so
-		     the layout doesn't shift once the data arrives -->
-		<div class="mb-3">
-			<LeaderboardBanner
-				mode="global"
-				loading={globalLeaderboardStatus === 'loading'}
-				unavailable={globalLeaderboardStatus === 'error'}
-				leaderboard={globalLeaderboardData}
-				totalStudents={globalLeaderboardTotal}
-				pointsDelta={globalLeaderboardPointsDelta}
-				currentUserId={viewerId ?? ''}
-				showOnLeaderboard={globalShowOnLeaderboard}
-				onToggleVisibility={handleGlobalLeaderboardToggle}
-				isAnonymous={user === null}
-				onSignUp={() => {
-					stashAnonSession();
-					authModalOpen = true;
-				}}
-			/>
-		</div>
 
 		<!-- Toolbar: filter cases / chapter stepper (KzK) + review mistakes.
 		     Stacks on mobile (stepper row, then mistakes row) so a long chapter
@@ -5419,22 +5415,6 @@
 										</div>
 									{/if}
 									<div class="flex flex-wrap items-center justify-center gap-1">
-										{#if kzkChapter.unlockedCases.length === ALL_CASES.length}
-											<span
-												class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
-											>
-												All cases
-											</span>
-										{:else}
-											{#each kzkChapter.unlockedCases as c (c)}
-												<span
-													class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
-													style="background-color: {CASE_HEX[c]}18; color: {CASE_HEX[c]}"
-												>
-													{CASE_SHORT_LABELS[c]}
-												</span>
-											{/each}
-										{/if}
 										<span
 											class="inline-flex items-center rounded-full border border-card-stroke bg-shaded-background px-1.5 py-0.5 text-xs font-semibold leading-none text-text-subtitle"
 										>
@@ -5506,6 +5486,10 @@
 			</div>
 		{/if}
 
+		{#if chapterBook !== null}
+			{@render casePills()}
+		{/if}
+
 		<!-- Expandable case filter (inline, pushes content down) -->
 		{#if chapterBook === null && caseFilterExpanded && !assignmentInfo}
 			<div
@@ -5539,6 +5523,28 @@
 				{/if}
 			</div>
 		{/if}
+
+		<!-- Global leaderboard banner, below the practice controls — always
+		     rendered (skeleton while loading) so the layout doesn't shift once the
+		     data arrives -->
+		<div class="mb-3">
+			<LeaderboardBanner
+				mode="global"
+				loading={globalLeaderboardStatus === 'loading'}
+				unavailable={globalLeaderboardStatus === 'error'}
+				leaderboard={globalLeaderboardData}
+				totalStudents={globalLeaderboardTotal}
+				pointsDelta={globalLeaderboardPointsDelta}
+				currentUserId={viewerId ?? ''}
+				showOnLeaderboard={globalShowOnLeaderboard}
+				onToggleVisibility={handleGlobalLeaderboardToggle}
+				isAnonymous={user === null}
+				onSignUp={() => {
+					stashAnonSession();
+					authModalOpen = true;
+				}}
+			/>
+		</div>
 
 		<!-- Sign-up prompt for guests after 3 questions -->
 		{#if !user && sessionCount >= 3 && !signupPromptDismissed}
@@ -5757,11 +5763,11 @@
 			onkeydown={() => {}}
 		>
 			<h2 class="text-lg font-semibold text-text-default">
-				{locked.name} unlocks at {locked.unlockLevel}
+				{locked.name} unlocks at {locked.unlockAt}
 			</h2>
 			<p class="mt-2 text-sm text-text-subtitle">
-				{currentLevel} doesn't cover {locked.name.toLowerCase()}. Move up to {locked.unlockLevel}
-				to start practicing {locked.pronoun}?
+				{locked.current} doesn't cover {locked.name.toLowerCase()}. {locked.action} to start practicing
+				{locked.pronoun}?
 			</p>
 			<div class="mt-5 flex gap-3">
 				<button
@@ -5781,7 +5787,7 @@
 					}}
 					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
 				>
-					Move up to {locked.unlockLevel}
+					{locked.action}
 				</button>
 			</div>
 		</div>

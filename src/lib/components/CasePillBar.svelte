@@ -1,13 +1,7 @@
-<script lang="ts">
+<script lang="ts" generics="L extends LockedCase">
 	import Lock from '@lucide/svelte/icons/lock';
-	import {
-		type Case,
-		type Difficulty,
-		ALL_CASES,
-		CASE_SHORT_LABELS,
-		CASE_NUMBER,
-		CASE_HEX
-	} from '$lib/types';
+	import type { LockedCase } from './case-pill-bar';
+	import { type Case, ALL_CASES, CASE_SHORT_LABELS, CASE_NUMBER, CASE_HEX } from '$lib/types';
 
 	interface Props {
 		selectedCase: Case | 'all';
@@ -16,10 +10,11 @@
 		/** Cases to show as pills; defaults to all 7. Cases the current level
 		 * can't fill are omitted so users can never select an empty case. */
 		availableCases?: Case[];
-		/** Cases locked by CEFR level, each with the level that unlocks it.
-		 * Rendered greyed-out; clicking surfaces an upsell modal via onLockedSelect. */
-		lockedCases?: { case: Case; unlockLevel: Difficulty }[];
-		onLockedSelect?: (locked: { case: Case; unlockLevel: Difficulty }) => void;
+		/** Cases not unlocked yet, each with what unlocks it (a CEFR level, or a
+		 * textbook lesson in chapter mode). Rendered greyed-out; clicking hands the
+		 * entry back via onLockedSelect. */
+		lockedCases?: L[];
+		onLockedSelect?: (locked: L) => void;
 	}
 
 	let {
@@ -104,7 +99,7 @@
 			<button
 				type="button"
 				aria-disabled="true"
-				title="Unlocks at {locked.unlockLevel}"
+				title="Unlocks at {locked.unlockAt}"
 				class="case-locked flex cursor-pointer items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-card-stroke bg-transparent px-1.5 py-1.5 text-sm font-semibold text-text-subtitle/60 opacity-60 transition-opacity duration-200 hover:opacity-90 sm:px-2 sm:py-2"
 				onclick={() => onLockedSelect?.(locked)}
 			>
