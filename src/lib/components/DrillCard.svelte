@@ -656,7 +656,8 @@
 							</div>
 							{#if question.wordCategory === 'adjective' && question.adjective}
 								<span class="text-lg font-normal text-text-subtitle sm:text-xl">
-									{question.word.lemma}
+									{question.word.forms[question.number][CASE_INDEX[question.case]] ||
+										question.word.lemma}
 								</span>
 							{/if}
 							{#if onSpeak}
