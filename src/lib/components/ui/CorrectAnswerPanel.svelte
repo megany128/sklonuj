@@ -28,6 +28,7 @@
 		onWordClick,
 		adjectiveLemma = undefined,
 		adjectiveGenderKey = undefined,
+		pairedNoun = undefined,
 		pronounLemma = undefined,
 		practice = undefined
 	}: {
@@ -47,6 +48,8 @@
 		onWordClick?: (lemma: string) => void;
 		adjectiveLemma?: string;
 		adjectiveGenderKey?: AdjectiveGenderKey;
+		/** For an adjective answer: its noun in the same case and number, shown after it. */
+		pairedNoun?: string;
 		pronounLemma?: string;
 		/** Rendered right under the answer card (the retype box). */
 		practice?: Snippet;
@@ -111,6 +114,9 @@
 							{correctAnswer}
 						{/if}
 					</span>
+				{/if}
+				{#if pairedNoun}
+					<span class="text-xl font-normal text-text-subtitle">{pairedNoun}</span>
 				{/if}
 				{#if onSpeak}
 					<button

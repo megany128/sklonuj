@@ -20,7 +20,7 @@
 		isCase
 	} from '$lib/types';
 	import { applyPrepositionVoicing, loadWordBank } from '$lib/engine/drill';
-	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
+	import { getAdjectiveForm, getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
 	import { playClinkSound } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
@@ -486,6 +486,35 @@
 		return form.prep.split('/')[0] || form.bare.split('/')[0] || '';
 	}
 
+	/** The paired noun in the question's case and number; the lemma when that cell is empty. */
+	function pairedNounForm(q: DrillQuestion): string {
+		return q.word.forms[q.number][CASE_INDEX[q.case]] || q.word.lemma;
+	}
+
+	/**
+	 * Left side of the "from → to" answer line. Adjectives start from the whole
+	 * phrase in the nominative, agreeing with the noun ("špatná realistka"),
+	 * not the masculine dictionary form, so the line shows the agreement too.
+	 */
+	function answerFromForm(q: DrillQuestion): string {
+		if (q.wordCategory === 'adjective') {
+			if (!q.adjective) return q.word.lemma;
+			const adjNom =
+				getAdjectiveForm(q.adjective, getAdjectiveGenderKey(q.word), 'nom', q.number) ??
+				q.adjective.lemma;
+			return `${adjNom} ${q.word.forms[q.number][0] || q.word.lemma}`;
+		}
+		if (q.wordCategory === 'pronoun') return q.pronoun?.lemma ?? '';
+		return q.word.forms[q.number][0];
+	}
+
+	/** Right side of the "from → to" answer line; adjectives keep their noun. */
+	function answerToForm(q: DrillQuestion): string {
+		if (q.wordCategory === 'adjective') return `${q.correctAnswer} ${pairedNounForm(q)}`;
+		if (q.wordCategory === 'pronoun') return getPronounForm(q);
+		return q.word.forms[q.number][CASE_INDEX[q.case]];
+	}
+
 	function sentenceWithBlankAndLemma(q: DrillQuestion): { before: string; after: string } {
 		const form =
 			q.wordCategory === 'adjective'
@@ -656,8 +685,7 @@
 							</div>
 							{#if question.wordCategory === 'adjective' && question.adjective}
 								<span class="text-lg font-normal text-text-subtitle sm:text-xl">
-									{question.word.forms[question.number][CASE_INDEX[question.case]] ||
-										question.word.lemma}
+									{pairedNounForm(question)}
 								</span>
 							{/if}
 							{#if onSpeak}
@@ -958,18 +986,8 @@
 				{#if submitted && result && showFeedback}
 					<div class="drill-fade-enter space-y-4" aria-live="polite">
 						{#if result.correct}
-							{@const nomForm =
-								question.wordCategory === 'adjective'
-									? (question.adjective?.lemma ?? question.word.lemma)
-									: question.wordCategory === 'pronoun'
-										? (question.pronoun?.lemma ?? '')
-										: question.word.forms[question.number][0]}
-							{@const targetForm =
-								question.wordCategory === 'adjective'
-									? question.correctAnswer
-									: question.wordCategory === 'pronoun'
-										? getPronounForm(question)
-										: question.word.forms[question.number][CASE_INDEX[question.case]]}
+							{@const nomForm = answerFromForm(question)}
+							{@const targetForm = answerToForm(question)}
 							<FeedbackVerdict
 								tone="correct"
 								title={retry
@@ -1173,16 +1191,8 @@
 								userAnswer={wasSkipped || question.drillType === 'case_identification'
 									? undefined
 									: userTyped}
-								nominative={question.wordCategory === 'adjective'
-									? (question.adjective?.lemma ?? question.word.lemma)
-									: question.wordCategory === 'pronoun'
-										? (question.pronoun?.lemma ?? '')
-										: question.word.forms[question.number][0]}
-								targetForm={question.wordCategory === 'adjective'
-									? question.correctAnswer
-									: question.wordCategory === 'pronoun'
-										? getPronounForm(question)
-										: question.word.forms[question.number][CASE_INDEX[question.case]]}
+								nominative={answerFromForm(question)}
+								targetForm={answerToForm(question)}
 								translation={question.drillType === 'case_identification'
 									? question.wordCategory === 'adjective'
 										? (question.adjective?.translation ?? question.word.translation)
@@ -1218,6 +1228,9 @@
 									: undefined}
 								adjectiveGenderKey={question.wordCategory === 'adjective' && question.adjective
 									? getAdjectiveGenderKey(question.word)
+									: undefined}
+								pairedNoun={question.wordCategory === 'adjective' && question.adjective
+									? pairedNounForm(question)
 									: undefined}
 								pronounLemma={question.wordCategory === 'pronoun' && question.pronoun
 									? question.pronoun.lemma
