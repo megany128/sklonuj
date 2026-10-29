@@ -330,6 +330,46 @@ describe('DrillCard adjective feedback', () => {
 		expect(document.body.textContent).not.toContain('humor');
 	});
 
+	it('names the gender even when the form is also another case', async () => {
+		// "toho" is the masculine animate accusative and also a genitive.
+		const { loadDeterminerBank } = await import('$lib/engine/determiners');
+		const ten = loadDeterminerBank().find((d) => d.lemma === 'ten');
+		if (!ten) throw new Error('no ten');
+		const stul: WordEntry = { ...humor, lemma: 'stůl' };
+		const q: DrillQuestion = {
+			...adjectiveQuestion,
+			word: stul,
+			adjective: ten,
+			template: {
+				...adjectiveQuestion.template,
+				template: 'Vidím ___ stůl.',
+				requiredCase: 'acc',
+				nounLemma: undefined
+			},
+			case: 'acc',
+			correctAnswer: 'ten'
+		};
+		mount(
+			{
+				question: q,
+				userAnswer: 'toho',
+				correct: false,
+				nearMiss: false,
+				accidentalCase: { case: 'gen', number: 'sg' }
+			},
+			q
+		);
+		await page.getByRole('textbox').fill('toho');
+		await userEvent.keyboard('{Enter}');
+		await expect
+			.element(
+				page.getByText(
+					'toho is the masculine animate form — stůl is masculine inanimate, so it takes ten'
+				)
+			)
+			.toBeInTheDocument();
+	});
+
 	it('names the sentence noun when the answer has the wrong gender', async () => {
 		mount({ question: inShop, userAnswer: 'malé', correct: false, nearMiss: false }, inShop);
 		await page.getByRole('textbox').fill('malé');

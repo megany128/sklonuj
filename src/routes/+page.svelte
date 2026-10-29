@@ -1835,13 +1835,26 @@
 	afterNavigate((nav) => {
 		if (!initialized || nav.type === 'enter' || nav.to === null) return;
 		const next = focusFromSlug(nav.to.url.searchParams.get('deck'));
-		if (next === selectedDeck) return;
+		// A word link (?word=tenhle) can change the word within the same deck.
+		const word = nav.to.url.searchParams.get('word');
+		const nextWord =
+			next === 'demonstratives' && word !== null && demonstrativeLemmas().includes(word)
+				? word
+				: null;
+		if (next === selectedDeck) {
+			if (nextWord !== deckWord) {
+				deckWord = nextWord;
+				generateNextQuestion();
+			}
+			return;
+		}
 		if (next === null) {
 			leaveDeck();
 			return;
 		}
 		const inChapter = chapterBook !== null;
 		enterDeck(next);
+		deckWord = nextWord;
 		if (inChapter) handleChapterChange(null, null);
 		else generateNextQuestion();
 	});

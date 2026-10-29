@@ -1135,20 +1135,24 @@
 											userTyped,
 											{ accidentalCase: result.accidentalCase !== undefined }
 										)
-									: question.wordCategory === 'adjective' &&
-										  question.adjective &&
-										  agreeingNoun(question) &&
-										  !wasSkipped &&
-										  !result.nearMiss &&
-										  !result.accidentalCase
-										? explainWrongGender(
-												question.adjective,
-												agreeingNoun(question) ?? question.word,
-												{ case: question.case, number: question.number },
-												userTyped,
-												question.correctAnswer
-											)
-										: null}
+									: null}
+							<!-- Checked before the wrong-case verdict: "toho" for "ten stůl" is
+							     also a genitive, but the mistake is the gender. -->
+							{@const agreeing = agreeingNoun(question)}
+							{@const genderLine =
+								question.wordCategory === 'adjective' &&
+								question.adjective &&
+								agreeing &&
+								!wasSkipped &&
+								!result.nearMiss
+									? explainWrongGender(
+											question.adjective,
+											agreeing,
+											{ case: question.case, number: question.number },
+											userTyped,
+											question.correctAnswer
+										)
+									: null}
 							{#if wasSkipped}
 								<FeedbackVerdict tone="skipped" title="Skipped">Here's the answer.</FeedbackVerdict>
 							{:else if pickedCase}
@@ -1161,6 +1165,8 @@
 								<FeedbackVerdict tone="almost" title="Almost — check the accents">
 									Right letters, but accents count here.
 								</FeedbackVerdict>
+							{:else if genderLine}
+								<FeedbackVerdict tone="wrong" title="Not quite">{genderLine}</FeedbackVerdict>
 							{:else if result.accidentalCase}
 								{@const typedAs = result.accidentalCase}
 								{#if typedAs.case === question.case}
