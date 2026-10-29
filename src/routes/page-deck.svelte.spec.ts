@@ -307,6 +307,27 @@ describe('?deck= URL param', () => {
 		);
 	});
 
+	it('skips intros for a deck and cases the learner has already practised', async () => {
+		const { progress } = await import('$lib/engine/progress');
+		const { recordDeckAnswer } = await import('$lib/engine/deck-progress');
+		const score = { attempts: 12, correct: 9 };
+		progress.update((p) => ({
+			...p,
+			caseScores: Object.fromEntries(
+				['gen', 'dat', 'acc', 'voc', 'loc', 'ins'].map((c) => [`${c}_sg`, score])
+			)
+		}));
+		recordDeckAnswer('direction', true);
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+
+		// Straight to a question, whatever its type.
+		await expect
+			.poll(() => /Which case\?|What paradigm|Skip/.test(document.body.textContent ?? ''))
+			.toBe(true);
+		expect(document.querySelector('[data-testid="learning-card"]')).toBeNull();
+	});
+
 	it('mistake review and a deck do not run at once: the review link wins', async () => {
 		const { addMistake, clearMistakes } = await import('$lib/engine/mistakes');
 		clearMistakes();
