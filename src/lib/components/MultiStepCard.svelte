@@ -180,6 +180,15 @@
 		};
 	});
 
+	// With an adjective, the preposition comes before it, so the adjective
+	// decides the voicing: "s malými ségrami", not "se malými ségrami".
+	let adjectiveSentenceParts = $derived.by(() => {
+		if (!question) return { before: '', after: '' };
+		const form = question.correctAdjectiveForm ?? question.correctForm;
+		const parts = applyPrepositionVoicing(question.template.template, form).split('___');
+		return { before: parts[0] ?? '', after: parts[1] ?? '' };
+	});
+
 	function checkAdjForm(): { correct: boolean; nearMiss: boolean } {
 		const accepted = question?.acceptedAdjectiveForms ?? [];
 		const trimmed = adjFormInput.trim().toLowerCase();
@@ -880,11 +889,6 @@
 
 					<!-- STEP: ADJECTIVE FORM -->
 				{:else if currentStep === 'adjective' && question.adjective && question.correctAdjectiveForm}
-					{@const voiced = applyPrepositionVoicing(
-						question.template.template,
-						question.correctForm
-					)}
-					{@const adjSentenceParts = voiced.split('___')}
 					<div class="flex flex-col items-center gap-4">
 						<!-- Instruction -->
 						<p class="text-lg font-extrabold text-text-default">
@@ -901,13 +905,13 @@
 
 						<!-- Sentence with blank for adjective + noun filled in -->
 						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{adjSentenceParts[0]}<span
+							{adjectiveSentenceParts.before}<span
 								class="group/blank mx-0.5 inline-block border-b-2 border-dashed border-text-subtitle px-6"
 								title={question.adjective?.lemma}
 								><span class="invisible group-hover/blank:visible text-xs text-text-subtitle"
 									>({question.adjective?.lemma})</span
 								></span
-							>&nbsp;{question.correctForm}{adjSentenceParts[1] ?? ''}{#if onSpeak}<button
+							>&nbsp;{question.correctForm}{adjectiveSentenceParts.after}{#if onSpeak}<button
 									type="button"
 									onclick={() =>
 										onSpeak?.(
@@ -1032,7 +1036,9 @@
 					<div class="flex flex-col items-center gap-4">
 						<!-- Full sentence revealed -->
 						<p class="text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
-							{sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
+							{hasAdjectiveStep
+								? adjectiveSentenceParts.before
+								: sentenceParts.before}{#if hasAdjectiveStep && question.correctAdjectiveForm}<span
 									class="font-semibold {CASE_COLORS[question.correctCase].text}"
 									>{question.correctAdjectiveForm}</span
 								>&nbsp;{/if}<span class="font-semibold {CASE_COLORS[question.correctCase].text}"
