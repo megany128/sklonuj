@@ -89,7 +89,18 @@ describe('seen cards', () => {
 
 	it('shrugs off a malformed store', () => {
 		localStorage.setItem('sklonuj_seen_cards', '{"x":1}');
-		expect(loadSeenCards().size).toBe(0);
+		expect(loadSeenCards().has('x')).toBe(false);
+	});
+
+	it('still counts a card as seen when storage refuses the write', () => {
+		vi.stubGlobal('localStorage', {
+			getItem: () => null,
+			setItem: () => {
+				throw new Error('QuotaExceededError');
+			}
+		});
+		markCardSeen('deck:verbs');
+		expect(loadSeenCards().has('deck:verbs')).toBe(true);
 	});
 });
 
@@ -120,5 +131,16 @@ describe('struggles', () => {
 			{ before: 'o ', bold: 'tom', after: ' městě' }
 		]);
 		expect(card?.primary).toBe('Practise 5');
+	});
+
+	it('says when every gender shares the form', () => {
+		const q = tenQuestion('jezero', 'Mluvíme o ___ jezerech.', 'těch');
+		const plural: DrillQuestion = {
+			...q,
+			number: 'pl',
+			template: { ...q.template, number: 'pl' }
+		};
+		const card = struggleCard('adj:loc:pl:n', [{ question: plural, typed: 'tech' }]);
+		expect(card?.line).toBe('All genders share this form.');
 	});
 });

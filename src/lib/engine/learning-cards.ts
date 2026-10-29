@@ -1,4 +1,4 @@
-import type { Case, DrillQuestion, FocusTopic } from '../types';
+import type { AdjectiveGenderKey, Case, DrillQuestion, FocusTopic } from '../types';
 import { CASE_INDEX, CASE_LABELS } from '../types';
 import { getAdjectiveGenderKey } from './adjective-keys';
 import { agreeingNoun } from './agreeing-noun';
@@ -187,25 +187,29 @@ export function deckIntroCard(deck: FocusTopic, label: string): LearningCardMode
 
 const SEEN_KEY = 'sklonuj_seen_cards';
 
+// Seen this page load, kept apart from storage so a card still closes for
+// good when storage is blocked or full.
+const seenThisLoad = new Set<string>();
+
 export function loadSeenCards(): Set<string> {
 	try {
 		const raw = localStorage.getItem(SEEN_KEY);
 		const parsed: unknown = raw ? JSON.parse(raw) : [];
-		return new Set(
-			Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : []
-		);
+		const stored = Array.isArray(parsed)
+			? parsed.filter((k): k is string => typeof k === 'string')
+			: [];
+		return new Set([...stored, ...seenThisLoad]);
 	} catch {
-		return new Set();
+		return new Set(seenThisLoad);
 	}
 }
 
 export function markCardSeen(key: string): void {
+	seenThisLoad.add(key);
 	try {
-		const seen = loadSeenCards();
-		seen.add(key);
-		localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+		localStorage.setItem(SEEN_KEY, JSON.stringify([...loadSeenCards()]));
 	} catch {
-		// Private mode or a full quota: the card may show again, nothing worse.
+		// Private mode or a full quota: remembered for this page load only.
 	}
 }
 
@@ -256,6 +260,8 @@ export interface Miss {
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+const ALL_GENDERS: AdjectiveGenderKey[] = ['m_anim', 'm_inanim', 'f', 'n'];
+
 /** Noun questions leave `wordCategory` unset. */
 const isNoun = (q: DrillQuestion) => q.wordCategory !== 'adjective' && q.wordCategory !== 'pronoun';
 
@@ -292,13 +298,21 @@ function ruleLine(latest: Miss): string {
 		if (noun) {
 			const slot = { case: q.case, number: q.number };
 			const own = getAdjectiveGenderKey(noun);
-			const formOf = (g: typeof own) => q.adjective?.forms[g][q.number][CASE_INDEX[q.case]];
-			const partner = own === 'n' ? 'm_inanim' : own.startsWith('m') ? 'n' : null;
-			const ownName = own.startsWith('m') ? 'masculine' : GENDER_NAMES[own];
+			const formOf = (g: AdjectiveGenderKey) => q.adjective?.forms[g][q.number][CASE_INDEX[q.case]];
+			const ownForm = formOf(own);
+			const sharers = ALL_GENDERS.filter((g) => g !== own && formOf(g) === ownForm);
+			// Name masculine as one gender unless its animate and inanimate forms differ here.
+			const splitMasculine = formOf('m_anim') !== formOf('m_inanim');
+			const nameOf = (g: AdjectiveGenderKey) =>
+				g.startsWith('m') && !splitMasculine ? 'masculine' : GENDER_NAMES[g];
+			const ownName = nameOf(own);
+			const others = [...new Set(sharers.map(nameOf))].filter((n) => n !== ownName);
 			const shared =
-				partner !== null && formOf(own) === formOf(partner)
-					? `${capitalize(ownName)} and ${partner === 'n' ? 'neuter' : 'masculine'} share this form.`
-					: `${capitalize(ownName)} has its own form here.`;
+				sharers.length === ALL_GENDERS.length - 1
+					? 'All genders share this form.'
+					: others.length > 0
+						? `${capitalize(ownName)} and ${others.join(' and ')} share this form.`
+						: `${capitalize(ownName)} has its own form here.`;
 			const match = wrongGenderMatch(q.adjective, noun, slot, latest.typed);
 			return match ? `${shared} ${capitalize(match.form)} is only for ${match.theirs}.` : shared;
 		}

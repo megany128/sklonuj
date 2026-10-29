@@ -3426,6 +3426,10 @@
 		}
 		if (selectedCase !== 'all' && q.case !== selectedCase) return false;
 		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
+		// A "Practise 5" run on a word pattern keeps to it, in a deck too.
+		if (practise !== null && selectedParadigm && q.word.paradigm !== selectedParadigm) {
+			return false;
+		}
 		// A deck sets its own content and exercise types (noun sentences, or the
 		// determiner deck's own), so its misses come back whatever the learner's
 		// usual settings say.
@@ -3501,6 +3505,11 @@
 		}
 
 		holdPromptAudio = false;
+		showNextLearningCard();
+	}
+
+	/** Show the next card due, if any (logging it); else play the held prompt. */
+	function showNextLearningCard(): void {
 		learningCard = pickLearningCard();
 		if (learningCard !== null) {
 			posthog.capture('learning_card_shown', {
@@ -3557,11 +3566,14 @@
 			return;
 		}
 		// Another card may be due (a deck's intro, then its first case's).
-		learningCard = pickLearningCard();
-		if (learningCard === null && heldPrompt !== null) {
-			autoPlayPrompt(heldPrompt);
-			heldPrompt = null;
-		}
+		showNextLearningCard();
+	}
+
+	/** One more answer towards a "Practise 5" run, any exercise type. */
+	function countPractiseAnswer(): void {
+		if (practise === null) return;
+		practise = { ...practise, remaining: practise.remaining - 1 };
+		if (practise.remaining <= 0) endPractise();
 	}
 
 	/** A noun rundown's practice keeps to its word pattern too ("like hrad"). */
@@ -4320,10 +4332,7 @@
 
 	function trackSessionStats(result: DrillResult): void {
 		recordStruggle(result);
-		if (practise !== null) {
-			practise = { ...practise, remaining: practise.remaining - 1 };
-			if (practise.remaining <= 0) endPractise();
-		}
+		countPractiseAnswer();
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
 			recordDeckAnswerTracked(activeFocus, result.correct, {
 				case: result.question.case,
@@ -4756,6 +4765,7 @@
 		hasInteracted = true;
 
 		sessionCount++;
+		countPractiseAnswer();
 		recordMultiStepResult(result);
 		recordPractice();
 		scheduleSyncToSupabase();
@@ -5961,11 +5971,14 @@
 				</div>
 			{/if}
 			{#if learningCard !== null}
-				<LearningCard
-					card={learningCard}
-					onPrimary={() => closeLearningCard('primary')}
-					onSecondary={() => closeLearningCard('secondary')}
-				/>
+				<!-- Keyed so a card that follows another mounts afresh and takes focus. -->
+				{#key learningCard.key}
+					<LearningCard
+						card={learningCard}
+						onPrimary={() => closeLearningCard('primary')}
+						onSecondary={() => closeLearningCard('secondary')}
+					/>
+				{/key}
 			{:else if multiStepQuestion !== null || (drillLoading && pinnedDrillType === 'multi_step')}
 				<MultiStepCard
 					question={multiStepQuestion}
