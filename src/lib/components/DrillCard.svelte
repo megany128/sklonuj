@@ -8,7 +8,8 @@
 		DrillResult,
 		DrillType,
 		Case,
-		Paradigm
+		Paradigm,
+		WordEntry
 	} from '$lib/types';
 	import {
 		ALL_CASES,
@@ -487,9 +488,23 @@
 		return form.prep.split('/')[0] || form.bare.split('/')[0] || '';
 	}
 
-	/** The paired noun in the question's case and number; the lemma when that cell is empty. */
+	/**
+	 * The noun an adjective question's answer agrees with. A sentence names its
+	 * own noun (`nounLemma`); `q.word` there is only picked to match its gender,
+	 * so it can be another noun ("humor" for "Jsem v ___ obchodě"). Null when
+	 * the sentence's noun isn't in the bank.
+	 */
+	function agreeingNoun(q: DrillQuestion): WordEntry | null {
+		const lemma = q.template.nounLemma;
+		if (lemma === undefined || lemma === q.word.lemma) return q.word;
+		return loadWordBank().find((w) => w.lemma === lemma) ?? null;
+	}
+
+	/** The agreeing noun in the question's case and number, or '' when there is none. */
 	function pairedNounForm(q: DrillQuestion): string {
-		return q.word.forms[q.number][CASE_INDEX[q.case]] || q.word.lemma;
+		const noun = agreeingNoun(q);
+		if (!noun) return '';
+		return noun.forms[q.number][CASE_INDEX[q.case]] || noun.lemma;
 	}
 
 	/**
@@ -500,10 +515,12 @@
 	function answerFromForm(q: DrillQuestion): string {
 		if (q.wordCategory === 'adjective') {
 			if (!q.adjective) return q.word.lemma;
+			const noun = agreeingNoun(q);
+			if (!noun) return q.adjective.lemma;
 			const adjNom =
-				getAdjectiveForm(q.adjective, getAdjectiveGenderKey(q.word), 'nom', q.number) ??
+				getAdjectiveForm(q.adjective, getAdjectiveGenderKey(noun), 'nom', q.number) ??
 				q.adjective.lemma;
-			return `${adjNom} ${q.word.forms[q.number][0] || q.word.lemma}`;
+			return `${adjNom} ${noun.forms[q.number][0] || noun.lemma}`;
 		}
 		if (q.wordCategory === 'pronoun') return q.pronoun?.lemma ?? '';
 		return q.word.forms[q.number][0];
@@ -511,7 +528,9 @@
 
 	/** Right side of the "from → to" answer line; adjectives keep their noun. */
 	function answerToForm(q: DrillQuestion): string {
-		if (q.wordCategory === 'adjective') return `${q.correctAnswer} ${pairedNounForm(q)}`;
+		if (q.wordCategory === 'adjective') {
+			return `${q.correctAnswer} ${pairedNounForm(q)}`.trim();
+		}
 		if (q.wordCategory === 'pronoun') return getPronounForm(q);
 		return q.word.forms[q.number][CASE_INDEX[q.case]];
 	}
@@ -1118,12 +1137,13 @@
 										)
 									: question.wordCategory === 'adjective' &&
 										  question.adjective &&
+										  agreeingNoun(question) &&
 										  !wasSkipped &&
 										  !result.nearMiss &&
 										  !result.accidentalCase
 										? explainWrongGender(
 												question.adjective,
-												question.word,
+												agreeingNoun(question) ?? question.word,
 												{ case: question.case, number: question.number },
 												userTyped,
 												question.correctAnswer
@@ -1243,7 +1263,7 @@
 									? getAdjectiveGenderKey(question.word)
 									: undefined}
 								pairedNoun={question.wordCategory === 'adjective' && question.adjective
-									? pairedNounForm(question)
+									? pairedNounForm(question) || undefined
 									: undefined}
 								pronounLemma={question.wordCategory === 'pronoun' && question.pronoun
 									? question.pronoun.lemma
