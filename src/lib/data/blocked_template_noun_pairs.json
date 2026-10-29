@@ -396,7 +396,6 @@
 	["acc_jeden_279", "dědek"],
 	["acc_jeden_279", "děvče"],
 	["acc_jeden_279", "dvojče"],
-	["acc_jeden_279", "trojče"],
 	["acc_jeden_279", "rodič"],
 	["acc_dva_286", "muž"],
 	["acc_dva_286", "žena"],
@@ -405,7 +404,6 @@
 	["acc_dva_286", "dědek"],
 	["acc_dva_286", "děvče"],
 	["acc_dva_286", "dvojče"],
-	["acc_dva_286", "trojče"],
 	["acc_dva_286", "rodič"],
 	["gen_pet_291", "muž"],
 	["gen_pet_291", "žena"],
@@ -414,7 +412,6 @@
 	["gen_pet_291", "dědek"],
 	["gen_pet_291", "děvče"],
 	["gen_pet_291", "dvojče"],
-	["gen_pet_291", "trojče"],
 	["gen_pet_291", "rodič"],
 	["gen_kolik_300", "muž"],
 	["gen_kolik_300", "žena"],
@@ -423,7 +420,6 @@
 	["gen_kolik_300", "dědek"],
 	["gen_kolik_300", "děvče"],
 	["gen_kolik_300", "dvojče"],
-	["gen_kolik_300", "trojče"],
 	["gen_kolik_300", "rodič"],
 	["acc_jeden_281", "průkaz"],
 	["acc_jeden_281", "řidičák"],
@@ -675,6 +671,5 @@
 	["dat_naproti_097", "terasa"],
 	["dat_naproti_097", "hlediště"],
 	["gen_uprostred_080", "pokladna"],
-	["gen_uprostred_207", "pokladna"],
-	["acc_myslim_245", "trojče"]
+	["gen_uprostred_207", "pokladna"]
 ]
