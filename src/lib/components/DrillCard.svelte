@@ -8,8 +8,7 @@
 		DrillResult,
 		DrillType,
 		Case,
-		Paradigm,
-		WordEntry
+		Paradigm
 	} from '$lib/types';
 	import {
 		ALL_CASES,
@@ -44,6 +43,7 @@
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
 	import { explainWrongGender } from '$lib/utils/wrong-gender';
+	import { agreeingNoun } from '$lib/engine/agreeing-noun';
 
 	/** How the Why box names the word's type on an adjective-shaped question. */
 	const ADJECTIVE_TYPE_NOTE: Record<AdjectiveParadigmType, string> = {
@@ -488,18 +488,6 @@
 		return form.prep.split('/')[0] || form.bare.split('/')[0] || '';
 	}
 
-	/**
-	 * The noun an adjective question's answer agrees with. A sentence names its
-	 * own noun (`nounLemma`); `q.word` there is only picked to match its gender,
-	 * so it can be another noun ("humor" for "Jsem v ___ obchodě"). Null when
-	 * the sentence's noun isn't in the bank.
-	 */
-	function agreeingNoun(q: DrillQuestion): WordEntry | null {
-		const lemma = q.template.nounLemma;
-		if (lemma === undefined || lemma === q.word.lemma) return q.word;
-		return loadWordBank().find((w) => w.lemma === lemma) ?? null;
-	}
-
 	/** The agreeing noun in the question's case and number, or '' when there is none. */
 	function pairedNounForm(q: DrillQuestion): string {
 		const noun = agreeingNoun(q);
@@ -740,9 +728,21 @@
 								: question.word.forms[question.number][0]}
 						<p class="text-sm text-text-subtitle">Which case?</p>
 						{@const parts = sentenceWithBlankAndLemma(question)}
+						<!-- Once answered, the dictionary form gives way to the declined one,
+						     in the case's colour. -->
+						{@const revealed = submitted && result !== null}
+						{@const caseIdLabel = revealed
+							? question.wordCategory === 'pronoun'
+								? getPronounForm(question)
+								: question.word.forms[question.number][CASE_INDEX[question.case]]
+							: `(${caseIdLemma})`}
 						<p class="mt-3 text-lg font-normal leading-relaxed text-emphasis sm:text-xl">
 							{@render cueText(parts.before, question.template.trigger, question.case)}<span
-								class="mx-0.5 inline-block rounded bg-shaded-background px-2 py-0.5 font-semibold text-emphasis"
+								class="mx-0.5 inline-block rounded px-2 py-0.5 font-semibold transition-colors {revealed
+									? CASE_COLORS[question.case].text
+									: 'bg-shaded-background text-emphasis'}"
+								style={revealed ? `background-color: ${CASE_HEX[question.case]}1f` : undefined}
+								data-testid="case-id-word"
 								>{#if onWordClick}<button
 										type="button"
 										onclick={() =>
@@ -752,8 +752,8 @@
 													: question!.word.lemma
 											)}
 										class="cursor-pointer underline decoration-text-subtitle decoration-dotted underline-offset-2 transition-opacity hover:opacity-70"
-										>({caseIdLemma})</button
-									>{:else}({caseIdLemma}){/if}</span
+										>{caseIdLabel}</button
+									>{:else}{caseIdLabel}{/if}</span
 							>{parts.after}{#if onSpeak}<button
 									type="button"
 									onclick={() => onSpeak(speakTargetText(question!))}

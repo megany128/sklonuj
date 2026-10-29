@@ -413,6 +413,23 @@ describe('DrillCard case identification choices', () => {
 		}
 	});
 
+	it('shows the declined form in place of the dictionary form once answered', async () => {
+		const q = caseQuestion('acc');
+		render(DrillCard, {
+			question: q,
+			result: { question: q, userAnswer: 'acc', correct: true, nearMiss: false },
+			onSubmit: vi.fn(),
+			onSpeak: null,
+			selectedCases: ['nom', 'acc'],
+			soundEnabled: false
+		});
+		const word = page.getByTestId('case-id-word');
+		await expect.element(word).toHaveTextContent('(muzeum)');
+		await page.getByRole('button', { name: /Accusative/ }).click();
+		await expect.element(word).toHaveTextContent('muzeum');
+		await expect.element(word).not.toHaveTextContent('(');
+	});
+
 	it('still offers the right case when the list is short and leaves it out', async () => {
 		mountCases(caseQuestion('voc'), ['nom', 'acc']);
 		await expect.element(page.getByRole('button', { name: /Vocative/ })).toBeInTheDocument();

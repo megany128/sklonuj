@@ -14,7 +14,7 @@ import { stripDiacritics } from './diacritics';
  * form of this case and number, or is also this gender's.
  */
 
-const GENDER_NAMES: Record<AdjectiveGenderKey, string> = {
+export const GENDER_NAMES: Record<AdjectiveGenderKey, string> = {
 	m_anim: 'masculine animate',
 	m_inanim: 'masculine inanimate',
 	f: 'feminine',
@@ -34,14 +34,27 @@ function formsFor(
 	return [primary, ...variants].filter((f) => f.trim().length > 0);
 }
 
-export function explainWrongGender(
+const loose = (s: string) => stripDiacritics(s.trim().toLowerCase().normalize('NFC'));
+
+export interface GenderMatch {
+	/** The typed answer as that gender writes it (accents restored). */
+	form: string;
+	/** The genders it belongs to, named as finely as the forms differ ("masculine"). */
+	theirs: string;
+	/** The noun's own gender, named to contrast with `theirs`. */
+	own: string;
+}
+
+/**
+ * Which other gender a typed form belongs to in this case and number. Null
+ * when it is this gender's form too, or no gender's.
+ */
+export function wrongGenderMatch(
 	adj: AdjectiveEntry,
 	noun: WordEntry,
 	slot: { case: Case; number: Number_ },
-	typed: string,
-	correct: string
-): string | null {
-	const loose = (s: string) => stripDiacritics(s.trim().toLowerCase().normalize('NFC'));
+	typed: string
+): GenderMatch | null {
 	const answer = loose(typed);
 	if (!answer) return null;
 	const own = getAdjectiveGenderKey(noun);
@@ -58,10 +71,21 @@ export function explainWrongGender(
 	const names = bothMasculine
 		? ['masculine', ...matches.filter((g) => !g.startsWith('m')).map((g) => GENDER_NAMES[g])]
 		: matches.map((g) => GENDER_NAMES[g]);
-	const theirs = names.join(' and ');
 	const ownName =
 		own.startsWith('m') && !matches.some((g) => g.startsWith('m'))
 			? 'masculine'
 			: GENDER_NAMES[own];
-	return `${form} is the ${theirs} form — ${noun.lemma} is ${ownName}, so it takes ${correct}`;
+	return { form, theirs: names.join(' and '), own: ownName };
+}
+
+export function explainWrongGender(
+	adj: AdjectiveEntry,
+	noun: WordEntry,
+	slot: { case: Case; number: Number_ },
+	typed: string,
+	correct: string
+): string | null {
+	const match = wrongGenderMatch(adj, noun, slot, typed);
+	if (!match) return null;
+	return `${match.form} is the ${match.theirs} form — ${noun.lemma} is ${match.own}, so it takes ${correct}`;
 }

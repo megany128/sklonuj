@@ -53,6 +53,7 @@
 		LEVEL_ORDER,
 		ALL_DRILL_TYPES,
 		CASE_LABELS,
+		CASE_COLORS,
 		CASE_HEX,
 		CASE_INDEX,
 		isCase,
@@ -188,6 +189,19 @@
 	import DrillSettings_ from '$lib/components/DrillSettings.svelte';
 	import DrillCard from '$lib/components/DrillCard.svelte';
 	import MultiStepCard from '$lib/components/MultiStepCard.svelte';
+	import LearningCard from '$lib/components/LearningCard.svelte';
+	import {
+		caseIntroCard,
+		deckIntroCard,
+		isStruggling,
+		loadSeenCards,
+		markCardSeen,
+		struggleCard,
+		struggleKey,
+		withStruggleAnswer,
+		type LearningCardModel,
+		type Miss
+	} from '$lib/engine/learning-cards';
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
 
 	import NavBar from '$lib/components/ui/NavBar.svelte';
@@ -1690,11 +1704,37 @@
 			!assignmentInfo
 	);
 
+	// --- Learning cards: an intro the first time a deck or case comes up, and a
+	// rundown after repeated misses of one kind (`engine/learning-cards.ts`).
+	// A card takes the question's place until it is dismissed.
+	let learningCard = $state<LearningCardModel | null>(null);
+	// The question's spoken prompt waits while a card is up.
+	let holdPromptAudio = false;
+	let heldPrompt: DrillQuestion | null = null;
+	// This session's recent outcomes and misses per kind of question.
+	let struggleLog: Record<string, boolean[]> = {};
+	let struggleMisses: Record<string, Miss[]> = {};
+	let strugglesShown: string[] = [];
+	let pendingStruggle: LearningCardModel | null = null;
+	/**
+	 * "Practise 5" from a rundown: the next answers keep to that case and
+	 * number, then the learner's own case pick comes back.
+	 */
+	let practise = $state<{
+		case: Case;
+		number: Number_;
+		remaining: number;
+		previousCase: Case | 'all';
+		previousParadigm: string | null;
+	} | null>(null);
+	const PRACTISE_COUNT = 5;
+
 	let effectiveNumberMode = $derived.by(() => {
 		const chapter = getSelectedKzkChapter();
 		if (chapter && !chapter.pluralUnlocked) {
 			return 'sg' as const;
 		}
+		if (practise !== null) return practise.number;
 		if (deckAsksBothNumbers) return 'both' as const;
 		return drillSettings.numberMode;
 	});
@@ -3430,6 +3470,8 @@
 				selectedCase = 'all';
 			}
 		}
+		holdPromptAudio = true;
+		heldPrompt = null;
 		try {
 			generateNextQuestionInner();
 		} catch (err) {
@@ -3457,6 +3499,118 @@
 				autoPlayPrompt(fallbackQ);
 			}
 		}
+
+		holdPromptAudio = false;
+		learningCard = pickLearningCard();
+		if (learningCard !== null) {
+			posthog.capture('learning_card_shown', {
+				...drillAnalyticsProps(),
+				kind: learningCard.kind,
+				key: learningCard.key
+			});
+		} else if (heldPrompt !== null) {
+			autoPlayPrompt(heldPrompt);
+			heldPrompt = null;
+		}
+	}
+
+	/**
+	 * The card to show before the next question, if any: a rundown that was
+	 * earned on the last answer, then a deck's intro, then the intro to a case
+	 * the learner has never answered. Never over the welcome tour or mistake
+	 * review, and intros only once per device.
+	 */
+	function pickLearningCard(): LearningCardModel | null {
+		if (showOnboarding || practicingMistakes) return null;
+		if (pendingStruggle !== null) {
+			const card = pendingStruggle;
+			pendingStruggle = null;
+			return card;
+		}
+		const seen = loadSeenCards();
+		if (activeFocus !== null && !seen.has(`deck:${activeFocus}`)) {
+			return deckIntroCard(activeFocus, focusDef(activeFocus).label);
+		}
+		const c = question?.case ?? multiStepQuestion?.case;
+		if (c === undefined || seen.has(`case:${c}`)) return null;
+		if ((get(progress).caseScores[c]?.attempts ?? 0) > 0) return null;
+		return caseIntroCard(c);
+	}
+
+	function closeLearningCard(action: 'primary' | 'secondary'): void {
+		const card = learningCard;
+		if (card === null) return;
+		learningCard = null;
+		posthog.capture('learning_card_action', {
+			...drillAnalyticsProps(),
+			kind: card.kind,
+			key: card.key,
+			action
+		});
+		if (card.kind !== 'struggle') markCardSeen(card.key);
+		if (card.kind === 'struggle' && action === 'primary' && card.case) {
+			// struggle:<kind>:<case>:<number>[:<gender or paradigm>]
+			const [, kind, , number, detail] = card.key.split(':');
+			const paradigm =
+				kind === 'noun' && detail !== undefined && isParadigm(detail) ? detail : null;
+			startPractise(card.case, number === 'pl' ? 'pl' : 'sg', paradigm);
+			return;
+		}
+		// Another card may be due (a deck's intro, then its first case's).
+		learningCard = pickLearningCard();
+		if (learningCard === null && heldPrompt !== null) {
+			autoPlayPrompt(heldPrompt);
+			heldPrompt = null;
+		}
+	}
+
+	/** A noun rundown's practice keeps to its word pattern too ("like hrad"). */
+	function startPractise(c: Case, number: Number_, paradigm: string | null): void {
+		practise = {
+			case: c,
+			number,
+			remaining: PRACTISE_COUNT,
+			previousCase: practise?.previousCase ?? selectedCase,
+			previousParadigm: practise?.previousParadigm ?? selectedParadigm
+		};
+		selectedCase = c;
+		if (paradigm !== null) selectedParadigm = paradigm;
+		generateNextQuestion();
+	}
+
+	function endPractise(): void {
+		if (practise === null) return;
+		const { previousCase, previousParadigm } = practise;
+		practise = null;
+		selectedParadigm = previousParadigm;
+		selectedCase =
+			previousCase === 'all' || pillCases.includes(previousCase) ? previousCase : 'all';
+	}
+
+	/**
+	 * Count an answer towards its kind's recent outcomes, and line up a
+	 * rundown when the misses pile up: once per kind per session, not during
+	 * mistake review, an assignment, or a "Practise 5" run.
+	 */
+	function recordStruggle(result: DrillResult): void {
+		// A re-ask is the same word again: it says nothing new about the pattern.
+		if (practicingMistakes || assignmentInfo || result.retry) return;
+		const key = struggleKey(result.question);
+		if (key === null) return;
+		const right = result.correct || result.nearMiss;
+		struggleLog = withStruggleAnswer(struggleLog, key, right);
+		if (right) return;
+		struggleMisses = {
+			...struggleMisses,
+			[key]: [
+				...(struggleMisses[key] ?? []),
+				{ question: result.question, typed: result.userAnswer }
+			].slice(-5)
+		};
+		if (practise !== null || strugglesShown.includes(key)) return;
+		if (!isStruggling(struggleLog[key] ?? [])) return;
+		pendingStruggle = struggleCard(key, struggleMisses[key] ?? []);
+		if (pendingStruggle) strugglesShown = [...strugglesShown, key];
 	}
 
 	function generateNextQuestionInner(): void {
@@ -4165,6 +4319,11 @@
 	}
 
 	function trackSessionStats(result: DrillResult): void {
+		recordStruggle(result);
+		if (practise !== null) {
+			practise = { ...practise, remaining: practise.remaining - 1 };
+			if (practise.remaining <= 0) endPractise();
+		}
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
 			recordDeckAnswerTracked(activeFocus, result.correct, {
 				case: result.question.case,
@@ -4780,6 +4939,11 @@
 			showExitAssignmentConfirm = true;
 			return;
 		}
+		// Picking a case by hand ends a "Practise 5" run (the pick then stands).
+		if (practise !== null) {
+			selectedParadigm = practise.previousParadigm;
+			practise = null;
+		}
 		// A deck narrows to one of its own cases; a case it has no sentences for
 		// asks before leaving it.
 		if (selected !== 'all' && casesOutsideDeck.includes(selected)) {
@@ -4870,6 +5034,11 @@
 
 	function autoPlayPrompt(q: DrillQuestion): void {
 		if (!ttsAvailable || !autoplayAudio || !hasInteracted) return;
+		// Played once the card in front of the question is dismissed.
+		if (holdPromptAudio || learningCard !== null) {
+			heldPrompt = q;
+			return;
+		}
 		// All drill types now surface the lemma visually, so autoplay never
 		// spoils the question. Pronoun sentence_fill_in is the one exception
 		// (the lemma isn't prominently displayed there), so we still skip it.
@@ -5770,7 +5939,34 @@
 		<!-- Drill area. The min-height matches the shortest real card (case
 		     identification) so a skeleton → card swap can never shrink the page. -->
 		<div class="mx-auto mt-6 min-h-[280px] max-w-[867px] sm:min-h-[300px]">
-			{#if multiStepQuestion !== null || (drillLoading && pinnedDrillType === 'multi_step')}
+			{#if practise !== null && learningCard === null}
+				<div
+					class="mx-auto mb-3 flex w-fit items-center gap-2 rounded-full bg-shaded-background px-3 py-1 text-xs text-text-subtitle"
+					data-testid="practise-chip"
+				>
+					<span
+						>Practising <span class="font-semibold {CASE_COLORS[practise.case].text}"
+							>{CASE_LABELS[practise.case]}{practise.number === 'pl' ? ' plural' : ''}</span
+						>
+						· {practise.remaining} left</span
+					>
+					<button
+						type="button"
+						onclick={() => {
+							endPractise();
+							generateNextQuestion();
+						}}
+						class="font-semibold text-text-default hover:underline">Stop</button
+					>
+				</div>
+			{/if}
+			{#if learningCard !== null}
+				<LearningCard
+					card={learningCard}
+					onPrimary={() => closeLearningCard('primary')}
+					onSecondary={() => closeLearningCard('secondary')}
+				/>
+			{:else if multiStepQuestion !== null || (drillLoading && pinnedDrillType === 'multi_step')}
 				<MultiStepCard
 					question={multiStepQuestion}
 					loading={drillLoading}

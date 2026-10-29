@@ -38,6 +38,18 @@ const { CHAPTER_STORAGE_KEY, parseChapterSelection, serializeChapterSelection } 
 
 const DECK_QUERY = '?deck=kam-kde-odkud';
 
+/** Past the welcome tour and every intro card, straight to the questions. */
+function skipIntros(): void {
+	localStorage.setItem('sklonuj_onboarded', '1');
+	localStorage.setItem(
+		'sklonuj_seen_cards',
+		JSON.stringify([
+			...['direction', 'verbs', 'demonstratives', 'numbers', 'determiners'].map((d) => `deck:${d}`),
+			...['gen', 'dat', 'acc', 'voc', 'loc', 'ins'].map((c) => `case:${c}`)
+		])
+	);
+}
+
 describe('?deck= URL param', () => {
 	beforeEach(() => {
 		cleanup();
@@ -74,7 +86,7 @@ describe('?deck= URL param', () => {
 
 	it('picking a case outside the deck asks before leaving it', async () => {
 		// The direction deck has no nominative sentences.
-		localStorage.setItem('sklonuj_onboarded', '1');
+		skipIntros();
 		render(Page);
 
 		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
@@ -169,7 +181,7 @@ describe('?deck= URL param', () => {
 		appPage.url.search = '?deck=numbers';
 		setLevel('A2');
 		// The welcome tour would cover the settings button.
-		localStorage.setItem('sklonuj_onboarded', '1');
+		skipIntros();
 		render(Page);
 		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Kolik? Numbers');
 
@@ -198,7 +210,7 @@ describe('?deck= URL param', () => {
 	it('the Můj, tvůj, ten deck asks for a determiner, not a noun', async () => {
 		appPage.url.search = '?deck=muj-tvuj-ten';
 		setLevel('A2');
-		localStorage.setItem('sklonuj_onboarded', '1');
+		skipIntros();
 		render(Page);
 		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Můj, tvůj, ten');
 
@@ -219,7 +231,7 @@ describe('?deck= URL param', () => {
 	it('the Ten, ta, to deck asks for a form of ten at A2', async () => {
 		appPage.url.search = '?deck=ten-ta-to';
 		setLevel('A2');
-		localStorage.setItem('sklonuj_onboarded', '1');
+		skipIntros();
 		render(Page);
 		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Ten, ta, to');
 
@@ -243,7 +255,7 @@ describe('?deck= URL param', () => {
 	it('picking a case keeps the Ten, ta, to deck and asks that case', async () => {
 		appPage.url.search = '?deck=ten-ta-to';
 		setLevel('A2');
-		localStorage.setItem('sklonuj_onboarded', '1');
+		skipIntros();
 		render(Page);
 		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Ten, ta, to');
 
@@ -257,7 +269,7 @@ describe('?deck= URL param', () => {
 	it('the Ten, ta, to banner narrows the deck to one word', async () => {
 		appPage.url.search = '?deck=ten-ta-to';
 		setLevel('A2');
-		localStorage.setItem('sklonuj_onboarded', '1');
+		skipIntros();
 		render(Page);
 
 		const words = page.getByRole('group', { name: 'Word to practise' });
@@ -274,6 +286,25 @@ describe('?deck= URL param', () => {
 		const card = (document.body.textContent ?? '').replace(banner, '');
 		expect(card).toMatch(/\btento\b/);
 		expect(card).not.toMatch(/\btenhle\b/);
+	});
+
+	it('opens a deck with its intro card, then asks once it is dismissed', async () => {
+		appPage.url.search = '?deck=ten-ta-to';
+		setLevel('A2');
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+
+		const card = page.getByTestId('learning-card');
+		await expect.element(card).toHaveTextContent('New deck');
+		await expect.element(card).toHaveTextContent('tenhle, tento');
+		await card.getByRole('button', { name: 'Start' }).click();
+		// The first question's case may have an intro of its own.
+		const caseCard = page.getByRole('button', { name: 'Got it' });
+		if (caseCard.elements().length > 0) await caseCard.click();
+		await expect.element(page.getByRole('textbox').first()).toBeInTheDocument();
+		expect(JSON.parse(localStorage.getItem('sklonuj_seen_cards') ?? '[]')).toContain(
+			'deck:demonstratives'
+		);
 	});
 
 	it('mistake review and a deck do not run at once: the review link wins', async () => {
