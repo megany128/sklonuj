@@ -4,6 +4,7 @@ import {
 	applyAccountDeckProgress,
 	clearDeckProgress,
 	deckAccuracy,
+	deckCompletion,
 	deckProgress,
 	isMissingFunctionError,
 	loadDeckProgress,
@@ -48,6 +49,53 @@ describe('deck progress', () => {
 		expect(sanitizeDeckProgress(null)).toEqual({});
 		expect(sanitizeDeckProgress('nope')).toEqual({});
 		expect(sanitizeDeckProgress({ direction: { attempts: -1, correct: 0, last: 0 } })).toEqual({});
+	});
+});
+
+describe('deck completion', () => {
+	it('counts right answers per case and number, and only right ones', () => {
+		let p = withDeckAnswer({}, 'direction', true, 1, 'gen:sg');
+		p = withDeckAnswer(p, 'direction', true, 2, 'gen:sg');
+		p = withDeckAnswer(p, 'direction', false, 3, 'loc:sg');
+		expect(p.direction?.cells).toEqual({ 'gen:sg': 2 });
+	});
+
+	it('is complete once every cell has three right answers', () => {
+		const cells = ['gen:sg', 'loc:sg'];
+		const stat = { attempts: 9, correct: 6, last: 1, cells: { 'gen:sg': 3, 'loc:sg': 2 } };
+		expect(deckCompletion(stat, cells)).toEqual({ done: 1, total: 2, complete: false });
+		expect(deckCompletion({ ...stat, cells: { 'gen:sg': 4, 'loc:sg': 3 } }, cells)).toEqual({
+			done: 2,
+			total: 2,
+			complete: true
+		});
+		expect(deckCompletion(undefined, cells).complete).toBe(false);
+		expect(deckCompletion(stat, []).complete).toBe(false);
+	});
+
+	it('keeps stored cell counts and drops malformed ones', () => {
+		expect(
+			sanitizeDeckProgress({
+				direction: {
+					attempts: 5,
+					correct: 4,
+					last: 1,
+					cells: { 'gen:sg': 3, 'xyz:sg': 2, 'loc:pl': -1, 'dat:sg': 'a' }
+				}
+			})
+		).toEqual({ direction: { attempts: 5, correct: 4, last: 1, cells: { 'gen:sg': 3 } } });
+	});
+
+	it('keeps cell counts given during a sync request', () => {
+		const sent = { direction: { attempts: 2, correct: 2, last: 1, cells: { 'gen:sg': 2 } } };
+		const remote = { direction: { attempts: 6, correct: 5, last: 2, cells: { 'gen:sg': 3 } } };
+		const current = {
+			direction: { attempts: 3, correct: 3, last: 3, cells: { 'gen:sg': 2, 'loc:sg': 1 } }
+		};
+		expect(reconcileDeckProgress(sent, remote, current).direction?.cells).toEqual({
+			'gen:sg': 3,
+			'loc:sg': 1
+		});
 	});
 });
 

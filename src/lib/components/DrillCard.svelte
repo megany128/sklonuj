@@ -42,6 +42,7 @@
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
+	import { explainWrongGender } from '$lib/utils/wrong-gender';
 
 	/** How the Why box names the word's type on an adjective-shaped question. */
 	const ADJECTIVE_TYPE_NOTE: Record<AdjectiveParadigmType, string> = {
@@ -1115,7 +1116,19 @@
 											userTyped,
 											{ accidentalCase: result.accidentalCase !== undefined }
 										)
-									: null}
+									: question.wordCategory === 'adjective' &&
+										  question.adjective &&
+										  !wasSkipped &&
+										  !result.nearMiss &&
+										  !result.accidentalCase
+										? explainWrongGender(
+												question.adjective,
+												question.word,
+												{ case: question.case, number: question.number },
+												userTyped,
+												question.correctAnswer
+											)
+										: null}
 							{#if wasSkipped}
 								<FeedbackVerdict tone="skipped" title="Skipped">Here's the answer.</FeedbackVerdict>
 							{:else if pickedCase}

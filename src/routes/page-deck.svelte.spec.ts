@@ -228,6 +228,52 @@ describe('?deck= URL param', () => {
 		const banner = page.getByTestId('deck-banner').element().textContent ?? '';
 		const card = (document.body.textContent ?? '').replace(banner, '');
 		expect(card).toMatch(/\bten(hle|to)?\b/);
+
+		// The deck picks its words and asks only fill-ins: the settings keep to Number.
+		await page.getByRole('button', { name: 'Exercise settings' }).click();
+		await expect
+			.element(page.getByRole('group', { name: 'Grammatical number' }))
+			.toBeInTheDocument();
+		await expect.element(page.getByRole('group', { name: 'Content type' })).not.toBeInTheDocument();
+		await expect
+			.element(page.getByRole('group', { name: 'Exercise type' }))
+			.not.toBeInTheDocument();
+	});
+
+	it('picking a case keeps the Ten, ta, to deck and asks that case', async () => {
+		appPage.url.search = '?deck=ten-ta-to';
+		setLevel('A2');
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+		await expect.element(page.getByTestId('deck-banner')).toHaveTextContent('Ten, ta, to');
+
+		const gen = page.getByRole('button', { name: /Gen/ }).first();
+		await gen.click();
+		await expect.element(gen).toHaveAttribute('aria-pressed', 'true');
+		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
+		await expect.element(page.getByRole('textbox').first()).toBeInTheDocument();
+	});
+
+	it('the Ten, ta, to banner narrows the deck to one word', async () => {
+		appPage.url.search = '?deck=ten-ta-to';
+		setLevel('A2');
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+
+		const words = page.getByRole('group', { name: 'Word to practise' });
+		await expect
+			.element(words.getByRole('button', { name: 'All three' }))
+			.toHaveAttribute('aria-pressed', 'true');
+		const tento = words.getByRole('button', { name: 'tento', exact: true });
+		await tento.click();
+		await expect.element(tento).toHaveAttribute('aria-pressed', 'true');
+
+		// The card names the word to decline above the sentence.
+		await expect.element(page.getByRole('textbox').first()).toBeInTheDocument();
+		const banner = page.getByTestId('deck-banner').element().textContent ?? '';
+		const card = (document.body.textContent ?? '').replace(banner, '');
+		expect(card).toMatch(/\btento\b/);
+		expect(card).not.toMatch(/\btenhle\b/);
 	});
 
 	it('mistake review and a deck do not run at once: the review link wins', async () => {

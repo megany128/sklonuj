@@ -1,8 +1,22 @@
-import type { Case, CaseScore, Difficulty, FocusTopic, Paradigm, SentenceTemplate } from '../types';
+import type {
+	Case,
+	CaseScore,
+	Difficulty,
+	FocusTopic,
+	Number_,
+	Paradigm,
+	SentenceTemplate
+} from '../types';
 import { ALL_CASES, ALL_PARADIGMS } from '../types';
 import curriculumData from '../data/curriculum.json';
 import { FOCUS_DEFS, focusUnlocked, templatesForFocus, type FocusDef } from './focus';
-import type { DeckProgress, DeckStat } from './deck-progress';
+import {
+	deckCellKey,
+	deckCompletion,
+	type DeckCompletion,
+	type DeckProgress,
+	type DeckStat
+} from './deck-progress';
 
 /**
  * What the Decks page shows. Two kinds of deck: grammar topics (a set of
@@ -14,9 +28,12 @@ import type { DeckProgress, DeckStat } from './deck-progress';
 interface LevelConfig {
 	unlocked_cases: string[];
 	unlocked_difficulty: string[];
+	plural_unlocked: boolean | string;
 }
 
 const curriculum: Record<string, LevelConfig> = curriculumData;
+
+const NUMBERS: Number_[] = ['sg', 'pl'];
 
 export interface GrammarDeck {
 	def: FocusDef;
@@ -29,6 +46,33 @@ export interface GrammarDeck {
 	/** The cases those sentences practise, in the usual case order. */
 	cases: Case[];
 	stat: DeckStat | undefined;
+	/** Cases and numbers with enough right answers, out of those the level asks. */
+	completion: DeckCompletion;
+}
+
+/**
+ * The case and number cells (`deckCellKey`) a deck asks at a level: every
+ * case and number its sentences there cover. Plurals count once the level
+ * opens them, or always in a deck about both numbers. The deck is complete
+ * when each has `DECK_CELL_TARGET` right answers.
+ */
+export function deckCells(
+	def: FocusDef,
+	templates: SentenceTemplate[],
+	level: Difficulty
+): string[] {
+	const config = curriculum[level];
+	const plural = def.bothNumbers === true || config.plural_unlocked !== false;
+	const cells = new Set<string>();
+	for (const t of templatesForFocus(templates, def.id)) {
+		if (!config.unlocked_cases.includes(t.requiredCase)) continue;
+		if (!config.unlocked_difficulty.includes(t.difficulty)) continue;
+		if (t.number === 'pl' && !plural) continue;
+		cells.add(deckCellKey(t.requiredCase, t.number));
+	}
+	return ALL_CASES.flatMap((c) => NUMBERS.map((n) => deckCellKey(c, n))).filter((k) =>
+		cells.has(k)
+	);
 }
 
 export function grammarDecks(
@@ -51,7 +95,8 @@ export function grammarDecks(
 			sentences: usable.length,
 			total: all.length,
 			cases: ALL_CASES.filter((c) => present.has(c)),
-			stat: progress[def.id]
+			stat: progress[def.id],
+			completion: deckCompletion(progress[def.id], deckCells(def, templates, level))
 		};
 	});
 }

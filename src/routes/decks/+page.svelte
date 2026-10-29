@@ -80,6 +80,9 @@
 				{#each topics as deck (deck.def.id)}
 					{@const accuracy = mounted ? deckAccuracy(deck.stat) : null}
 					{@const started = accuracy !== null}
+					{@const completion = mounted ? deck.completion : { ...deck.completion, done: 0 }}
+					{@const completePct =
+						completion.total === 0 ? 0 : Math.round((completion.done / completion.total) * 100)}
 					<article
 						class="flex flex-col gap-2.5 rounded-[20px] border-2 border-card-stroke bg-card-bg p-4"
 						data-testid="deck-{deck.def.slug}"
@@ -108,22 +111,26 @@
 						<div
 							class="h-1.5 overflow-hidden rounded-full bg-shaded-background"
 							role="progressbar"
-							aria-label="{deck.def.label}: answers right"
+							aria-label="{deck.def.label}: cases and numbers done"
 							aria-valuemin="0"
 							aria-valuemax="100"
-							aria-valuenow={accuracy ?? 0}
+							aria-valuenow={completePct}
 						>
 							<div
 								class="h-full rounded-full bg-positive-stroke"
-								style="width: {accuracy ?? 0}%"
+								style="width: {completePct}%"
 							></div>
 						</div>
 						<div class="mt-auto flex items-center justify-between gap-2">
 							<span class="text-xs text-text-subtitle">
 								{#if !deck.unlocked}
 									Opens at {deck.def.unlockLevel}
+								{:else if mounted && deck.completion.complete}
+									<span class="font-semibold text-positive-stroke">Complete</span>
+									&middot; {accuracy}% right &middot; {deck.stat?.attempts ?? 0} answered
 								{:else if started && deck.stat}
-									{accuracy}% right &middot; {deck.stat.attempts} answered
+									{completion.done}/{completion.total} done &middot; {accuracy}% right &middot;
+									{deck.stat.attempts} answered
 								{:else}
 									Not started
 								{/if}

@@ -1,12 +1,14 @@
 import { writable } from 'svelte/store';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { FocusTopic } from '../types';
+import type { Case, FocusTopic, Number_ } from '../types';
+import { ALL_CASES } from '../types';
 import { isFocusTopic } from './focus';
 import { isRecord } from '../utils/is-record';
 
 /**
  * How a learner is doing in each deck: answers given and answers right, so the
- * Decks page can show "62% right · 41 answered". Kept on the device
+ * Decks page can show "62% right · 41 answered", and answers right per case
+ * and number, which decide when the deck is complete. Kept on the device
  * (localStorage) and, when signed in, merged with the account so every device
  * shows the same. It plays no part in scheduling.
  */
@@ -15,6 +17,30 @@ export interface DeckStat {
 	correct: number;
 	/** Epoch ms of the latest answer. */
 	last: number;
+	/** Answers right per case and number (`gen:sg`). Older entries have none. */
+	cells?: Record<string, number>;
+}
+
+/** Right answers each case and number of a deck needs for the deck to be complete. */
+export const DECK_CELL_TARGET = 3;
+
+/** The key a deck counts a case and number under, e.g. `gen:sg`. */
+export function deckCellKey(case_: Case, number: Number_): string {
+	return `${case_}:${number}`;
+}
+
+const CELL_KEY = new RegExp(`^(${ALL_CASES.join('|')}):(sg|pl)$`);
+
+/** The well-formed cell counts of whatever was stored. */
+function sanitizeCells(raw: unknown): Record<string, number> {
+	const out: Record<string, number> = {};
+	if (!isRecord(raw)) return out;
+	for (const [key, value] of Object.entries(raw)) {
+		if (CELL_KEY.test(key) && typeof value === 'number' && Number.isInteger(value) && value > 0) {
+			out[key] = value;
+		}
+	}
+	return out;
 }
 
 export type DeckProgress = Partial<Record<FocusTopic, DeckStat>>;
@@ -42,27 +68,54 @@ export function sanitizeDeckProgress(raw: unknown): DeckProgress {
 	const out: DeckProgress = {};
 	if (!isRecord(raw)) return out;
 	for (const [key, value] of Object.entries(raw)) {
-		if (isFocusTopic(key) && isStat(value)) out[key] = value;
+		if (!isFocusTopic(key) || !isStat(value)) continue;
+		const { attempts, correct, last } = value;
+		const cells = isRecord(value) ? sanitizeCells(value['cells']) : {};
+		out[key] =
+			Object.keys(cells).length > 0
+				? { attempts, correct, last, cells }
+				: { attempts, correct, last };
 	}
 	return out;
 }
 
-/** The progress after one more answer in `deck`. Does not mutate `progress`. */
+/**
+ * The progress after one more answer in `deck`, counted under `cell` (from
+ * `deckCellKey`) when it was right. Does not mutate `progress`.
+ */
 export function withDeckAnswer(
 	progress: DeckProgress,
 	deck: FocusTopic,
 	correct: boolean,
-	now: number
+	now: number,
+	cell?: string
 ): DeckProgress {
 	const prev = progress[deck] ?? { attempts: 0, correct: 0, last: 0 };
-	return {
-		...progress,
-		[deck]: {
-			attempts: prev.attempts + 1,
-			correct: prev.correct + (correct ? 1 : 0),
-			last: now
-		}
+	const next: DeckStat = {
+		attempts: prev.attempts + 1,
+		correct: prev.correct + (correct ? 1 : 0),
+		last: now
 	};
+	const cells = { ...prev.cells };
+	if (correct && cell !== undefined) cells[cell] = (cells[cell] ?? 0) + 1;
+	if (Object.keys(cells).length > 0) next.cells = cells;
+	return { ...progress, [deck]: next };
+}
+
+export interface DeckCompletion {
+	/** Cases and numbers with `DECK_CELL_TARGET` right answers. */
+	done: number;
+	total: number;
+	complete: boolean;
+}
+
+/** How far a deck is towards complete, over the cells (`deckCellKey`) it can ask. */
+export function deckCompletion(
+	stat: DeckStat | undefined,
+	cells: readonly string[]
+): DeckCompletion {
+	const done = cells.filter((c) => (stat?.cells?.[c] ?? 0) >= DECK_CELL_TARGET).length;
+	return { done, total: cells.length, complete: cells.length > 0 && done === cells.length };
 }
 
 /** Whole-number percent right, or null before the first answer. */
@@ -97,9 +150,14 @@ function save(next: DeckProgress): void {
 	}
 }
 
-/** Count one answer in `deck` and save. */
-export function recordDeckAnswer(deck: FocusTopic, correct: boolean, now = Date.now()): void {
-	save(withDeckAnswer(loadDeckProgress(), deck, correct, now));
+/** Count one answer in `deck` (a right one under `cell`) and save. */
+export function recordDeckAnswer(
+	deck: FocusTopic,
+	correct: boolean,
+	now = Date.now(),
+	cell?: string
+): void {
+	save(withDeckAnswer(loadDeckProgress(), deck, correct, now, cell));
 }
 
 // Bumped whenever the device's totals stop belonging to whoever was signed
@@ -167,11 +225,18 @@ export function reconcileDeckProgress(
 		const attempts = now.attempts - before.attempts;
 		if (attempts <= 0) continue;
 		const base = out[key] ?? { attempts: 0, correct: 0, last: 0 };
-		out[key] = {
+		const next: DeckStat = {
 			attempts: base.attempts + attempts,
 			correct: base.correct + Math.max(0, now.correct - before.correct),
 			last: Math.max(base.last, now.last)
 		};
+		const cells = { ...base.cells };
+		for (const [cell, count] of Object.entries(now.cells ?? {})) {
+			const added = count - (before.cells?.[cell] ?? 0);
+			if (added > 0) cells[cell] = (cells[cell] ?? 0) + added;
+		}
+		if (Object.keys(cells).length > 0) next.cells = cells;
+		out[key] = next;
 	}
 	return out;
 }
