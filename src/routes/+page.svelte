@@ -3537,12 +3537,18 @@
 			return card;
 		}
 		const seen = loadSeenCards();
-		if (activeFocus !== null && !seen.has(`deck:${activeFocus}`)) {
+		// Intros are for what the learner hasn't practised: answers already
+		// given in the deck or the case (singular or plural) mean they know it.
+		if (
+			activeFocus !== null &&
+			!seen.has(`deck:${activeFocus}`) &&
+			(loadDeckProgress()[activeFocus]?.attempts ?? 0) === 0
+		) {
 			return deckIntroCard(activeFocus, focusDef(activeFocus).label);
 		}
 		const c = question?.case ?? multiStepQuestion?.case;
 		if (c === undefined || seen.has(`case:${c}`)) return null;
-		if ((get(progress).caseScores[c]?.attempts ?? 0) > 0) return null;
+		if (getCombinedCaseStrength(c).attempts > 0) return null;
 		return caseIntroCard(c);
 	}
 

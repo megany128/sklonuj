@@ -45,7 +45,7 @@
 {/snippet}
 
 <section
-	class="drill-fade-enter mx-auto w-full max-w-md rounded-[24px] border border-card-stroke bg-card-bg p-5 sm:p-6"
+	class="drill-fade-enter w-full rounded-[24px] border-2 border-card-stroke bg-card-bg p-5 sm:rounded-[40px] sm:p-8"
 	aria-labelledby="learning-card-title"
 	data-testid="learning-card"
 	data-kind={card.kind}
