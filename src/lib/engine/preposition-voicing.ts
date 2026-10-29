@@ -12,6 +12,7 @@
  *     ve čtvrtek, ve jménu, ve městě, ze vsi)
  *   - mn- only for the pronoun já and mnoho/mnohý (ke mně, se mnou, ve mnoha);
  *     other mn- words stay unvocalized (v Mnichově, z množství, k mnichovi)
+ *   - bez becomes beze before mne / mě (beze mne, beze mě)
  *
  * Pure module — no dependencies. Imported by both the drill engine (runtime
  * rendering) and the template-review module (offline / admin audit) so that
@@ -68,11 +69,17 @@ function needsVowel(prep: 'k' | 's' | 'v' | 'z', filledForm: string): boolean {
 // the start of a sentence ("S ___ kamarádem") keep their capital.
 const PREPOSITION_BEFORE_BLANK = /(?<!\p{L})([kKsSvVzZ]) ___/gu;
 
+// bez becomes beze before the pronoun forms mne / mě (beze mne, beze mě).
+const BEZ_BEFORE_BLANK = /(?<!\p{L})([bB]ez) ___/gu;
+const BEZE_FORMS = /^(mne|mě)$/;
+
 export function applyPrepositionVoicing(template: string, filledForm: string): string {
 	if (filledForm.length === 0) return template;
-	return template.replace(PREPOSITION_BEFORE_BLANK, (match, prep: string) => {
+	const voiced = template.replace(PREPOSITION_BEFORE_BLANK, (match, prep: string) => {
 		const key = prep.toLowerCase();
 		if (key !== 'k' && key !== 's' && key !== 'v' && key !== 'z') return match;
 		return needsVowel(key, filledForm) ? `${prep}e ___` : match;
 	});
+	if (!BEZE_FORMS.test(filledForm.toLowerCase())) return voiced;
+	return voiced.replace(BEZ_BEFORE_BLANK, (_match, prep: string) => `${prep}e ___`);
 }

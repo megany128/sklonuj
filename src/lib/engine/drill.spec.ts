@@ -271,6 +271,19 @@ describe('checkAnswer', () => {
 });
 
 describe('applyPrepositionVoicing', () => {
+	it('changes "bez ___" to "beze ___" before mne and mě only', () => {
+		expect(applyPrepositionVoicing('Bez ___ to nejde.', 'mne')).toBe('Beze ___ to nejde.');
+		expect(applyPrepositionVoicing('Šel jsem bez ___.', 'mě')).toBe('Šel jsem beze ___.');
+		expect(applyPrepositionVoicing('Šel jsem bez ___.', 'tebe')).toBe('Šel jsem bez ___.');
+		expect(applyPrepositionVoicing('Nejedu bez ___.', 'mapy')).toBe('Nejedu bez ___.');
+	});
+
+	it('voices on the word right after the preposition: an adjective before the noun', () => {
+		// Multi-step questions with an adjective voice on the adjective.
+		expect(applyPrepositionVoicing('Jdu s ___.', 'ségrami')).toBe('Jdu se ___.');
+		expect(applyPrepositionVoicing('Jdu s ___.', 'malými')).toBe('Jdu s ___.');
+	});
+
 	it('changes "v ___" to "ve ___" before words starting with v', () => {
 		const result = applyPrepositionVoicing('Bydlím v ___.', 'Vršovicích');
 		expect(result).toBe('Bydlím ve ___.');
