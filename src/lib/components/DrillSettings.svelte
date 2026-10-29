@@ -30,7 +30,9 @@
 		onLockedSelect,
 		onSettingsChange,
 		hiddenDrillTypes = [],
-		hideNumberMode = false
+		hideNumberMode = false,
+		hideContent = false,
+		hideDrillTypes = false
 	}: {
 		selectedDrillTypes: DrillType[];
 		numberMode: 'sg' | 'pl' | 'both';
@@ -49,6 +51,10 @@
 		onSettingsChange: (settings: Settings) => void;
 		hiddenDrillTypes?: DrillType[];
 		hideNumberMode?: boolean;
+		/** A deck picks its own words, so the content toggles would do nothing. */
+		hideContent?: boolean;
+		/** The determiner decks ask only fill-ins, so exercise types would do nothing. */
+		hideDrillTypes?: boolean;
 	} = $props();
 
 	let visibleDrillTypes = $derived(ALL_DRILL_TYPES.filter((dt) => !hiddenDrillTypes.includes(dt)));
@@ -173,7 +179,7 @@
 
 <div class="flex flex-col gap-3">
 	<!-- Content multi-select -->
-	{#if contentItems.length > 1}
+	{#if contentItems.length > 1 && !hideContent}
 		<div
 			class="grid grid-cols-[4.5rem_1fr] items-baseline gap-2"
 			role="group"
@@ -211,27 +217,29 @@
 	{/if}
 
 	<!-- Drill types -->
-	<div
-		class="grid grid-cols-[4.5rem_1fr] items-baseline gap-2"
-		role="group"
-		aria-label="Exercise type"
-	>
-		<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
-		<div class="flex flex-wrap gap-1.5">
-			{#each visibleDrillTypes as dt (dt)}
-				{@const active = selectedDrillTypes.includes(dt)}
-				<button
-					onclick={() => toggleDrillType(dt)}
-					class="rounded-full border px-2.5 py-1 text-xs transition-all {active
-						? 'border-emphasis bg-shaded-background font-semibold text-text-default'
-						: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
-					aria-pressed={active}
-				>
-					{DRILL_TYPE_LABELS[dt]}
-				</button>
-			{/each}
+	{#if !hideDrillTypes}
+		<div
+			class="grid grid-cols-[4.5rem_1fr] items-baseline gap-2"
+			role="group"
+			aria-label="Exercise type"
+		>
+			<span class="text-xs font-semibold uppercase tracking-wider text-text-subtitle">Type</span>
+			<div class="flex flex-wrap gap-1.5">
+				{#each visibleDrillTypes as dt (dt)}
+					{@const active = selectedDrillTypes.includes(dt)}
+					<button
+						onclick={() => toggleDrillType(dt)}
+						class="rounded-full border px-2.5 py-1 text-xs transition-all {active
+							? 'border-emphasis bg-shaded-background font-semibold text-text-default'
+							: 'border-card-stroke bg-card-bg text-text-subtitle hover:border-text-subtitle'}"
+						aria-pressed={active}
+					>
+						{DRILL_TYPE_LABELS[dt]}
+					</button>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<!-- Number mode (hidden when chapter forces singular only) -->
 	{#if !hideNumberMode}

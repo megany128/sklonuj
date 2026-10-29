@@ -381,7 +381,8 @@ describe('ten, ta, to sentences', () => {
 			expect(q.template.template).toContain(`___ ${nounForm}`);
 			expect(q.template.template.match(/___/g)?.length).toBe(1);
 			expect(q.template.nounLemma).toBe(q.word.lemma);
-			expect(q.template.why.split('\n')[0]).toContain(`agrees with ${nounForm}`);
+			// The Why box keeps to the sentence's case rule.
+			expect(q.template.why).not.toContain('agrees with');
 			expect(q.word.categories).not.toContain('place_name');
 			nouns.add(q.word.lemma);
 			paradigms.add(q.word.paradigm);

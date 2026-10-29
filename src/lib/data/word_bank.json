@@ -56086,19 +56086,6 @@
 		"declensionNote": "Declines like město: slovíčka, slovíčku\nGenitive pl slovíček, locative pl slovíčkách\nDiminutive of slovo; also a vocabulary item"
 	},
 	{
-		"lemma": "trojče",
-		"translation": "triplet",
-		"gender": "n",
-		"animate": false,
-		"paradigm": "kuře",
-		"difficulty": "A2",
-		"categories": ["misc", "family", "people"],
-		"forms": {
-			"sg": ["trojče", "trojčete", "trojčeti", "trojče", "trojče", "trojčeti", "trojčetem"],
-			"pl": ["trojčata", "trojčat", "trojčatům", "trojčata", "trojčata", "trojčatech", "trojčaty"]
-		}
-	},
-	{
 		"lemma": "dovolení",
 		"translation": "permission",
 		"gender": "n",

@@ -312,6 +312,74 @@ describe('DrillCard answer label', () => {
 
 // "Which case?" choices come from the cases the learner's level covers: an
 // A1 learner was offered Vocative, which A1 hasn't unlocked.
+describe('DrillCard adjective feedback', () => {
+	beforeEach(() => cleanup());
+
+	// The sentence names its noun; `word` is a stand-in of the same gender.
+	const inShop: DrillQuestion = {
+		...adjectiveQuestion,
+		template: { ...adjectiveQuestion.template, nounLemma: 'obchod' }
+	};
+
+	it('shows the phrase with the sentence noun, not the stand-in', async () => {
+		mount({ question: inShop, userAnswer: 'malém', correct: true, nearMiss: false }, inShop);
+		await page.getByRole('textbox').fill('malém');
+		await userEvent.keyboard('{Enter}');
+		await expect.element(page.getByText('malý obchod →')).toBeInTheDocument();
+		await expect.element(page.getByText('malém obchodě', { exact: true })).toBeInTheDocument();
+		expect(document.body.textContent).not.toContain('humor');
+	});
+
+	it('names the gender even when the form is also another case', async () => {
+		// "toho" is the masculine animate accusative and also a genitive.
+		const { loadDeterminerBank } = await import('$lib/engine/determiners');
+		const ten = loadDeterminerBank().find((d) => d.lemma === 'ten');
+		if (!ten) throw new Error('no ten');
+		const stul: WordEntry = { ...humor, lemma: 'stůl' };
+		const q: DrillQuestion = {
+			...adjectiveQuestion,
+			word: stul,
+			adjective: ten,
+			template: {
+				...adjectiveQuestion.template,
+				template: 'Vidím ___ stůl.',
+				requiredCase: 'acc',
+				nounLemma: undefined
+			},
+			case: 'acc',
+			correctAnswer: 'ten'
+		};
+		mount(
+			{
+				question: q,
+				userAnswer: 'toho',
+				correct: false,
+				nearMiss: false,
+				accidentalCase: { case: 'gen', number: 'sg' }
+			},
+			q
+		);
+		await page.getByRole('textbox').fill('toho');
+		await userEvent.keyboard('{Enter}');
+		await expect
+			.element(
+				page.getByText(
+					'toho is the masculine animate form — stůl is masculine inanimate, so it takes ten'
+				)
+			)
+			.toBeInTheDocument();
+	});
+
+	it('names the sentence noun when the answer has the wrong gender', async () => {
+		mount({ question: inShop, userAnswer: 'malé', correct: false, nearMiss: false }, inShop);
+		await page.getByRole('textbox').fill('malé');
+		await userEvent.keyboard('{Enter}');
+		await expect
+			.element(page.getByText('malé is the feminine form — obchod is masculine, so it takes malém'))
+			.toBeInTheDocument();
+	});
+});
+
 describe('DrillCard case identification choices', () => {
 	beforeEach(() => cleanup());
 

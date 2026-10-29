@@ -390,6 +390,13 @@ export function determinerSentenceTemplates(): SentenceTemplate[] {
  */
 const TEN_SYNONYMS: ReadonlySet<string> = new Set(['tenhle', 'tento']);
 
+/** The words the Ten, ta, to deck asks, in the order its word filter lists them. */
+export function demonstrativeLemmas(): string[] {
+	return loadDeterminerBank()
+		.filter((d) => d.paradigmType === 'demonstrative')
+		.map((d) => d.lemma);
+}
+
 /** How often the Ten, ta, to deck asks each word: mostly ten, then the spoken tenhle. */
 const DEMONSTRATIVE_WEIGHTS: Record<string, number> = { ten: 5, tenhle: 3, tento: 2 };
 
@@ -461,7 +468,9 @@ function pickFrame(
 		template: {
 			...frame,
 			template: frame.template.replace('___', `___ ${nounForm}`),
-			why: `${agreementLine(noun, frame.requiredCase, frame.number)}\n${frame.why}`,
+			// The sentence's own rule ("pomáhat (to help) → dative"). Agreement
+			// is named only when an answer has the wrong gender.
+			why: frame.why,
 			nounLemma: noun.lemma
 		}
 	};

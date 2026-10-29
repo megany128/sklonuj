@@ -66,6 +66,22 @@ describe('CasePillBar', () => {
 		expect(posOf(CASE_SHORT_LABELS.dat)).toBeLessThan(posOf(CASE_SHORT_LABELS.acc));
 	});
 
+	it('greys out cases outside the deck but still hands the click to onSelect', async () => {
+		const picked: (Case | 'all')[] = [];
+		render(CasePillBar, {
+			selectedCase: 'all',
+			caseStrengths: emptyStrengths(),
+			availableCases: ['nom', 'gen', 'voc'],
+			outsideCases: ['voc'],
+			onSelect: (c: Case | 'all') => picked.push(c)
+		});
+
+		const voc = page.getByTitle('Not in this deck');
+		await expect.element(voc).toHaveTextContent(CASE_SHORT_LABELS.voc);
+		await voc.click();
+		expect(picked).toEqual(['voc']);
+	});
+
 	it('defaults to all 7 cases when availableCases is omitted', async () => {
 		render(CasePillBar, {
 			selectedCase: 'all',

@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from './decks';
+import { deckCells, deckQuery, grammarDecks, paradigmDecks, sentenceCountLabel } from './decks';
 import { loadTemplates } from './drill';
 import { demonstrativeFrames, determinerSentenceTemplates } from './determiners';
 import { ALL_PARADIGMS } from '../types';
+import { focusDef } from './focus';
 
 // What the Decks page passes in: noun sentences plus the determiner deck's own.
 const templates = [...loadTemplates(), ...determinerSentenceTemplates()];
@@ -82,6 +83,29 @@ describe('grammar decks', () => {
 		const decks = grammarDecks('B1', templates, { verbs: stat });
 		expect(decks.find((d) => d.def.id === 'verbs')?.stat).toBe(stat);
 		expect(decks.find((d) => d.def.id === 'direction')?.stat).toBeUndefined();
+	});
+
+	it('asks singular cells only until the level opens plurals', () => {
+		const a1 = deckCells(focusDef('direction'), templates, 'A1');
+		expect(a1.length).toBeGreaterThan(0);
+		expect(a1.every((c) => c.endsWith(':sg'))).toBe(true);
+		const b1 = deckCells(focusDef('direction'), templates, 'B1');
+		expect(b1.some((c) => c.endsWith(':pl'))).toBe(true);
+	});
+
+	it('the Numbers deck counts plurals at A2, its opening level', () => {
+		expect(deckCells(focusDef('numbers'), templates, 'A2').some((c) => c.endsWith(':pl'))).toBe(
+			true
+		);
+	});
+
+	it('reports completion from the saved cell counts', () => {
+		const cells = deckCells(focusDef('direction'), templates, 'A1');
+		const full = Object.fromEntries(cells.map((c) => [c, 3]));
+		const deck = grammarDecks('A1', templates, {
+			direction: { attempts: 99, correct: 90, last: 1, cells: full }
+		}).find((d) => d.def.id === 'direction');
+		expect(deck?.completion).toEqual({ done: cells.length, total: cells.length, complete: true });
 	});
 
 	it('builds the practice link from the deck slug', () => {

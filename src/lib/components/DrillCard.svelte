@@ -8,7 +8,8 @@
 		DrillResult,
 		DrillType,
 		Case,
-		Paradigm
+		Paradigm,
+		WordEntry
 	} from '$lib/types';
 	import {
 		ALL_CASES,
@@ -20,7 +21,7 @@
 		isCase
 	} from '$lib/types';
 	import { applyPrepositionVoicing, loadWordBank } from '$lib/engine/drill';
-	import { getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
+	import { getAdjectiveForm, getAdjectiveGenderKey } from '$lib/engine/adjective-drill';
 	import { playClinkSound } from '$lib/audio';
 	import DiacriticsBar from './DiacriticsBar.svelte';
 	import CaseAnswerOption from '$lib/components/ui/CaseAnswerOption.svelte';
@@ -42,6 +43,7 @@
 	import { pluralizeTranslation } from '$lib/utils/pluralize-en';
 	import { drillHints, findTrigger } from '$lib/utils/drill-hints';
 	import { explainWrongEnding } from '$lib/utils/wrong-ending';
+	import { explainWrongGender } from '$lib/utils/wrong-gender';
 
 	/** How the Why box names the word's type on an adjective-shaped question. */
 	const ADJECTIVE_TYPE_NOTE: Record<AdjectiveParadigmType, string> = {
@@ -486,6 +488,53 @@
 		return form.prep.split('/')[0] || form.bare.split('/')[0] || '';
 	}
 
+	/**
+	 * The noun an adjective question's answer agrees with. A sentence names its
+	 * own noun (`nounLemma`); `q.word` there is only picked to match its gender,
+	 * so it can be another noun ("humor" for "Jsem v ___ obchodě"). Null when
+	 * the sentence's noun isn't in the bank.
+	 */
+	function agreeingNoun(q: DrillQuestion): WordEntry | null {
+		const lemma = q.template.nounLemma;
+		if (lemma === undefined || lemma === q.word.lemma) return q.word;
+		return loadWordBank().find((w) => w.lemma === lemma) ?? null;
+	}
+
+	/** The agreeing noun in the question's case and number, or '' when there is none. */
+	function pairedNounForm(q: DrillQuestion): string {
+		const noun = agreeingNoun(q);
+		if (!noun) return '';
+		return noun.forms[q.number][CASE_INDEX[q.case]] || noun.lemma;
+	}
+
+	/**
+	 * Left side of the "from → to" answer line. Adjectives start from the whole
+	 * phrase in the nominative, agreeing with the noun ("špatná realistka"),
+	 * not the masculine dictionary form, so the line shows the agreement too.
+	 */
+	function answerFromForm(q: DrillQuestion): string {
+		if (q.wordCategory === 'adjective') {
+			if (!q.adjective) return q.word.lemma;
+			const noun = agreeingNoun(q);
+			if (!noun) return q.adjective.lemma;
+			const adjNom =
+				getAdjectiveForm(q.adjective, getAdjectiveGenderKey(noun), 'nom', q.number) ??
+				q.adjective.lemma;
+			return `${adjNom} ${noun.forms[q.number][0] || noun.lemma}`;
+		}
+		if (q.wordCategory === 'pronoun') return q.pronoun?.lemma ?? '';
+		return q.word.forms[q.number][0];
+	}
+
+	/** Right side of the "from → to" answer line; adjectives keep their noun. */
+	function answerToForm(q: DrillQuestion): string {
+		if (q.wordCategory === 'adjective') {
+			return `${q.correctAnswer} ${pairedNounForm(q)}`.trim();
+		}
+		if (q.wordCategory === 'pronoun') return getPronounForm(q);
+		return q.word.forms[q.number][CASE_INDEX[q.case]];
+	}
+
 	function sentenceWithBlankAndLemma(q: DrillQuestion): { before: string; after: string } {
 		const form =
 			q.wordCategory === 'adjective'
@@ -656,7 +705,7 @@
 							</div>
 							{#if question.wordCategory === 'adjective' && question.adjective}
 								<span class="text-lg font-normal text-text-subtitle sm:text-xl">
-									{question.word.lemma}
+									{pairedNounForm(question)}
 								</span>
 							{/if}
 							{#if onSpeak}
@@ -957,18 +1006,8 @@
 				{#if submitted && result && showFeedback}
 					<div class="drill-fade-enter space-y-4" aria-live="polite">
 						{#if result.correct}
-							{@const nomForm =
-								question.wordCategory === 'adjective'
-									? (question.adjective?.lemma ?? question.word.lemma)
-									: question.wordCategory === 'pronoun'
-										? (question.pronoun?.lemma ?? '')
-										: question.word.forms[question.number][0]}
-							{@const targetForm =
-								question.wordCategory === 'adjective'
-									? question.correctAnswer
-									: question.wordCategory === 'pronoun'
-										? getPronounForm(question)
-										: question.word.forms[question.number][CASE_INDEX[question.case]]}
+							{@const nomForm = answerFromForm(question)}
+							{@const targetForm = answerToForm(question)}
 							<FeedbackVerdict
 								tone="correct"
 								title={retry
@@ -1097,6 +1136,23 @@
 											{ accidentalCase: result.accidentalCase !== undefined }
 										)
 									: null}
+							<!-- Checked before the wrong-case verdict: "toho" for "ten stůl" is
+							     also a genitive, but the mistake is the gender. -->
+							{@const agreeing = agreeingNoun(question)}
+							{@const genderLine =
+								question.wordCategory === 'adjective' &&
+								question.adjective &&
+								agreeing &&
+								!wasSkipped &&
+								!result.nearMiss
+									? explainWrongGender(
+											question.adjective,
+											agreeing,
+											{ case: question.case, number: question.number },
+											userTyped,
+											question.correctAnswer
+										)
+									: null}
 							{#if wasSkipped}
 								<FeedbackVerdict tone="skipped" title="Skipped">Here's the answer.</FeedbackVerdict>
 							{:else if pickedCase}
@@ -1109,6 +1165,8 @@
 								<FeedbackVerdict tone="almost" title="Almost — check the accents">
 									Right letters, but accents count here.
 								</FeedbackVerdict>
+							{:else if genderLine}
+								<FeedbackVerdict tone="wrong" title="Not quite">{genderLine}</FeedbackVerdict>
 							{:else if result.accidentalCase}
 								{@const typedAs = result.accidentalCase}
 								{#if typedAs.case === question.case}
@@ -1172,16 +1230,8 @@
 								userAnswer={wasSkipped || question.drillType === 'case_identification'
 									? undefined
 									: userTyped}
-								nominative={question.wordCategory === 'adjective'
-									? (question.adjective?.lemma ?? question.word.lemma)
-									: question.wordCategory === 'pronoun'
-										? (question.pronoun?.lemma ?? '')
-										: question.word.forms[question.number][0]}
-								targetForm={question.wordCategory === 'adjective'
-									? question.correctAnswer
-									: question.wordCategory === 'pronoun'
-										? getPronounForm(question)
-										: question.word.forms[question.number][CASE_INDEX[question.case]]}
+								nominative={answerFromForm(question)}
+								targetForm={answerToForm(question)}
 								translation={question.drillType === 'case_identification'
 									? question.wordCategory === 'adjective'
 										? (question.adjective?.translation ?? question.word.translation)
@@ -1217,6 +1267,9 @@
 									: undefined}
 								adjectiveGenderKey={question.wordCategory === 'adjective' && question.adjective
 									? getAdjectiveGenderKey(question.word)
+									: undefined}
+								pairedNoun={question.wordCategory === 'adjective' && question.adjective
+									? pairedNounForm(question) || undefined
 									: undefined}
 								pronounLemma={question.wordCategory === 'pronoun' && question.pronoun
 									? question.pronoun.lemma

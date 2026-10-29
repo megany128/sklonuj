@@ -113,11 +113,20 @@
 	import { filterParadigmNotes } from '$lib/utils/filter-paradigm-note';
 	import { focusDef, focusFromSlug, focusUnlocked, templatesForFocus } from '$lib/engine/focus';
 	import {
+		demonstrativeLemmas,
 		determinerSentenceTemplates,
 		pickDeterminerQuestion,
 		reviewDeterminerQuestion
 	} from '$lib/engine/determiners';
-	import { loadDeckProgress, recordDeckAnswer } from '$lib/engine/deck-progress';
+	import {
+		DECK_CELL_TARGET,
+		deckCellKey,
+		deckCompletion,
+		deckProgress as savedDeckProgress,
+		loadDeckProgress,
+		recordDeckAnswer
+	} from '$lib/engine/deck-progress';
+	import { deckCells } from '$lib/engine/decks';
 	import { loadDeckReturnChapter, saveDeckReturnChapter } from '$lib/engine/deck-return';
 	import { declensionNoteForSlot } from '$lib/utils/declension-note-slot';
 	import { paradigmRuleApplies } from '$lib/utils/paradigm-endings';
@@ -1301,6 +1310,14 @@
 	// drills to one grammar topic. A deck runs in free practice, so starting one
 	// from a KzK chapter remembers the chapter and returns to it on leaving.
 	let selectedDeck = $state<FocusTopic | null>(focusFromSlug(initialUrlParams.get('deck')));
+	// The Ten, ta, to deck's word filter (?word=tenhle): ask only that word.
+	// Null asks all three.
+	let deckWord = $state<string | null>(
+		(() => {
+			const word = initialUrlParams.get('word');
+			return word !== null && demonstrativeLemmas().includes(word) ? word : null;
+		})()
+	);
 	let deckReturnChapter: ChapterSelection | null = null;
 
 	function setDeckReturn(selection: ChapterSelection | null): void {
@@ -1514,6 +1531,7 @@
 		// Opening a chapter leaves the deck: a chapter sets its own scope.
 		if (book !== null) {
 			selectedDeck = null;
+			deckWord = null;
 			setDeckReturn(null);
 		}
 		chapterBook = book;
@@ -1681,16 +1699,48 @@
 		return drillSettings.numberMode;
 	});
 
-	// A deck has no "finished" state — it's open-ended — so count a learner as
-	// having engaged with a deck once they've answered a meaningful number of its
-	// questions. `deck_engaged` fires once per deck, the moment its lifetime
-	// answer count crosses the threshold; together with `deck_opened` (fired on
-	// /decks) that gives an opened→actually-practised funnel in PostHog.
+	// Count a learner as having engaged with a deck once they've answered a
+	// meaningful number of its questions. `deck_engaged` fires once per deck,
+	// the moment its lifetime answer count crosses the threshold; together with
+	// `deck_opened` (fired on /decks) that gives an opened→actually-practised
+	// funnel in PostHog. `deck_completed` fires when the answer that finishes
+	// the deck's last case and number comes in.
 	const DECK_ENGAGED_THRESHOLD = 10;
 
-	function recordDeckAnswerTracked(deck: FocusTopic, correct: boolean): void {
-		const before = loadDeckProgress()[deck]?.attempts ?? 0;
-		recordDeckAnswer(deck, correct);
+	/** The case and number cells the deck asks at the learner's level. */
+	function activeDeckCells(deck: FocusTopic): string[] {
+		const source =
+			focusDef(deck).source !== undefined ? determinerSentenceTemplates() : loadTemplates();
+		return deckCells(focusDef(deck), source, currentLevel);
+	}
+
+	// How far the active deck is towards complete; follows the saved progress
+	// store, so answers from another tab or a sync show too.
+	let activeDeckCompletion = $derived(
+		activeFocus === null
+			? null
+			: deckCompletion($savedDeckProgress[activeFocus], activeDeckCells(activeFocus))
+	);
+
+	/**
+	 * Count a deck answer. A right one without a hint counts towards its case
+	 * and number cell, which is what completes the deck.
+	 */
+	function recordDeckAnswerTracked(
+		deck: FocusTopic,
+		correct: boolean,
+		slot: { case: Case; number: Number_; hinted: boolean }
+	): void {
+		const saved = loadDeckProgress()[deck];
+		const before = saved?.attempts ?? 0;
+		const cells = activeDeckCells(deck);
+		const wasComplete = deckCompletion(saved, cells).complete;
+		recordDeckAnswer(
+			deck,
+			correct,
+			Date.now(),
+			correct && !slot.hinted ? deckCellKey(slot.case, slot.number) : undefined
+		);
 		if (before < DECK_ENGAGED_THRESHOLD && before + 1 >= DECK_ENGAGED_THRESHOLD) {
 			posthog.capture('deck_engaged', {
 				deck,
@@ -1698,10 +1748,19 @@
 				questions: DECK_ENGAGED_THRESHOLD
 			});
 		}
+		if (!wasComplete && deckCompletion(loadDeckProgress()[deck], cells).complete) {
+			posthog.capture('deck_completed', {
+				deck,
+				slug: focusDef(deck).slug,
+				level: currentLevel,
+				questions: before + 1
+			});
+		}
 	}
 
 	function leaveDeck(): void {
 		selectedDeck = null;
+		deckWord = null;
 		const back = deckReturnChapter;
 		setDeckReturn(null);
 		if (back) handleChapterChange(back.book, back.chapter);
@@ -1713,6 +1772,7 @@
 	 * a single-case or single-paradigm filter. The caller asks the next question.
 	 */
 	function enterDeck(deck: FocusTopic): void {
+		if (deck !== 'demonstratives') deckWord = null;
 		selectedDeck = deck;
 		// A deck asks only its own sentences, so it ends mistake review.
 		practicingMistakes = false;
@@ -1733,22 +1793,41 @@
 	function leaveDeckSilently(): void {
 		if (selectedDeck === null) return;
 		selectedDeck = null;
+		deckWord = null;
 		setDeckReturn(null);
 	}
 
-	/** Whether the current case, number and level filters leave a deck any sentence to ask. */
-	function deckCanAsk(deck: FocusTopic): boolean {
-		const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+	/**
+	 * The cases a deck has sentences for under the number and level filters.
+	 * `numberMode` checks a setting before it is applied.
+	 */
+	function casesInDeck(
+		deck: FocusTopic,
+		numberMode: 'sg' | 'pl' | 'both' = effectiveNumberMode
+	): Case[] {
 		const difficulties = curriculum[get(progress).level].unlocked_difficulty;
 		const source =
 			focusDef(deck).source !== undefined ? determinerSentenceTemplates() : loadTemplates();
-		return templatesForFocus(source, deck).some(
-			(t) =>
-				cases.includes(t.requiredCase) &&
-				matchesNumberMode(t.number) &&
-				difficulties.includes(t.difficulty)
+		const both = numberMode === 'both' || focusDef(deck).bothNumbers === true;
+		const templates = templatesForFocus(source, deck).filter(
+			(t) => difficulties.includes(t.difficulty) && (both || t.number === numberMode)
 		);
+		return effectiveEnabledCases.filter((c) => templates.some((t) => t.requiredCase === c));
 	}
+
+	// Cases the active deck has no sentences for: the pill bar greys them out,
+	// and picking one asks before leaving the deck.
+	let casesOutsideDeck: Case[] = $derived.by(() => {
+		if (activeFocus === null) return [];
+		const inDeck = casesInDeck(activeFocus);
+		return pillCases.filter((c) => !inDeck.includes(c));
+	});
+
+	/**
+	 * A change that would take the learner out of the deck, waiting for them to
+	 * confirm. `label` names what they picked ("Dative", "plural only").
+	 */
+	let leaveDeckPrompt = $state<{ label: string; confirm: () => void } | null>(null);
 
 	// The Practice link (or Back) changes ?deck= without rebuilding this page,
 	// so follow the URL. The page's own URL updates use replaceState, which
@@ -1756,13 +1835,26 @@
 	afterNavigate((nav) => {
 		if (!initialized || nav.type === 'enter' || nav.to === null) return;
 		const next = focusFromSlug(nav.to.url.searchParams.get('deck'));
-		if (next === selectedDeck) return;
+		// A word link (?word=tenhle) can change the word within the same deck.
+		const word = nav.to.url.searchParams.get('word');
+		const nextWord =
+			next === 'demonstratives' && word !== null && demonstrativeLemmas().includes(word)
+				? word
+				: null;
+		if (next === selectedDeck) {
+			if (nextWord !== deckWord) {
+				deckWord = nextWord;
+				generateNextQuestion();
+			}
+			return;
+		}
 		if (next === null) {
 			leaveDeck();
 			return;
 		}
 		const inChapter = chapterBook !== null;
 		enterDeck(next);
+		deckWord = nextWord;
 		if (inChapter) handleChapterChange(null, null);
 		else generateNextQuestion();
 	});
@@ -2058,6 +2150,7 @@
 		void enabledCases;
 		void selectedParadigm;
 		void selectedDeck;
+		void deckWord;
 
 		if (initialized) {
 			syncStateToUrl();
@@ -3288,6 +3381,9 @@
 	function retryEligible(q: DrillQuestion): boolean {
 		if (!effectiveEnabledCases.includes(q.case)) return false;
 		if (activeFocus !== null && q.template.topics?.includes(activeFocus) !== true) return false;
+		if (activeFocus === 'demonstratives' && deckWord !== null && q.adjective?.lemma !== deckWord) {
+			return false;
+		}
 		if (selectedCase !== 'all' && q.case !== selectedCase) return false;
 		if (effectiveNumberMode !== 'both' && q.number !== effectiveNumberMode) return false;
 		// A deck sets its own content and exercise types (noun sentences, or the
@@ -3320,11 +3416,19 @@
 	}
 
 	function generateNextQuestion(): void {
-		// A deck lives in its sentences. If the filters exclude all of them,
-		// leave it rather than ask unrelated forms under its banner.
-		if (activeFocus !== null && !deckCanAsk(activeFocus)) {
-			selectedDeck = null;
-			setDeckReturn(null);
+		// A deck lives in its sentences. A picked case it has none for falls back
+		// to all its cases; only if the filters exclude every sentence does it
+		// close, rather than ask unrelated forms under its banner. (The pills and
+		// settings ask first, so this is a safety net.)
+		if (activeFocus !== null) {
+			const inDeck = casesInDeck(activeFocus);
+			if (inDeck.length === 0) {
+				selectedDeck = null;
+				deckWord = null;
+				setDeckReturn(null);
+			} else if (selectedCase !== 'all' && !inDeck.includes(selectedCase)) {
+				selectedCase = 'all';
+			}
 		}
 		try {
 			generateNextQuestionInner();
@@ -3423,9 +3527,11 @@
 		if (deckSource !== undefined) {
 			const prog = get(progress);
 			const levelConfig = curriculum[prog.level];
+			const deckCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 			const determinerQ = pickDeterminerQuestion({
 				set: deckSource,
-				cases: effectiveEnabledCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
+				lemma: deckSource === 'demonstratives' ? (deckWord ?? undefined) : undefined,
+				cases: deckCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
 				numbers: allowedNumbers(),
 				difficulties: levelConfig.unlocked_difficulty,
 				progress: prog,
@@ -4060,7 +4166,11 @@
 
 	function trackSessionStats(result: DrillResult): void {
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
-			recordDeckAnswerTracked(activeFocus, result.correct);
+			recordDeckAnswerTracked(activeFocus, result.correct, {
+				case: result.question.case,
+				number: result.question.number,
+				hinted: result.hinted === true
+			});
 		}
 		if (result.correct) {
 			sessionCorrect++;
@@ -4505,7 +4615,11 @@
 		// A deck is about the case and the form; the paradigm step isn't its point.
 		if (activeFocus !== null && result.question.template.topics?.includes(activeFocus)) {
 			const deckCorrect = (result.caseCorrect === null || result.caseCorrect) && result.formCorrect;
-			recordDeckAnswerTracked(activeFocus, deckCorrect);
+			recordDeckAnswerTracked(activeFocus, deckCorrect, {
+				case: result.question.case,
+				number: result.question.number,
+				hinted: false
+			});
 		}
 
 		if (allCorrect) {
@@ -4630,6 +4744,28 @@
 		wordMode?: WordMode;
 		includeDemonstratives?: boolean;
 	}): void {
+		// The deck sets its own exercises and words, so only a number setting
+		// that leaves it no sentences asks before leaving it.
+		if (activeFocus !== null && casesInDeck(activeFocus, settings.numberMode).length === 0) {
+			leaveDeckPrompt = {
+				label: settings.numberMode === 'pl' ? 'plural only' : 'singular only',
+				confirm: () => {
+					leaveDeckSilently();
+					applySettings(settings);
+				}
+			};
+			return;
+		}
+		applySettings(settings);
+	}
+
+	function applySettings(settings: {
+		selectedDrillTypes: DrillType[];
+		numberMode: 'sg' | 'pl' | 'both';
+		contentMode?: ContentMode;
+		wordMode?: WordMode;
+		includeDemonstratives?: boolean;
+	}): void {
 		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
 		// Remember this as the active level's config so it's restored on return
@@ -4644,12 +4780,20 @@
 			showExitAssignmentConfirm = true;
 			return;
 		}
-		selectedCase = selected;
-		// A deck runs across cases; picking one case leaves it.
-		if (selected !== 'all' && selectedDeck !== null) {
-			selectedDeck = null;
-			setDeckReturn(null);
+		// A deck narrows to one of its own cases; a case it has no sentences for
+		// asks before leaving it.
+		if (selected !== 'all' && casesOutsideDeck.includes(selected)) {
+			leaveDeckPrompt = {
+				label: CASE_LABELS[selected],
+				confirm: () => {
+					leaveDeckSilently();
+					selectedCase = selected;
+					generateNextQuestion();
+				}
+			};
+			return;
 		}
+		selectedCase = selected;
 		generateNextQuestion();
 	}
 
@@ -4663,6 +4807,7 @@
 		params.delete('selectCase');
 		params.delete('selectParadigm');
 		params.delete('deck');
+		params.delete('word');
 		params.delete('cases');
 		params.delete('mode');
 
@@ -4676,6 +4821,7 @@
 
 		if (selectedDeck) {
 			params.set('deck', focusDef(selectedDeck).slug);
+			if (deckWord) params.set('word', deckWord);
 		}
 
 		const sortedEnabled = [...enabledCases].sort(
@@ -4877,6 +5023,42 @@
 					Deck: <span class="font-semibold">{deck.label}</span>
 					<span class="ml-1 text-xs text-text-subtitle">{deck.blurb}</span>
 				</p>
+				{#if activeDeckCompletion && activeDeckCompletion.total > 0}
+					<p
+						class="text-xs font-semibold {activeDeckCompletion.complete
+							? 'text-positive-stroke'
+							: 'text-text-subtitle'}"
+						data-testid="deck-completion"
+						title="Each case and number is done after {DECK_CELL_TARGET} right answers without a hint"
+					>
+						{#if activeDeckCompletion.complete}
+							Complete · every case and number {DECK_CELL_TARGET}× right
+						{:else}
+							{activeDeckCompletion.done} of {activeDeckCompletion.total} cases &amp; numbers done
+						{/if}
+					</p>
+				{/if}
+				{#if activeFocus === 'demonstratives'}
+					<div role="group" aria-label="Word to practise" class="flex flex-wrap items-center gap-1">
+						{#each [null, ...demonstrativeLemmas()] as word (word ?? 'all')}
+							<button
+								type="button"
+								aria-pressed={deckWord === word}
+								onclick={() => {
+									if (deckWord === word) return;
+									deckWord = word;
+									generateNextQuestion();
+								}}
+								class="rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors {deckWord ===
+								word
+									? 'border-emphasis bg-emphasis text-text-inverted'
+									: 'border-card-stroke text-text-subtitle hover:border-emphasis/40 hover:text-text-default'}"
+							>
+								{word ?? 'All three'}
+							</button>
+						{/each}
+					</div>
+				{/if}
 				<div class="flex shrink-0 items-center gap-2">
 					<a
 						href={resolve('/decks')}
@@ -5267,8 +5449,12 @@
 									if (!isMultiStepUnlocked() || effectiveContentMode === 'pronouns') {
 										hidden.push('multi_step');
 									}
+									// A deck lives in its sentences; it never asks a bare form.
+									if (activeFocus !== null) hidden.push('form_production');
 									return hidden;
 								})()}
+								hideContent={activeFocus !== null}
+								hideDrillTypes={activeFocus !== null && focusDef(activeFocus).source !== undefined}
 								hideNumberMode={deckAsksBothNumbers ||
 									(chapterBook !== null && !getSelectedKzkChapter()?.pluralUnlocked)}
 							/>
@@ -5290,6 +5476,7 @@
 						{caseStrengths}
 						availableCases={pillCases}
 						{lockedCases}
+						outsideCases={casesOutsideDeck}
 						onSelect={handleCaseSelect}
 						onLockedSelect={(locked) =>
 							(levelUpPrompt = {
@@ -5788,6 +5975,49 @@
 					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
 				>
 					{locked.action}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+{#if leaveDeckPrompt && activeFocus !== null}
+	{@const prompt = leaveDeckPrompt}
+	<div
+		class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+		transition:fade={{ duration: 150 }}
+	>
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="leave-deck-title"
+			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+		>
+			<h2 id="leave-deck-title" class="text-lg font-semibold text-text-default">
+				Leave the {focusDef(activeFocus).label} deck?
+			</h2>
+			<p class="mt-2 text-sm text-text-subtitle">
+				This deck has no {prompt.label} sentences. Leave it to practise {prompt.label}?
+			</p>
+			<div class="mt-5 flex gap-3">
+				<button
+					type="button"
+					onclick={() => {
+						// `prompt` follows leaveDeckPrompt, so take the action before closing.
+						const { confirm } = prompt;
+						leaveDeckPrompt = null;
+						confirm();
+					}}
+					class="flex-1 cursor-pointer rounded-xl border border-card-stroke px-4 py-2.5 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				>
+					Leave deck
+				</button>
+				<button
+					type="button"
+					onclick={() => (leaveDeckPrompt = null)}
+					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+				>
+					Stay
 				</button>
 			</div>
 		</div>
