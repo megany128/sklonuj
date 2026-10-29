@@ -62,12 +62,42 @@ describe('?deck= URL param', () => {
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
 	});
 
-	it('picking a single case leaves the deck', async () => {
+	it('picking one of its cases keeps the deck', async () => {
 		render(Page);
 
 		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
-		await page.getByRole('button', { name: /Gen/ }).first().click();
+		const gen = page.getByRole('button', { name: /Gen/ }).first();
+		await gen.click();
+		await expect.element(gen).toHaveAttribute('aria-pressed', 'true');
+		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
+	});
+
+	it('picking a case outside the deck asks before leaving it', async () => {
+		// The direction deck has no nominative sentences.
+		localStorage.setItem('sklonuj_onboarded', '1');
+		render(Page);
+
+		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
+		const nom = page.getByRole('button', { name: /Nom/ }).first();
+		await expect.element(nom).toHaveAttribute('title', 'Not in this deck');
+
+		await nom.click();
+		const dialog = page.getByRole('dialog', { name: /Leave the/ });
+		await expect.element(dialog).toHaveTextContent('Leave the Kam? Kde? Odkud? deck?');
+		await dialog.getByRole('button', { name: 'Stay' }).click();
+		await expect.element(page.getByRole('dialog', { name: /Leave the/ })).not.toBeInTheDocument();
+		await expect.element(page.getByTestId('deck-banner')).toBeInTheDocument();
+		await expect.element(nom).toHaveAttribute('aria-pressed', 'false');
+
+		await nom.click();
+		await page
+			.getByRole('dialog', { name: /Leave the/ })
+			.getByRole('button', { name: 'Leave deck' })
+			.click();
 		await expect.element(page.getByTestId('deck-banner')).not.toBeInTheDocument();
+		await expect
+			.element(page.getByRole('button', { name: /Nom/ }).first())
+			.toHaveAttribute('aria-pressed', 'true');
 	});
 
 	it('leaves the deck when the case filter excludes all of its sentences', async () => {

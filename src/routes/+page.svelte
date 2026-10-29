@@ -1736,19 +1736,37 @@
 		setDeckReturn(null);
 	}
 
-	/** Whether the current case, number and level filters leave a deck any sentence to ask. */
-	function deckCanAsk(deck: FocusTopic): boolean {
-		const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
+	/**
+	 * The cases a deck has sentences for under the number and level filters.
+	 * `numberMode` checks a setting before it is applied.
+	 */
+	function casesInDeck(
+		deck: FocusTopic,
+		numberMode: 'sg' | 'pl' | 'both' = effectiveNumberMode
+	): Case[] {
 		const difficulties = curriculum[get(progress).level].unlocked_difficulty;
 		const source =
 			focusDef(deck).source !== undefined ? determinerSentenceTemplates() : loadTemplates();
-		return templatesForFocus(source, deck).some(
-			(t) =>
-				cases.includes(t.requiredCase) &&
-				matchesNumberMode(t.number) &&
-				difficulties.includes(t.difficulty)
+		const both = numberMode === 'both' || focusDef(deck).bothNumbers === true;
+		const templates = templatesForFocus(source, deck).filter(
+			(t) => difficulties.includes(t.difficulty) && (both || t.number === numberMode)
 		);
+		return effectiveEnabledCases.filter((c) => templates.some((t) => t.requiredCase === c));
 	}
+
+	// Cases the active deck has no sentences for: the pill bar greys them out,
+	// and picking one asks before leaving the deck.
+	let casesOutsideDeck: Case[] = $derived.by(() => {
+		if (activeFocus === null) return [];
+		const inDeck = casesInDeck(activeFocus);
+		return pillCases.filter((c) => !inDeck.includes(c));
+	});
+
+	/**
+	 * A change that would take the learner out of the deck, waiting for them to
+	 * confirm. `label` names what they picked ("Dative", "plural only").
+	 */
+	let leaveDeckPrompt = $state<{ label: string; confirm: () => void } | null>(null);
 
 	// The Practice link (or Back) changes ?deck= without rebuilding this page,
 	// so follow the URL. The page's own URL updates use replaceState, which
@@ -3320,11 +3338,18 @@
 	}
 
 	function generateNextQuestion(): void {
-		// A deck lives in its sentences. If the filters exclude all of them,
-		// leave it rather than ask unrelated forms under its banner.
-		if (activeFocus !== null && !deckCanAsk(activeFocus)) {
-			selectedDeck = null;
-			setDeckReturn(null);
+		// A deck lives in its sentences. A picked case it has none for falls back
+		// to all its cases; only if the filters exclude every sentence does it
+		// close, rather than ask unrelated forms under its banner. (The pills and
+		// settings ask first, so this is a safety net.)
+		if (activeFocus !== null) {
+			const inDeck = casesInDeck(activeFocus);
+			if (inDeck.length === 0) {
+				selectedDeck = null;
+				setDeckReturn(null);
+			} else if (selectedCase !== 'all' && !inDeck.includes(selectedCase)) {
+				selectedCase = 'all';
+			}
 		}
 		try {
 			generateNextQuestionInner();
@@ -3423,9 +3448,10 @@
 		if (deckSource !== undefined) {
 			const prog = get(progress);
 			const levelConfig = curriculum[prog.level];
+			const deckCases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
 			const determinerQ = pickDeterminerQuestion({
 				set: deckSource,
-				cases: effectiveEnabledCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
+				cases: deckCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
 				numbers: allowedNumbers(),
 				difficulties: levelConfig.unlocked_difficulty,
 				progress: prog,
@@ -4630,6 +4656,28 @@
 		wordMode?: WordMode;
 		includeDemonstratives?: boolean;
 	}): void {
+		// The deck sets its own exercises and words, so only a number setting
+		// that leaves it no sentences asks before leaving it.
+		if (activeFocus !== null && casesInDeck(activeFocus, settings.numberMode).length === 0) {
+			leaveDeckPrompt = {
+				label: settings.numberMode === 'pl' ? 'plural only' : 'singular only',
+				confirm: () => {
+					leaveDeckSilently();
+					applySettings(settings);
+				}
+			};
+			return;
+		}
+		applySettings(settings);
+	}
+
+	function applySettings(settings: {
+		selectedDrillTypes: DrillType[];
+		numberMode: 'sg' | 'pl' | 'both';
+		contentMode?: ContentMode;
+		wordMode?: WordMode;
+		includeDemonstratives?: boolean;
+	}): void {
 		drillSettings = { ...drillSettings, selectedCases: ALL_CASES, ...settings };
 		saveSettingsToStorage(drillSettings);
 		// Remember this as the active level's config so it's restored on return
@@ -4644,12 +4692,20 @@
 			showExitAssignmentConfirm = true;
 			return;
 		}
-		selectedCase = selected;
-		// A deck runs across cases; picking one case leaves it.
-		if (selected !== 'all' && selectedDeck !== null) {
-			selectedDeck = null;
-			setDeckReturn(null);
+		// A deck narrows to one of its own cases; a case it has no sentences for
+		// asks before leaving it.
+		if (selected !== 'all' && casesOutsideDeck.includes(selected)) {
+			leaveDeckPrompt = {
+				label: CASE_LABELS[selected],
+				confirm: () => {
+					leaveDeckSilently();
+					selectedCase = selected;
+					generateNextQuestion();
+				}
+			};
+			return;
 		}
+		selectedCase = selected;
 		generateNextQuestion();
 	}
 
@@ -5290,6 +5346,7 @@
 						{caseStrengths}
 						availableCases={pillCases}
 						{lockedCases}
+						outsideCases={casesOutsideDeck}
 						onSelect={handleCaseSelect}
 						onLockedSelect={(locked) =>
 							(levelUpPrompt = {
@@ -5788,6 +5845,49 @@
 					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
 				>
 					{locked.action}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+{#if leaveDeckPrompt && activeFocus !== null}
+	{@const prompt = leaveDeckPrompt}
+	<div
+		class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+		transition:fade={{ duration: 150 }}
+	>
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="leave-deck-title"
+			class="mx-4 w-full max-w-sm rounded-2xl border border-card-stroke bg-card-bg p-6 shadow-xl"
+		>
+			<h2 id="leave-deck-title" class="text-lg font-semibold text-text-default">
+				Leave the {focusDef(activeFocus).label} deck?
+			</h2>
+			<p class="mt-2 text-sm text-text-subtitle">
+				This deck has no {prompt.label} sentences. Leave it to practise {prompt.label}?
+			</p>
+			<div class="mt-5 flex gap-3">
+				<button
+					type="button"
+					onclick={() => {
+						// `prompt` follows leaveDeckPrompt, so take the action before closing.
+						const { confirm } = prompt;
+						leaveDeckPrompt = null;
+						confirm();
+					}}
+					class="flex-1 cursor-pointer rounded-xl border border-card-stroke px-4 py-2.5 text-sm font-medium text-text-subtitle transition-colors hover:text-text-default"
+				>
+					Leave deck
+				</button>
+				<button
+					type="button"
+					onclick={() => (leaveDeckPrompt = null)}
+					class="flex-1 cursor-pointer rounded-xl bg-emphasis px-4 py-2.5 text-sm font-medium text-text-inverted transition-opacity hover:opacity-90"
+				>
+					Stay
 				</button>
 			</div>
 		</div>

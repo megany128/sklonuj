@@ -15,6 +15,9 @@
 		 * entry back via onLockedSelect. */
 		lockedCases?: L[];
 		onLockedSelect?: (locked: L) => void;
+		/** Available cases the active deck has no sentences for. Rendered greyed
+		 * out but still clickable: onSelect decides whether to leave the deck. */
+		outsideCases?: Case[];
 	}
 
 	let {
@@ -23,7 +26,8 @@
 		onSelect,
 		availableCases = ALL_CASES,
 		lockedCases = [],
-		onLockedSelect
+		onLockedSelect,
+		outsideCases = []
 	}: Props = $props();
 
 	// Render pills in the canonical 7-case order regardless of available/locked
@@ -66,13 +70,18 @@
 		{@const locked = lockedCases.find((l) => l.case === c)}
 		{#if availableCases.includes(c)}
 			{@const isSelected = selectedCase === c}
+			{@const outside = outsideCases.includes(c)}
 			{@const strength = caseStrengths[c]}
 			{@const hex = CASE_HEX[c]}
 			{@const accuracyPct = strength.attempts > 0 ? Math.round(strength.accuracy * 100) : null}
-			{@const accColor = strength.attempts > 0 ? accuracyColor(strength.accuracy) : null}
+			{@const accColor =
+				strength.attempts > 0 && !outside ? accuracyColor(strength.accuracy) : null}
 			<button
 				aria-pressed={isSelected}
-				class="case-pill flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-[background-color,border-color] duration-200 ease-out sm:px-2 sm:py-2
+				title={outside ? 'Not in this deck' : undefined}
+				class="case-pill {outside
+					? 'opacity-40 grayscale hover:opacity-70'
+					: ''} flex cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-1.5 py-1.5 text-sm font-semibold transition-[background-color,border-color] duration-200 ease-out sm:px-2 sm:py-2
 					{accColor && !isSelected ? '' : 'border-card-stroke'}"
 				style={isSelected
 					? `background-color: ${hex}; border-color: ${hex}; --case-color: ${hex}`
