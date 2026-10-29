@@ -1,6 +1,6 @@
 import { page } from 'vitest/browser';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import type { AdjectiveEntry, MultiStepQuestion, WordEntry } from '$lib/types';
+import type { AdjectiveEntry, CaseForms, MultiStepQuestion, WordEntry } from '$lib/types';
 
 const { default: MultiStepCard } = await import('./MultiStepCard.svelte');
 const { render, cleanup } = await import('vitest-browser-svelte');
@@ -19,7 +19,7 @@ const segra: WordEntry = {
 	}
 };
 
-const forms = (sg: string[], pl: string[]) => ({ sg, pl });
+const forms = (sg: CaseForms, pl: CaseForms) => ({ sg, pl });
 const maly: AdjectiveEntry = {
 	lemma: 'malý',
 	translation: 'small',
