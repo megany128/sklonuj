@@ -172,6 +172,12 @@ describe('content sweep: sentence frames', () => {
 			level: 'A2',
 			takes: ['lékař', 'kamarádka'],
 			rejects: ['mimino', 'miminko', 'batole']
+		},
+		{
+			id: 'dat_zavolat_310',
+			level: 'A2',
+			takes: ['lékař', 'kamarádka'],
+			rejects: ['mimino', 'miminko', 'batole']
 		}
 	];
 
