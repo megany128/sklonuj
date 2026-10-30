@@ -176,13 +176,24 @@
 	},
 	{
 		"id": "acc_volat_026",
-		"template": "Volám ___.",
+		"template": "Volám ___ na večeři.",
 		"lemmaCategory": "people",
 		"requiredCase": "acc",
 		"number": "sg",
 		"trigger": "",
-		"why": "volat (to call/phone) + direct object → accusative",
+		"why": "volat (to call someone over) → accusative\nCompare: zavolat komu (to phone someone) → dative",
 		"difficulty": "A1",
+		"topics": ["verbs"]
+	},
+	{
+		"id": "dat_zavolat_310",
+		"template": "Večer zavolám ___.",
+		"lemmaCategory": "people",
+		"requiredCase": "dat",
+		"number": "sg",
+		"trigger": "",
+		"why": "zavolat (to phone someone) → dative\nCompare: volat koho na večeři (to call someone over) → accusative",
+		"difficulty": "A2",
 		"topics": ["verbs"]
 	},
 	{
