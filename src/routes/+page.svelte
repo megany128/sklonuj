@@ -3442,10 +3442,14 @@
 		if (practise !== null && selectedParadigm && q.word.paradigm !== selectedParadigm) {
 			return false;
 		}
-		// An adjective or ten run keeps to its gender, and to agreeing words.
+		// An adjective or ten run keeps to its gender, and to its own kind of
+		// question: ten questions for a ten run, other adjectives otherwise.
 		if (practise?.gender != null) {
 			const noun = agreeingNoun(q);
 			if (q.wordCategory !== 'adjective' || noun === null || !practiseNounFits(noun)) return false;
+			const isTen = q.template.topics?.includes('demonstratives') === true;
+			if (practise.source === 'ten' && !isTen) return false;
+			if (practise.source === 'adjective' && isTen) return false;
 		}
 		// A deck sets its own content and exercise types (noun sentences, or the
 		// determiner deck's own), so its misses come back whatever the learner's
@@ -3782,7 +3786,11 @@
 		// about one in five. A miss (no sentence fits the case and number
 		// filters) falls through to the usual content.
 		// A ten rundown's "Practise 5" asks only ten questions.
-		if (practise?.source === 'ten' || (demonstrativesActive && Math.random() < 0.2)) {
+		// An adjective rundown's run skips them.
+		if (
+			practise?.source === 'ten' ||
+			(practise?.source !== 'adjective' && demonstrativesActive && Math.random() < 0.2)
+		) {
 			const prog = get(progress);
 			const levelConfig = curriculum[prog.level];
 			const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
