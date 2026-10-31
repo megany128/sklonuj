@@ -291,6 +291,23 @@ describe('determiner questions', () => {
 		expect(pick(random, ALL_BUT_VOC, [])).toBeNull();
 	});
 
+	// A "Practise 5" run from a feminine rundown asks feminine nouns only.
+	it('keeps to the nouns the filter allows', () => {
+		const random = seeded(5);
+		for (let i = 0; i < 60; i++) {
+			const q = pickDeterminerQuestion({
+				nounFilter: (w) => getAdjectiveGenderKey(w) === 'f',
+				cases: ['dat'],
+				numbers: ['sg'],
+				difficulties: ['A1', 'A2'],
+				progress,
+				recentTemplateIds: [],
+				random
+			});
+			expect(q?.word.gender).toBe('f');
+		}
+	});
+
 	it('grades the short form as right and a wrong gender as wrong', () => {
 		const random = seeded(11);
 		let checked = 0;

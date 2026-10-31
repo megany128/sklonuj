@@ -481,7 +481,7 @@ export interface DeterminerPick {
 	set?: DeterminerSet;
 	/** Only this word (mistake review re-asks the word that was missed). */
 	lemma?: string;
-	/** Ten questions only: the nouns allowed, e.g. a chapter's vocabulary. */
+	/** The nouns allowed, e.g. a chapter's vocabulary or one gender. */
 	nounFilter?: (noun: WordEntry) => boolean;
 	/** Ten questions only: ask plurals without the A2 singular-first gate. */
 	skipSingularFirst?: boolean;
@@ -509,7 +509,9 @@ export function pickDeterminerQuestion(pick: DeterminerPick): DrillQuestion | nu
 		set === 'demonstratives'
 			? pickFrame(pick, fits, random)
 			: pickWeightedTemplate(
-					loadDeterminerTemplates().filter((t) => fits(t.template)),
+					loadDeterminerTemplates().filter(
+						(t) => fits(t.template) && (pick.nounFilter === undefined || pick.nounFilter(t.noun))
+					),
 					() => 1,
 					pick.recentTemplateIds,
 					random

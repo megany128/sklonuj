@@ -33,6 +33,7 @@
 		AdjectiveEntry,
 		Case,
 		ContentMode,
+		AdjectiveGenderKey,
 		Difficulty,
 		DrillQuestion,
 		DrillResult,
@@ -49,6 +50,7 @@
 		SentenceTemplate
 	} from '$lib/types';
 	import {
+		ALL_ADJECTIVE_GENDER_KEYS,
 		ALL_CASES,
 		LEVEL_ORDER,
 		ALL_DRILL_TYPES,
@@ -202,6 +204,7 @@
 		type LearningCardModel,
 		type Miss
 	} from '$lib/engine/learning-cards';
+	import { agreeingNoun } from '$lib/engine/agreeing-noun';
 	import ReferenceSidebar from '$lib/components/ReferenceSidebar.svelte';
 
 	import NavBar from '$lib/components/ui/NavBar.svelte';
@@ -1723,6 +1726,12 @@
 	let practise = $state<{
 		case: Case;
 		number: Number_;
+		/** The rundown's title, e.g. "Dative · feminine". */
+		label: string;
+		/** An adjective or ten rundown keeps to the gender it was about. */
+		gender: AdjectiveGenderKey | null;
+		/** What a gender rundown was about: ten questions, or adjectives. */
+		source: 'ten' | 'adjective' | null;
 		remaining: number;
 		previousCase: Case | 'all';
 		previousParadigm: string | null;
@@ -3231,10 +3240,13 @@
 		const eligibleWords = withChapterWords(
 			filterByParadigm(
 				wordBank.filter(
-					(w) => unlockedDifficulties.includes(w.difficulty) && nounTakesAdjectives(w)
+					(w) =>
+						unlockedDifficulties.includes(w.difficulty) &&
+						nounTakesAdjectives(w) &&
+						practiseNounFits(w)
 				)
 			),
-			nounTakesAdjectives
+			(w) => nounTakesAdjectives(w) && practiseNounFits(w)
 		);
 		if (eligibleWords.length === 0) return null;
 
@@ -3430,6 +3442,11 @@
 		if (practise !== null && selectedParadigm && q.word.paradigm !== selectedParadigm) {
 			return false;
 		}
+		// An adjective or ten run keeps to its gender, and to agreeing words.
+		if (practise?.gender != null) {
+			const noun = agreeingNoun(q);
+			if (q.wordCategory !== 'adjective' || noun === null || !practiseNounFits(noun)) return false;
+		}
 		// A deck sets its own content and exercise types (noun sentences, or the
 		// determiner deck's own), so its misses come back whatever the learner's
 		// usual settings say.
@@ -3568,7 +3585,21 @@
 			const [, kind, , number, detail] = card.key.split(':');
 			const paradigm =
 				kind === 'noun' && detail !== undefined && isParadigm(detail) ? detail : null;
-			startPractise(card.case, number === 'pl' ? 'pl' : 'sg', paradigm);
+			const gender =
+				kind === 'adj' ? (ALL_ADJECTIVE_GENDER_KEYS.find((g) => g === detail) ?? null) : null;
+			const misses = struggleMisses[card.key.slice('struggle:'.length)] ?? [];
+			const latest = misses[misses.length - 1]?.question;
+			const source =
+				gender === null
+					? null
+					: latest?.template.topics?.includes('demonstratives') === true
+						? 'ten'
+						: 'adjective';
+			startPractise(card.case, number === 'pl' ? 'pl' : 'sg', card.title, {
+				paradigm,
+				gender,
+				source
+			});
 			return;
 		}
 		// Another card may be due (a deck's intro, then its first case's).
@@ -3582,11 +3613,27 @@
 		if (practise.remaining <= 0) endPractise();
 	}
 
-	/** A noun rundown's practice keeps to its word pattern too ("like hrad"). */
-	function startPractise(c: Case, number: Number_, paradigm: string | null): void {
+	/**
+	 * A noun rundown's practice keeps to its word pattern too ("like hrad"),
+	 * and an adjective or ten rundown to its kind of question and gender.
+	 */
+	function startPractise(
+		c: Case,
+		number: Number_,
+		label: string,
+		focus: {
+			paradigm: string | null;
+			gender: AdjectiveGenderKey | null;
+			source: 'ten' | 'adjective' | null;
+		}
+	): void {
+		const { paradigm, gender, source } = focus;
 		practise = {
 			case: c,
 			number,
+			label,
+			gender,
+			source,
 			remaining: PRACTISE_COUNT,
 			previousCase: practise?.previousCase ?? selectedCase,
 			previousParadigm: practise?.previousParadigm ?? selectedParadigm
@@ -3594,6 +3641,11 @@
 		selectedCase = c;
 		if (paradigm !== null) selectedParadigm = paradigm;
 		generateNextQuestion();
+	}
+
+	/** Whether a noun fits the gender a "Practise 5" run keeps to (any, outside one). */
+	function practiseNounFits(w: WordEntry): boolean {
+		return practise?.gender == null || getAdjectiveGenderKey(w) === practise.gender;
 	}
 
 	function endPractise(): void {
@@ -3703,6 +3755,7 @@
 			const determinerQ = pickDeterminerQuestion({
 				set: deckSource,
 				lemma: deckSource === 'demonstratives' ? (deckWord ?? undefined) : undefined,
+				nounFilter: practise?.gender != null ? practiseNounFits : undefined,
 				cases: deckCases.filter((c) => levelConfig.unlocked_cases.includes(c)),
 				numbers: allowedNumbers(),
 				difficulties: levelConfig.unlocked_difficulty,
@@ -3728,7 +3781,8 @@
 		// The Ten, ta, to setting mixes ten questions into the usual drill,
 		// about one in five. A miss (no sentence fits the case and number
 		// filters) falls through to the usual content.
-		if (demonstrativesActive && Math.random() < 0.2) {
+		// A ten rundown's "Practise 5" asks only ten questions.
+		if (practise?.source === 'ten' || (demonstrativesActive && Math.random() < 0.2)) {
 			const prog = get(progress);
 			const levelConfig = curriculum[prog.level];
 			const cases = selectedCase === 'all' ? effectiveEnabledCases : [selectedCase];
@@ -3738,7 +3792,8 @@
 			const chapterLemmas = chapterWords ? new Set(chapterWords.map((w) => w.lemma)) : null;
 			const demonstrativeQ = pickDeterminerQuestion({
 				set: 'demonstratives',
-				nounFilter: chapterLemmas ? (w) => chapterLemmas.has(w.lemma) : undefined,
+				nounFilter: (w) =>
+					(chapterLemmas === null || chapterLemmas.has(w.lemma)) && practiseNounFits(w),
 				cases: cases.filter((c) => levelConfig.unlocked_cases.includes(c)),
 				numbers: allowedNumbers(),
 				difficulties: levelConfig.unlocked_difficulty,
@@ -3765,6 +3820,7 @@
 		const contentDecision = (() => {
 			// Focus topics are noun sentences; adjectives and pronouns sit them out.
 			if (activeFocus !== null) return 'noun' as const;
+			if (practise?.gender != null) return 'adjective' as const;
 			if (effectiveWordMode === 'adjectives') return 'adjective' as const;
 			if (effectiveWordMode === 'both' && Math.random() < 0.3) return 'adjective' as const;
 			if (effectiveContentMode === 'pronouns') return 'pronoun' as const;
@@ -3858,8 +3914,12 @@
 		// For adjective content with non-multi-step types, generate adjective drill
 		// form_production and sentence_fill_in are both supported; case_identification
 		// falls back to sentence_fill_in since adjective case ID is not yet implemented.
-		if (contentDecision === 'adjective' && drillType !== 'multi_step') {
-			const adjectivesOnly = effectiveWordMode === 'adjectives';
+		// A gender run asks adjective sentences even where a multi-step was due.
+		if (
+			contentDecision === 'adjective' &&
+			(drillType !== 'multi_step' || practise?.gender != null)
+		) {
+			const adjectivesOnly = effectiveWordMode === 'adjectives' || practise?.gender != null;
 			const adjDrillType =
 				drillType === 'form_production' || drillType === 'sentence_fill_in'
 					? drillType
@@ -5962,7 +6022,7 @@
 				>
 					<span
 						>Practising <span class="font-semibold {CASE_COLORS[practise.case].text}"
-							>{CASE_LABELS[practise.case]}{practise.number === 'pl' ? ' plural' : ''}</span
+							>{practise.label}</span
 						>
 						· {practise.remaining} left</span
 					>
