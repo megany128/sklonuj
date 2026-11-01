@@ -16,8 +16,8 @@ Usage:
     pnpm tts:generate [-- FLAGS]         # or: python3 scripts/generate_tts.py
 
 Flags:
-    --voice <name>        edge-tts voice (default: cs-CZ-AntoninNeural;
-                          alternate: cs-CZ-VlastaNeural)
+    --voice <name>        edge-tts voice (default: cs-CZ-VlastaNeural;
+                          alternate: cs-CZ-AntoninNeural)
     --only "a,b,c"        regenerate only the listed strings and merge into
                           the existing manifest. Implies --force.
     --prune               after a full run, delete MP3s no longer referenced
@@ -61,7 +61,7 @@ OUT_DIR = REPO_ROOT / "static" / "audio"
 VENV_DIR = REPO_ROOT / "scripts" / ".venv-tts"
 REQ_FILE = REPO_ROOT / "scripts" / "requirements-tts.txt"
 
-DEFAULT_VOICE = "cs-CZ-AntoninNeural"
+DEFAULT_VOICE = "cs-CZ-VlastaNeural"
 HASH_LEN = 16
 CONCURRENCY = 8
 MAX_RETRIES = 3
