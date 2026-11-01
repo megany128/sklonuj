@@ -327,7 +327,7 @@
 			<div class="flex items-center gap-2">
 				<Trophy class="size-4 text-warning-text" aria-hidden="true" />
 				<span class="text-sm font-medium text-text-default">
-					You're #{myRank}{getRankSuffix(myRank)} this week
+					You're {myRank}{getRankSuffix(myRank)} this week
 				</span>
 				{#if pointsBehind > 0 && nextRankEntry}
 					<span class="hidden text-xs text-text-subtitle sm:inline">
