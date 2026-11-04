@@ -1,5 +1,6 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type { CellSchedule } from '$lib/types';
+import type { PageCache } from '$lib/server/anon-page-cache';
 
 interface PublicUser {
 	id: string;
@@ -15,6 +16,11 @@ declare global {
 			user: User | null;
 			/** Validated `sklonuj_guest_id` cookie (anonymous leaderboard identity), or null. */
 			guestId: string | null;
+		}
+		/** The parts of adapter-cloudflare's platform object this app uses. */
+		interface Platform {
+			caches: { open(name: string): Promise<PageCache> };
+			ctx: { waitUntil(promise: Promise<unknown>): void };
 		}
 		interface PageData {
 			user: PublicUser | null;
