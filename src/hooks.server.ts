@@ -3,6 +3,12 @@ import { building } from '$app/environment';
 import { createSupabaseServerClient } from '$lib/supabase-server';
 import { GUEST_ID_STORAGE_KEY, isGuestId } from '$lib/engine/guest-id';
 import { handlePostHogProxy, isPostHogProxyRequest } from '$lib/posthog-proxy';
+import {
+	anonPageKey,
+	readAnonPage,
+	storeAnonPage,
+	ANON_PAGE_CACHE_NAME
+} from '$lib/server/anon-page-cache';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Redirect www to apex domain
@@ -17,6 +23,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// never touch Supabase and aren't blocked by tracker lists.
 	if (isPostHogProxyRequest(event)) {
 		return handlePostHogProxy(event);
+	}
+
+	// Serve the shared logged-out homepage before doing any auth work. Absent in
+	// `vite dev` and during prerendering, where nothing is cached.
+	const anonKey = building ? null : anonPageKey(event.request);
+	const anonCache = anonKey ? await event.platform?.caches.open(ANON_PAGE_CACHE_NAME) : undefined;
+	if (anonKey && anonCache) {
+		const cached = await readAnonPage(anonCache, anonKey);
+		if (cached) return cached;
 	}
 
 	if (building) {
@@ -64,34 +79,22 @@ export const handle: Handle = async ({ event, resolve }) => {
 		"default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://us-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.supabase.co; media-src 'self' https://audio.sklonuj.com; connect-src 'self' https://*.supabase.co https://accounts.google.com https://www.google-analytics.com https://cloudflareinsights.com https://us.i.posthog.com https://us-assets.i.posthog.com; frame-src https://challenges.cloudflare.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com"
 	);
 
-	// Edge-cache the homepage for crawler/bot sweeps so repeated hits are served
-	// from Cloudflare's CDN instead of re-invoking the function every time.
-	// Only cookieless GETs are cached: with no cookie the response can't be
-	// personalized (no auth, no guest-leaderboard window, no saved chapter), so
-	// it's the generic render and safe to share. Authenticated responses are
-	// explicitly no-store so per-user HTML can never land in a shared cache.
-	// (Static/prerendered pages are already CDN-cached as assets and don't reach
-	// this hook.)
-	if (
+	// Only cookieless GETs share a render: with no cookie the response can't be
+	// personalized (no auth, no guest-leaderboard window, no saved chapter).
+	// Authenticated responses are explicitly no-store so per-user HTML can never
+	// land in a shared cache. (Static/prerendered pages are served as assets and
+	// don't reach this hook.)
+	if (anonKey && anonCache && !event.locals.user) {
+		const write = storeAnonPage(anonCache, anonKey, response);
+		if (write) event.platform?.ctx.waitUntil(write);
+	} else if (
+		event.locals.user &&
 		event.request.method === 'GET' &&
 		(response.headers.get('content-type') ?? '').includes('text/html') &&
 		!response.headers.has('Cache-Control')
 	) {
-		if (event.locals.user) {
-			response.headers.set('Cache-Control', 'private, no-store');
-		} else if (
-			CACHEABLE_ANON_PATHS.has(event.url.pathname) &&
-			!event.request.headers.get('cookie')
-		) {
-			response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
-			response.headers.append('Vary', 'Cookie');
-		}
+		response.headers.set('Cache-Control', 'private, no-store');
 	}
 
 	return response;
 };
-
-// Dynamic (non-prerendered) routes whose cookieless render is identical for
-// every visitor — safe to serve from the CDN cache. The homepage is the hot
-// path crawlers hammer; personalization happens client-side after load.
-const CACHEABLE_ANON_PATHS = new Set(['/']);
