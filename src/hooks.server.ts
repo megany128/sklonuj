@@ -27,7 +27,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// Serve the shared logged-out homepage before doing any auth work. Absent in
 	// `vite dev` and during prerendering, where nothing is cached.
-	const anonKey = building ? null : anonPageKey(event.request, event.url);
+	const anonKey = building ? null : anonPageKey(event.request);
 	const anonCache = anonKey ? await event.platform?.caches.open(ANON_PAGE_CACHE_NAME) : undefined;
 	if (anonKey && anonCache) {
 		const cached = await readAnonPage(anonCache, anonKey);

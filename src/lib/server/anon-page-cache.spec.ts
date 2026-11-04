@@ -32,18 +32,21 @@ function adapterWouldSave(response: Response): boolean {
 
 describe('anonPageKey', () => {
 	it('shares the homepage between cookieless visitors', () => {
-		expect(anonPageKey(homeRequest(), new URL(HOME))).toBe(HOME);
+		expect(anonPageKey(homeRequest())).toBe(HOME);
 	});
 
 	it('never shares a page with a visitor who sends a cookie', () => {
 		const request = homeRequest({ cookie: 'sb-abc-auth-token=base64-xyz' });
-		expect(anonPageKey(request, new URL(HOME))).toBeNull();
+		expect(anonPageKey(request)).toBeNull();
 	});
 
 	it('only covers listed paths and GET', () => {
-		const url = `${HOME}profile`;
-		expect(anonPageKey(new Request(url), new URL(url))).toBeNull();
-		expect(anonPageKey(new Request(HOME, { method: 'POST' }), new URL(HOME))).toBeNull();
+		expect(anonPageKey(new Request(`${HOME}profile`))).toBeNull();
+		expect(anonPageKey(new Request(HOME, { method: 'POST' }))).toBeNull();
+	});
+
+	it('does not treat a SvelteKit data request as the page', () => {
+		expect(anonPageKey(new Request(`${HOME}__data.json?x-sveltekit-invalidated=10`))).toBeNull();
 	});
 });
 

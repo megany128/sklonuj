@@ -24,10 +24,14 @@ export interface PageCache {
  * The cache key for a request that may share the logged-out page, or null if it
  * must be rendered for its sender. Any cookie opts out: it may carry a session
  * or a guest id, both of which change the render.
+ *
+ * Reads the raw request URL, not `event.url`: SvelteKit strips `/__data.json`
+ * from the latter, so a data request would look like the page and get its HTML.
  */
-export function anonPageKey(request: Request, url: URL): string | null {
+export function anonPageKey(request: Request): string | null {
 	if (request.method !== 'GET') return null;
 	if (request.headers.has('cookie')) return null;
+	const url = new URL(request.url);
 	return CACHEABLE_PATHS.has(url.pathname) ? url.href : null;
 }
 
